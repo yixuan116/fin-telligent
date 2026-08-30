@@ -173,21 +173,25 @@
 
   .context-tags {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     margin: 0;
-    padding: 0;
+    padding: 0 0 4px;
     list-style: none;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .context-tag {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
+    gap: 5px;
+    padding: 6px 11px;
     border-radius: 999px;
-    font-size: 0.85rem;
+    font-size: 0.76rem;
     font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .context-tag:nth-child(1) { background: var(--blue-tint); color: var(--blue); }
@@ -948,7 +952,7 @@
 
   <header class="hero">
     <h1>AI Assistant and Me (Finance Analyst): Who Does What</h1>
-    <p>Case: mismatch, diagnosed with a price-volume-mix waterfall</p>
+    <p>Case: Growth &ne; Profit, diagnosed with a price-volume-mix waterfall</p>
   </header>
 
   <div class="conversation">
