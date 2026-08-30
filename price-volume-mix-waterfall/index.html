@@ -172,12 +172,27 @@
   /* ---------- business context (lighter, background) ---------- */
 
   .context-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    line-height: 1.5;
+    padding: 0;
+    list-style: none;
   }
+
+  .context-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .context-tag:nth-child(1) { background: var(--blue-tint); color: var(--blue); }
+  .context-tag:nth-child(2) { background: var(--green-tint); color: var(--green); }
+  .context-tag:nth-child(3) { background: var(--amber-tint); color: var(--orange); }
 
   /* ---------- collapse after expand ---------- */
 
@@ -944,7 +959,11 @@
         <div class="ai-dot" aria-hidden="true">1</div>
         <div class="ai-content">
           <p class="ai-message">What does this company do?</p>
-          <p class="context-tags">SaaS Platform&nbsp;|&nbsp;Small-and-Medium Business Exporters&nbsp;|&nbsp;Commission-Based Field Sales</p>
+          <ul class="context-tags">
+            <li class="context-tag">💻 SaaS Platform</li>
+            <li class="context-tag">🌍 Small-and-Medium Business Exporters</li>
+            <li class="context-tag">🤝 Commission-Based Field Sales</li>
+          </ul>
         </div>
       </div>
     </section>
