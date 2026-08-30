@@ -1,4 +1,6 @@
-# Business X-Ray
+# Price / Volume / Mix Waterfall
+
+Part of the [fin-telligent](https://github.com/yixuan116/fin-telligent) series.
 
 AI-driven financial diagnostics in a few minutes. A single-page, chat-style demo that opens
 on a gross profit miss (down 15% despite flat revenue), traces it to a product mix shift
@@ -8,7 +10,7 @@ slider. One turn at a time, styled like a live conversation with an AI assistant
 
 Pure HTML, CSS, and JavaScript. No build step, no frameworks. Charts via [Chart.js](https://www.chartjs.org/).
 
-**Live demo:** [yixuan116.github.io/business-x-ray/price-volume-mix-waterfall/](https://yixuan116.github.io/business-x-ray/price-volume-mix-waterfall/)
+**Live demo:** [yixuan116.github.io/fin-telligent/price-volume-mix-waterfall/](https://yixuan116.github.io/fin-telligent/price-volume-mix-waterfall/)
 
 ## Screenshots
 
@@ -50,7 +52,7 @@ after that step, expanded down through the prior ones.
 ## Structure
 
 ```
-business-x-ray/
+fin-telligent/
   price-volume-mix-waterfall/
     index.html        the complete demo, one file
     Pictures/          QR code images used on the contact section
