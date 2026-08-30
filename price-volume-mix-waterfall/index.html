@@ -169,6 +169,29 @@
     padding-right: 34px;
   }
 
+  /* ---------- business context (lighter, background) ---------- */
+
+  .ai-dot--muted {
+    background: var(--text-muted);
+  }
+
+  .context-label {
+    margin: 0 0 6px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .context-tags {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
   /* ---------- collapse after expand ---------- */
 
   .ai-collapse-shell {
@@ -928,10 +951,21 @@
 
   <div class="conversation">
 
-    <!-- PAGE 1: auto-open, no question -->
+    <!-- PAGE 1: business context, auto-open, no question -->
     <section class="turn" id="page-1">
       <div class="ai-avatar-row fade-in">
-        <div class="ai-dot" aria-hidden="true">1</div>
+        <div class="ai-dot ai-dot--muted" aria-hidden="true">1</div>
+        <div class="ai-content">
+          <p class="context-label">What does this company do?</p>
+          <p class="context-tags">SaaS Platform&nbsp;|&nbsp;Small-and-Medium Business Exporters&nbsp;|&nbsp;Commission-Based Field Sales</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: auto-open, no question -->
+    <section class="turn" id="page-2">
+      <div class="ai-avatar-row fade-in">
+        <div class="ai-dot" aria-hidden="true">2</div>
         <div class="ai-content">
           <p class="ai-message">Full Picture from Q1 to Q2.</p>
           <div class="kpi-grid">
@@ -959,16 +993,16 @@
     </section>
 
     <!-- PAGE 2: per-unit profitability -->
-    <section class="turn" id="page-2">
-      <div class="user-row reveal-anim" id="user-2" hidden>
-        <div class="user-question" data-page="2">What changed?</div>
+    <section class="turn" id="page-3">
+      <div class="user-row reveal-anim" id="user-3" hidden>
+        <div class="user-question" data-page="3">What changed?</div>
       </div>
-      <div class="ai-collapse-shell" id="collapseShell-2">
+      <div class="ai-collapse-shell" id="collapseShell-3">
         <div class="ai-collapse-inner">
-          <div class="ai-avatar-row reveal-anim" id="ai-2" hidden>
-            <div class="ai-dot" aria-hidden="true">2</div>
+          <div class="ai-avatar-row reveal-anim" id="ai-3" hidden>
+            <div class="ai-dot" aria-hidden="true">3</div>
             <div class="ai-content ai-content--collapsible">
-              <button class="collapse-btn" id="collapseBtn-2" data-page="2" type="button" aria-label="Collapse this response">
+              <button class="collapse-btn" id="collapseBtn-3" data-page="3" type="button" aria-label="Collapse this response">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
               </button>
               <p class="ai-message">2 Product lines with higher and lower profits.</p>
@@ -987,16 +1021,16 @@
     </section>
 
     <!-- PAGE 3: comparison, Q1 vs Q2 mix and total profit -->
-    <section class="turn" id="page-3">
-      <div class="user-row reveal-anim" id="user-3" hidden>
-        <div class="user-question" data-page="3">Scale?</div>
+    <section class="turn" id="page-4">
+      <div class="user-row reveal-anim" id="user-4" hidden>
+        <div class="user-question" data-page="4">Scale?</div>
       </div>
-      <div class="ai-collapse-shell" id="collapseShell-3">
+      <div class="ai-collapse-shell" id="collapseShell-4">
         <div class="ai-collapse-inner">
-          <div class="ai-avatar-row reveal-anim" id="ai-3" hidden>
-            <div class="ai-dot" aria-hidden="true">3</div>
+          <div class="ai-avatar-row reveal-anim" id="ai-4" hidden>
+            <div class="ai-dot" aria-hidden="true">4</div>
             <div class="ai-content ai-content--collapsible">
-              <button class="collapse-btn" id="collapseBtn-3" data-page="3" type="button" aria-label="Collapse this response">
+              <button class="collapse-btn" id="collapseBtn-4" data-page="4" type="button" aria-label="Collapse this response">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
               </button>
               <p class="ai-message">Business Drivers: Price x Volume. Easy!</p>
@@ -1030,16 +1064,16 @@
     </section>
 
     <!-- PAGE 4: drivers, Q1 vs Q2 -->
-    <section class="turn" id="page-4">
-      <div class="user-row reveal-anim" id="user-4" hidden>
-        <div class="user-question" data-page="4">Drivers Waterfall.</div>
+    <section class="turn" id="page-5">
+      <div class="user-row reveal-anim" id="user-5" hidden>
+        <div class="user-question" data-page="5">Drivers Waterfall.</div>
       </div>
-      <div class="ai-collapse-shell" id="collapseShell-4">
+      <div class="ai-collapse-shell" id="collapseShell-5">
         <div class="ai-collapse-inner">
-          <div class="ai-avatar-row reveal-anim" id="ai-4" hidden>
-            <div class="ai-dot" aria-hidden="true">4</div>
+          <div class="ai-avatar-row reveal-anim" id="ai-5" hidden>
+            <div class="ai-dot" aria-hidden="true">5</div>
             <div class="ai-content ai-content--collapsible">
-              <button class="collapse-btn" id="collapseBtn-4" data-page="4" type="button" aria-label="Collapse this response">
+              <button class="collapse-btn" id="collapseBtn-5" data-page="5" type="button" aria-label="Collapse this response">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
               </button>
               <p class="ai-message">Price stayed flat. Volume shifted from P1 to P2.</p>
@@ -1058,16 +1092,16 @@
     </section>
 
     <!-- PAGE 5: three options overview -->
-    <section class="turn" id="page-5">
-      <div class="user-row reveal-anim" id="user-5" hidden>
-        <div class="user-question" data-page="5">Options?</div>
+    <section class="turn" id="page-6">
+      <div class="user-row reveal-anim" id="user-6" hidden>
+        <div class="user-question" data-page="6">Options?</div>
       </div>
-      <div class="ai-collapse-shell" id="collapseShell-5">
+      <div class="ai-collapse-shell" id="collapseShell-6">
         <div class="ai-collapse-inner">
-          <div class="ai-avatar-row reveal-anim" id="ai-5" hidden>
-            <div class="ai-dot" aria-hidden="true">5</div>
+          <div class="ai-avatar-row reveal-anim" id="ai-6" hidden>
+            <div class="ai-dot" aria-hidden="true">6</div>
             <div class="ai-content ai-content--collapsible">
-              <button class="collapse-btn" id="collapseBtn-5" data-page="5" type="button" aria-label="Collapse this response">
+              <button class="collapse-btn" id="collapseBtn-6" data-page="6" type="button" aria-label="Collapse this response">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
               </button>
               <p class="ai-message">Three options.</p>
@@ -1096,16 +1130,16 @@
     </section>
 
     <!-- PAGE 6: Option B, promotional pricing -->
-    <section class="turn" id="page-6">
-      <div class="user-row reveal-anim" id="user-6" hidden>
-        <div class="user-question" data-page="6">B: Cut Price</div>
+    <section class="turn" id="page-7">
+      <div class="user-row reveal-anim" id="user-7" hidden>
+        <div class="user-question" data-page="7">B: Cut Price</div>
       </div>
-      <div class="ai-collapse-shell" id="collapseShell-6">
+      <div class="ai-collapse-shell" id="collapseShell-7">
         <div class="ai-collapse-inner">
-          <div class="ai-avatar-row reveal-anim" id="ai-6" hidden>
-            <div class="ai-dot" aria-hidden="true">6</div>
+          <div class="ai-avatar-row reveal-anim" id="ai-7" hidden>
+            <div class="ai-dot" aria-hidden="true">7</div>
             <div class="ai-content ai-content--collapsible">
-              <button class="collapse-btn" id="collapseBtn-6" data-page="6" type="button" aria-label="Collapse this response">
+              <button class="collapse-btn" id="collapseBtn-7" data-page="7" type="button" aria-label="Collapse this response">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
               </button>
               <p class="ai-message">Option B: promotional pricing on P1. Cut price, pull volume back.</p>
@@ -1175,16 +1209,16 @@
     </section>
 
     <!-- PAGE 7: Option C, change sales comp -->
-    <section class="turn" id="page-7">
-      <div class="user-row reveal-anim" id="user-7" hidden>
-        <div class="user-question" data-page="7">And Option C?</div>
+    <section class="turn" id="page-8">
+      <div class="user-row reveal-anim" id="user-8" hidden>
+        <div class="user-question" data-page="8">And Option C?</div>
       </div>
-      <div class="ai-collapse-shell" id="collapseShell-7">
+      <div class="ai-collapse-shell" id="collapseShell-8">
         <div class="ai-collapse-inner">
-          <div class="ai-avatar-row reveal-anim" id="ai-7" hidden>
-            <div class="ai-dot" aria-hidden="true">7</div>
+          <div class="ai-avatar-row reveal-anim" id="ai-8" hidden>
+            <div class="ai-dot" aria-hidden="true">8</div>
             <div class="ai-content ai-content--collapsible">
-              <button class="collapse-btn" id="collapseBtn-7" data-page="7" type="button" aria-label="Collapse this response">
+              <button class="collapse-btn" id="collapseBtn-8" data-page="8" type="button" aria-label="Collapse this response">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
               </button>
               <p class="ai-message">Option C: change sales commission from volume-based to profit-based. Reps push P1.</p>
@@ -1221,16 +1255,16 @@
     </section>
 
     <!-- PAGE 8: wrap up, folds in the contact section -->
-    <section class="turn" id="page-8">
-      <div class="user-row reveal-anim" id="user-8" hidden>
-        <div class="user-question" data-page="8">Why does this matter?</div>
+    <section class="turn" id="page-9">
+      <div class="user-row reveal-anim" id="user-9" hidden>
+        <div class="user-question" data-page="9">Why does this matter?</div>
       </div>
-      <div class="ai-collapse-shell" id="collapseShell-8">
+      <div class="ai-collapse-shell" id="collapseShell-9">
         <div class="ai-collapse-inner">
-          <div class="ai-avatar-row reveal-anim" id="ai-8" hidden>
-            <div class="ai-dot" aria-hidden="true">8</div>
+          <div class="ai-avatar-row reveal-anim" id="ai-9" hidden>
+            <div class="ai-dot" aria-hidden="true">9</div>
             <div class="ai-content ai-content--collapsible">
-              <button class="collapse-btn" id="collapseBtn-8" data-page="8" type="button" aria-label="Collapse this response">
+              <button class="collapse-btn" id="collapseBtn-9" data-page="9" type="button" aria-label="Collapse this response">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
               </button>
               <p class="ai-message">One conversation. From signal to decision.</p>
@@ -1707,15 +1741,15 @@
 
   /* ---------- progressive conversation flow ---------- */
 
-  var steps = [2, 3, 4, 5, 6, 7, 8];
+  var steps = [3, 4, 5, 6, 7, 8, 9];
   var questionText = {
-    2: { preview: 'What...', full: 'What changed?' },
-    3: { preview: 'Scale...', full: 'Scale?' },
-    4: { preview: 'Drivers...', full: 'Drivers Waterfall.' },
-    5: { preview: 'Options...', full: 'Options?' },
-    6: { preview: 'B...', full: 'B: Cut Price' },
-    7: { preview: 'And...', full: 'And Option C?' },
-    8: { preview: 'Why...', full: 'Why does this matter?' }
+    3: { preview: 'What...', full: 'What changed?' },
+    4: { preview: 'Scale...', full: 'Scale?' },
+    5: { preview: 'Drivers...', full: 'Drivers Waterfall.' },
+    6: { preview: 'Options...', full: 'Options?' },
+    7: { preview: 'B...', full: 'B: Cut Price' },
+    8: { preview: 'And...', full: 'And Option C?' },
+    9: { preview: 'Why...', full: 'Why does this matter?' }
   };
   var TYPE_SPEED_MS = 30;
 
@@ -1775,11 +1809,11 @@
   }
 
   var chartRenderers = {
-    2: renderChart2Unit,
-    3: renderChart3,
-    4: renderChart4,
-    6: renderChart6,
-    7: renderChart7
+    3: renderChart2Unit,
+    4: renderChart3,
+    5: renderChart4,
+    7: renderChart6,
+    8: renderChart7
   };
 
   function activateDock() {
