@@ -12,6 +12,8 @@ Pure HTML, CSS, and JavaScript. No build step, no frameworks. Charts via [Chart.
 
 **Live demo:** [yixuan116.github.io/fin-telligent/price-volume-mix-waterfall/](https://yixuan116.github.io/fin-telligent/price-volume-mix-waterfall/)
 
+**Video walkthrough:** [youtube.com/watch?v=eXZR-pW_UO4](https://www.youtube.com/watch?v=eXZR-pW_UO4)
+
 ## Screenshots
 
 The conversation unfolds one question at a time. Each screenshot below is the page state

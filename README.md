@@ -5,5 +5,6 @@ fin-telligent = finance + intelligent. A series on bringing AI into financial an
 **Demos**
 
 - price-volume-mix-waterfall: https://yixuan116.github.io/fin-telligent/price-volume-mix-waterfall/
+  - video walkthrough: https://www.youtube.com/watch?v=eXZR-pW_UO4
 
 **Full README:** [price-volume-mix-waterfall/README.md](price-volume-mix-waterfall/README.md)
