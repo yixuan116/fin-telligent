@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hardware Finance: Build to Sell</title>
-<meta name="description" content="Interactive walk-through of the hardware build-to-sell finance cycle: unit economics, scale, variance and monitoring on the build side; targets, campaign levers and monitoring on the sell side.">
+<meta name="description" content="Two synced stories in one viewport: a monthly BOM target-vs-actual timeline on the build side, and a target-vs-campaign-actual toggle with a margin waterfall on the sell side.">
 <style>
   :root {
     color-scheme: light dark;
@@ -29,9 +29,8 @@
     --orange-tint: rgba(235, 104, 52, 0.14);
     --purple-tint: rgba(124, 92, 191, 0.14);
     --amber-tint: rgba(217, 151, 31, 0.16);
-    --grid-line: rgba(20, 20, 25, 0.08);
 
-    --radius: 14px;
+    --radius: 12px;
     --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
@@ -45,7 +44,6 @@
       --text-secondary: #b7b7bc;
       --text-muted: #85858c;
       --shadow: rgba(0, 0, 0, 0.4);
-      --grid-line: rgba(255, 255, 255, 0.08);
     }
   }
 
@@ -58,484 +56,300 @@
     color: var(--text-primary);
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
+    height: 100%;
   }
 
   body {
-    padding: 28px 16px 56px;
+    overflow: hidden;
   }
 
   .app {
-    max-width: 1240px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 22px 10px;
+    max-width: 1440px;
     margin: 0 auto;
   }
 
+  /* ---------- header ---------- */
+
   header.hero {
     text-align: center;
-    margin-bottom: 28px;
+    flex: 0 0 auto;
+    margin-bottom: 10px;
   }
 
   header.hero h1 {
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     font-weight: 800;
-    margin: 0 0 6px;
+    margin: 0;
     letter-spacing: -0.01em;
   }
 
   header.hero p {
-    margin: 0;
+    margin: 2px 0 0;
     color: var(--text-secondary);
-    font-size: 0.98rem;
+    font-size: 0.8rem;
   }
 
-  /* ---------- two-column layout ---------- */
+  /* ---------- stage: two panels ---------- */
 
-  .columns {
+  .stage {
+    flex: 1 1 auto;
+    min-height: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
-    gap: 26px;
-    align-items: start;
+    gap: 20px;
   }
 
-  .col-build, .col-sell {
-    min-width: 0;
-  }
-
-  .col-divider {
+  .divider {
     background: var(--border);
-    align-self: stretch;
   }
 
-  .column-head {
+  .panel {
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 12px 16px 10px;
+    background: var(--bg);
+  }
+
+  .panel-head {
     display: flex;
     align-items: baseline;
     gap: 8px;
-    margin-bottom: 14px;
+    flex: 0 0 auto;
   }
 
-  .column-head .phase-label {
-    font-size: 0.68rem;
+  .phase-label {
+    font-size: 0.62rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 999px;
-  }
-
-  .col-build .phase-label { background: var(--blue-tint); color: var(--blue); }
-  .col-sell .phase-label { background: var(--orange-tint); color: var(--orange); }
-
-  .column-head h2 {
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin: 0;
-  }
-
-  .column-head .phase-context {
-    display: block;
-    font-size: 0.76rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-
-  /* ---------- milestone timeline ---------- */
-
-  .timeline {
-    display: flex;
-    align-items: center;
-    margin: 4px 0 22px;
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    background: var(--card-bg);
-    overflow: hidden;
-  }
-
-  .timeline-step {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 10px;
-    background: none;
-    border: none;
-    border-right: 1px solid var(--card-border);
-    cursor: pointer;
-    font-family: inherit;
-    text-align: left;
-    color: var(--text-secondary);
-    transition: background 0.2s ease, color 0.2s ease;
-  }
-
-  .timeline-step:last-child { border-right: none; }
-
-  .timeline-step:hover {
-    background: var(--blue-tint);
-  }
-
-  .timeline-step.active {
-    background: var(--blue-tint);
-    color: var(--blue);
-  }
-
-  .timeline-dot {
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--card-border);
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.72rem;
-    font-weight: 800;
   }
 
-  .timeline-step.active .timeline-dot {
-    background: var(--blue);
-    color: #fff;
-  }
+  .panel-build .phase-label { background: var(--blue-tint); color: var(--blue); }
+  .panel-sell .phase-label { background: var(--orange-tint); color: var(--orange); }
 
-  .timeline-step-label {
-    font-size: 0.78rem;
-    font-weight: 700;
-  }
-
-  /* ---------- finance sections ---------- */
-
-  .fin-section {
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 18px 18px 16px;
-    margin-bottom: 18px;
-    background: var(--bg);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  }
-
-  .fin-section.highlight {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px var(--blue-tint);
-  }
-
-  .col-sell .fin-section.highlight {
-    border-color: var(--orange);
-    box-shadow: 0 0 0 3px var(--orange-tint);
-  }
-
-  .fin-section h3 {
+  .panel-head h2 {
     font-size: 0.98rem;
     font-weight: 800;
-    margin: 0 0 4px;
+    margin: 0;
+    line-height: 1.2;
   }
 
-  .fin-section .section-sub {
-    margin: 0 0 10px;
-    font-size: 0.8rem;
+  .panel-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex: 0 0 auto;
+    margin: 2px 0 4px;
+  }
+
+  .panel-sub {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.72rem;
     color: var(--text-muted);
-    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-
-  /* ---------- tag pills ---------- */
 
   .context-tags {
     display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    margin: 0 0 12px;
+    gap: 5px;
+    margin: 0;
     padding: 0;
     list-style: none;
+    flex-shrink: 0;
   }
 
   .context-tag {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 2px 8px;
     border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .context-tag:nth-child(4n+1) { background: var(--blue-tint); color: var(--blue); }
-  .context-tag:nth-child(4n+2) { background: var(--green-tint); color: var(--green); }
-  .context-tag:nth-child(4n+3) { background: var(--purple-tint); color: var(--purple); }
-  .context-tag:nth-child(4n+4) { background: var(--orange-tint); color: var(--orange); }
-
-  /* ---------- tables ---------- */
-
-  .table-scroll {
-    overflow-x: auto;
-    margin: 4px 0 14px;
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-  }
-
-  table.data-table {
-    width: 100%;
-    min-width: 460px;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-    background: var(--card-bg);
-  }
-
-  .data-table th, .data-table td {
-    padding: 7px 11px;
-    text-align: right;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  .data-table th:first-child, .data-table td:first-child {
-    text-align: left;
-    color: var(--text-secondary);
-    font-weight: 600;
-  }
-
-  .data-table thead th {
-    color: var(--text-muted);
-    font-weight: 700;
-    font-size: 0.66rem;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    border-bottom: 1px solid var(--card-border);
-  }
-
-  .data-table tbody tr:nth-child(even) td {
-    background: rgba(128,128,128,0.045);
-  }
-
-  .data-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  .data-table td.emph {
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  .data-table tr.total-row td {
-    border-top: 2px solid var(--card-border);
-    font-weight: 800;
-  }
-
-  .data-table td.live {
-    transition: background 0.3s ease;
-  }
-
-  .data-table td.live.flash {
-    background: var(--amber-tint);
-  }
-
-  /* ---------- exposure indicators / sliders ---------- */
-
-  .exposure-row {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 12px 0 4px;
-  }
-
-  .exposure-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .exposure-label {
-    flex: 0 0 190px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-  }
-
-  .exposure-item input[type="range"] {
-    flex: 1;
-    min-width: 120px;
-    accent-color: var(--blue);
-  }
-
-  .exposure-value {
-    flex: 0 0 auto;
-    min-width: 54px;
-    text-align: right;
-    font-size: 0.8rem;
-    font-weight: 800;
-    color: var(--text-primary);
-  }
-
-  .exposure-static {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-  }
-
-  .delta-line {
-    margin: 10px 0 0;
-    font-size: 0.82rem;
-    font-weight: 700;
-    text-align: center;
-    padding: 8px 10px;
-    border-radius: 10px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-  }
-
-  .delta-line .delta-up { color: var(--red); }
-  .delta-line .delta-down { color: var(--green); }
-  .delta-line .delta-flat { color: var(--text-muted); }
-
-  /* ---------- capex / payback readout ---------- */
-
-  .readout-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin: 12px 0 4px;
-  }
-
-  .readout-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    padding: 10px 10px;
-    text-align: center;
-  }
-
-  .readout-label {
     font-size: 0.62rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .context-tag:nth-child(1) { background: var(--blue-tint); color: var(--blue); }
+  .context-tag:nth-child(2) { background: var(--green-tint); color: var(--green); }
+
+  /* ---------- build: chart area ---------- */
+
+  .chart-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+  }
+
+  .chart-area svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .scrub-row {
+    flex: 0 0 auto;
+    margin: 4px 0 2px;
+  }
+
+  .scrub-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--blue);
+    height: 5px;
+  }
+
+  .scrub-months {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .readout-row {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+    margin: 4px 0;
+  }
+
+  .readout-chip {
+    flex: 1;
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 4px 4px 5px;
+  }
+
+  .readout-chip span {
+    display: block;
+    font-size: 0.6rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--text-muted);
     font-weight: 700;
-    margin: 0 0 4px;
+    margin-bottom: 1px;
   }
 
-  .readout-value {
-    font-size: 1.05rem;
+  .readout-chip strong {
+    font-size: 0.95rem;
     font-weight: 800;
     color: var(--text-primary);
-    margin: 0;
   }
 
-  .capacity-track {
-    position: relative;
-    height: 40px;
-    margin: 16px 4px 2px;
-  }
+  .readout-chip strong.pos { color: var(--red); }
+  .readout-chip strong.neg { color: var(--green); }
 
-  .capacity-marker {
-    position: absolute;
-    top: -2px;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    pointer-events: none;
-  }
-
-  .capacity-marker-label {
-    font-size: 0.6rem;
-    font-weight: 800;
-    color: var(--amber);
-    white-space: nowrap;
-    margin-bottom: 2px;
-  }
-
-  .capacity-marker-line {
-    width: 2px;
-    height: 30px;
-    background: var(--amber);
-  }
-
-  .capacity-slider {
-    position: absolute;
-    top: 10px;
-    left: 0;
-    width: 100%;
-    margin: 0;
-    accent-color: var(--blue);
-  }
-
-  .capacity-scale {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.66rem;
-    color: var(--text-muted);
-    margin: 0 4px;
-  }
-
-  .capacity-note {
-    margin: 10px 0 0;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--amber);
-    background: var(--amber-tint);
-    border-radius: 10px;
-    padding: 8px 10px;
-    text-align: center;
-  }
-
-  .capacity-note[hidden] { display: none; }
-
-  .assumption-note {
-    margin: 8px 0 0;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-style: italic;
-  }
-
-  /* ---------- waterfall bars ---------- */
-
-  .waterfall-card {
+  .story-line {
+    flex: 0 0 auto;
+    margin: 2px 0 0;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    color: var(--text-primary);
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 14px 12px 10px;
-    margin: 10px 0 12px;
-  }
-
-  .waterfall-track {
-    position: relative;
-    height: 130px;
+    border-radius: 8px;
+    padding: 6px 10px;
+    min-height: 2.5em;
     display: flex;
-    align-items: stretch;
-    gap: 6px;
+    align-items: center;
   }
 
-  .wf-col {
+  /* ---------- sell: toggle + summary + waterfall ---------- */
+
+  .toggle-row {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 6px;
+    margin: 2px 0 8px;
+  }
+
+  .toggle-btn {
     flex: 1;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .toggle-btn.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #fff;
+  }
+
+  .pl-summary {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  .pl-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    font-size: 0.78rem;
+  }
+
+  .pl-row span { color: var(--text-secondary); font-weight: 600; }
+  .pl-row strong { font-size: 0.92rem; font-weight: 800; color: var(--text-primary); }
+
+  .pl-row.emph {
+    border-color: var(--orange);
+    background: var(--orange-tint);
+  }
+
+  .pl-row.emph strong { color: var(--orange); }
+
+  .pl-delta {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--green);
+    margin-left: 6px;
+  }
+
+  .waterfall-area {
+    flex: 1 1 auto;
+    min-height: 0;
     position: relative;
   }
 
-  .wf-bar {
-    position: absolute;
-    left: 2px;
-    right: 2px;
-    border-radius: 4px 4px 2px 2px;
-  }
-
-  .wf-connector {
-    position: absolute;
-    left: -4px;
-    width: 8px;
-    height: 1px;
-    border-top: 1px dashed var(--text-muted);
-  }
-
-  .wf-value-label {
-    position: absolute;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 0.62rem;
-    font-weight: 800;
-    color: var(--text-primary);
+  .waterfall-area svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .wf-labels {
+    flex: 0 0 auto;
     display: flex;
-    gap: 6px;
-    margin-top: 6px;
+    margin-top: 2px;
   }
 
   .wf-labels span {
@@ -543,188 +357,50 @@
     text-align: center;
     font-size: 0.6rem;
     color: var(--text-muted);
-    line-height: 1.25;
     font-weight: 600;
+    line-height: 1.2;
   }
 
-  .note-line {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--border);
-    font-size: 0.78rem;
-    line-height: 1.4;
-  }
+  /* ---------- footer ---------- */
 
-  .note-line strong { color: var(--text-primary); }
-
-  /* ---------- indicator dashboard ---------- */
-
-  .indicator-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin: 10px 0 4px;
-  }
-
-  .indicator-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    padding: 10px 10px 9px;
-  }
-
-  .indicator-name {
-    font-size: 0.66rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    margin: 0 0 6px;
-    line-height: 1.25;
+  footer.ribbon {
+    flex: 0 0 auto;
     display: flex;
-    justify-content: space-between;
-    gap: 4px;
-  }
-
-  .indicator-status { font-size: 0.85rem; line-height: 1; }
-
-  .indicator-current {
-    font-size: 1.02rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin: 0;
-  }
-
-  .indicator-target {
-    font-size: 0.66rem;
-    color: var(--text-muted);
-    margin: 2px 0 0;
-  }
-
-  /* ---------- lever cards (sell roadmap) ---------- */
-
-  .lever-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin: 10px 0 4px;
-  }
-
-  .lever-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    padding: 12px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .lever-title {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin: 0;
-  }
-
-  .lever-desc {
-    font-size: 0.66rem;
-    color: var(--text-muted);
-    line-height: 1.35;
-    margin: 0;
-    flex: 1;
-  }
-
-  .lever-metric {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: var(--blue);
-    margin: 4px 0 0;
-  }
-
-  .lever-card input[type="range"] {
-    width: 100%;
-    accent-color: var(--blue);
-    margin: 2px 0 0;
-  }
-
-  /* ---------- generic range slider polish ---------- */
-
-  input[type="range"] {
-    height: 6px;
-    cursor: pointer;
-  }
-
-  /* ---------- footer / bottom section ---------- */
-
-  .framework-section {
-    margin-top: 30px;
-    padding-top: 26px;
-    border-top: 1px solid var(--border);
-    text-align: center;
-  }
-
-  .framework-statement {
-    max-width: 760px;
-    margin: 0 auto 14px;
-    font-size: 1.05rem;
-    font-weight: 700;
-    line-height: 1.5;
-    color: var(--text-primary);
-  }
-
-  .framework-statement .accent {
-    background: linear-gradient(135deg, var(--blue), var(--orange));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .disclaimer {
-    font-size: 0.74rem;
-    color: var(--text-muted);
-    max-width: 620px;
-    margin: 0 auto 22px;
-  }
-
-  .contact {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: 0.68rem;
+    color: var(--text-muted);
   }
 
-  .gh-link {
+  footer.ribbon .accent {
+    color: var(--text-secondary);
+    font-weight: 700;
+  }
+
+  footer.ribbon .gh-link {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    color: var(--text-secondary);
+    gap: 5px;
+    color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.88rem;
-    padding: 5px 4px;
   }
 
-  .gh-link:hover { color: var(--text-primary); }
-  .gh-link svg { fill: currentColor; }
+  footer.ribbon .gh-link:hover { color: var(--text-primary); }
+  footer.ribbon .gh-link svg { fill: currentColor; }
 
-  /* ---------- responsive ---------- */
+  /* ---------- small-viewport fallback: allow scroll ---------- */
 
-  @media (max-width: 920px) {
-    .columns {
-      grid-template-columns: 1fr;
-    }
-    .col-divider { display: none; }
-    .indicator-grid { grid-template-columns: repeat(2, 1fr); }
-    .lever-grid { grid-template-columns: repeat(2, 1fr); }
-    .readout-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-
-  @media (max-width: 560px) {
-    header.hero h1 { font-size: 1.3rem; }
-    .timeline { flex-direction: column; }
-    .timeline-step { border-right: none; border-bottom: 1px solid var(--card-border); }
-    .timeline-step:last-child { border-bottom: none; }
-    .indicator-grid { grid-template-columns: 1fr 1fr; }
-    .lever-grid { grid-template-columns: 1fr; }
-    .exposure-label { flex-basis: 100%; }
+  @media (max-width: 860px), (max-height: 620px) {
+    body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; }
+    .stage { grid-template-columns: minmax(0, 1fr); }
+    .divider { display: none; }
+    .panel { min-height: 480px; min-width: 0; }
   }
 </style>
 </head>
@@ -733,376 +409,90 @@
 
   <header class="hero">
     <h1>Hardware Finance: Build to Sell</h1>
-    <p>Build phase (t0&rarr;t1) meets sell phase (t1&rarr;tn) &mdash; one finance framework across the full hardware lifecycle</p>
+    <p>Both sides tell the same story: target &rarr; actual &rarr; variance &rarr; action &rarr; result</p>
   </header>
 
-  <div class="columns">
+  <div class="stage">
 
-    <!-- ================= LEFT: BUILD ================= -->
-    <div class="col-build">
-      <div class="column-head">
+    <!-- ================= BUILD ================= -->
+    <section class="panel panel-build">
+      <div class="panel-head">
         <span class="phase-label">Build</span>
-        <div>
-          <h2>Vehicle Manufacturing</h2>
-          <span class="phase-context">Ford / NIO context &mdash; t0 &rarr; t1</span>
-        </div>
+        <h2>BOM Cost: Target vs Actual</h2>
       </div>
-
-      <div class="timeline" id="buildTimeline">
-        <button class="timeline-step active" data-target="sec-1-1" type="button">
-          <span class="timeline-dot">1</span><span class="timeline-step-label">Design</span>
-        </button>
-        <button class="timeline-step" data-target="sec-1-2" type="button">
-          <span class="timeline-dot">2</span><span class="timeline-step-label">Prototype</span>
-        </button>
-        <button class="timeline-step" data-target="sec-1-3" type="button">
-          <span class="timeline-dot">3</span><span class="timeline-step-label">Testing</span>
-        </button>
-        <button class="timeline-step" data-target="sec-1-4" type="button">
-          <span class="timeline-dot">4</span><span class="timeline-step-label">Launch</span>
-        </button>
-      </div>
-
-      <!-- 1.1 Unit Economics -->
-      <section class="fin-section highlight" id="sec-1-1">
-        <h3>1.1 Unit Economics</h3>
-        <p class="section-sub">BOM cost matrix &mdash; drag commodity and tariff to see the target move.</p>
+      <div class="panel-meta">
+        <span class="panel-sub">Ford / NIO &mdash; monthly variance, month by month</span>
         <ul class="context-tags">
           <li class="context-tag">Engineering</li>
           <li class="context-tag">Procurement</li>
         </ul>
-
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead>
-              <tr><th>Component</th><th>Source</th><th>Price/unit</th><th>Usage/unit</th><th>Labor</th><th>Unit Cost</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Aluminum Housing</td><td>Import</td>
-                <td class="live" id="bomAlPrice">$12.50</td><td>2.0 kg</td><td>$3.00</td>
-                <td class="live emph" id="bomAlCost">$28.00</td>
-              </tr>
-              <tr>
-                <td>Steel Frame</td><td>Local</td><td>$8.00</td><td>3.5 kg</td><td>$2.50</td><td class="emph">$30.50</td>
-              </tr>
-              <tr>
-                <td>Electronics Module</td><td>Import</td>
-                <td class="live" id="bomElecPrice">$45.00</td><td>1</td><td>$5.00</td>
-                <td class="live emph" id="bomElecCost">$50.00</td>
-              </tr>
-              <tr>
-                <td>Wiring Harness</td><td>Local</td><td>$6.00</td><td>1</td><td>$1.50</td><td class="emph">$7.50</td>
-              </tr>
-              <tr>
-                <td>Assembly</td><td>Local</td><td>&mdash;</td><td>&mdash;</td><td>$15.00</td><td class="emph">$15.00</td>
-              </tr>
-              <tr class="total-row">
-                <td>BOM Cost Target</td><td></td><td></td><td></td><td></td>
-                <td class="live emph" id="bomTotal">$131.00</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="exposure-row">
-          <div class="exposure-item">
-            <span class="exposure-label">FX Exposure (USD/CNY)</span>
-            <span class="exposure-static">7.10 assumption &mdash; affects Import rows</span>
-          </div>
-          <div class="exposure-item">
-            <span class="exposure-label">Commodity Index (Aluminum LME)</span>
-            <input type="range" id="commoditySlider" min="-20" max="50" value="0" step="1">
-            <span class="exposure-value" id="commodityValue">+0%</span>
-          </div>
-          <div class="exposure-item">
-            <span class="exposure-label">Tariff (Import duty rate)</span>
-            <input type="range" id="tariffSlider" min="0" max="25" value="0" step="1">
-            <span class="exposure-value" id="tariffValue">+0%</span>
-          </div>
-        </div>
-
-        <div class="delta-line" id="bomDeltaLine">On target &mdash; $0.00 vs. $131.00 baseline</div>
-      </section>
-
-      <!-- 1.2 Scale -->
-      <section class="fin-section" id="sec-1-2">
-        <h3>1.2 Scale</h3>
-        <p class="section-sub">Capex amortization and payback move with volume.</p>
-        <ul class="context-tags">
-          <li class="context-tag">Engineering</li>
-          <li class="context-tag">Manufacturing</li>
-          <li class="context-tag">Board</li>
-        </ul>
-
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead><tr><th>Capex Item</th><th>Amount</th></tr></thead>
-            <tbody>
-              <tr><td>Tooling (molds, fixtures)</td><td>$5.2M</td></tr>
-              <tr><td>Line Build-out</td><td>$6.8M</td></tr>
-              <tr><td>Equipment</td><td>$3.0M</td></tr>
-              <tr class="total-row"><td>Total Capex</td><td class="emph">$15.0M</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="capacity-track">
-          <div class="capacity-marker" style="left: 66.7%;">
-            <span class="capacity-marker-label">150K cap</span>
-            <span class="capacity-marker-line"></span>
-          </div>
-          <input type="range" class="capacity-slider" id="volumeSlider" min="50000" max="200000" step="5000" value="120000">
-        </div>
-        <div class="capacity-scale"><span>50K</span><span>200K units</span></div>
-
-        <div class="readout-grid">
-          <div class="readout-card">
-            <p class="readout-label">Volume</p>
-            <p class="readout-value" id="volReadout">120,000</p>
-          </div>
-          <div class="readout-card">
-            <p class="readout-label">Unit Capex Amort.</p>
-            <p class="readout-value" id="amortReadout">$125.00</p>
-          </div>
-          <div class="readout-card">
-            <p class="readout-label">Payback</p>
-            <p class="readout-value" id="paybackReadout">2.6 yrs</p>
-          </div>
-        </div>
-
-        <p class="capacity-note" id="capacityNote" hidden>Requires 2nd shift or outsource.</p>
-        <p class="assumption-note">Assumes ASP $180/unit, unit cost $131.00 (BOM target), single-shift capacity 150K units/yr.</p>
-      </section>
-
-      <!-- 1.3 Variance -->
-      <section class="fin-section" id="sec-1-3">
-        <h3>1.3 Variance</h3>
-        <p class="section-sub">PPV flow: a commodity spike works its way into gross margin.</p>
-        <ul class="context-tags">
-          <li class="context-tag">Program Team</li>
-          <li class="context-tag">Suppliers</li>
-        </ul>
-
-        <div class="waterfall-card">
-          <div class="waterfall-track" id="varianceWaterfall"></div>
-          <div class="wf-labels">
-            <span>Baseline COGS</span>
-            <span>Aluminum +20% YoY</span>
-            <span>PPV Recognized</span>
-            <span>Inventory Flow-through</span>
-            <span>COGS / GM Compressed</span>
-          </div>
-        </div>
-
-        <p class="note-line"><strong>Action:</strong> Escalated through board review &rarr; engineering change &rarr; 5% cost optimization on affected parts.</p>
-      </section>
-
-      <!-- 1.4 Monitoring -->
-      <section class="fin-section" id="sec-1-4">
-        <h3>1.4 Monitoring</h3>
-        <p class="section-sub">Build-side indicator dashboard.</p>
-        <ul class="context-tags">
-          <li class="context-tag">Finance Lead</li>
-          <li class="context-tag">Engineering</li>
-          <li class="context-tag">Ops</li>
-        </ul>
-
-        <div class="indicator-grid">
-          <div class="indicator-card">
-            <p class="indicator-name"><span>BOM Cost vs Target</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">$128.50</p>
-            <p class="indicator-target">Target: $131.00</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>PPV Trend (MoM)</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">+2.1%</p>
-            <p class="indicator-target">Target: &lt;5%</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Tooling Spend vs Budget</span><span class="indicator-status">&#128993;</span></p>
-            <p class="indicator-current">$5.4M</p>
-            <p class="indicator-target">Target: $5.2M</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Capacity Readiness</span><span class="indicator-status">&#128993;</span></p>
-            <p class="indicator-current">92%</p>
-            <p class="indicator-target">Target: 95%</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Yield Rate</span><span class="indicator-status">&#128993;</span></p>
-            <p class="indicator-current">88%</p>
-            <p class="indicator-target">Target: 90%</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Inventory DOH (RM+WIP)</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">18 days</p>
-            <p class="indicator-target">Target: &lt;25 days</p>
-          </div>
-        </div>
-
-        <p class="note-line">Any breach triggers early warning and reforecast.</p>
-      </section>
-    </div>
-
-    <div class="col-divider"></div>
-
-    <!-- ================= RIGHT: SELL ================= -->
-    <div class="col-sell">
-      <div class="column-head">
-        <span class="phase-label">Sell</span>
-        <div>
-          <h2>Consumer Electronics</h2>
-          <span class="phase-context">Alibaba Tmall CE context &mdash; t1 &rarr; tn</span>
-        </div>
       </div>
 
-      <!-- 2.1 Target Setting -->
-      <section class="fin-section" id="sec-2-1">
-        <h3>2.1 Target Setting for P&amp;L</h3>
-        <p class="section-sub">Tmall Consumer Electronics: $10B+ GMV, 100M+ users. Targets balance platform margin, merchant margin, and cross-category repurchase.</p>
-        <ul class="context-tags">
-          <li class="context-tag">Merchant Ops</li>
-          <li class="context-tag">Category Management</li>
-        </ul>
+      <div class="chart-area">
+        <svg id="bomChart" viewBox="0 0 600 240" preserveAspectRatio="none" aria-label="BOM cost target versus actual by month"></svg>
+      </div>
 
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead>
-              <tr><th>P&amp;L Line</th><th>Major Appliances</th><th>Small Appliances</th><th>3C</th><th>Total</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Revenue (ASP &times; Vol)</td><td class="live" id="plMajorRev">$4.20B</td><td class="live" id="plSmallRev">$1.80B</td><td class="live" id="plCeRev">$4.00B</td><td class="live emph" id="plTotalRev">$10.00B</td></tr>
-              <tr><td>&minus; COGS</td><td class="live" id="plMajorCogs">($3.20B)</td><td class="live" id="plSmallCogs">($1.20B)</td><td class="live" id="plCeCogs">($3.40B)</td><td class="live emph" id="plTotalCogs">($7.80B)</td></tr>
-              <tr><td>= Gross Margin</td><td class="live emph" id="plMajorGm">$1.00B</td><td class="live emph" id="plSmallGm">$0.60B</td><td class="live emph" id="plCeGm">$0.60B</td><td class="live emph" id="plTotalGm">$2.20B</td></tr>
-              <tr><td>&minus; Logistics</td><td class="live" id="plMajorLog">($0.25B)</td><td class="live" id="plSmallLog">($0.10B)</td><td class="live" id="plCeLog">($0.15B)</td><td class="live emph" id="plTotalLog">($0.50B)</td></tr>
-              <tr><td>&minus; Marketing</td><td class="live" id="plMajorMkt">($0.15B)</td><td class="live" id="plSmallMkt">($0.08B)</td><td class="live" id="plCeMkt">($0.12B)</td><td class="live emph" id="plTotalMkt">($0.35B)</td></tr>
-              <tr><td>&minus; Inventory Provisions</td><td class="live" id="plMajorInv">($0.08B)</td><td class="live" id="plSmallInv">($0.02B)</td><td class="live" id="plCeInv">($0.03B)</td><td class="live emph" id="plTotalInv">($0.13B)</td></tr>
-              <tr class="total-row"><td>= Category Operating Income</td><td class="live emph" id="plMajorOi">$0.52B</td><td class="live emph" id="plSmallOi">$0.40B</td><td class="live emph" id="plCeOi">$0.30B</td><td class="live emph" id="plTotalOi">$1.22B</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="scrub-row">
+        <input type="range" id="monthSlider" min="1" max="12" value="1" step="1" aria-label="Month">
+        <div class="scrub-months"><span>Month 1</span><span>Month 12</span></div>
+      </div>
 
-        <div class="exposure-row">
-          <div class="exposure-item">
-            <span class="exposure-label">Major Appliances mix</span>
-            <input type="range" id="mixMajorSlider" min="0" max="100" value="42" step="1">
-            <span class="exposure-value" id="mixMajorValue">42%</span>
-          </div>
-          <div class="exposure-item">
-            <span class="exposure-label">Small Appliances mix</span>
-            <input type="range" id="mixSmallSlider" min="0" max="100" value="18" step="1">
-            <span class="exposure-value" id="mixSmallValue">18%</span>
-          </div>
-          <div class="exposure-item">
-            <span class="exposure-label">3C mix</span>
-            <input type="range" id="mixCeSlider" min="0" max="100" value="40" step="1">
-            <span class="exposure-value" id="mixCeValue">40%</span>
-          </div>
-        </div>
-        <p class="assumption-note">Total volume held constant; shifting mix toward lower-margin 3C or higher-margin Small Appliances moves total profitability even though volume doesn't change.</p>
-      </section>
+      <div class="readout-row">
+        <div class="readout-chip"><span>Target</span><strong id="bomTarget">$131.00</strong></div>
+        <div class="readout-chip"><span>Actual</span><strong id="bomActual">$131.00</strong></div>
+        <div class="readout-chip"><span>Variance</span><strong id="bomVariance">$0.00</strong></div>
+      </div>
 
-      <!-- 2.2 Roadmap -->
-      <section class="fin-section" id="sec-2-2">
-        <h3>2.2 Roadmap for Target &mdash; Nov 11 Campaign (2020)</h3>
-        <p class="section-sub">Peak campaign = 10% of annual GMV in one day.</p>
+      <p class="story-line" id="bomStory">Month 1: on track &mdash; actual is tracking the $131.00 BOM target.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ================= SELL ================= -->
+    <section class="panel panel-sell">
+      <div class="panel-head">
+        <span class="phase-label">Sell</span>
+        <h2>Nov 11 Campaign: Target vs Actual</h2>
+      </div>
+      <div class="panel-meta">
+        <span class="panel-sub">Tmall CE &mdash; plan vs. campaign result</span>
         <ul class="context-tags">
           <li class="context-tag">Marketing</li>
           <li class="context-tag">Merchants</li>
-          <li class="context-tag">3PL</li>
         </ul>
+      </div>
 
-        <div class="lever-grid">
-          <div class="lever-card">
-            <p class="lever-title">Pricing</p>
-            <p class="lever-desc">Real-time ASP adjustments based on sell-through velocity, balancing margin and volume.</p>
-            <p class="lever-metric" id="pricingMetric">ASP adj: +0%</p>
-            <input type="range" id="pricingSlider" min="-15" max="5" value="0" step="1">
-          </div>
-          <div class="lever-card">
-            <p class="lever-title">Marketing</p>
-            <p class="lever-desc">Joint coupon campaigns with merchants, monitoring ROI per spend, dynamically reallocating and pushing merchant co-investment.</p>
-            <p class="lever-metric">ROI = 4.2x</p>
-          </div>
-          <div class="lever-card">
-            <p class="lever-title">Inventory</p>
-            <p class="lever-desc">Days of inventory vs. clearance speed. Markdown depth optimized for seasonal obsolescence risk; write-downs provisioned then released into COGS.</p>
-            <p class="lever-metric">DOI = 22 days</p>
-          </div>
-          <div class="lever-card">
-            <p class="lever-title">Logistics</p>
-            <p class="lever-desc">Fulfillment velocity tracked. Take rate adjusted before 3PL surge pricing locks in, protecting net margin.</p>
-            <p class="lever-metric">Cost/order = $8.50</p>
-          </div>
-        </div>
+      <div class="toggle-row">
+        <button class="toggle-btn active" id="btnTarget" type="button">Target</button>
+        <button class="toggle-btn" id="btnActual" type="button">Actual</button>
+      </div>
 
-        <div class="waterfall-card">
-          <div class="waterfall-track" id="marginWaterfall"></div>
-          <div class="wf-labels">
-            <span>Baseline</span>
-            <span>+Inventory 8%</span>
-            <span>+Logistics 5%</span>
-            <span>+Marketing 2%</span>
-            <span>New Total +15%</span>
-          </div>
-        </div>
-      </section>
+      <div class="pl-summary">
+        <div class="pl-row"><span>Revenue</span><strong id="plRevenue">$10.00B</strong></div>
+        <div class="pl-row"><span>Operating Income</span><strong id="plOI">$1.22B</strong></div>
+        <div class="pl-row emph"><span>Operating Margin</span><strong id="plMargin">12.2%<span class="pl-delta" id="plDelta" hidden></span></strong></div>
+      </div>
 
-      <!-- 2.3 Ongoing Monitoring -->
-      <section class="fin-section" id="sec-2-3">
-        <h3>2.3 Ongoing Monitoring</h3>
-        <p class="section-sub">Sell-side indicator dashboard.</p>
-        <ul class="context-tags">
-          <li class="context-tag">GM</li>
-          <li class="context-tag">Category Leads</li>
-          <li class="context-tag">Logistics</li>
-        </ul>
+      <div class="waterfall-area">
+        <svg id="marginWaterfall" viewBox="0 0 500 200" preserveAspectRatio="none" aria-label="Margin improvement waterfall from three campaign levers"></svg>
+      </div>
+      <div class="wf-labels">
+        <span>Baseline</span><span>+Inventory 8%</span><span>+Logistics 5%</span><span>+Marketing 2%</span><span>New Total +15%</span>
+      </div>
 
-        <div class="indicator-grid">
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Marketing ROI</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">4.2x</p>
-            <p class="indicator-target">Target: &gt;3.5x</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Inventory DOH (FG)</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">22 days</p>
-            <p class="indicator-target">Target: &lt;30 days</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Inventory Turns</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">14x/yr</p>
-            <p class="indicator-target">Target: &gt;12x/yr</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Sell-through Rate</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">87%</p>
-            <p class="indicator-target">Target: &gt;85%</p>
-          </div>
-          <div class="indicator-card">
-            <p class="indicator-name"><span>Cost per Order</span><span class="indicator-status">&#128994;</span></p>
-            <p class="indicator-current">$8.50</p>
-            <p class="indicator-target">Target: &lt;$10.00</p>
-          </div>
-        </div>
+      <p class="story-line" id="sellStory">Plan: 12.2% operating margin heading into Nov 11.</p>
+    </section>
 
-        <p class="note-line">T+1 daily tracking in steady state, live during peak campaigns. Each indicator has its own threshold and driver attribution; any breach triggers reforecast and corrective action.</p>
-      </section>
-    </div>
   </div>
 
-  <!-- ================= FOOTER ================= -->
-  <div class="framework-section">
-    <p class="framework-statement">I support the full hardware cycle: <span class="accent">build phase (t0&rarr;t1)</span>, <span class="accent">sell phase (t1&rarr;tn)</span>, plus product iterations cycling the next build. Across the full lifecycle, budget/forecast vs. actual variance, reforecast, and an indicator framework to monitor it all.</p>
-    <p class="disclaimer">Sample data for illustration; in practice, connected to live ERP/data warehouse.</p>
-    <div class="contact">
-      <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
-        <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-        <span>github.com/yixuan116/fin-telligent</span>
-      </a>
-    </div>
-  </div>
+  <footer class="ribbon">
+    <span><span class="accent">Build (t0&rarr;t1)</span> &rarr; <span class="accent">Sell (t1&rarr;tn)</span> &rarr; next build &mdash; one variance/reforecast/indicator framework across the cycle</span>
+    <span>Sample data for illustration; in practice, connected to live ERP/data warehouse.</span>
+    <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+      <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+      <span>github.com/yixuan116/fin-telligent</span>
+    </a>
+  </footer>
 
 </div>
 
@@ -1111,294 +501,214 @@
   'use strict';
 
   var fmt2 = function (n) { return n.toFixed(2); };
-  var fmtMoney = function (n) { return '$' + fmt2(n); };
+  var svgNS = 'http://www.w3.org/2000/svg';
 
-  /* ---------------- Milestone timeline ---------------- */
-  var timelineSteps = document.querySelectorAll('#buildTimeline .timeline-step');
-  var buildSections = ['sec-1-1', 'sec-1-2', 'sec-1-3', 'sec-1-4'];
-
-  timelineSteps.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      timelineSteps.forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-
-      var targetId = btn.getAttribute('data-target');
-      buildSections.forEach(function (id) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        el.classList.toggle('highlight', id === targetId);
-      });
-
-      var target = document.getElementById(targetId);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  });
-
-  /* ---------------- 1.1 Unit Economics ---------------- */
-  var commoditySlider = document.getElementById('commoditySlider');
-  var tariffSlider = document.getElementById('tariffSlider');
-  var commodityValue = document.getElementById('commodityValue');
-  var tariffValue = document.getElementById('tariffValue');
-
-  var BOM_BASE_TARGET = 131.00;
-  var AL_BASE_PRICE = 12.50, AL_USAGE = 2.0, AL_LABOR = 3.00;
-  var ELEC_BASE_PRICE = 45.00, ELEC_USAGE = 1, ELEC_LABOR = 5.00;
-  var OTHER_COST = 30.50 + 7.50 + 15.00; // Steel Frame + Wiring Harness + Assembly
-
-  function flashCell(el) {
-    el.classList.remove('flash');
-    void el.offsetWidth;
-    el.classList.add('flash');
+  function el(tag, attrs) {
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) { e.setAttribute(k, attrs[k]); }
+    return e;
   }
 
-  function updateBOM() {
-    var commodityPct = parseFloat(commoditySlider.value);
-    var tariffPct = parseFloat(tariffSlider.value);
+  /* =========================================================
+     BUILD: BOM cost target vs actual, monthly timeline
+     ========================================================= */
 
-    commodityValue.textContent = (commodityPct >= 0 ? '+' : '') + commodityPct + '%';
-    tariffValue.textContent = (tariffPct >= 0 ? '+' : '') + tariffPct + '%';
+  var TARGET = 131.00;
+  var ACTUAL = [131.00, 131.00, 131.00, 131.00, 131.00, 136.00, 136.00, 135.00, 132.50, 130.50, 129.50, 129.20];
+  var Y_MIN = 124, Y_MAX = 138;
+  var VB_W = 600, VB_H = 240;
+  var PAD_L = 34, PAD_R = 14, PAD_T = 44, PAD_B = 20;
+  var PLOT_W = VB_W - PAD_L - PAD_R;
+  var PLOT_H = VB_H - PAD_T - PAD_B;
 
-    var alPrice = AL_BASE_PRICE * (1 + commodityPct / 100) * (1 + tariffPct / 100);
-    var alCost = alPrice * AL_USAGE + AL_LABOR;
+  function xFor(month) { return PAD_L + (month - 1) / 11 * PLOT_W; }
+  function yFor(cost) { return PAD_T + (Y_MAX - cost) / (Y_MAX - Y_MIN) * PLOT_H; }
 
-    var elecPrice = ELEC_BASE_PRICE * (1 + tariffPct / 100);
-    var elecCost = elecPrice * ELEC_USAGE + ELEC_LABOR;
+  var bomSvg = document.getElementById('bomChart');
 
-    var total = alCost + elecCost + OTHER_COST;
-    var delta = total - BOM_BASE_TARGET;
-
-    document.getElementById('bomAlPrice').textContent = fmtMoney(alPrice);
-    document.getElementById('bomAlCost').textContent = fmtMoney(alCost);
-    document.getElementById('bomElecPrice').textContent = fmtMoney(elecPrice);
-    document.getElementById('bomElecCost').textContent = fmtMoney(elecCost);
-    document.getElementById('bomTotal').textContent = fmtMoney(total);
-
-    ['bomAlPrice','bomAlCost','bomElecPrice','bomElecCost','bomTotal'].forEach(function (id) {
-      flashCell(document.getElementById(id));
+  function buildStaticBomChart() {
+    // gridlines + labels
+    [Y_MAX, TARGET, Y_MIN].forEach(function (v) {
+      var y = yFor(v);
+      bomSvg.appendChild(el('line', {
+        x1: PAD_L, x2: VB_W - PAD_R, y1: y, y2: y,
+        stroke: v === TARGET ? 'var(--text-muted)' : 'var(--border)',
+        'stroke-width': v === TARGET ? 1.2 : 1,
+        'stroke-dasharray': v === TARGET ? '4,3' : '0'
+      }));
+      var label = el('text', { x: PAD_L - 6, y: y + 3, 'text-anchor': 'end', 'font-size': '9', fill: 'var(--text-muted)' });
+      label.textContent = '$' + v.toFixed(0);
+      bomSvg.appendChild(label);
     });
 
-    var deltaLine = document.getElementById('bomDeltaLine');
-    if (Math.abs(delta) < 0.005) {
-      deltaLine.innerHTML = 'On target &mdash; <span class="delta-flat">$0.00</span> vs. $131.00 baseline';
-    } else if (delta > 0) {
-      deltaLine.innerHTML = '<span class="delta-up">&#9650; +' + fmt2(delta) + '</span> vs. $131.00 baseline (' + fmtMoney(total) + ')';
-    } else {
-      deltaLine.innerHTML = '<span class="delta-down">&#9660; ' + fmt2(delta) + '</span> vs. $131.00 baseline (' + fmtMoney(total) + ')';
+    // variance bars (target -> actual per month)
+    ACTUAL.forEach(function (a, i) {
+      var month = i + 1;
+      var x = xFor(month);
+      var y1 = yFor(TARGET), y2 = yFor(a);
+      var top = Math.min(y1, y2), h = Math.max(Math.abs(y2 - y1), 0.001);
+      bomSvg.appendChild(el('rect', {
+        x: x - 9, y: top, width: 18, height: h,
+        fill: a > TARGET ? 'var(--red)' : (a < TARGET ? 'var(--green)' : 'var(--text-muted)'),
+        opacity: 0.16
+      }));
+    });
+
+    // actual line
+    var pts = ACTUAL.map(function (a, i) { return xFor(i + 1) + ',' + yFor(a); }).join(' ');
+    bomSvg.appendChild(el('polyline', {
+      points: pts, fill: 'none', stroke: 'var(--blue)', 'stroke-width': 2.2,
+      'stroke-linejoin': 'round', 'stroke-linecap': 'round'
+    }));
+    ACTUAL.forEach(function (a, i) {
+      bomSvg.appendChild(el('circle', { cx: xFor(i + 1), cy: yFor(a), r: 2.2, fill: 'var(--blue)' }));
+    });
+
+    // annotation pins (staggered rows so nearby months don't collide)
+    function pin(month, label, color, row) {
+      var x = xFor(month), labelY = 14 + row * 14, pointY = yFor(ACTUAL[month - 1]);
+      bomSvg.appendChild(el('line', {
+        x1: x, x2: x, y1: labelY + 4, y2: pointY - 6,
+        stroke: color, 'stroke-width': 1, 'stroke-dasharray': '2,2'
+      }));
+      var t = el('text', { x: x, y: labelY, 'text-anchor': 'middle', 'font-size': '9.5', 'font-weight': '800', fill: color });
+      t.textContent = label;
+      bomSvg.appendChild(t);
     }
-
-    renderVarianceWaterfall(commodityPct, tariffPct);
+    pin(6, 'Aluminum +20%', 'var(--red)', 0);
+    pin(8, 'Engineering change', 'var(--blue)', 1);
   }
 
-  commoditySlider.addEventListener('input', updateBOM);
-  tariffSlider.addEventListener('input', updateBOM);
+  var scrubGroup = el('g', { id: 'scrubGroup' });
+  bomSvg.appendChild(scrubGroup);
 
-  /* ---------------- 1.2 Scale ---------------- */
-  var volumeSlider = document.getElementById('volumeSlider');
-  var CAPEX_TOTAL = 15000000;
-  var ASSUMED_ASP = 180;
-  var CAPACITY_LIMIT = 150000;
-
-  function updateCapex() {
-    var volume = parseInt(volumeSlider.value, 10);
-    document.getElementById('volReadout').textContent = volume.toLocaleString('en-US');
-
-    var amort = CAPEX_TOTAL / volume;
-    document.getElementById('amortReadout').textContent = fmtMoney(amort);
-
-    var annualMargin = (ASSUMED_ASP - BOM_BASE_TARGET) * volume;
-    var payback = CAPEX_TOTAL / annualMargin;
-    document.getElementById('paybackReadout').textContent = fmt2(payback) + ' yrs';
-
-    document.getElementById('capacityNote').hidden = volume <= CAPACITY_LIMIT;
+  function renderScrubber(month) {
+    while (scrubGroup.firstChild) scrubGroup.removeChild(scrubGroup.firstChild);
+    var x = xFor(month);
+    scrubGroup.appendChild(el('line', {
+      x1: x, x2: x, y1: PAD_T - 4, y2: VB_H - PAD_B + 4,
+      stroke: 'var(--text-primary)', 'stroke-width': 1.2, opacity: 0.55
+    }));
+    var a = ACTUAL[month - 1];
+    scrubGroup.appendChild(el('circle', {
+      cx: x, cy: yFor(a), r: 5, fill: 'var(--bg)', stroke: 'var(--blue)', 'stroke-width': 2.5
+    }));
   }
 
-  volumeSlider.addEventListener('input', updateCapex);
+  var monthSlider = document.getElementById('monthSlider');
+  var bomTargetEl = document.getElementById('bomTarget');
+  var bomActualEl = document.getElementById('bomActual');
+  var bomVarianceEl = document.getElementById('bomVariance');
+  var bomStoryEl = document.getElementById('bomStory');
 
-  /* ---------------- 1.3 Variance waterfall ---------------- */
-  function wfBar(container, baseVal, deltaVal, maxVal, color, valueLabel) {
-    var col = document.createElement('div');
-    col.className = 'wf-col';
-
-    var trackHeight = 130;
-    var baseH = (baseVal / maxVal) * trackHeight;
-    var deltaH = (deltaVal / maxVal) * trackHeight;
-
-    var bar = document.createElement('div');
-    bar.className = 'wf-bar';
-    bar.style.bottom = baseH + 'px';
-    bar.style.height = Math.max(deltaH, 3) + 'px';
-    bar.style.background = color;
-
-    var label = document.createElement('div');
-    label.className = 'wf-value-label';
-    label.style.bottom = (baseH + Math.max(deltaH, 3) + 4) + 'px';
-    label.textContent = valueLabel;
-
-    col.style.position = 'relative';
-    col.appendChild(bar);
-    col.appendChild(label);
-    container.appendChild(col);
-  }
-
-  function renderVarianceWaterfall(commodityPct, tariffPct) {
-    var container = document.getElementById('varianceWaterfall');
-    container.innerHTML = '';
-
-    var baseline = BOM_BASE_TARGET;
-    var alDeltaOnly = (AL_BASE_PRICE * (Math.max(commodityPct, 0) / 100)) * AL_USAGE;
-    if (alDeltaOnly <= 0) alDeltaOnly = 5.00; // default illustrative +20% scenario when slider untouched
-    var runningTotal = baseline + alDeltaOnly;
-    var maxVal = runningTotal * 1.1;
-
-    var gray = 'var(--text-muted)';
-    var red = 'var(--red)';
-    var amber = 'var(--amber)';
-
-    wfBar(container, 0, baseline, maxVal, gray, '$' + fmt2(baseline));
-    wfBar(container, baseline, alDeltaOnly, maxVal, red, '+$' + fmt2(alDeltaOnly));
-    wfBar(container, baseline, alDeltaOnly, maxVal, amber, '$' + fmt2(runningTotal));
-    wfBar(container, baseline, alDeltaOnly, maxVal, amber, '$' + fmt2(runningTotal));
-    wfBar(container, 0, runningTotal, maxVal, red, '$' + fmt2(runningTotal));
-  }
-
-  /* ---------------- 2.1 Mix slider + P&L ---------------- */
-  var mixSliders = {
-    major: document.getElementById('mixMajorSlider'),
-    small: document.getElementById('mixSmallSlider'),
-    ce: document.getElementById('mixCeSlider')
-  };
-  var mixValues = {
-    major: document.getElementById('mixMajorValue'),
-    small: document.getElementById('mixSmallValue'),
-    ce: document.getElementById('mixCeValue')
-  };
-
-  var mixState = { major: 42, small: 18, ce: 40 };
-  var mixBase = { major: 42, small: 18, ce: 40 };
-
-  var plBase = {
-    major: { rev: 4.20, cogs: 3.20, gm: 1.00, log: 0.25, mkt: 0.15, inv: 0.08, oi: 0.52 },
-    small: { rev: 1.80, cogs: 1.20, gm: 0.60, log: 0.10, mkt: 0.08, inv: 0.02, oi: 0.40 },
-    ce:    { rev: 4.00, cogs: 3.40, gm: 0.60, log: 0.15, mkt: 0.12, inv: 0.03, oi: 0.30 }
-  };
-
-  function fmtUsdB(n, negative) {
-    var v = fmt2(Math.abs(n));
-    return negative ? '($' + v + 'B)' : '$' + v + 'B';
-  }
-
-  var plIds = {
-    major: { rev: 'plMajorRev', cogs: 'plMajorCogs', gm: 'plMajorGm', log: 'plMajorLog', mkt: 'plMajorMkt', inv: 'plMajorInv', oi: 'plMajorOi' },
-    small: { rev: 'plSmallRev', cogs: 'plSmallCogs', gm: 'plSmallGm', log: 'plSmallLog', mkt: 'plSmallMkt', inv: 'plSmallInv', oi: 'plSmallOi' },
-    ce:    { rev: 'plCeRev', cogs: 'plCeCogs', gm: 'plCeGm', log: 'plCeLog', mkt: 'plCeMkt', inv: 'plCeInv', oi: 'plCeOi' },
-    total: { rev: 'plTotalRev', cogs: 'plTotalCogs', gm: 'plTotalGm', log: 'plTotalLog', mkt: 'plTotalMkt', inv: 'plTotalInv', oi: 'plTotalOi' }
-  };
-
-  function recomputePL() {
-    var totals = { rev: 0, cogs: 0, gm: 0, log: 0, mkt: 0, inv: 0, oi: 0 };
-
-    ['major', 'small', 'ce'].forEach(function (key) {
-      var factor = mixState[key] / mixBase[key];
-      var b = plBase[key];
-      var line = {
-        rev: b.rev * factor,
-        cogs: b.cogs * factor,
-        gm: b.gm * factor,
-        log: b.log * factor,
-        mkt: b.mkt * factor,
-        inv: b.inv * factor,
-        oi: b.oi * factor
-      };
-
-      document.getElementById(plIds[key].rev).textContent = fmtUsdB(line.rev, false);
-      document.getElementById(plIds[key].cogs).textContent = fmtUsdB(line.cogs, true);
-      document.getElementById(plIds[key].gm).textContent = fmtUsdB(line.gm, false);
-      document.getElementById(plIds[key].log).textContent = fmtUsdB(line.log, true);
-      document.getElementById(plIds[key].mkt).textContent = fmtUsdB(line.mkt, true);
-      document.getElementById(plIds[key].inv).textContent = fmtUsdB(line.inv, true);
-      document.getElementById(plIds[key].oi).textContent = fmtUsdB(line.oi, false);
-
-      totals.rev += line.rev; totals.cogs += line.cogs; totals.gm += line.gm;
-      totals.log += line.log; totals.mkt += line.mkt; totals.inv += line.inv; totals.oi += line.oi;
-    });
-
-    document.getElementById(plIds.total.rev).textContent = fmtUsdB(totals.rev, false);
-    document.getElementById(plIds.total.cogs).textContent = fmtUsdB(totals.cogs, true);
-    document.getElementById(plIds.total.gm).textContent = fmtUsdB(totals.gm, false);
-    document.getElementById(plIds.total.log).textContent = fmtUsdB(totals.log, true);
-    document.getElementById(plIds.total.mkt).textContent = fmtUsdB(totals.mkt, true);
-    document.getElementById(plIds.total.inv).textContent = fmtUsdB(totals.inv, true);
-    document.getElementById(plIds.total.oi).textContent = fmtUsdB(totals.oi, false);
-  }
-
-  function updateMixUI() {
-    mixSliders.major.value = Math.round(mixState.major);
-    mixSliders.small.value = Math.round(mixState.small);
-    mixSliders.ce.value = Math.round(mixState.ce);
-    mixValues.major.textContent = Math.round(mixState.major) + '%';
-    mixValues.small.textContent = Math.round(mixState.small) + '%';
-    mixValues.ce.textContent = Math.round(mixState.ce) + '%';
-  }
-
-  function onMixInput(changedKey) {
-    var newVal = parseFloat(mixSliders[changedKey].value);
-    var otherKeys = Object.keys(mixState).filter(function (k) { return k !== changedKey; });
-    var remaining = 100 - newVal;
-    var sumOthers = mixState[otherKeys[0]] + mixState[otherKeys[1]];
-
-    if (sumOthers <= 0) {
-      mixState[otherKeys[0]] = remaining / 2;
-      mixState[otherKeys[1]] = remaining / 2;
-    } else {
-      mixState[otherKeys[0]] = remaining * (mixState[otherKeys[0]] / sumOthers);
-      mixState[otherKeys[1]] = remaining * (mixState[otherKeys[1]] / sumOthers);
+  function storyForMonth(month, actual, variance) {
+    if (month <= 5) {
+      return 'Month ' + month + ': on track — actual is tracking the $131.00 BOM target.';
     }
-    mixState[changedKey] = newVal;
-
-    updateMixUI();
-    recomputePL();
+    if (month <= 7) {
+      return 'Month ' + month + ': Aluminum +20% YoY spikes cost to $' + fmt2(actual) + ' — unfavorable variance of +$' + fmt2(variance) + ' vs. target.';
+    }
+    if (month <= 9) {
+      return 'Month ' + month + ': engineering change escalated through board review — cost optimization underway.';
+    }
+    return 'Month ' + month + ': 5% cost optimization on affected parts closes the gap — actual now $' + fmt2(Math.abs(variance)) + ' below target.';
   }
 
-  mixSliders.major.addEventListener('input', function () { onMixInput('major'); });
-  mixSliders.small.addEventListener('input', function () { onMixInput('small'); });
-  mixSliders.ce.addEventListener('input', function () { onMixInput('ce'); });
+  function updateBomReadout() {
+    var month = parseInt(monthSlider.value, 10);
+    var actual = ACTUAL[month - 1];
+    var variance = actual - TARGET;
 
-  /* ---------------- 2.2 Pricing lever + margin waterfall ---------------- */
-  var pricingSlider = document.getElementById('pricingSlider');
-  var pricingMetric = document.getElementById('pricingMetric');
+    bomTargetEl.textContent = '$' + fmt2(TARGET);
+    bomActualEl.textContent = '$' + fmt2(actual);
+    bomVarianceEl.textContent = (variance > 0 ? '+' : (variance < 0 ? '−' : '')) + '$' + fmt2(Math.abs(variance));
+    bomVarianceEl.className = variance > 0.005 ? 'pos' : (variance < -0.005 ? 'neg' : '');
 
-  pricingSlider.addEventListener('input', function () {
-    var v = parseFloat(pricingSlider.value);
-    pricingMetric.textContent = 'ASP adj: ' + (v >= 0 ? '+' : '') + v + '%';
-  });
+    bomStoryEl.textContent = storyForMonth(month, actual, variance);
+    renderScrubber(month);
+  }
+
+  monthSlider.addEventListener('input', updateBomReadout);
+
+  /* =========================================================
+     SELL: target vs actual toggle + margin waterfall
+     ========================================================= */
+
+  var plRevenueEl = document.getElementById('plRevenue');
+  var plOIEl = document.getElementById('plOI');
+  var plMarginEl = document.getElementById('plMargin');
+  var plDeltaEl = document.getElementById('plDelta');
+  var sellStoryEl = document.getElementById('sellStory');
+  var btnTarget = document.getElementById('btnTarget');
+  var btnActual = document.getElementById('btnActual');
+
+  var PL = {
+    target: { revenue: '$10.00B', oi: '$1.22B', margin: '12.2%' },
+    actual: { revenue: '$10.00B', oi: '$1.40B', margin: '14.0%' }
+  };
+
+  function setSellState(state) {
+    var data = PL[state];
+    plRevenueEl.textContent = data.revenue;
+    plOIEl.textContent = data.oi;
+    plMarginEl.firstChild.textContent = data.margin;
+
+    btnTarget.classList.toggle('active', state === 'target');
+    btnActual.classList.toggle('active', state === 'actual');
+
+    if (state === 'actual') {
+      plDeltaEl.textContent = '+1.8pp vs. target';
+      plDeltaEl.hidden = false;
+      sellStoryEl.textContent = 'Campaign result: 14.0% operating margin — a +15% relative improvement from three merchant-ops levers.';
+    } else {
+      plDeltaEl.hidden = true;
+      sellStoryEl.textContent = 'Plan: 12.2% operating margin heading into Nov 11.';
+    }
+  }
+
+  btnTarget.addEventListener('click', function () { setSellState('target'); });
+  btnActual.addEventListener('click', function () { setSellState('actual'); });
 
   function renderMarginWaterfall() {
-    var container = document.getElementById('marginWaterfall');
-    container.innerHTML = '';
+    var svg = document.getElementById('marginWaterfall');
+    var vbW = 500, vbH = 200;
+    var maxVal = 17, baseY = 180, topPad = 20, plotH = baseY - topPad;
+    var barW = 70, xs = [25, 120, 215, 310, 405];
 
-    var steps = [8, 5, 2]; // Inventory, Logistics, Marketing (%)
-    var maxVal = 17;
-    var gray = 'var(--text-muted)';
-    var green = 'var(--green)';
-    var blue = 'var(--blue)';
+    function yv(v) { return baseY - (v / maxVal) * plotH; }
 
-    wfBar(container, 0, 0.4, maxVal, gray, '0%');
+    var steps = [
+      { x: xs[0], from: 0, to: 0.4, color: 'var(--text-muted)', label: '0%' },
+      { x: xs[1], from: 0, to: 8, color: 'var(--green)', label: '+8%' },
+      { x: xs[2], from: 8, to: 13, color: 'var(--blue)', label: '+5%' },
+      { x: xs[3], from: 13, to: 15, color: 'var(--purple)', label: '+2%' },
+      { x: xs[4], from: 0, to: 15, color: 'var(--orange)', label: '+15%' }
+    ];
 
-    var running = 0;
-    var colors = [green, blue, 'var(--purple)'];
-    steps.forEach(function (step, i) {
-      wfBar(container, running, step, maxVal, colors[i], '+' + step + '%');
-      running += step;
+    // baseline reference line
+    svg.appendChild(el('line', {
+      x1: 10, x2: vbW - 10, y1: baseY, y2: baseY, stroke: 'var(--border)', 'stroke-width': 1
+    }));
+
+    steps.forEach(function (s) {
+      var yTop = yv(s.to), yBot = yv(s.from);
+      var h = Math.max(yBot - yTop, 2);
+      svg.appendChild(el('rect', {
+        x: s.x, y: yTop, width: barW, height: h, rx: 3, fill: s.color
+      }));
+      var t = el('text', {
+        x: s.x + barW / 2, y: yTop - 7, 'text-anchor': 'middle',
+        'font-size': '13', 'font-weight': '800', fill: 'var(--text-primary)'
+      });
+      t.textContent = s.label;
+      svg.appendChild(t);
     });
-
-    wfBar(container, 0, running, maxVal, 'var(--orange)', '+' + running + '%');
   }
 
   /* ---------------- init ---------------- */
-  updateBOM();
-  updateCapex();
-  updateMixUI();
-  recomputePL();
+  buildStaticBomChart();
+  updateBomReadout();
+  setSellState('target');
   renderMarginWaterfall();
 })();
 </script>
