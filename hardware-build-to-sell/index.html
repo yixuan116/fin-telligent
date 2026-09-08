@@ -348,6 +348,18 @@
     color: var(--text-primary);
   }
 
+  .data-table td.favorable { color: var(--green); font-weight: 700; }
+  .data-table td.unfavorable { color: var(--red); font-weight: 700; }
+
+  .block-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin: 12px 0 4px;
+  }
+
   .data-table tr.total-row td {
     border-top: 2px solid var(--card-border);
     font-weight: 800;
@@ -1092,6 +1104,23 @@
           <li class="context-tag">Category Management</li>
         </ul>
 
+        <p class="block-label">Summary (Total)</p>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>P&amp;L Line</th><th>Budget</th><th>Actual</th><th>Variance</th></tr></thead>
+            <tbody>
+              <tr><td>Revenue (ASP &times; Vol)</td><td>$10.00B</td><td class="live" id="sumRevActual">$10.00B</td><td class="live" id="sumRevVar">$0.00B</td></tr>
+              <tr><td>&minus; COGS</td><td>($7.80B)</td><td class="live" id="sumCogsActual">($7.80B)</td><td class="live" id="sumCogsVar">$0.00B</td></tr>
+              <tr><td>= Gross Margin</td><td class="emph">$2.20B</td><td class="live emph" id="sumGmActual">$2.20B</td><td class="live emph" id="sumGmVar">$0.00B</td></tr>
+              <tr><td>&minus; Logistics</td><td>($0.50B)</td><td class="live" id="sumLogActual">($0.50B)</td><td class="live" id="sumLogVar">$0.00B</td></tr>
+              <tr><td>&minus; Marketing</td><td>($0.35B)</td><td class="live" id="sumMktActual">($0.35B)</td><td class="live" id="sumMktVar">$0.00B</td></tr>
+              <tr><td>&minus; Inventory Provisions</td><td>($0.13B)</td><td class="live" id="sumInvActual">($0.13B)</td><td class="live" id="sumInvVar">$0.00B</td></tr>
+              <tr class="total-row"><td>= Category Operating Income</td><td class="emph">$1.22B</td><td class="live emph" id="sumOiActual">$1.22B</td><td class="live emph" id="sumOiVar">$0.00B</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="block-label">By Product Line</p>
         <div class="table-scroll">
           <table class="data-table compact">
             <thead>
@@ -1490,6 +1519,39 @@
     return negative ? '($' + v + 'B)' : '$' + v + 'B';
   }
 
+  var plPlanTotal = { rev: 10.00, cogs: 7.80, gm: 2.20, log: 0.50, mkt: 0.35, inv: 0.13, oi: 1.22 };
+  var sumRowMeta = {
+    rev: { actualId: 'sumRevActual', varId: 'sumRevVar', costType: false },
+    cogs: { actualId: 'sumCogsActual', varId: 'sumCogsVar', costType: true },
+    gm: { actualId: 'sumGmActual', varId: 'sumGmVar', costType: false },
+    log: { actualId: 'sumLogActual', varId: 'sumLogVar', costType: true },
+    mkt: { actualId: 'sumMktActual', varId: 'sumMktVar', costType: true },
+    inv: { actualId: 'sumInvActual', varId: 'sumInvVar', costType: true },
+    oi: { actualId: 'sumOiActual', varId: 'sumOiVar', costType: false }
+  };
+
+  function computeVariance(actualMag, budgetMag, costType) {
+    var raw = actualMag - budgetMag;
+    var display = costType ? -raw : raw;
+    var cls = '';
+    if (Math.abs(display) >= 0.005) cls = display > 0 ? 'favorable' : 'unfavorable';
+    var sign = display > 0.005 ? '+' : (display < -0.005 ? '−' : '');
+    return { text: sign + '$' + fmt2(Math.abs(display)) + 'B', cls: cls };
+  }
+
+  function updateSummaryPL(totals) {
+    Object.keys(sumRowMeta).forEach(function (key) {
+      var meta = sumRowMeta[key];
+      var actualEl = document.getElementById(meta.actualId);
+      var varEl = document.getElementById(meta.varId);
+      actualEl.textContent = fmtUsdB(totals[key], meta.costType);
+      var v = computeVariance(totals[key], plPlanTotal[key], meta.costType);
+      varEl.textContent = v.text;
+      varEl.classList.remove('favorable', 'unfavorable');
+      if (v.cls) varEl.classList.add(v.cls);
+    });
+  }
+
   var plIds = {
     major: { rev: 'plMajorRev', cogs: 'plMajorCogs', gm: 'plMajorGm', log: 'plMajorLog', mkt: 'plMajorMkt', inv: 'plMajorInv', oi: 'plMajorOi' },
     small: { rev: 'plSmallRev', cogs: 'plSmallCogs', gm: 'plSmallGm', log: 'plSmallLog', mkt: 'plSmallMkt', inv: 'plSmallInv', oi: 'plSmallOi' },
@@ -1532,6 +1594,8 @@
     document.getElementById(plIds.total.mkt).textContent = fmtUsdB(totals.mkt, true);
     document.getElementById(plIds.total.inv).textContent = fmtUsdB(totals.inv, true);
     document.getElementById(plIds.total.oi).textContent = fmtUsdB(totals.oi, false);
+
+    updateSummaryPL(totals);
   }
 
   function updateMixUI() {
