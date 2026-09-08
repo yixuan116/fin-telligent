@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hardware Finance: Build to Sell</title>
-<meta name="description" content="Tabbed target-vs-actual walkthrough of the hardware build-to-sell finance cycle: unit economics, scale, variance and monitoring on the build side; target P&amp;L, campaign, result and monitoring on the sell side. Every number carries a plan and an actual.">
+<meta name="description" content="Interactive walk-through of the hardware build-to-sell finance cycle: unit economics, scale, variance and monitoring on the build side; targets, campaign levers and monitoring on the sell side.">
 <style>
   :root {
     color-scheme: light dark;
@@ -29,8 +29,9 @@
     --orange-tint: rgba(235, 104, 52, 0.14);
     --purple-tint: rgba(124, 92, 191, 0.14);
     --amber-tint: rgba(217, 151, 31, 0.16);
+    --grid-line: rgba(20, 20, 25, 0.08);
 
-    --radius: 12px;
+    --radius: 14px;
     --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
@@ -44,6 +45,7 @@
       --text-secondary: #b7b7bc;
       --text-muted: #85858c;
       --shadow: rgba(0, 0, 0, 0.4);
+      --grid-line: rgba(255, 255, 255, 0.08);
     }
   }
 
@@ -56,201 +58,255 @@
     color: var(--text-primary);
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
-    height: 100%;
   }
 
-  body { overflow: hidden; }
+  body {
+    padding: 28px 16px 56px;
+  }
 
   .app {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 12px 20px 8px;
-    max-width: 1480px;
+    max-width: 1240px;
     margin: 0 auto;
   }
 
-  /* ---------- header ---------- */
-
   header.hero {
     text-align: center;
-    flex: 0 0 auto;
-    margin-bottom: 8px;
+    margin-bottom: 28px;
   }
 
   header.hero h1 {
-    font-size: 1.22rem;
+    font-size: 1.6rem;
     font-weight: 800;
-    margin: 0;
+    margin: 0 0 6px;
     letter-spacing: -0.01em;
   }
 
   header.hero p {
-    margin: 2px 0 0;
+    margin: 0;
     color: var(--text-secondary);
-    font-size: 0.76rem;
+    font-size: 0.98rem;
   }
 
-  /* ---------- stage: two panels, both stretch to the same fixed height ---------- */
+  /* ---------- two-column layout ---------- */
 
-  .stage {
-    flex: 1 1 auto;
-    min-height: 0;
+  .columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
-    align-items: stretch;
-    gap: 18px;
+    gap: 26px;
+    align-items: start;
   }
 
-  .divider { background: var(--border); }
-
-  .panel {
-    min-height: 0;
+  .col-build, .col-sell {
     min-width: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 10px 14px 10px;
-    background: var(--bg);
   }
 
-  .panel-head {
+  .col-divider {
+    background: var(--border);
+    align-self: stretch;
+  }
+
+  .column-head {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
     gap: 8px;
-    flex: 0 0 auto;
+    margin-bottom: 14px;
   }
 
-  .panel-head-left { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
-
-  .phase-label {
-    font-size: 0.6rem;
+  .column-head .phase-label {
+    font-size: 0.68rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 999px;
-    flex-shrink: 0;
   }
 
-  .panel-build .phase-label { background: var(--blue-tint); color: var(--blue); }
-  .panel-sell .phase-label { background: var(--orange-tint); color: var(--orange); }
+  .col-build .phase-label { background: var(--blue-tint); color: var(--blue); }
+  .col-sell .phase-label { background: var(--orange-tint); color: var(--orange); }
 
-  .panel-head h2 {
-    font-size: 0.9rem;
+  .column-head h2 {
+    font-size: 1.1rem;
     font-weight: 800;
     margin: 0;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
+
+  .column-head .phase-context {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ---------- milestone timeline ---------- */
+
+  .timeline {
+    display: flex;
+    align-items: center;
+    margin: 4px 0 22px;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    overflow: hidden;
+  }
+
+  .timeline-step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 10px;
+    background: none;
+    border: none;
+    border-right: 1px solid var(--card-border);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    color: var(--text-secondary);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .timeline-step:last-child { border-right: none; }
+
+  .timeline-step:hover {
+    background: var(--blue-tint);
+  }
+
+  .timeline-step.active {
+    background: var(--blue-tint);
+    color: var(--blue);
+  }
+
+  .timeline-dot {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--card-border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .timeline-step.active .timeline-dot {
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .timeline-step-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  /* ---------- finance sections ---------- */
+
+  .fin-section {
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 18px 18px 16px;
+    margin-bottom: 18px;
+    background: var(--bg);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .fin-section.highlight {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-tint);
+  }
+
+  .col-sell .fin-section.highlight {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px var(--orange-tint);
+  }
+
+  .fin-section h3 {
+    font-size: 0.98rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  .fin-section .section-sub {
+    margin: 0 0 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* ---------- tag pills ---------- */
 
   .context-tags {
     display: flex;
-    gap: 5px;
-    margin: 0;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 0 0 12px;
     padding: 0;
     list-style: none;
-    flex-shrink: 0;
   }
 
   .context-tag {
     display: inline-flex;
     align-items: center;
-    padding: 2px 7px;
+    padding: 4px 10px;
     border-radius: 999px;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     font-weight: 700;
     white-space: nowrap;
   }
 
-  .context-tag:nth-child(1) { background: var(--blue-tint); color: var(--blue); }
-  .context-tag:nth-child(2) { background: var(--green-tint); color: var(--green); }
+  .context-tag:nth-child(4n+1) { background: var(--blue-tint); color: var(--blue); }
+  .context-tag:nth-child(4n+2) { background: var(--green-tint); color: var(--green); }
+  .context-tag:nth-child(4n+3) { background: var(--purple-tint); color: var(--purple); }
+  .context-tag:nth-child(4n+4) { background: var(--orange-tint); color: var(--orange); }
 
-  /* ---------- tab bar ---------- */
+  /* ---------- tables ---------- */
 
-  .tab-bar {
-    flex: 0 0 auto;
-    display: flex;
-    gap: 5px;
-    margin: 7px 0;
-  }
-
-  .tab-btn {
-    flex: 1;
-    font-family: inherit;
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 6px 4px;
-    border-radius: 8px;
+  .table-scroll {
+    overflow-x: auto;
+    margin: 4px 0 14px;
     border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-    white-space: nowrap;
-  }
-
-  .panel-build .tab-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
-  .panel-sell .tab-btn.active { background: var(--orange); border-color: var(--orange); color: #fff; }
-
-  /* ---------- tab content: fixed budget, panes fill it ---------- */
-
-  .tab-content {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .tab-pane {
-    display: none;
-    height: 100%;
-    min-height: 0;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .tab-pane.active { display: flex; }
-
-  /* ---------- generic building blocks ---------- */
-
-  .block-title {
-    flex: 0 0 auto;
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--text-muted);
-    margin: 0 0 4px;
-  }
-
-  .table-wrap {
-    flex: 0 0 auto;
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    overflow: hidden;
+    border-radius: var(--radius);
   }
 
   table.data-table {
     width: 100%;
+    min-width: 460px;
     border-collapse: collapse;
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     background: var(--card-bg);
+  }
+
+  table.data-table.compact {
+    min-width: 0;
+    font-size: 0.64rem;
     table-layout: fixed;
   }
 
+  .data-table.compact th, .data-table.compact td {
+    padding: 5px 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .data-table.compact td:first-child {
+    white-space: normal;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+  }
+
+  .data-table.compact th {
+    white-space: normal;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+  }
+
   .data-table th, .data-table td {
-    padding: 6px 6px;
+    padding: 7px 11px;
     text-align: right;
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .data-table th:first-child, .data-table td:first-child {
@@ -262,165 +318,144 @@
   .data-table thead th {
     color: var(--text-muted);
     font-weight: 700;
-    font-size: 0.6rem;
+    font-size: 0.66rem;
     text-transform: uppercase;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     border-bottom: 1px solid var(--card-border);
   }
 
   .data-table thead tr.group-row th {
     text-align: center;
     border-bottom: none;
-    padding-bottom: 1px;
-    font-size: 0.62rem;
+    padding-bottom: 2px;
   }
 
   .data-table thead tr.sub-row th {
-    padding-top: 1px;
-    font-size: 0.58rem;
+    padding-top: 2px;
+    font-size: 0.62rem;
   }
 
-  .data-table tbody tr:nth-child(even) td { background: rgba(128,128,128,0.045); }
-  .data-table tbody tr:last-child td { border-bottom: none; }
-  .data-table td.emph { font-weight: 700; color: var(--text-primary); }
-  .data-table tr.total-row td { border-top: 2px solid var(--card-border); font-weight: 800; }
-  .data-table td.plan-col { color: var(--text-secondary); }
-  .data-table td.actual-col { color: var(--text-primary); font-weight: 700; }
-  .data-table td.live { transition: background 0.3s ease; }
-  .data-table td.live.flash { background: var(--amber-tint); }
-
-  /* ---------- exposure / scrub sliders ---------- */
-
-  .slider-row {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 5px 0;
+  .data-table tbody tr:nth-child(even) td {
+    background: rgba(128,128,128,0.045);
   }
 
-  .slider-row .slider-label {
-    flex: 0 0 auto;
-    font-size: 0.68rem;
+  .data-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .data-table td.emph {
     font-weight: 700;
-    color: var(--text-secondary);
-    min-width: 100px;
+    color: var(--text-primary);
   }
 
-  .slider-row input[type="range"] {
-    flex: 1;
-    accent-color: var(--blue);
-    height: 5px;
-  }
-
-  .panel-sell .slider-row input[type="range"] { accent-color: var(--orange); }
-
-  .slider-row .slider-value {
-    flex: 0 0 auto;
-    min-width: 46px;
-    text-align: right;
-    font-size: 0.74rem;
+  .data-table tr.total-row td {
+    border-top: 2px solid var(--card-border);
     font-weight: 800;
   }
 
-  .scrub-months {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.6rem;
-    color: var(--text-muted);
-    margin-top: 1px;
+  .data-table td.live {
+    transition: background 0.3s ease;
   }
 
-  /* ---------- readout chips ---------- */
-
-  .readout-row {
-    flex: 0 0 auto;
-    display: flex;
-    gap: 6px;
-    margin: 5px 0;
+  .data-table td.live.flash {
+    background: var(--amber-tint);
   }
 
-  .readout-chip {
+  /* ---------- exposure indicators / sliders ---------- */
+
+  .exposure-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0 4px;
+  }
+
+  .exposure-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .exposure-label {
+    flex: 0 0 190px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .exposure-item input[type="range"] {
     flex: 1;
+    min-width: 120px;
+    accent-color: var(--blue);
+  }
+
+  .exposure-value {
+    flex: 0 0 auto;
+    min-width: 54px;
+    text-align: right;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .exposure-static {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .delta-line {
+    margin: 10px 0 0;
+    font-size: 0.82rem;
+    font-weight: 700;
     text-align: center;
+    padding: 8px 10px;
+    border-radius: 10px;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 3px 4px 4px;
   }
 
-  .readout-chip span {
-    display: block;
-    font-size: 0.56rem;
+  .delta-line .delta-up { color: var(--red); }
+  .delta-line .delta-down { color: var(--green); }
+  .delta-line .delta-flat { color: var(--text-muted); }
+
+  /* ---------- capex / payback readout ---------- */
+
+  .readout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0 4px;
+  }
+
+  .readout-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 10px;
+    text-align: center;
+  }
+
+  .readout-label {
+    font-size: 0.62rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--text-muted);
     font-weight: 700;
+    margin: 0 0 4px;
   }
 
-  .readout-chip strong { font-size: 0.86rem; font-weight: 800; color: var(--text-primary); }
-  .readout-chip strong.pos { color: var(--red); }
-  .readout-chip strong.neg { color: var(--green); }
-
-  .story-line {
-    flex: 0 0 auto;
-    margin: 3px 0 0;
-    font-size: 0.7rem;
-    line-height: 1.35;
+  .readout-value {
+    font-size: 1.05rem;
+    font-weight: 800;
     color: var(--text-primary);
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 5px 9px;
-    display: flex;
-    align-items: center;
+    margin: 0;
   }
-
-  .note-line {
-    flex: 0 0 auto;
-    margin-top: 4px;
-    font-size: 0.68rem;
-    line-height: 1.3;
-    color: var(--text-secondary);
-  }
-
-  .note-line strong { color: var(--text-primary); }
-
-  /* ---------- chart / waterfall areas (SVG scales via viewBox) ---------- */
-
-  .chart-area, .wf-area {
-    flex: 1 1 auto;
-    min-height: 0;
-    position: relative;
-  }
-
-  .chart-area svg, .wf-area svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-
-  .wf-labels {
-    flex: 0 0 auto;
-    display: flex;
-    margin-top: 1px;
-  }
-
-  .wf-labels span {
-    flex: 1;
-    text-align: center;
-    font-size: 0.56rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    line-height: 1.15;
-  }
-
-  /* ---------- capacity track (scale tab) ---------- */
 
   .capacity-track {
     position: relative;
-    height: 34px;
-    margin: 4px 2px 0;
+    height: 40px;
+    margin: 16px 4px 2px;
   }
 
   .capacity-marker {
@@ -434,17 +469,22 @@
   }
 
   .capacity-marker-label {
-    font-size: 0.56rem;
+    font-size: 0.6rem;
     font-weight: 800;
+    color: var(--amber);
     white-space: nowrap;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
   }
 
-  .capacity-marker-line { width: 2px; height: 26px; }
+  .capacity-marker-line {
+    width: 2px;
+    height: 30px;
+    background: var(--amber);
+  }
 
   .capacity-slider {
     position: absolute;
-    top: 8px;
+    top: 10px;
     left: 0;
     width: 100%;
     margin: 0;
@@ -454,185 +494,355 @@
   .capacity-scale {
     display: flex;
     justify-content: space-between;
-    font-size: 0.58rem;
+    font-size: 0.66rem;
     color: var(--text-muted);
-    margin: 0 2px;
+    margin: 0 4px;
   }
 
   .capacity-note {
-    margin: 5px 0 0;
-    font-size: 0.68rem;
+    margin: 10px 0 0;
+    font-size: 0.78rem;
     font-weight: 700;
     color: var(--amber);
     background: var(--amber-tint);
-    border-radius: 8px;
-    padding: 4px 8px;
+    border-radius: 10px;
+    padding: 8px 10px;
     text-align: center;
   }
 
   .capacity-note[hidden] { display: none; }
 
+  .assumption-note {
+    margin: 8px 0 0;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ---------- waterfall bars ---------- */
+
+  .waterfall-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 14px 12px 10px;
+    margin: 10px 0 12px;
+  }
+
+  .waterfall-track {
+    position: relative;
+    height: 130px;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .wf-col {
+    flex: 1;
+    position: relative;
+  }
+
+  .wf-bar {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    border-radius: 4px 4px 2px 2px;
+  }
+
+  .wf-connector {
+    position: absolute;
+    left: -4px;
+    width: 8px;
+    height: 1px;
+    border-top: 1px dashed var(--text-muted);
+  }
+
+  .wf-value-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .wf-labels {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .wf-labels span {
+    flex: 1;
+    text-align: center;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  .note-line {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .note-line strong { color: var(--text-primary); }
+
+  /* ---------- monthly variance chart (1.3) ---------- */
+
+  .chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 12px 12px 8px;
+    margin: 10px 0 12px;
+  }
+
+  .chart-area {
+    position: relative;
+    height: 220px;
+  }
+
+  .chart-area svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .scrub-row {
+    margin: 8px 4px 2px;
+  }
+
+  .scrub-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--blue);
+  }
+
+  .scrub-months {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .readout-row {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 4px;
+  }
+
+  .readout-chip {
+    flex: 1;
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 6px 6px 7px;
+  }
+
+  .readout-chip span {
+    display: block;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .readout-chip strong {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .readout-chip strong.pos { color: var(--red); }
+  .readout-chip strong.neg { color: var(--green); }
+
+  .story-line {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
   /* ---------- indicator dashboard ---------- */
 
   .indicator-grid {
-    flex: 1 1 auto;
-    min-height: 0;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 8px;
+    gap: 10px;
+    margin: 10px 0 4px;
   }
 
   .indicator-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 10px;
-    padding: 8px 9px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding: 10px 10px 9px;
   }
 
   .indicator-name {
-    font-size: 0.64rem;
+    font-size: 0.66rem;
     font-weight: 700;
     color: var(--text-secondary);
-    margin: 0 0 4px;
+    margin: 0 0 6px;
+    line-height: 1.25;
     display: flex;
     justify-content: space-between;
     gap: 4px;
-    line-height: 1.2;
   }
 
-  .indicator-status { font-size: 0.8rem; line-height: 1; }
-  .indicator-current { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0; }
-  .indicator-target { font-size: 0.64rem; color: var(--text-muted); margin: 2px 0 0; }
+  .indicator-status { font-size: 0.85rem; line-height: 1; }
 
-  /* ---------- lever cards (campaign tab) ---------- */
+  .indicator-current {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .indicator-target {
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    margin: 2px 0 0;
+  }
+
+  /* ---------- lever cards (sell roadmap) ---------- */
 
   .lever-grid {
-    flex: 1 1 auto;
-    min-height: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 10px 0 4px;
   }
 
   .lever-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 10px;
-    padding: 8px 10px;
+    padding: 12px 10px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-  }
-
-  .lever-title { font-size: 0.76rem; font-weight: 800; color: var(--text-primary); margin: 0; }
-  .lever-desc { font-size: 0.6rem; color: var(--text-muted); line-height: 1.3; margin: 0; flex: 1 1 auto; overflow: hidden; }
-
-  .lever-stats {
-    display: flex;
     gap: 6px;
-    margin-top: 2px;
   }
 
-  .lever-stat {
-    flex: 1;
-    text-align: center;
-    border-radius: 7px;
-    padding: 3px 4px;
-    background: var(--bg);
-    border: 1px solid var(--card-border);
+  .lever-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
   }
 
-  .lever-stat span {
-    display: block;
-    font-size: 0.54rem;
-    text-transform: uppercase;
+  .lever-desc {
+    font-size: 0.66rem;
     color: var(--text-muted);
-    font-weight: 700;
+    line-height: 1.35;
+    margin: 0;
+    flex: 1;
   }
 
-  .lever-stat strong { font-size: 0.8rem; font-weight: 800; color: var(--text-primary); }
-  .lever-stat.plan strong { color: var(--text-secondary); }
-  .lever-stat.actual strong { color: var(--orange); }
+  .lever-metric {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--blue);
+    margin: 4px 0 0;
+  }
 
   .lever-card input[type="range"] {
     width: 100%;
-    accent-color: var(--orange);
-    margin-top: 2px;
+    accent-color: var(--blue);
+    margin: 2px 0 0;
   }
 
-  /* ---------- pl summary rows (result tab) ---------- */
+  /* ---------- generic range slider polish ---------- */
 
-  .pl-summary {
-    flex: 0 0 auto;
+  input[type="range"] {
+    height: 6px;
+    cursor: pointer;
+  }
+
+  /* ---------- footer / bottom section ---------- */
+
+  .framework-section {
+    margin-top: 30px;
+    padding-top: 26px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .framework-statement {
+    max-width: 760px;
+    margin: 0 auto 14px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .framework-statement .accent {
+    background: linear-gradient(135deg, var(--blue), var(--orange));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .disclaimer {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    max-width: 620px;
+    margin: 0 auto 22px;
+  }
+
+  .contact {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    margin-bottom: 6px;
-  }
-
-  .pl-row {
-    display: flex;
     align-items: center;
-    padding: 4px 9px;
-    border-radius: 8px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    font-size: 0.74rem;
-    gap: 8px;
+    gap: 10px;
   }
 
-  .pl-row .pl-label { flex: 1; color: var(--text-secondary); font-weight: 600; }
-  .pl-row .pl-plan, .pl-row .pl-actual { flex: 0 0 auto; min-width: 68px; text-align: right; }
-  .pl-row .pl-plan strong, .pl-row .pl-actual strong { font-size: 0.86rem; font-weight: 800; color: var(--text-primary); }
-  .pl-row .pl-plan span, .pl-row .pl-actual span { display: block; font-size: 0.52rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
-
-  .pl-row.emph { border-color: var(--orange); background: var(--orange-tint); }
-  .pl-row.emph .pl-actual strong { color: var(--orange); }
-  .pl-delta { font-size: 0.6rem; font-weight: 700; color: var(--green); margin-left: 4px; }
-
-  /* ---------- footer ---------- */
-
-  footer.ribbon {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    margin-top: 6px;
-    padding-top: 5px;
-    border-top: 1px solid var(--border);
-    font-size: 0.64rem;
-    color: var(--text-muted);
-  }
-
-  footer.ribbon .accent { color: var(--text-secondary); font-weight: 700; }
-
-  footer.ribbon .gh-link {
+  .gh-link {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    color: var(--text-muted);
+    gap: 7px;
+    color: var(--text-secondary);
     text-decoration: none;
+    font-size: 0.88rem;
+    padding: 5px 4px;
   }
 
-  footer.ribbon .gh-link:hover { color: var(--text-primary); }
-  footer.ribbon .gh-link svg { fill: currentColor; }
+  .gh-link:hover { color: var(--text-primary); }
+  .gh-link svg { fill: currentColor; }
 
-  /* ---------- small-viewport fallback: allow scroll ---------- */
+  /* ---------- responsive ---------- */
 
-  @media (max-width: 860px), (max-height: 620px) {
-    body { overflow: auto; }
-    .app { height: auto; min-height: 100vh; }
-    .stage { grid-template-columns: minmax(0, 1fr); }
-    .divider { display: none; }
-    .panel { height: auto; min-height: 560px; }
-    .tab-content { overflow: visible; }
+  @media (max-width: 920px) {
+    .columns {
+      grid-template-columns: 1fr;
+    }
+    .col-divider { display: none; }
+    .indicator-grid { grid-template-columns: repeat(2, 1fr); }
+    .lever-grid { grid-template-columns: repeat(2, 1fr); }
+    .readout-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 560px) {
+    header.hero h1 { font-size: 1.3rem; }
+    .timeline { flex-direction: column; }
+    .timeline-step { border-right: none; border-bottom: 1px solid var(--card-border); }
+    .timeline-step:last-child { border-bottom: none; }
+    .indicator-grid { grid-template-columns: 1fr 1fr; }
+    .lever-grid { grid-template-columns: 1fr; }
+    .exposure-label { flex-basis: 100%; }
   }
 </style>
 </head>
@@ -641,322 +851,385 @@
 
   <header class="hero">
     <h1>Hardware Finance: Build to Sell</h1>
-    <p>Every section: plan vs. actual &mdash; tap a tab to move through the story</p>
+    <p>Build phase (t0&rarr;t1) meets sell phase (t1&rarr;tn) &mdash; one finance framework across the full hardware lifecycle</p>
   </header>
 
-  <div class="stage">
+  <div class="columns">
 
-    <!-- ================= BUILD ================= -->
-    <section class="panel panel-build">
-      <div class="panel-head">
-        <div class="panel-head-left">
-          <span class="phase-label">Build</span>
-          <h2 id="buildTitle">Unit Econ &mdash; BOM Target vs Actual</h2>
+    <!-- ================= LEFT: BUILD ================= -->
+    <div class="col-build">
+      <div class="column-head">
+        <span class="phase-label">Build</span>
+        <div>
+          <h2>Vehicle Manufacturing</h2>
+          <span class="phase-context">Ford / NIO context &mdash; t0 &rarr; t1</span>
         </div>
-        <ul class="context-tags" id="buildTags">
+      </div>
+
+      <div class="timeline" id="buildTimeline">
+        <button class="timeline-step active" data-target="sec-1-1" type="button">
+          <span class="timeline-dot">1</span><span class="timeline-step-label">Design</span>
+        </button>
+        <button class="timeline-step" data-target="sec-1-2" type="button">
+          <span class="timeline-dot">2</span><span class="timeline-step-label">Prototype</span>
+        </button>
+        <button class="timeline-step" data-target="sec-1-3" type="button">
+          <span class="timeline-dot">3</span><span class="timeline-step-label">Testing</span>
+        </button>
+        <button class="timeline-step" data-target="sec-1-4" type="button">
+          <span class="timeline-dot">4</span><span class="timeline-step-label">Launch</span>
+        </button>
+      </div>
+
+      <!-- 1.1 Unit Economics -->
+      <section class="fin-section highlight" id="sec-1-1">
+        <h3>1.1 Unit Economics</h3>
+        <p class="section-sub">BOM cost matrix &mdash; drag commodity and tariff to see the target move.</p>
+        <ul class="context-tags">
           <li class="context-tag">Engineering</li>
           <li class="context-tag">Procurement</li>
         </ul>
-      </div>
 
-      <div class="tab-bar" id="buildTabBar">
-        <button class="tab-btn active" data-pane="paneUnitEcon" type="button">Unit Econ</button>
-        <button class="tab-btn" data-pane="paneScale" type="button">Scale</button>
-        <button class="tab-btn" data-pane="paneVariance" type="button">Variance</button>
-        <button class="tab-btn" data-pane="paneBuildMonitoring" type="button">Monitoring</button>
-      </div>
+        <div class="table-scroll">
+          <table class="data-table compact">
+            <thead>
+              <tr class="group-row"><th></th><th></th><th colspan="2">Price/unit</th><th></th><th></th><th colspan="2">Unit Cost</th></tr>
+              <tr class="sub-row"><th>Component</th><th>Source</th><th>Target</th><th>Actual</th><th>Usage</th><th>Labor</th><th>Target</th><th>Actual</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Aluminum Housing</td><td>Import</td>
+                <td>$12.50</td><td class="live" id="bomAlPrice">$12.50</td><td>2.0 kg</td><td>$3.00</td>
+                <td class="emph">$28.00</td><td class="live emph" id="bomAlCost">$28.00</td>
+              </tr>
+              <tr>
+                <td>Steel Frame</td><td>Local</td><td>$8.00</td><td>$8.00</td><td>3.5 kg</td><td>$2.50</td><td class="emph">$30.50</td><td class="emph">$30.50</td>
+              </tr>
+              <tr>
+                <td>Electronics Module</td><td>Import</td>
+                <td>$45.00</td><td class="live" id="bomElecPrice">$45.00</td><td>1</td><td>$5.00</td>
+                <td class="emph">$50.00</td><td class="live emph" id="bomElecCost">$50.00</td>
+              </tr>
+              <tr>
+                <td>Wiring Harness</td><td>Local</td><td>$6.00</td><td>$6.00</td><td>1</td><td>$1.50</td><td class="emph">$7.50</td><td class="emph">$7.50</td>
+              </tr>
+              <tr>
+                <td>Assembly</td><td>Local</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>$15.00</td><td class="emph">$15.00</td><td class="emph">$15.00</td>
+              </tr>
+              <tr class="total-row">
+                <td>BOM Cost</td><td></td><td></td><td></td><td></td><td></td>
+                <td class="emph">$131.00</td><td class="live emph" id="bomTotal">$131.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="tab-content" id="buildTabContent">
-
-        <!-- ---- Unit Econ ---- -->
-        <div class="tab-pane active" id="paneUnitEcon">
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead><tr><th>Component</th><th>Source</th><th>Plan</th><th>Actual</th><th>&Delta;</th></tr></thead>
-              <tbody>
-                <tr><td>Aluminum Housing</td><td>Import</td><td>$28.00</td><td class="live" id="ueAlActual">$28.00</td><td class="live" id="ueAlDelta">$0.00</td></tr>
-                <tr><td>Steel Frame</td><td>Local</td><td>$30.50</td><td>$30.50</td><td>$0.00</td></tr>
-                <tr><td>Electronics Module</td><td>Import</td><td>$50.00</td><td>$50.00</td><td>$0.00</td></tr>
-                <tr><td>Wiring Harness</td><td>Local</td><td>$7.50</td><td>$7.50</td><td>$0.00</td></tr>
-                <tr><td>Assembly</td><td>Local</td><td>$15.00</td><td>$15.00</td><td>$0.00</td></tr>
-                <tr class="total-row"><td>BOM Cost</td><td></td><td class="emph">$131.00</td><td class="emph live" id="ueTotalActual">$131.00</td><td class="emph live" id="ueTotalDelta">$0.00</td></tr>
-              </tbody>
-            </table>
+        <div class="exposure-row">
+          <div class="exposure-item">
+            <span class="exposure-label">FX Exposure (USD/CNY)</span>
+            <span class="exposure-static">7.10 assumption &mdash; affects Import rows</span>
           </div>
-
-          <div class="slider-row">
-            <span class="slider-label">Commodity (Aluminum LME)</span>
+          <div class="exposure-item">
+            <span class="exposure-label">Commodity Index (Aluminum LME)</span>
             <input type="range" id="commoditySlider" min="-20" max="50" value="0" step="1">
-            <span class="slider-value" id="commodityValue">+0%</span>
+            <span class="exposure-value" id="commodityValue">+0%</span>
           </div>
-
-          <p class="story-line" id="ueStory">FX 7.10 assumption on Import rows. Drag the slider to simulate an aluminum price move &mdash; actual updates live against the $131.00 plan.</p>
+          <div class="exposure-item">
+            <span class="exposure-label">Tariff (Import duty rate)</span>
+            <input type="range" id="tariffSlider" min="0" max="25" value="0" step="1">
+            <span class="exposure-value" id="tariffValue">+0%</span>
+          </div>
         </div>
 
-        <!-- ---- Scale ---- -->
-        <div class="tab-pane" id="paneScale">
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead><tr><th>Capex Item</th><th>Plan</th><th>Actual</th></tr></thead>
-              <tbody>
-                <tr><td>Tooling (molds, fixtures)</td><td>$5.2M</td><td>$5.4M</td></tr>
-                <tr><td>Line Build-out</td><td>$6.8M</td><td>$6.8M</td></tr>
-                <tr><td>Equipment</td><td>$3.0M</td><td>$3.0M</td></tr>
-                <tr class="total-row"><td>Total Capex</td><td class="emph">$15.0M</td><td class="emph">$15.2M</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="delta-line" id="bomDeltaLine">On target &mdash; $0.00 vs. $131.00 baseline</div>
+      </section>
 
-          <div class="capacity-track">
-            <div class="capacity-marker" style="left: 46.7%; color: var(--text-muted);">
-              <span class="capacity-marker-label">Plan 120K</span>
-              <span class="capacity-marker-line" style="background: var(--text-muted);"></span>
-            </div>
-            <div class="capacity-marker" style="left: 66.7%; color: var(--amber);">
-              <span class="capacity-marker-label">Cap 150K</span>
-              <span class="capacity-marker-line" style="background: var(--amber);"></span>
-            </div>
-            <input type="range" class="capacity-slider" id="volumeSlider" min="50000" max="200000" step="1000" value="128000" aria-label="Actual volume">
-          </div>
-          <div class="capacity-scale"><span>50K</span><span>Actual volume (drag) &mdash; 200K units</span></div>
-
-          <div class="table-wrap" style="margin-top: 6px;">
-            <table class="data-table">
-              <thead><tr><th>Metric</th><th>Plan</th><th>Actual</th></tr></thead>
-              <tbody>
-                <tr><td>Volume</td><td>120,000</td><td class="live" id="scActualVolume">128,000</td></tr>
-                <tr><td>Unit Capex Amort.</td><td>$125.00</td><td class="live" id="scActualAmort">$118.75</td></tr>
-                <tr><td>Payback</td><td>2.55 yrs</td><td class="live" id="scActualPayback">2.42 yrs</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <p class="capacity-note" id="capacityNote" hidden>Requires 2nd shift or outsource.</p>
-          <p class="note-line">Assumes ASP $180/unit and unit cost $131.00 (BOM plan) for both plan and actual payback.</p>
-        </div>
-
-        <!-- ---- Variance ---- -->
-        <div class="tab-pane" id="paneVariance">
-          <div class="chart-area" style="flex-grow: 1.25;">
-            <svg id="bomChart" viewBox="0 0 600 200" preserveAspectRatio="none" aria-label="BOM cost target versus actual by month"></svg>
-          </div>
-          <div class="slider-row">
-            <span class="slider-label">Month</span>
-            <input type="range" id="monthSlider" min="1" max="12" value="6" step="1" aria-label="Month">
-            <span class="slider-value" id="monthValue">M6</span>
-          </div>
-          <p class="story-line" id="bomStory">Month 6 &middot; Target $131.00 &middot; Actual $136.00 &middot; Variance +$5.00 &mdash; Aluminum +20% YoY.</p>
-
-          <div class="wf-area" style="flex-grow: 1; margin-top: 4px;">
-            <svg id="ppvWaterfall" viewBox="0 0 500 150" preserveAspectRatio="none" aria-label="PPV to gross margin waterfall"></svg>
-          </div>
-          <div class="wf-labels">
-            <span>Baseline COGS</span><span>Aluminum +20%</span><span>PPV Recognized</span><span>Inventory Flow-through</span><span>COGS/GM Compressed</span>
-          </div>
-          <p class="note-line"><strong>Action:</strong> Escalated through board review &rarr; engineering change (month 8) &rarr; 5% cost optimization on affected parts.</p>
-        </div>
-
-        <!-- ---- Build Monitoring ---- -->
-        <div class="tab-pane" id="paneBuildMonitoring">
-          <div class="indicator-grid">
-            <div class="indicator-card">
-              <p class="indicator-name"><span>BOM Cost</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual $128.50</p>
-              <p class="indicator-target">Target: $131.00</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>PPV Trend (MoM)</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual +2.1%</p>
-              <p class="indicator-target">Target: &lt;5%</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Tooling Spend</span><span class="indicator-status">&#128993;</span></p>
-              <p class="indicator-current">Actual $5.4M</p>
-              <p class="indicator-target">Target: $5.2M</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Capacity Readiness</span><span class="indicator-status">&#128993;</span></p>
-              <p class="indicator-current">Actual 92%</p>
-              <p class="indicator-target">Target: 95%</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Yield Rate</span><span class="indicator-status">&#128993;</span></p>
-              <p class="indicator-current">Actual 88%</p>
-              <p class="indicator-target">Target: 90%</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Inventory DOH</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual 18 days</p>
-              <p class="indicator-target">Target: &lt;25 days</p>
-            </div>
-          </div>
-          <p class="note-line">Any breach triggers early warning and reforecast.</p>
-        </div>
-
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <!-- ================= SELL ================= -->
-    <section class="panel panel-sell">
-      <div class="panel-head">
-        <div class="panel-head-left">
-          <span class="phase-label">Sell</span>
-          <h2 id="sellTitle">Target P&amp;L &mdash; Plan vs Actual</h2>
-        </div>
-        <ul class="context-tags" id="sellTags">
-          <li class="context-tag">Merchant Ops</li>
-          <li class="context-tag">Marketing</li>
+      <!-- 1.2 Scale -->
+      <section class="fin-section" id="sec-1-2">
+        <h3>1.2 Scale</h3>
+        <p class="section-sub">Capex amortization and payback move with volume.</p>
+        <ul class="context-tags">
+          <li class="context-tag">Engineering</li>
+          <li class="context-tag">Manufacturing</li>
+          <li class="context-tag">Board</li>
         </ul>
-      </div>
 
-      <div class="tab-bar" id="sellTabBar">
-        <button class="tab-btn active" data-pane="panePL" type="button">Target P&amp;L</button>
-        <button class="tab-btn" data-pane="paneCampaign" type="button">Campaign</button>
-        <button class="tab-btn" data-pane="paneResult" type="button">Result</button>
-        <button class="tab-btn" data-pane="paneSellMonitoring" type="button">Monitoring</button>
-      </div>
-
-      <div class="tab-content" id="sellTabContent">
-
-        <!-- ---- Target P&L ---- -->
-        <div class="tab-pane active" id="panePL">
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr class="group-row"><th></th><th colspan="2">Major</th><th colspan="2">Small</th><th colspan="2">3C</th><th colspan="2">Total</th></tr>
-                <tr class="sub-row"><th>P&amp;L ($B)</th><th>Plan</th><th>Act</th><th>Plan</th><th>Act</th><th>Plan</th><th>Act</th><th>Plan</th><th>Act</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Revenue</td><td class="plan-col">4.20</td><td class="actual-col live" id="plMajorRevA">3.80</td><td class="plan-col">1.80</td><td class="actual-col live" id="plSmallRevA">2.00</td><td class="plan-col">4.00</td><td class="actual-col live" id="plCeRevA">4.20</td><td class="plan-col">10.00</td><td class="actual-col live" id="plTotalRevA">10.00</td></tr>
-                <tr><td>COGS</td><td class="plan-col">(3.20)</td><td class="actual-col live" id="plMajorCogsA">(2.90)</td><td class="plan-col">(1.20)</td><td class="actual-col live" id="plSmallCogsA">(1.33)</td><td class="plan-col">(3.40)</td><td class="actual-col live" id="plCeCogsA">(3.57)</td><td class="plan-col">(7.80)</td><td class="actual-col live" id="plTotalCogsA">(7.80)</td></tr>
-                <tr><td>Gross Margin</td><td class="plan-col">1.00</td><td class="actual-col live" id="plMajorGmA">0.90</td><td class="plan-col">0.60</td><td class="actual-col live" id="plSmallGmA">0.67</td><td class="plan-col">0.60</td><td class="actual-col live" id="plCeGmA">0.63</td><td class="plan-col">2.20</td><td class="actual-col live" id="plTotalGmA">2.20</td></tr>
-                <tr><td>Logistics</td><td class="plan-col">(0.25)</td><td class="actual-col live" id="plMajorLogA">(0.23)</td><td class="plan-col">(0.10)</td><td class="actual-col live" id="plSmallLogA">(0.11)</td><td class="plan-col">(0.15)</td><td class="actual-col live" id="plCeLogA">(0.16)</td><td class="plan-col">(0.50)</td><td class="actual-col live" id="plTotalLogA">(0.49)</td></tr>
-                <tr><td>Marketing</td><td class="plan-col">(0.15)</td><td class="actual-col live" id="plMajorMktA">(0.14)</td><td class="plan-col">(0.08)</td><td class="actual-col live" id="plSmallMktA">(0.09)</td><td class="plan-col">(0.12)</td><td class="actual-col live" id="plCeMktA">(0.13)</td><td class="plan-col">(0.35)</td><td class="actual-col live" id="plTotalMktA">(0.35)</td></tr>
-                <tr><td>Inv. Provisions</td><td class="plan-col">(0.08)</td><td class="actual-col live" id="plMajorInvA">(0.07)</td><td class="plan-col">(0.02)</td><td class="actual-col live" id="plSmallInvA">(0.02)</td><td class="plan-col">(0.03)</td><td class="actual-col live" id="plCeInvA">(0.03)</td><td class="plan-col">(0.13)</td><td class="actual-col live" id="plTotalInvA">(0.13)</td></tr>
-                <tr class="total-row"><td>Operating Income</td><td class="plan-col emph">0.52</td><td class="actual-col live" id="plMajorOiA">0.47</td><td class="plan-col emph">0.40</td><td class="actual-col live" id="plSmallOiA">0.44</td><td class="plan-col emph">0.30</td><td class="actual-col live" id="plCeOiA">0.32</td><td class="plan-col emph">1.22</td><td class="actual-col live" id="plTotalOiA">1.23</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="slider-row">
-            <span class="slider-label">Major mix (actual)</span>
-            <input type="range" id="mixMajorSlider" min="0" max="100" value="38" step="1">
-            <span class="slider-value" id="mixMajorValue">38%</span>
-          </div>
-          <div class="slider-row">
-            <span class="slider-label">Small mix (actual)</span>
-            <input type="range" id="mixSmallSlider" min="0" max="100" value="20" step="1">
-            <span class="slider-value" id="mixSmallValue">20%</span>
-          </div>
-          <div class="slider-row">
-            <span class="slider-label">3C mix (actual)</span>
-            <input type="range" id="mixCeSlider" min="0" max="100" value="42" step="1">
-            <span class="slider-value" id="mixCeValue">42%</span>
-          </div>
-          <p class="note-line">Plan mix: 42 / 18 / 40. Total volume held constant; mix drift moves total profitability even though volume doesn't change.</p>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Capex Item</th><th>Budget</th><th>Actual</th></tr></thead>
+            <tbody>
+              <tr><td>Tooling (molds, fixtures)</td><td>$5.2M</td><td>$5.4M</td></tr>
+              <tr><td>Line Build-out</td><td>$6.8M</td><td>$6.8M</td></tr>
+              <tr><td>Equipment</td><td>$3.0M</td><td>$3.0M</td></tr>
+              <tr class="total-row"><td>Total Capex</td><td class="emph">$15.0M</td><td class="emph">$15.2M</td></tr>
+            </tbody>
+          </table>
         </div>
 
-        <!-- ---- Campaign ---- -->
-        <div class="tab-pane" id="paneCampaign">
-          <div class="lever-grid">
-            <div class="lever-card">
-              <p class="lever-title">Pricing</p>
-              <p class="lever-desc">Real-time ASP adjustments based on sell-through velocity.</p>
-              <div class="lever-stats">
-                <div class="lever-stat plan"><span>Plan</span><strong>0%</strong></div>
-                <div class="lever-stat actual"><span>Actual</span><strong id="pricingActual">&minus;8%</strong></div>
-              </div>
-              <input type="range" id="pricingSlider" min="-15" max="5" value="-8" step="1">
-            </div>
-            <div class="lever-card">
-              <p class="lever-title">Marketing</p>
-              <p class="lever-desc">Joint coupon campaigns with merchants; ROI-monitored spend.</p>
-              <div class="lever-stats">
-                <div class="lever-stat plan"><span>Target</span><strong>&gt;3.5x</strong></div>
-                <div class="lever-stat actual"><span>Actual</span><strong>4.2x</strong></div>
-              </div>
-            </div>
-            <div class="lever-card">
-              <p class="lever-title">Inventory</p>
-              <p class="lever-desc">Markdown depth optimized for seasonal obsolescence risk.</p>
-              <div class="lever-stats">
-                <div class="lever-stat plan"><span>Target</span><strong>&lt;30d</strong></div>
-                <div class="lever-stat actual"><span>Actual</span><strong>22 days</strong></div>
-              </div>
-            </div>
-            <div class="lever-card">
-              <p class="lever-title">Logistics</p>
-              <p class="lever-desc">Take rate adjusted before 3PL surge pricing locks in.</p>
-              <div class="lever-stats">
-                <div class="lever-stat plan"><span>Target</span><strong>&lt;$10.00</strong></div>
-                <div class="lever-stat actual"><span>Actual</span><strong>$8.50</strong></div>
-              </div>
-            </div>
+        <div class="capacity-track">
+          <div class="capacity-marker" style="left: 66.7%;">
+            <span class="capacity-marker-label">150K cap</span>
+            <span class="capacity-marker-line"></span>
+          </div>
+          <input type="range" class="capacity-slider" id="volumeSlider" min="50000" max="200000" step="5000" value="120000">
+        </div>
+        <div class="capacity-scale"><span>50K</span><span>200K units</span></div>
+
+        <div class="readout-grid">
+          <div class="readout-card">
+            <p class="readout-label">Volume</p>
+            <p class="readout-value" id="volReadout">120,000</p>
+          </div>
+          <div class="readout-card">
+            <p class="readout-label">Unit Capex Amort.</p>
+            <p class="readout-value" id="amortReadout">$125.00</p>
+          </div>
+          <div class="readout-card">
+            <p class="readout-label">Payback</p>
+            <p class="readout-value" id="paybackReadout">2.6 yrs</p>
           </div>
         </div>
 
-        <!-- ---- Result ---- -->
-        <div class="tab-pane" id="paneResult">
-          <div class="pl-summary">
-            <div class="pl-row"><span class="pl-label">Revenue</span><span class="pl-plan"><span>Plan</span><strong>$10.00B</strong></span><span class="pl-actual"><span>Actual</span><strong>$10.00B</strong></span></div>
-            <div class="pl-row"><span class="pl-label">Operating Income</span><span class="pl-plan"><span>Plan</span><strong>$1.22B</strong></span><span class="pl-actual"><span>Actual</span><strong>$1.40B</strong></span></div>
-            <div class="pl-row emph"><span class="pl-label">Operating Margin</span><span class="pl-plan"><span>Plan</span><strong>12.2%</strong></span><span class="pl-actual"><span>Actual</span><strong>14.0%<span class="pl-delta">+1.8pp</span></strong></span></div>
+        <p class="capacity-note" id="capacityNote" hidden>Requires 2nd shift or outsource.</p>
+        <p class="assumption-note">Assumes ASP $180/unit, unit cost $131.00 (BOM target), single-shift capacity 150K units/yr.</p>
+      </section>
+
+      <!-- 1.3 Variance -->
+      <section class="fin-section" id="sec-1-3">
+        <h3>1.3 Variance</h3>
+        <p class="section-sub">Monthly BOM actual vs. target: a commodity spike hits, then closes.</p>
+        <ul class="context-tags">
+          <li class="context-tag">Program Team</li>
+          <li class="context-tag">Suppliers</li>
+        </ul>
+
+        <div class="chart-card">
+          <div class="chart-area">
+            <svg id="bomVarianceChart" viewBox="0 0 600 220" preserveAspectRatio="none" aria-label="BOM cost target versus actual by month"></svg>
           </div>
-          <div class="wf-area">
-            <svg id="marginWaterfall" viewBox="0 0 500 200" preserveAspectRatio="none" aria-label="Margin improvement waterfall from three campaign levers"></svg>
+          <div class="scrub-row">
+            <input type="range" id="monthSlider" min="1" max="12" value="6" step="1" aria-label="Month">
+            <div class="scrub-months"><span>Month 1</span><span>Month 12</span></div>
           </div>
+        </div>
+
+        <div class="readout-row">
+          <div class="readout-chip"><span>Target</span><strong id="varTarget">$131.00</strong></div>
+          <div class="readout-chip"><span>Actual</span><strong id="varActual">$136.00</strong></div>
+          <div class="readout-chip"><span>Variance</span><strong id="varVariance">+$5.00</strong></div>
+        </div>
+
+        <p class="story-line" id="varStory">Month 6: Aluminum +20% YoY spikes cost to $136.00 &mdash; unfavorable variance of +$5.00 vs. target.</p>
+
+        <p class="note-line"><strong>Action:</strong> Escalated through board review &rarr; engineering change (month 8) &rarr; 5% cost optimization on affected parts.</p>
+      </section>
+
+      <!-- 1.4 Monitoring -->
+      <section class="fin-section" id="sec-1-4">
+        <h3>1.4 Monitoring</h3>
+        <p class="section-sub">Build-side indicator dashboard.</p>
+        <ul class="context-tags">
+          <li class="context-tag">Finance Lead</li>
+          <li class="context-tag">Engineering</li>
+          <li class="context-tag">Ops</li>
+        </ul>
+
+        <div class="indicator-grid">
+          <div class="indicator-card">
+            <p class="indicator-name"><span>BOM Cost vs Target</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">$128.50</p>
+            <p class="indicator-target">Target: $131.00</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>PPV Trend (MoM)</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">+2.1%</p>
+            <p class="indicator-target">Target: &lt;5%</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Tooling Spend vs Budget</span><span class="indicator-status">&#128993;</span></p>
+            <p class="indicator-current">$5.4M</p>
+            <p class="indicator-target">Target: $5.2M</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Capacity Readiness</span><span class="indicator-status">&#128993;</span></p>
+            <p class="indicator-current">92%</p>
+            <p class="indicator-target">Target: 95%</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Yield Rate</span><span class="indicator-status">&#128993;</span></p>
+            <p class="indicator-current">88%</p>
+            <p class="indicator-target">Target: 90%</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Inventory DOH (RM+WIP)</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">18 days</p>
+            <p class="indicator-target">Target: &lt;25 days</p>
+          </div>
+        </div>
+
+        <p class="note-line">Any breach triggers early warning and reforecast.</p>
+      </section>
+    </div>
+
+    <div class="col-divider"></div>
+
+    <!-- ================= RIGHT: SELL ================= -->
+    <div class="col-sell">
+      <div class="column-head">
+        <span class="phase-label">Sell</span>
+        <div>
+          <h2>Consumer Electronics</h2>
+          <span class="phase-context">Alibaba Tmall CE context &mdash; t1 &rarr; tn</span>
+        </div>
+      </div>
+
+      <!-- 2.1 Target Setting -->
+      <section class="fin-section" id="sec-2-1">
+        <h3>2.1 Target Setting for P&amp;L</h3>
+        <p class="section-sub">Tmall Consumer Electronics: $10B+ GMV, 100M+ users. Targets balance platform margin, merchant margin, and cross-category repurchase.</p>
+        <ul class="context-tags">
+          <li class="context-tag">Merchant Ops</li>
+          <li class="context-tag">Category Management</li>
+        </ul>
+
+        <div class="table-scroll">
+          <table class="data-table compact">
+            <thead>
+              <tr class="group-row"><th></th><th colspan="2">Major Appliances</th><th colspan="2">Small Appliances</th><th colspan="2">3C</th><th colspan="2">Total</th></tr>
+              <tr class="sub-row"><th>P&amp;L Line</th><th>Plan</th><th>Actual</th><th>Plan</th><th>Actual</th><th>Plan</th><th>Actual</th><th>Plan</th><th>Actual</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Revenue (ASP &times; Vol)</td><td>$4.20B</td><td class="live" id="plMajorRev">$4.20B</td><td>$1.80B</td><td class="live" id="plSmallRev">$1.80B</td><td>$4.00B</td><td class="live" id="plCeRev">$4.00B</td><td>$10.00B</td><td class="live emph" id="plTotalRev">$10.00B</td></tr>
+              <tr><td>&minus; COGS</td><td>($3.20B)</td><td class="live" id="plMajorCogs">($3.20B)</td><td>($1.20B)</td><td class="live" id="plSmallCogs">($1.20B)</td><td>($3.40B)</td><td class="live" id="plCeCogs">($3.40B)</td><td>($7.80B)</td><td class="live emph" id="plTotalCogs">($7.80B)</td></tr>
+              <tr><td>= Gross Margin</td><td class="emph">$1.00B</td><td class="live emph" id="plMajorGm">$1.00B</td><td class="emph">$0.60B</td><td class="live emph" id="plSmallGm">$0.60B</td><td class="emph">$0.60B</td><td class="live emph" id="plCeGm">$0.60B</td><td class="emph">$2.20B</td><td class="live emph" id="plTotalGm">$2.20B</td></tr>
+              <tr><td>&minus; Logistics</td><td>($0.25B)</td><td class="live" id="plMajorLog">($0.25B)</td><td>($0.10B)</td><td class="live" id="plSmallLog">($0.10B)</td><td>($0.15B)</td><td class="live" id="plCeLog">($0.15B)</td><td>($0.50B)</td><td class="live emph" id="plTotalLog">($0.50B)</td></tr>
+              <tr><td>&minus; Marketing</td><td>($0.15B)</td><td class="live" id="plMajorMkt">($0.15B)</td><td>($0.08B)</td><td class="live" id="plSmallMkt">($0.08B)</td><td>($0.12B)</td><td class="live" id="plCeMkt">($0.12B)</td><td>($0.35B)</td><td class="live emph" id="plTotalMkt">($0.35B)</td></tr>
+              <tr><td>&minus; Inventory Provisions</td><td>($0.08B)</td><td class="live" id="plMajorInv">($0.08B)</td><td>($0.02B)</td><td class="live" id="plSmallInv">($0.02B)</td><td>($0.03B)</td><td class="live" id="plCeInv">($0.03B)</td><td>($0.13B)</td><td class="live emph" id="plTotalInv">($0.13B)</td></tr>
+              <tr class="total-row"><td>= Category Operating Income</td><td class="emph">$0.52B</td><td class="live emph" id="plMajorOi">$0.52B</td><td class="emph">$0.40B</td><td class="live emph" id="plSmallOi">$0.40B</td><td class="emph">$0.30B</td><td class="live emph" id="plCeOi">$0.30B</td><td class="emph">$1.22B</td><td class="live emph" id="plTotalOi">$1.22B</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="exposure-row">
+          <div class="exposure-item">
+            <span class="exposure-label">Major Appliances mix</span>
+            <input type="range" id="mixMajorSlider" min="0" max="100" value="42" step="1">
+            <span class="exposure-value" id="mixMajorValue">42%</span>
+          </div>
+          <div class="exposure-item">
+            <span class="exposure-label">Small Appliances mix</span>
+            <input type="range" id="mixSmallSlider" min="0" max="100" value="18" step="1">
+            <span class="exposure-value" id="mixSmallValue">18%</span>
+          </div>
+          <div class="exposure-item">
+            <span class="exposure-label">3C mix</span>
+            <input type="range" id="mixCeSlider" min="0" max="100" value="40" step="1">
+            <span class="exposure-value" id="mixCeValue">40%</span>
+          </div>
+        </div>
+        <p class="assumption-note">Total volume held constant; shifting mix toward lower-margin 3C or higher-margin Small Appliances moves total profitability even though volume doesn't change.</p>
+      </section>
+
+      <!-- 2.2 Roadmap -->
+      <section class="fin-section" id="sec-2-2">
+        <h3>2.2 Roadmap for Target &mdash; Nov 11 Campaign (2020)</h3>
+        <p class="section-sub">Peak campaign = 10% of annual GMV in one day.</p>
+        <ul class="context-tags">
+          <li class="context-tag">Marketing</li>
+          <li class="context-tag">Merchants</li>
+          <li class="context-tag">3PL</li>
+        </ul>
+
+        <div class="lever-grid">
+          <div class="lever-card">
+            <p class="lever-title">Pricing</p>
+            <p class="lever-desc">Real-time ASP adjustments based on sell-through velocity, balancing margin and volume.</p>
+            <p class="lever-metric" id="pricingMetric">ASP adj: +0%</p>
+            <input type="range" id="pricingSlider" min="-15" max="5" value="0" step="1">
+          </div>
+          <div class="lever-card">
+            <p class="lever-title">Marketing</p>
+            <p class="lever-desc">Joint coupon campaigns with merchants, monitoring ROI per spend, dynamically reallocating and pushing merchant co-investment.</p>
+            <p class="lever-metric">ROI = 4.2x</p>
+          </div>
+          <div class="lever-card">
+            <p class="lever-title">Inventory</p>
+            <p class="lever-desc">Days of inventory vs. clearance speed. Markdown depth optimized for seasonal obsolescence risk; write-downs provisioned then released into COGS.</p>
+            <p class="lever-metric">DOI = 22 days</p>
+          </div>
+          <div class="lever-card">
+            <p class="lever-title">Logistics</p>
+            <p class="lever-desc">Fulfillment velocity tracked. Take rate adjusted before 3PL surge pricing locks in, protecting net margin.</p>
+            <p class="lever-metric">Cost/order = $8.50</p>
+          </div>
+        </div>
+
+        <div class="waterfall-card">
+          <div class="waterfall-track" id="marginWaterfall"></div>
           <div class="wf-labels">
-            <span>Baseline</span><span>+Inventory 8%</span><span>+Logistics 5%</span><span>+Marketing 2%</span><span>New Total +15%</span>
+            <span>Baseline</span>
+            <span>+Inventory 8%</span>
+            <span>+Logistics 5%</span>
+            <span>+Marketing 2%</span>
+            <span>New Total +15%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2.3 Ongoing Monitoring -->
+      <section class="fin-section" id="sec-2-3">
+        <h3>2.3 Ongoing Monitoring</h3>
+        <p class="section-sub">Sell-side indicator dashboard.</p>
+        <ul class="context-tags">
+          <li class="context-tag">GM</li>
+          <li class="context-tag">Category Leads</li>
+          <li class="context-tag">Logistics</li>
+        </ul>
+
+        <div class="indicator-grid">
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Marketing ROI</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">4.2x</p>
+            <p class="indicator-target">Target: &gt;3.5x</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Inventory DOH (FG)</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">22 days</p>
+            <p class="indicator-target">Target: &lt;30 days</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Inventory Turns</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">14x/yr</p>
+            <p class="indicator-target">Target: &gt;12x/yr</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Sell-through Rate</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">87%</p>
+            <p class="indicator-target">Target: &gt;85%</p>
+          </div>
+          <div class="indicator-card">
+            <p class="indicator-name"><span>Cost per Order</span><span class="indicator-status">&#128994;</span></p>
+            <p class="indicator-current">$8.50</p>
+            <p class="indicator-target">Target: &lt;$10.00</p>
           </div>
         </div>
 
-        <!-- ---- Sell Monitoring ---- -->
-        <div class="tab-pane" id="paneSellMonitoring">
-          <div class="indicator-grid" style="grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr);">
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Marketing ROI</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual 4.2x</p>
-              <p class="indicator-target">Target: &gt;3.5x</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Inventory DOH (FG)</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual 22 days</p>
-              <p class="indicator-target">Target: &lt;30 days</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Inventory Turns</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual 14x/yr</p>
-              <p class="indicator-target">Target: &gt;12x/yr</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Sell-through Rate</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual 87%</p>
-              <p class="indicator-target">Target: &gt;85%</p>
-            </div>
-            <div class="indicator-card">
-              <p class="indicator-name"><span>Cost per Order</span><span class="indicator-status">&#128994;</span></p>
-              <p class="indicator-current">Actual $8.50</p>
-              <p class="indicator-target">Target: &lt;$10.00</p>
-            </div>
-          </div>
-          <p class="note-line">T+1 daily tracking in steady state, live during peak campaigns. Any breach triggers reforecast.</p>
-        </div>
-
-      </div>
-    </section>
-
+        <p class="note-line">T+1 daily tracking in steady state, live during peak campaigns. Each indicator has its own threshold and driver attribution; any breach triggers reforecast and corrective action.</p>
+      </section>
+    </div>
   </div>
 
-  <footer class="ribbon">
-    <span><span class="accent">Build (t0&rarr;t1)</span> &rarr; <span class="accent">Sell (t1&rarr;tn)</span> &rarr; next build &mdash; one variance/reforecast/indicator framework across the cycle</span>
-    <span>Sample data for illustration; in practice, connected to live ERP/data warehouse.</span>
-    <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
-      <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-      <span>github.com/yixuan116/fin-telligent</span>
-    </a>
-  </footer>
+  <!-- ================= FOOTER ================= -->
+  <div class="framework-section">
+    <p class="framework-statement">I support the full hardware cycle: <span class="accent">build phase (t0&rarr;t1)</span>, <span class="accent">sell phase (t1&rarr;tn)</span>, plus product iterations cycling the next build. Across the full lifecycle, budget/forecast vs. actual variance, reforecast, and an indicator framework to monitor it all.</p>
+    <p class="disclaimer">Sample data for illustration; in practice, connected to live ERP/data warehouse.</p>
+    <div class="contact">
+      <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+        <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        <span>github.com/yixuan116/fin-telligent</span>
+      </a>
+    </div>
+  </div>
 
 </div>
 
@@ -965,267 +1238,300 @@
   'use strict';
 
   var fmt2 = function (n) { return n.toFixed(2); };
+  var fmtMoney = function (n) { return '$' + fmt2(n); };
+
+  /* ---------------- Milestone timeline ---------------- */
+  var timelineSteps = document.querySelectorAll('#buildTimeline .timeline-step');
+  var buildSections = ['sec-1-1', 'sec-1-2', 'sec-1-3', 'sec-1-4'];
+
+  timelineSteps.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      timelineSteps.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+
+      var targetId = btn.getAttribute('data-target');
+      buildSections.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('highlight', id === targetId);
+      });
+
+      var target = document.getElementById(targetId);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  /* ---------------- 1.1 Unit Economics ---------------- */
+  var commoditySlider = document.getElementById('commoditySlider');
+  var tariffSlider = document.getElementById('tariffSlider');
+  var commodityValue = document.getElementById('commodityValue');
+  var tariffValue = document.getElementById('tariffValue');
+
+  var BOM_BASE_TARGET = 131.00;
+  var AL_BASE_PRICE = 12.50, AL_USAGE = 2.0, AL_LABOR = 3.00;
+  var ELEC_BASE_PRICE = 45.00, ELEC_USAGE = 1, ELEC_LABOR = 5.00;
+  var OTHER_COST = 30.50 + 7.50 + 15.00; // Steel Frame + Wiring Harness + Assembly
+
+  function flashCell(el) {
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
+
+  function updateBOM() {
+    var commodityPct = parseFloat(commoditySlider.value);
+    var tariffPct = parseFloat(tariffSlider.value);
+
+    commodityValue.textContent = (commodityPct >= 0 ? '+' : '') + commodityPct + '%';
+    tariffValue.textContent = (tariffPct >= 0 ? '+' : '') + tariffPct + '%';
+
+    var alPrice = AL_BASE_PRICE * (1 + commodityPct / 100) * (1 + tariffPct / 100);
+    var alCost = alPrice * AL_USAGE + AL_LABOR;
+
+    var elecPrice = ELEC_BASE_PRICE * (1 + tariffPct / 100);
+    var elecCost = elecPrice * ELEC_USAGE + ELEC_LABOR;
+
+    var total = alCost + elecCost + OTHER_COST;
+    var delta = total - BOM_BASE_TARGET;
+
+    document.getElementById('bomAlPrice').textContent = fmtMoney(alPrice);
+    document.getElementById('bomAlCost').textContent = fmtMoney(alCost);
+    document.getElementById('bomElecPrice').textContent = fmtMoney(elecPrice);
+    document.getElementById('bomElecCost').textContent = fmtMoney(elecCost);
+    document.getElementById('bomTotal').textContent = fmtMoney(total);
+
+    ['bomAlPrice','bomAlCost','bomElecPrice','bomElecCost','bomTotal'].forEach(function (id) {
+      flashCell(document.getElementById(id));
+    });
+
+    var deltaLine = document.getElementById('bomDeltaLine');
+    if (Math.abs(delta) < 0.005) {
+      deltaLine.innerHTML = 'On target &mdash; <span class="delta-flat">$0.00</span> vs. $131.00 baseline';
+    } else if (delta > 0) {
+      deltaLine.innerHTML = '<span class="delta-up">&#9650; +' + fmt2(delta) + '</span> vs. $131.00 baseline (' + fmtMoney(total) + ')';
+    } else {
+      deltaLine.innerHTML = '<span class="delta-down">&#9660; ' + fmt2(delta) + '</span> vs. $131.00 baseline (' + fmtMoney(total) + ')';
+    }
+  }
+
+  commoditySlider.addEventListener('input', updateBOM);
+  tariffSlider.addEventListener('input', updateBOM);
+
+  /* ---------------- 1.2 Scale ---------------- */
+  var volumeSlider = document.getElementById('volumeSlider');
+  var CAPEX_TOTAL = 15000000;
+  var ASSUMED_ASP = 180;
+  var CAPACITY_LIMIT = 150000;
+
+  function updateCapex() {
+    var volume = parseInt(volumeSlider.value, 10);
+    document.getElementById('volReadout').textContent = volume.toLocaleString('en-US');
+
+    var amort = CAPEX_TOTAL / volume;
+    document.getElementById('amortReadout').textContent = fmtMoney(amort);
+
+    var annualMargin = (ASSUMED_ASP - BOM_BASE_TARGET) * volume;
+    var payback = CAPEX_TOTAL / annualMargin;
+    document.getElementById('paybackReadout').textContent = fmt2(payback) + ' yrs';
+
+    document.getElementById('capacityNote').hidden = volume <= CAPACITY_LIMIT;
+  }
+
+  volumeSlider.addEventListener('input', updateCapex);
+
+  /* ---------------- 1.3 Variance waterfall ---------------- */
+  function wfBar(container, baseVal, deltaVal, maxVal, color, valueLabel) {
+    var col = document.createElement('div');
+    col.className = 'wf-col';
+
+    var trackHeight = 130;
+    var baseH = (baseVal / maxVal) * trackHeight;
+    var deltaH = (deltaVal / maxVal) * trackHeight;
+
+    var bar = document.createElement('div');
+    bar.className = 'wf-bar';
+    bar.style.bottom = baseH + 'px';
+    bar.style.height = Math.max(deltaH, 3) + 'px';
+    bar.style.background = color;
+
+    var label = document.createElement('div');
+    label.className = 'wf-value-label';
+    label.style.bottom = (baseH + Math.max(deltaH, 3) + 4) + 'px';
+    label.textContent = valueLabel;
+
+    col.style.position = 'relative';
+    col.appendChild(bar);
+    col.appendChild(label);
+    container.appendChild(col);
+  }
+
+  /* ---------------- 1.3 Variance: monthly BOM target vs actual ---------------- */
+  var bvTarget = 131.00;
+  var bvActual = [131.00, 131.00, 131.00, 131.00, 131.00, 136.00, 136.00, 135.00, 132.50, 130.50, 129.50, 129.20];
+  var bvYMin = 124, bvYMax = 138;
+  var bvVbW = 600, bvVbH = 220;
+  var bvPadL = 34, bvPadR = 14, bvPadT = 34, bvPadB = 20;
+  var bvPlotW = bvVbW - bvPadL - bvPadR, bvPlotH = bvVbH - bvPadT - bvPadB;
   var svgNS = 'http://www.w3.org/2000/svg';
-  function el(tag, attrs) {
+
+  function svgEl(tag, attrs) {
     var e = document.createElementNS(svgNS, tag);
     for (var k in attrs) { e.setAttribute(k, attrs[k]); }
     return e;
   }
-  function flash(elm) { elm.classList.remove('flash'); void elm.offsetWidth; elm.classList.add('flash'); }
+  function bvX(m) { return bvPadL + (m - 1) / 11 * bvPlotW; }
+  function bvY(c) { return bvPadT + (bvYMax - c) / (bvYMax - bvYMin) * bvPlotH; }
 
-  /* =========================================================
-     Tab navigation (generic, per column)
-     ========================================================= */
-  function setupTabs(barId, contentId, titleId, tagsId, meta) {
-    var bar = document.getElementById(barId);
-    var content = document.getElementById(contentId);
-    var titleEl = document.getElementById(titleId);
-    var tagsEl = document.getElementById(tagsId);
-    var buttons = bar.querySelectorAll('.tab-btn');
-    buttons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        buttons.forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        content.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.remove('active'); });
-        var paneId = btn.getAttribute('data-pane');
-        document.getElementById(paneId).classList.add('active');
-        var info = meta[paneId];
-        if (info) {
-          titleEl.textContent = info.title;
-          tagsEl.innerHTML = info.tags.map(function (t) { return '<li class="context-tag">' + t + '</li>'; }).join('');
-        }
-      });
-    });
-  }
-  setupTabs('buildTabBar', 'buildTabContent', 'buildTitle', 'buildTags', {
-    paneUnitEcon: { title: 'Unit Econ — BOM Target vs Actual', tags: ['Engineering', 'Procurement'] },
-    paneScale: { title: 'Scale — Capex & Payback, Plan vs Actual', tags: ['Engineering', 'Manufacturing'] },
-    paneVariance: { title: 'Variance — Monthly PPV Timeline', tags: ['Program Team', 'Suppliers'] },
-    paneBuildMonitoring: { title: 'Monitoring — Actual vs Threshold', tags: ['Finance Lead', 'Ops'] }
-  });
-  setupTabs('sellTabBar', 'sellTabContent', 'sellTitle', 'sellTags', {
-    panePL: { title: 'Target P&L — Plan vs Actual', tags: ['Merchant Ops', 'Category Mgmt'] },
-    paneCampaign: { title: 'Campaign — Nov 11 Levers, Target vs Actual', tags: ['Marketing', 'Merchants'] },
-    paneResult: { title: 'Result — Margin Bridge, Plan vs Actual', tags: ['Marketing', 'Merchants'] },
-    paneSellMonitoring: { title: 'Monitoring — Actual vs Threshold', tags: ['GM', 'Logistics'] }
-  });
+  var bomVarianceSvg = document.getElementById('bomVarianceChart');
+  var bvScrubGroup = svgEl('g', { id: 'bvScrubGroup' });
 
-  /* =========================================================
-     BUILD / Unit Econ: BOM plan vs actual, commodity slider
-     ========================================================= */
-  var BOM_PLAN = 131.00;
-  var AL_BASE_PRICE = 12.50, AL_USAGE = 2.0, AL_LABOR = 3.00;
-  var OTHER_COST = 30.50 + 50.00 + 7.50 + 15.00; // Steel + Electronics + Wiring + Assembly (unaffected)
-
-  var commoditySlider = document.getElementById('commoditySlider');
-  var commodityValue = document.getElementById('commodityValue');
-  var ueAlActual = document.getElementById('ueAlActual');
-  var ueAlDelta = document.getElementById('ueAlDelta');
-  var ueTotalActual = document.getElementById('ueTotalActual');
-  var ueTotalDelta = document.getElementById('ueTotalDelta');
-  var ueStory = document.getElementById('ueStory');
-
-  function updateUnitEcon() {
-    var pct = parseFloat(commoditySlider.value);
-    commodityValue.textContent = (pct >= 0 ? '+' : '') + pct + '%';
-
-    var alPrice = AL_BASE_PRICE * (1 + pct / 100);
-    var alCost = alPrice * AL_USAGE + AL_LABOR;
-    var alDelta = alCost - 28.00;
-    var total = alCost + OTHER_COST;
-    var totalDelta = total - BOM_PLAN;
-
-    ueAlActual.textContent = '$' + fmt2(alCost);
-    ueAlDelta.textContent = (alDelta > 0 ? '+' : (alDelta < 0 ? '−' : '')) + '$' + fmt2(Math.abs(alDelta));
-    ueTotalActual.textContent = '$' + fmt2(total);
-    ueTotalDelta.textContent = (totalDelta > 0 ? '+' : (totalDelta < 0 ? '−' : '')) + '$' + fmt2(Math.abs(totalDelta));
-    [ueAlActual, ueAlDelta, ueTotalActual, ueTotalDelta].forEach(flash);
-
-    if (Math.abs(totalDelta) < 0.005) {
-      ueStory.textContent = 'On plan — actual BOM cost matches the $131.00 target.';
-    } else if (totalDelta > 0) {
-      ueStory.textContent = 'Aluminum ' + (pct >= 0 ? '+' : '') + pct + '% → actual BOM $' + fmt2(total) + ', +$' + fmt2(totalDelta) + ' unfavorable vs. the $131.00 plan.';
-    } else {
-      ueStory.textContent = 'Aluminum ' + pct + '% → actual BOM $' + fmt2(total) + ', $' + fmt2(Math.abs(totalDelta)) + ' favorable vs. the $131.00 plan.';
-    }
-  }
-  commoditySlider.addEventListener('input', updateUnitEcon);
-
-  /* =========================================================
-     BUILD / Scale: capex + payback, plan vs actual volume
-     ========================================================= */
-  var ACTUAL_CAPEX = 15200000, PLAN_CAPEX = 15000000;
-  var ASSUMED_ASP = 180, UNIT_COST = 131.00;
-  var CAPACITY_LIMIT = 150000;
-  var volumeSlider = document.getElementById('volumeSlider');
-
-  function updateScale() {
-    var vol = parseInt(volumeSlider.value, 10);
-    document.getElementById('scActualVolume').textContent = vol.toLocaleString('en-US');
-    var amort = ACTUAL_CAPEX / vol;
-    document.getElementById('scActualAmort').textContent = '$' + fmt2(amort);
-    var payback = ACTUAL_CAPEX / ((ASSUMED_ASP - UNIT_COST) * vol);
-    document.getElementById('scActualPayback').textContent = fmt2(payback) + ' yrs';
-    document.getElementById('capacityNote').hidden = vol <= CAPACITY_LIMIT;
-  }
-  volumeSlider.addEventListener('input', updateScale);
-
-  /* =========================================================
-     BUILD / Variance: monthly line chart + PPV waterfall
-     ========================================================= */
-  var TARGET = 131.00;
-  var ACTUAL = [131.00, 131.00, 131.00, 131.00, 131.00, 136.00, 136.00, 135.00, 132.50, 130.50, 129.50, 129.20];
-  var Y_MIN = 124, Y_MAX = 138;
-  var VB_W = 600, VB_H = 200;
-  var PAD_L = 34, PAD_R = 14, PAD_T = 34, PAD_B = 16;
-  var PLOT_W = VB_W - PAD_L - PAD_R, PLOT_H = VB_H - PAD_T - PAD_B;
-  function xFor(m) { return PAD_L + (m - 1) / 11 * PLOT_W; }
-  function yFor(c) { return PAD_T + (Y_MAX - c) / (Y_MAX - Y_MIN) * PLOT_H; }
-
-  var bomSvg = document.getElementById('bomChart');
-  var scrubGroup = el('g', { id: 'scrubGroup' });
-
-  function buildStaticBomChart() {
-    [Y_MAX, TARGET, Y_MIN].forEach(function (v) {
-      var y = yFor(v);
-      bomSvg.appendChild(el('line', {
-        x1: PAD_L, x2: VB_W - PAD_R, y1: y, y2: y,
-        stroke: v === TARGET ? 'var(--text-muted)' : 'var(--border)',
-        'stroke-width': v === TARGET ? 1.2 : 1,
-        'stroke-dasharray': v === TARGET ? '4,3' : '0'
+  function buildVarianceChart() {
+    [bvYMax, bvTarget, bvYMin].forEach(function (v) {
+      var y = bvY(v);
+      bomVarianceSvg.appendChild(svgEl('line', {
+        x1: bvPadL, x2: bvVbW - bvPadR, y1: y, y2: y,
+        stroke: v === bvTarget ? 'var(--text-muted)' : 'var(--border)',
+        'stroke-width': v === bvTarget ? 1.2 : 1,
+        'stroke-dasharray': v === bvTarget ? '4,3' : '0'
       }));
-      var label = el('text', { x: PAD_L - 6, y: y + 3, 'text-anchor': 'end', 'font-size': '9', fill: 'var(--text-muted)' });
+      var label = svgEl('text', { x: bvPadL - 6, y: y + 3, 'text-anchor': 'end', 'font-size': '9', fill: 'var(--text-muted)' });
       label.textContent = '$' + v.toFixed(0);
-      bomSvg.appendChild(label);
+      bomVarianceSvg.appendChild(label);
     });
 
-    ACTUAL.forEach(function (a, i) {
-      var x = xFor(i + 1), y1 = yFor(TARGET), y2 = yFor(a);
+    bvActual.forEach(function (a, i) {
+      var x = bvX(i + 1), y1 = bvY(bvTarget), y2 = bvY(a);
       var top = Math.min(y1, y2), h = Math.max(Math.abs(y2 - y1), 0.001);
-      bomSvg.appendChild(el('rect', {
+      bomVarianceSvg.appendChild(svgEl('rect', {
         x: x - 9, y: top, width: 18, height: h,
-        fill: a > TARGET ? 'var(--red)' : (a < TARGET ? 'var(--green)' : 'var(--text-muted)'),
+        fill: a > bvTarget ? 'var(--red)' : (a < bvTarget ? 'var(--green)' : 'var(--text-muted)'),
         opacity: 0.16
       }));
     });
 
-    var pts = ACTUAL.map(function (a, i) { return xFor(i + 1) + ',' + yFor(a); }).join(' ');
-    bomSvg.appendChild(el('polyline', { points: pts, fill: 'none', stroke: 'var(--blue)', 'stroke-width': 2.2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
-    ACTUAL.forEach(function (a, i) {
-      bomSvg.appendChild(el('circle', { cx: xFor(i + 1), cy: yFor(a), r: 2, fill: 'var(--blue)' }));
+    var pts = bvActual.map(function (a, i) { return bvX(i + 1) + ',' + bvY(a); }).join(' ');
+    bomVarianceSvg.appendChild(svgEl('polyline', { points: pts, fill: 'none', stroke: 'var(--blue)', 'stroke-width': 2.4, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    bvActual.forEach(function (a, i) {
+      bomVarianceSvg.appendChild(svgEl('circle', { cx: bvX(i + 1), cy: bvY(a), r: 2.4, fill: 'var(--blue)' }));
     });
 
     function pin(month, label, color, row) {
-      var x = xFor(month), labelY = 12 + row * 12, pointY = yFor(ACTUAL[month - 1]);
-      bomSvg.appendChild(el('line', { x1: x, x2: x, y1: labelY + 3, y2: pointY - 6, stroke: color, 'stroke-width': 1, 'stroke-dasharray': '2,2' }));
-      var t = el('text', { x: x, y: labelY, 'text-anchor': 'middle', 'font-size': '9', 'font-weight': '800', fill: color });
+      var x = bvX(month), labelY = 14 + row * 13, pointY = bvY(bvActual[month - 1]);
+      bomVarianceSvg.appendChild(svgEl('line', { x1: x, x2: x, y1: labelY + 4, y2: pointY - 6, stroke: color, 'stroke-width': 1, 'stroke-dasharray': '2,2' }));
+      var t = svgEl('text', { x: x, y: labelY, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': '800', fill: color });
       t.textContent = label;
-      bomSvg.appendChild(t);
+      bomVarianceSvg.appendChild(t);
     }
-    pin(6, 'Aluminum +20%', 'var(--red)', 0);
-    pin(8, 'Eng. change', 'var(--blue)', 1);
+    pin(6, 'Aluminum +20% YoY', 'var(--red)', 0);
+    pin(8, 'Engineering change', 'var(--blue)', 1);
 
-    bomSvg.appendChild(scrubGroup);
+    bomVarianceSvg.appendChild(bvScrubGroup);
   }
 
-  function renderScrubber(month) {
-    while (scrubGroup.firstChild) scrubGroup.removeChild(scrubGroup.firstChild);
-    var x = xFor(month);
-    scrubGroup.appendChild(el('line', { x1: x, x2: x, y1: PAD_T - 4, y2: VB_H - PAD_B + 4, stroke: 'var(--text-primary)', 'stroke-width': 1.2, opacity: 0.5 }));
-    var a = ACTUAL[month - 1];
-    scrubGroup.appendChild(el('circle', { cx: x, cy: yFor(a), r: 4.5, fill: 'var(--bg)', stroke: 'var(--blue)', 'stroke-width': 2.3 }));
+  function renderBvScrubber(month) {
+    while (bvScrubGroup.firstChild) bvScrubGroup.removeChild(bvScrubGroup.firstChild);
+    var x = bvX(month);
+    bvScrubGroup.appendChild(svgEl('line', { x1: x, x2: x, y1: bvPadT - 4, y2: bvVbH - bvPadB + 4, stroke: 'var(--text-primary)', 'stroke-width': 1.2, opacity: 0.5 }));
+    var a = bvActual[month - 1];
+    bvScrubGroup.appendChild(svgEl('circle', { cx: x, cy: bvY(a), r: 5, fill: 'var(--bg)', stroke: 'var(--blue)', 'stroke-width': 2.5 }));
   }
 
   var monthSlider = document.getElementById('monthSlider');
-  var monthValue = document.getElementById('monthValue');
-  var bomStory = document.getElementById('bomStory');
+  var varTargetEl = document.getElementById('varTarget');
+  var varActualEl = document.getElementById('varActual');
+  var varVarianceEl = document.getElementById('varVariance');
+  var varStoryEl = document.getElementById('varStory');
 
-  function storyForMonth(month, actual, variance) {
-    var head = 'Month ' + month + ' · Target $' + fmt2(TARGET) + ' · Actual $' + fmt2(actual) + ' · Variance ' + (variance > 0.005 ? '+' : (variance < -0.005 ? '−' : '')) + '$' + fmt2(Math.abs(variance)) + ' — ';
-    if (month <= 5) return head + 'on track.';
-    if (month <= 7) return head + 'Aluminum +20% YoY spike.';
-    if (month <= 9) return head + 'engineering change escalated through board review.';
-    return head + '5% cost optimization closes the gap.';
+  function bvStory(month, actual, variance) {
+    if (month <= 5) return 'Month ' + month + ': on track — actual is tracking the $131.00 BOM target.';
+    if (month <= 7) return 'Month ' + month + ': Aluminum +20% YoY spikes cost to $' + fmt2(actual) + ' — unfavorable variance of +$' + fmt2(variance) + ' vs. target.';
+    if (month <= 9) return 'Month ' + month + ': engineering change escalated through board review — cost optimization underway.';
+    return 'Month ' + month + ': 5% cost optimization on affected parts closes the gap — actual now $' + fmt2(Math.abs(variance)) + ' below target.';
   }
 
-  function updateVariance() {
+  function updateVarianceReadout() {
     var month = parseInt(monthSlider.value, 10);
-    monthValue.textContent = 'M' + month;
-    var actual = ACTUAL[month - 1];
-    var variance = actual - TARGET;
-    bomStory.textContent = storyForMonth(month, actual, variance);
-    renderScrubber(month);
+    var actual = bvActual[month - 1];
+    var variance = actual - bvTarget;
+
+    varTargetEl.textContent = '$' + fmt2(bvTarget);
+    varActualEl.textContent = '$' + fmt2(actual);
+    varVarianceEl.textContent = (variance > 0 ? '+' : (variance < 0 ? '−' : '')) + '$' + fmt2(Math.abs(variance));
+    varVarianceEl.className = variance > 0.005 ? 'pos' : (variance < -0.005 ? 'neg' : '');
+
+    varStoryEl.textContent = bvStory(month, actual, variance);
+    renderBvScrubber(month);
   }
-  monthSlider.addEventListener('input', updateVariance);
+  monthSlider.addEventListener('input', updateVarianceReadout);
 
-  function renderPpvWaterfall() {
-    var svg = document.getElementById('ppvWaterfall');
-    var vbW = 500, vbH = 150, baseY = 130, topPad = 16, plotH = baseY - topPad, maxVal = 145;
-    function yv(v) { return baseY - (v / maxVal) * plotH; }
-    var xs = [15, 110, 205, 300, 395], barW = 70;
+  /* ---------------- 2.1 Mix slider + P&L ---------------- */
+  var mixSliders = {
+    major: document.getElementById('mixMajorSlider'),
+    small: document.getElementById('mixSmallSlider'),
+    ce: document.getElementById('mixCeSlider')
+  };
+  var mixValues = {
+    major: document.getElementById('mixMajorValue'),
+    small: document.getElementById('mixSmallValue'),
+    ce: document.getElementById('mixCeValue')
+  };
 
-    svg.appendChild(el('line', { x1: 5, x2: vbW - 5, y1: baseY, y2: baseY, stroke: 'var(--border)', 'stroke-width': 1 }));
-
-    var steps = [
-      { x: xs[0], from: 0, to: 131, color: 'var(--text-muted)', label: '$131.00' },
-      { x: xs[1], from: 131, to: 136, color: 'var(--red)', label: '+$5.00' },
-      { x: xs[2], from: 131, to: 136, color: 'var(--amber)', label: '$136.00' },
-      { x: xs[3], from: 131, to: 136, color: 'var(--amber)', label: '$136.00' },
-      { x: xs[4], from: 0, to: 136, color: 'var(--red)', label: '$136.00' }
-    ];
-
-    steps.forEach(function (s) {
-      var yTop = yv(s.to), yBot = yv(s.from);
-      var h = Math.max(yBot - yTop, 2);
-      svg.appendChild(el('rect', { x: s.x, y: yTop, width: barW, height: h, rx: 3, fill: s.color }));
-      var t = el('text', { x: s.x + barW / 2, y: yTop - 5, 'text-anchor': 'middle', 'font-size': '11', 'font-weight': '800', fill: 'var(--text-primary)' });
-      t.textContent = s.label;
-      svg.appendChild(t);
-    });
-  }
-
-  /* =========================================================
-     SELL / Target P&L: plan (fixed) vs actual (mix-driven)
-     ========================================================= */
-  var mixSliders = { major: document.getElementById('mixMajorSlider'), small: document.getElementById('mixSmallSlider'), ce: document.getElementById('mixCeSlider') };
-  var mixValues = { major: document.getElementById('mixMajorValue'), small: document.getElementById('mixSmallValue'), ce: document.getElementById('mixCeValue') };
-  var mixState = { major: 38, small: 20, ce: 42 };
+  var mixState = { major: 42, small: 18, ce: 40 };
   var mixBase = { major: 42, small: 18, ce: 40 };
+
   var plBase = {
     major: { rev: 4.20, cogs: 3.20, gm: 1.00, log: 0.25, mkt: 0.15, inv: 0.08, oi: 0.52 },
     small: { rev: 1.80, cogs: 1.20, gm: 0.60, log: 0.10, mkt: 0.08, inv: 0.02, oi: 0.40 },
     ce:    { rev: 4.00, cogs: 3.40, gm: 0.60, log: 0.15, mkt: 0.12, inv: 0.03, oi: 0.30 }
   };
+
+  function fmtUsdB(n, negative) {
+    var v = fmt2(Math.abs(n));
+    return negative ? '($' + v + 'B)' : '$' + v + 'B';
+  }
+
   var plIds = {
-    major: { rev: 'plMajorRevA', cogs: 'plMajorCogsA', gm: 'plMajorGmA', log: 'plMajorLogA', mkt: 'plMajorMktA', inv: 'plMajorInvA', oi: 'plMajorOiA' },
-    small: { rev: 'plSmallRevA', cogs: 'plSmallCogsA', gm: 'plSmallGmA', log: 'plSmallLogA', mkt: 'plSmallMktA', inv: 'plSmallInvA', oi: 'plSmallOiA' },
-    ce:    { rev: 'plCeRevA', cogs: 'plCeCogsA', gm: 'plCeGmA', log: 'plCeLogA', mkt: 'plCeMktA', inv: 'plCeInvA', oi: 'plCeOiA' },
-    total: { rev: 'plTotalRevA', cogs: 'plTotalCogsA', gm: 'plTotalGmA', log: 'plTotalLogA', mkt: 'plTotalMktA', inv: 'plTotalInvA', oi: 'plTotalOiA' }
+    major: { rev: 'plMajorRev', cogs: 'plMajorCogs', gm: 'plMajorGm', log: 'plMajorLog', mkt: 'plMajorMkt', inv: 'plMajorInv', oi: 'plMajorOi' },
+    small: { rev: 'plSmallRev', cogs: 'plSmallCogs', gm: 'plSmallGm', log: 'plSmallLog', mkt: 'plSmallMkt', inv: 'plSmallInv', oi: 'plSmallOi' },
+    ce:    { rev: 'plCeRev', cogs: 'plCeCogs', gm: 'plCeGm', log: 'plCeLog', mkt: 'plCeMkt', inv: 'plCeInv', oi: 'plCeOi' },
+    total: { rev: 'plTotalRev', cogs: 'plTotalCogs', gm: 'plTotalGm', log: 'plTotalLog', mkt: 'plTotalMkt', inv: 'plTotalInv', oi: 'plTotalOi' }
   };
-  function fmtB(n, negative) { var v = fmt2(Math.abs(n)); return negative ? '(' + v + ')' : v; }
 
   function recomputePL() {
     var totals = { rev: 0, cogs: 0, gm: 0, log: 0, mkt: 0, inv: 0, oi: 0 };
+
     ['major', 'small', 'ce'].forEach(function (key) {
       var factor = mixState[key] / mixBase[key];
       var b = plBase[key];
-      var line = { rev: b.rev * factor, cogs: b.cogs * factor, gm: b.gm * factor, log: b.log * factor, mkt: b.mkt * factor, inv: b.inv * factor, oi: b.oi * factor };
-      document.getElementById(plIds[key].rev).textContent = fmtB(line.rev, false);
-      document.getElementById(plIds[key].cogs).textContent = fmtB(line.cogs, true);
-      document.getElementById(plIds[key].gm).textContent = fmtB(line.gm, false);
-      document.getElementById(plIds[key].log).textContent = fmtB(line.log, true);
-      document.getElementById(plIds[key].mkt).textContent = fmtB(line.mkt, true);
-      document.getElementById(plIds[key].inv).textContent = fmtB(line.inv, true);
-      document.getElementById(plIds[key].oi).textContent = fmtB(line.oi, false);
-      totals.rev += line.rev; totals.cogs += line.cogs; totals.gm += line.gm; totals.log += line.log; totals.mkt += line.mkt; totals.inv += line.inv; totals.oi += line.oi;
+      var line = {
+        rev: b.rev * factor,
+        cogs: b.cogs * factor,
+        gm: b.gm * factor,
+        log: b.log * factor,
+        mkt: b.mkt * factor,
+        inv: b.inv * factor,
+        oi: b.oi * factor
+      };
+
+      document.getElementById(plIds[key].rev).textContent = fmtUsdB(line.rev, false);
+      document.getElementById(plIds[key].cogs).textContent = fmtUsdB(line.cogs, true);
+      document.getElementById(plIds[key].gm).textContent = fmtUsdB(line.gm, false);
+      document.getElementById(plIds[key].log).textContent = fmtUsdB(line.log, true);
+      document.getElementById(plIds[key].mkt).textContent = fmtUsdB(line.mkt, true);
+      document.getElementById(plIds[key].inv).textContent = fmtUsdB(line.inv, true);
+      document.getElementById(plIds[key].oi).textContent = fmtUsdB(line.oi, false);
+
+      totals.rev += line.rev; totals.cogs += line.cogs; totals.gm += line.gm;
+      totals.log += line.log; totals.mkt += line.mkt; totals.inv += line.inv; totals.oi += line.oi;
     });
-    document.getElementById(plIds.total.rev).textContent = fmtB(totals.rev, false);
-    document.getElementById(plIds.total.cogs).textContent = fmtB(totals.cogs, true);
-    document.getElementById(plIds.total.gm).textContent = fmtB(totals.gm, false);
-    document.getElementById(plIds.total.log).textContent = fmtB(totals.log, true);
-    document.getElementById(plIds.total.mkt).textContent = fmtB(totals.mkt, true);
-    document.getElementById(plIds.total.inv).textContent = fmtB(totals.inv, true);
-    document.getElementById(plIds.total.oi).textContent = fmtB(totals.oi, false);
+
+    document.getElementById(plIds.total.rev).textContent = fmtUsdB(totals.rev, false);
+    document.getElementById(plIds.total.cogs).textContent = fmtUsdB(totals.cogs, true);
+    document.getElementById(plIds.total.gm).textContent = fmtUsdB(totals.gm, false);
+    document.getElementById(plIds.total.log).textContent = fmtUsdB(totals.log, true);
+    document.getElementById(plIds.total.mkt).textContent = fmtUsdB(totals.mkt, true);
+    document.getElementById(plIds.total.inv).textContent = fmtUsdB(totals.inv, true);
+    document.getElementById(plIds.total.oi).textContent = fmtUsdB(totals.oi, false);
   }
 
   function updateMixUI() {
@@ -1242,6 +1548,7 @@
     var otherKeys = Object.keys(mixState).filter(function (k) { return k !== changedKey; });
     var remaining = 100 - newVal;
     var sumOthers = mixState[otherKeys[0]] + mixState[otherKeys[1]];
+
     if (sumOthers <= 0) {
       mixState[otherKeys[0]] = remaining / 2;
       mixState[otherKeys[1]] = remaining / 2;
@@ -1250,55 +1557,51 @@
       mixState[otherKeys[1]] = remaining * (mixState[otherKeys[1]] / sumOthers);
     }
     mixState[changedKey] = newVal;
+
     updateMixUI();
     recomputePL();
   }
+
   mixSliders.major.addEventListener('input', function () { onMixInput('major'); });
   mixSliders.small.addEventListener('input', function () { onMixInput('small'); });
   mixSliders.ce.addEventListener('input', function () { onMixInput('ce'); });
 
-  /* =========================================================
-     SELL / Campaign: pricing lever actual slider
-     ========================================================= */
+  /* ---------------- 2.2 Pricing lever + margin waterfall ---------------- */
   var pricingSlider = document.getElementById('pricingSlider');
-  var pricingActual = document.getElementById('pricingActual');
+  var pricingMetric = document.getElementById('pricingMetric');
+
   pricingSlider.addEventListener('input', function () {
     var v = parseFloat(pricingSlider.value);
-    pricingActual.textContent = (v > 0 ? '+' : (v < 0 ? '−' : '')) + Math.abs(v) + '%';
+    pricingMetric.textContent = 'ASP adj: ' + (v >= 0 ? '+' : '') + v + '%';
   });
 
-  /* =========================================================
-     SELL / Result: margin waterfall (static)
-     ========================================================= */
   function renderMarginWaterfall() {
-    var svg = document.getElementById('marginWaterfall');
-    var vbW = 500, vbH = 200, maxVal = 17, baseY = 180, topPad = 20, plotH = baseY - topPad;
-    var barW = 70, xs = [25, 120, 215, 310, 405];
-    function yv(v) { return baseY - (v / maxVal) * plotH; }
-    var steps = [
-      { x: xs[0], from: 0, to: 0.4, color: 'var(--text-muted)', label: '0%' },
-      { x: xs[1], from: 0, to: 8, color: 'var(--green)', label: '+8%' },
-      { x: xs[2], from: 8, to: 13, color: 'var(--blue)', label: '+5%' },
-      { x: xs[3], from: 13, to: 15, color: 'var(--purple)', label: '+2%' },
-      { x: xs[4], from: 0, to: 15, color: 'var(--orange)', label: '+15%' }
-    ];
-    svg.appendChild(el('line', { x1: 10, x2: vbW - 10, y1: baseY, y2: baseY, stroke: 'var(--border)', 'stroke-width': 1 }));
-    steps.forEach(function (s) {
-      var yTop = yv(s.to), yBot = yv(s.from);
-      var h = Math.max(yBot - yTop, 2);
-      svg.appendChild(el('rect', { x: s.x, y: yTop, width: barW, height: h, rx: 3, fill: s.color }));
-      var t = el('text', { x: s.x + barW / 2, y: yTop - 7, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '800', fill: 'var(--text-primary)' });
-      t.textContent = s.label;
-      svg.appendChild(t);
+    var container = document.getElementById('marginWaterfall');
+    container.innerHTML = '';
+
+    var steps = [8, 5, 2]; // Inventory, Logistics, Marketing (%)
+    var maxVal = 17;
+    var gray = 'var(--text-muted)';
+    var green = 'var(--green)';
+    var blue = 'var(--blue)';
+
+    wfBar(container, 0, 0.4, maxVal, gray, '0%');
+
+    var running = 0;
+    var colors = [green, blue, 'var(--purple)'];
+    steps.forEach(function (step, i) {
+      wfBar(container, running, step, maxVal, colors[i], '+' + step + '%');
+      running += step;
     });
+
+    wfBar(container, 0, running, maxVal, 'var(--orange)', '+' + running + '%');
   }
 
   /* ---------------- init ---------------- */
-  updateUnitEcon();
-  updateScale();
-  buildStaticBomChart();
-  updateVariance();
-  renderPpvWaterfall();
+  updateBOM();
+  updateCapex();
+  buildVarianceChart();
+  updateVarianceReadout();
   updateMixUI();
   recomputePL();
   renderMarginWaterfall();
