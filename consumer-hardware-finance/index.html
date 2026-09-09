@@ -868,7 +868,7 @@
         <thead><tr><th>Cash Flow (Cash Outflow)</th><th> Balance Sheet (Asset Created)</th></tr></thead>
         <tbody>
           <tr><td>Tooling CapEx: &minus;$7.50M (CFI)</td><td>Fixed Assets (PP&amp;E): $7.50M</td></tr>
-          <tr><td id="cmDepositCell">CM Deposit + Prepaid Imports: &minus;$15.98M (CFO)</td><td>Inventory (Raw Materials &rarr; Work in Progress &rarr; Finished Goods) + Deposits</td></tr>
+          <tr><td id="cmDepositCell">CM Deposit + Prepaid Parts: &minus;$15.98M (CFO)</td><td>Inventory (Raw Materials &rarr; Work in Progress &rarr; Finished Goods) + Deposits</td></tr>
           <tr class="total-row"><td id="peakOutflowCell">Peak Net Cash Outflow: &minus;$23.48M</td><td>Total Assets Deployed</td></tr>
           <tr><td id="runwayCell">Operational Runway: $3.48M</td><td>Cash Reserve (payroll, R&amp;D overhead)</td></tr>
           <tr class="total-row"><td>Total Cash: &minus;$20.00M</td><td>Total Cash Allocated to Program</td></tr>
@@ -1642,7 +1642,7 @@
       runwayEl.textContent = 'Operational Runway: ' + fmtUsdM(runway);
       runwayEl.classList.remove('unfavorable');
     } else {
-      runwayEl.textContent = 'Runway Shortfall: ' + fmtUsdM(Math.abs(runway)) + ' below Total Cash';
+      runwayEl.textContent = 'Runway Shortfall: ' + fmtUsdM(Math.abs(runway)) + ' for operations';
       runwayEl.classList.add('unfavorable');
     }
 
