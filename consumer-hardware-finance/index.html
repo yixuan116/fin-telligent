@@ -859,7 +859,7 @@
     <p class="block-label">Where Did the Cash Go? (Cash Flow &harr; Balance Sheet)</p>
     <div class="table-wrap">
       <table class="data-table">
-        <thead><tr><th>Cash Outflow (Cash Flow)</th><th>Asset Created (Balance Sheet)</th></tr></thead>
+        <thead><tr><th>Cash Flow (Cash Outflow)</th><th> Balance Sheet (Asset Created)</th></tr></thead>
         <tbody>
           <tr><td>Tooling CapEx: &minus;$7.50M (CFI)</td><td>Fixed Assets (PP&amp;E): $7.50M</td></tr>
           <tr><td id="cmDepositCell">CM Deposit + Prepaid Imports: &minus;$15.98M (CFO)</td><td>Inventory (Raw Materials &rarr; Work in Progress &rarr; Finished Goods) + Deposits</td></tr>
@@ -968,19 +968,19 @@
   <!-- 2.2 Channel P&L Waterfall -->
   <section class="section sell" id="sec-2-2">
     <h2>2.2 Channel P&amp;L &mdash; Gross-to-Net Waterfall</h2>
-    <p class="section-sub">Omnichannel carries channel margin, volume rebates and price protection; DTC carries fulfillment and returns.</p>
+    <p class="section-sub">Owned channels vs. Distributors: same MSRP, Multi-P&amp;L.</p>
     <div class="chip-row">
-      <span class="chip">Channel</span>
+      <span class="chip">GTM</span>
       <span class="chip">Retail Partners</span>
     </div>
 
     <div class="slider-block">
       <div class="slider-head">
-        <span class="slider-label">Channel Mix &mdash; DTC vs Omnichannel</span>
+        <span class="slider-label">Channel Mix &mdash; Owned vs Distributors</span>
         <span class="slider-value" id="channelMixValue">60% / 40%</span>
       </div>
       <input type="range" id="channelMixSlider" min="30" max="90" step="1" value="60">
-      <div class="slider-scale"><span>30% DTC</span><span>90% DTC</span></div>
+      <div class="slider-scale"><span>30% Owned</span><span>90% Owned</span></div>
     </div>
 
     <div class="slider-block">
@@ -994,10 +994,10 @@
 
     <div class="table-wrap">
       <table class="data-table">
-        <thead><tr><th>Line Item</th><th>Omnichannel</th><th>DTC</th><th>Combined</th></tr></thead>
+        <thead><tr><th>Line Item</th><th>Distributors</th><th>Owned</th><th>Combined</th></tr></thead>
         <tbody>
           <tr><td>Gross Revenue (MSRP)</td><td class="live" id="wfOmniGross">$33.60M</td><td class="live" id="wfDtcGross">$50.40M</td><td class="live emph" id="wfCombinedGross">$84.00M</td></tr>
-          <tr><td>Channel Margin (30% of Omni)</td><td class="live" id="wfChannelMargin">($10.08M)</td><td class="muted">&mdash;</td><td class="live" id="wfChannelMarginC">($10.08M)</td></tr>
+          <tr><td>Channel Margin (30% of Distributors gross revenue)</td><td class="live" id="wfChannelMargin">($10.08M)</td><td class="muted">&mdash;</td><td class="live" id="wfChannelMarginC">($10.08M)</td></tr>
           <tr><td>Volume Rebates (step)</td><td class="live" id="wfRebates">($1.01M)</td><td class="muted">&mdash;</td><td class="live" id="wfRebatesC">($1.01M)</td></tr>
           <tr><td>Price Protection Accrual (1.5%)</td><td class="live" id="wfPriceProt">($0.50M)</td><td class="muted">&mdash;</td><td class="live" id="wfPriceProtC">($0.50M)</td></tr>
           <tr><td>Returns &amp; Reverse Logistics</td><td class="muted">&mdash;</td><td class="live" id="wfReturns">($5.19M)</td><td class="live" id="wfReturnsC">($5.19M)</td></tr>
@@ -1005,7 +1005,7 @@
         </tbody>
       </table>
     </div>
-    <p class="chart-caption">DTC fulfillment ($8/unit) and reverse logistics ($5/returned unit) are captured in the 3PL Logistics COGS line in the consolidated P&amp;L below.</p>
+    <p class="chart-caption">Owned channels absorb fulfillment ($8/unit) and returns ($5/returned unit) directly. Distributors absorb margin, rebates, and price protection as top-line deductions.</p>
   </section>
 
   <!-- 2.3 Logistics Toggle -->
