@@ -167,6 +167,15 @@
     color: var(--text-muted);
   }
 
+  .section-memo {
+    margin: 12px 0 0;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--text-muted);
+  }
+
   @media (max-width: 768px) {
     .assumptions-columns { grid-template-columns: 1fr; }
     .assumptions-divider { display: none; }
@@ -624,17 +633,17 @@
 
     <div class="table-wrap">
       <table class="data-table">
-        <thead><tr><th>Component</th><th>Standard</th><th>Actual (yield-adj.)</th><th>Yield Variance</th></tr></thead>
+        <thead><tr><th>Part</th><th>Standard</th><th>Actual (yield-adj.)</th><th>Yield Variance</th></tr></thead>
         <tbody>
           <tr class="section-row"><td colspan="4">Product A &mdash; Premium</td></tr>
-          <tr><td>Imported Components</td><td>$45.00</td><td class="live" id="aCoreActual">$45.00</td><td class="live" id="aCoreVar">$0.00</td></tr>
-          <tr><td>Local Components</td><td>$40.00</td><td class="live" id="aPeriphActual">$40.00</td><td class="live" id="aPeriphVar">$0.00</td></tr>
+          <tr><td>Imported Parts</td><td>$45.00</td><td class="live" id="aCoreActual">$45.00</td><td class="live" id="aCoreVar">$0.00</td></tr>
+          <tr><td>Local Parts</td><td>$40.00</td><td class="live" id="aPeriphActual">$40.00</td><td class="live" id="aPeriphVar">$0.00</td></tr>
           <tr class="subtotal-row"><td>Standard BOM &mdash; Product A</td><td class="emph">$85.00</td><td class="live emph" id="aBomActual">$85.00</td><td class="live emph" id="aBomVar">$0.00</td></tr>
           <tr><td>CM Assembly Fee (MVA, flat)</td><td colspan="3">$10.00 / unit</td></tr>
 
           <tr class="section-row"><td colspan="4">Product B &mdash; Standard</td></tr>
-          <tr><td>Imported Components</td><td>$25.00</td><td class="live" id="bCoreActual">$25.00</td><td class="live" id="bCoreVar">$0.00</td></tr>
-          <tr><td>Local Components</td><td>$25.00</td><td class="live" id="bPeriphActual">$25.00</td><td class="live" id="bPeriphVar">$0.00</td></tr>
+          <tr><td>Imported Parts</td><td>$25.00</td><td class="live" id="bCoreActual">$25.00</td><td class="live" id="bCoreVar">$0.00</td></tr>
+          <tr><td>Local Parts</td><td>$25.00</td><td class="live" id="bPeriphActual">$25.00</td><td class="live" id="bPeriphVar">$0.00</td></tr>
           <tr class="subtotal-row"><td>Standard BOM &mdash; Product B</td><td class="emph">$50.00</td><td class="live emph" id="bBomActual">$50.00</td><td class="live emph" id="bBomVar">$0.00</td></tr>
           <tr><td>CM Assembly Fee (MVA, flat)</td><td colspan="3">$10.00 / unit</td></tr>
         </tbody>
@@ -655,6 +664,7 @@
       <div class="readout-chip"><span>Blended Actual BOM</span><strong id="bomActBlended">$77.17M</strong></div>
       <div class="readout-chip"><span>Yield Loss Variance</span><strong id="bomVarBlended">$6.17M</strong></div>
     </div>
+    <p class="section-memo">Also tracking: import component price movements, FX exposure, and tariff rate changes.</p>
   </section>
 
   <!-- 1.2 Tooling CapEx & Capacity -->
