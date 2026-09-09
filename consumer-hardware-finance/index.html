@@ -313,6 +313,40 @@
 
   .warning-badge[hidden] { display: none; }
 
+  /* ---------- block label / north star card ---------- */
+
+  .block-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin: 16px 0 6px;
+  }
+
+  .northstar-card {
+    text-align: center;
+    background: var(--blue-tint);
+    border: 1px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 16px 20px 14px;
+    margin: 4px 0 2px;
+  }
+
+  .northstar-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--blue);
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .northstar-value { display: block; font-size: 1.8rem; font-weight: 800; color: var(--blue); line-height: 1.1; }
+
+  .northstar-sub { display: block; margin-top: 6px; font-size: 0.76rem; color: var(--text-secondary); }
+
   /* ---------- tables ---------- */
 
   .table-wrap {
@@ -799,31 +833,49 @@
 
   <!-- 1.3 Cash Flow Curve -->
   <section class="section" id="sec-1-3">
-    <h2>1.3 Cash Flow Curve</h2>
-    <p class="section-sub">Cumulative net cash position &mdash; CM deposits and prepaid imports create a trough near t1; channel collections drive recovery.</p>
+    <h2>1.3 Cash Flow</h2>
     <div class="chip-row">
       <span class="chip">Finance</span>
       <span class="chip">Treasury</span>
     </div>
 
+    <!-- Layer 1: chart -->
+    <p class="block-label">Net Cash Position Over Time</p>
     <div class="chart-card">
       <div class="chart-legend">
-        <span><i class="legend-dot" style="background:var(--blue)"></i>Cumulative net cash</span>
-        <span><i class="legend-dot" style="background:var(--text-muted); border-radius:0; width:12px; height:2px;"></i>Working capital safety buffer</span>
+        <span><i class="legend-dot" style="background:var(--red)"></i>Cash Out</span>
+        <span><i class="legend-dot" style="background:var(--blue)"></i>Cash In</span>
+        <span><i class="legend-dot" style="background:var(--text-muted); border-radius:0; width:12px; height:2px;"></i>Safety Buffer</span>
       </div>
       <div class="chart-area" id="cashChartArea">
-        <svg id="cashChart" viewBox="0 0 900 260" preserveAspectRatio="none" aria-label="Cumulative net cash position over time"></svg>
+        <svg id="cashChart" viewBox="0 0 900 260" preserveAspectRatio="none" aria-label="Cumulative cash out and cash in over time"></svg>
         <div class="chart-tooltip" id="cashTooltip" hidden></div>
       </div>
       <p class="chart-caption">t0&ndash;t18. Reacts to volume, yield, channel mix, and the logistics mode below. Hover a point for the exact value.</p>
     </div>
-
-    <div class="readout-row">
-      <div class="readout-chip"><span>Cash Trough (min)</span><strong id="cashTroughReadout">&minus;$15.98M</strong><span class="readout-sub">Cash converted to inventory: Raw Materials &rarr; Work in Progress &rarr; Finished Goods</span></div>
-      <div class="readout-chip"><span>Safety Buffer</span><strong>&minus;$20.00M</strong><span class="readout-sub">Includes $4M operational runway (payroll, R&amp;D overhead)</span></div>
-      <div class="readout-chip"><span>Cash-to-Cash Cycle</span><strong id="c2cReadout">t15</strong><span class="readout-sub">DTC T+2 collections + Omnichannel 60-90 day AR</span></div>
-    </div>
     <p class="warning-badge" id="cashWarning" hidden>Working Capital Alert</p>
+
+    <!-- Layer 2: reconciliation table -->
+    <p class="block-label">Where Did the Cash Go? (Cash Flow &harr; Balance Sheet)</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Cash Outflow (Cash Flow)</th><th>Asset Created (Balance Sheet)</th></tr></thead>
+        <tbody>
+          <tr><td>Tooling CapEx: &minus;$7.50M (CFI)</td><td>Fixed Assets (PP&amp;E): $7.50M</td></tr>
+          <tr><td id="cmDepositCell">CM Deposit + Prepaid Imports: &minus;$15.98M (CFO)</td><td>Inventory (Raw Materials &rarr; Work in Progress &rarr; Finished Goods) + Deposits</td></tr>
+          <tr class="total-row"><td id="peakOutflowCell">Peak Net Cash Outflow: &minus;$23.48M</td><td>Total Assets Deployed</td></tr>
+          <tr><td id="runwayCell">Operational Runway: $3.48M</td><td>Cash Reserve (payroll, R&amp;D overhead)</td></tr>
+          <tr class="total-row"><td>Safety Buffer: &minus;$20.00M</td><td>Total Cash Allocated to Program</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Layer 3: north star card -->
+    <div class="northstar-card">
+      <span class="northstar-label">Cash-to-Cash Cycle</span>
+      <strong class="northstar-value" id="c2cReadout">t15</strong>
+      <span class="northstar-sub">Full project payback: cumulative cash in crosses cumulative cash out</span>
+    </div>
   </section>
 
   <!-- 1.4 Build Monitoring -->
@@ -1221,28 +1273,40 @@
     var operatingIncome = consolidatedGm - capexDep - sga - marketing - support;
     var operatingMarginPct = combinedNetRevenue > 0 ? (operatingIncome / combinedNetRevenue) * 100 : 0;
 
-    // --- Cash flow curve ---
+    // --- Cash flow: dual-curve model (cumulative Cash Out vs. cumulative Cash In) ---
+    // Cash Out = one-time program investment (CapEx + CM deposit/prepaid imports/initial
+    // inventory build), front-loaded by t1 and then held flat -- ongoing per-unit COGS from
+    // t2 on is treated as self-funded by that period's own revenue, not a new cash call.
+    // Cash In = cumulative net revenue actually collected, lagged by channel mix + logistics.
     var cashSteps = 19; // t0..t18
-    var cash = new Array(cashSteps);
     var earlyRampFraction = (RAMP_WEIGHTS[0] + RAMP_WEIGHTS[1]) / RAMP_WEIGHT_SUM;
     var earlyLocalCost = localActualTotal * earlyRampFraction;
 
-    cash[0] = -(0.20 * mvaTotal);
-    cash[1] = -(mvaTotal + landedTariffs + 0.5 * importedActualTotal + earlyLocalCost);
+    var capexOutflow = TOOLING_TOTAL;
+    var cmDepositAndPrepaid = mvaTotal + landedTariffs + 0.5 * importedActualTotal + earlyLocalCost;
+    var frontLoadT0 = capexOutflow + 0.20 * mvaTotal;
+    var frontLoadTotal = capexOutflow + cmDepositAndPrepaid;
+
+    var cashOut = new Array(cashSteps);
+    cashOut[0] = -frontLoadT0;
+    for (var t = 1; t < cashSteps; t++) { cashOut[t] = -frontLoadTotal; }
 
     var lagRaw = dtcShare * 2 + omniShare * 3 + logisticsDelay;
     var lag = Math.round(lagRaw);
     if (lag < 2) lag = 2;
     if (lag > 10) lag = 10;
 
-    var perUnitMargin = volume > 0 ? hardwareGm / volume : 0;
-
-    for (var t = 2; t < cashSteps; t++) {
-      var srcIdx = t - lag;
-      var inflow = srcIdx >= 0 ? monthlyVolumeAt(volume, srcIdx) * perUnitMargin : 0;
-      cash[t] = cash[t - 1] + inflow;
+    var perUnitRevenue = volume > 0 ? netHardwareRevenue / volume : 0;
+    var cashIn = new Array(cashSteps);
+    cashIn[0] = 0;
+    cashIn[1] = 0;
+    for (var t2 = 2; t2 < cashSteps; t2++) {
+      var srcIdx = t2 - lag;
+      var inflow = srcIdx >= 0 ? monthlyVolumeAt(volume, srcIdx) * perUnitRevenue : 0;
+      cashIn[t2] = cashIn[t2 - 1] + inflow;
     }
 
+    var cash = cashOut.map(function (v, i) { return v + cashIn[i]; });
     var cashTrough = Math.min.apply(null, cash);
     var breakEvenIdx = -1;
     for (var i = 0; i < cash.length; i++) {
@@ -1274,7 +1338,8 @@
       consolidatedGm: consolidatedGm, consolidatedGmPct: consolidatedGmPct, combinedNetRevenue: combinedNetRevenue,
       capexDep: capexDep, sga: sga, marketing: marketing, support: support,
       operatingIncome: operatingIncome, operatingMarginPct: operatingMarginPct,
-      cash: cash, cashTrough: cashTrough, breakEvenIdx: breakEvenIdx, lag: lag,
+      cash: cash, cashOut: cashOut, cashIn: cashIn, cashTrough: cashTrough, breakEvenIdx: breakEvenIdx, lag: lag,
+      capexOutflow: capexOutflow, cmDepositAndPrepaid: cmDepositAndPrepaid, frontLoadTotal: frontLoadTotal,
       costPerOrder: costPerOrder, weeksOfSupply: weeksOfSupply,
       omniVolumeUnits: omniVolumeUnits, dtcVolumeUnits: dtcVolumeUnits
     };
@@ -1366,17 +1431,57 @@
       });
     });
 
-    // small text annotations hugging the first series' curve at a given data index,
+    // small text annotations hugging a given series' curve at a given data index,
     // stacked upward (row 0 closest to the line) so they track the curve wherever it sits
     if (opts.textAnnotations) {
-      var annotSeries = series[0].values;
       opts.textAnnotations.forEach(function (a) {
+        var annotSeries = series[a.seriesIdx || 0].values;
         var ax = xFor(a.atIndex);
         var ay = yFor(annotSeries[a.atIndex]) - 9 - a.row * 13;
         var t = svgEl('text', { x: ax, y: ay, 'text-anchor': 'start', 'font-size': '9.5', 'font-weight': '700', fill: 'var(--text-muted)' });
         t.textContent = a.text;
         svg.appendChild(t);
       });
+    }
+
+    // single vertical marker line with one centered label (e.g. a "Launch" moment)
+    if (opts.verticalMarker) {
+      var vm = opts.verticalMarker;
+      var vmX = xFor(vm.atIndex);
+      svg.appendChild(svgEl('line', {
+        x1: vmX, x2: vmX, y1: padT, y2: H - padB,
+        stroke: 'var(--text-muted)', 'stroke-width': 1.2, 'stroke-dasharray': '3,3'
+      }));
+      var vmLabel = svgEl('text', { x: vmX, y: padT - 4, 'text-anchor': 'middle', 'font-size': '9.5', 'font-weight': '800', fill: 'var(--text-secondary)' });
+      vmLabel.textContent = vm.label;
+      svg.appendChild(vmLabel);
+    }
+
+    // highlighted point (e.g. the payback marker) with a label. When two series indices are
+    // given (bridgeSeriesIdx), also draws a dashed connector between them at that x -- since a
+    // "cash out" curve staying negative and a "cash in" curve staying positive never literally
+    // touch, the connector is what visually shows the gap has closed to zero at that moment.
+    if (opts.highlightPoint) {
+      var hp = opts.highlightPoint;
+      var hpX = xFor(hp.atIndex);
+      if (hp.bridgeSeriesIdx) {
+        var yA = yFor(series[hp.bridgeSeriesIdx[0]].values[hp.atIndex]);
+        var yB = yFor(series[hp.bridgeSeriesIdx[1]].values[hp.atIndex]);
+        svg.appendChild(svgEl('line', { x1: hpX, x2: hpX, y1: yA, y2: yB, stroke: 'var(--text-primary)', 'stroke-width': 1.2, 'stroke-dasharray': '2,3' }));
+        [yA, yB].forEach(function (y) {
+          svg.appendChild(svgEl('circle', { cx: hpX, cy: y, r: 4, fill: 'var(--bg)', stroke: 'var(--text-primary)', 'stroke-width': 2 }));
+        });
+        var hpLabel = svgEl('text', { x: hpX, y: Math.min(yA, yB) - 9, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': '800', fill: 'var(--text-primary)' });
+        hpLabel.textContent = hp.label;
+        svg.appendChild(hpLabel);
+      } else {
+        var hpSeries = series[hp.seriesIdx || 0].values;
+        var hpY = yFor(hpSeries[hp.atIndex]);
+        svg.appendChild(svgEl('circle', { cx: hpX, cy: hpY, r: 5.5, fill: 'var(--bg)', stroke: 'var(--text-primary)', 'stroke-width': 2.2 }));
+        var hpLabel2 = svgEl('text', { x: hpX, y: hpY - 11, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': '800', fill: 'var(--text-primary)' });
+        hpLabel2.textContent = hp.label;
+        svg.appendChild(hpLabel2);
+      }
     }
 
     return { xFor: xFor, yFor: yFor };
@@ -1409,6 +1514,8 @@
   /* =========================================================
      Cash chart hover tooltip
      ========================================================= */
+  var CASH_SERIES_LABELS = ['Cash Out', 'Cash In'];
+
   function showCashTooltip(svgX, svgY, seriesIdx, pointIdx, value) {
     var svg = byId('cashChart');
     var container = byId('cashChartArea');
@@ -1417,7 +1524,8 @@
     var rect = container.getBoundingClientRect();
     var scaleX = rect.width / vb.width;
     var scaleY = rect.height / vb.height;
-    tooltip.textContent = 't' + pointIdx + ': ' + fmtUsdM(value);
+    var label = CASH_SERIES_LABELS[seriesIdx];
+    tooltip.textContent = 't' + pointIdx + ': ' + label + ' ' + fmtUsdM(value);
     tooltip.style.left = (svgX * scaleX) + 'px';
     tooltip.style.top = (svgY * scaleY) + 'px';
     tooltip.hidden = false;
@@ -1496,17 +1604,41 @@
     // 1.3 Cash flow
     var buffer = CASH_BUFFER;
     var below = r.cashTrough < buffer;
+    var cashAnnotations = [
+      { atIndex: 0, row: 0, seriesIdx: 0, text: '→ CM deposit + prepaid imports' },
+      { atIndex: 5, row: 1, seriesIdx: 0, text: '→ MVA settlement + tariffs' },
+      { atIndex: 9, row: 0, seriesIdx: 1, text: '→ DTC collections' },
+      { atIndex: 15, row: 1, seriesIdx: 1, text: '→ Omnichannel AR clears' }
+    ];
+    var cashHighlight = r.breakEvenIdx >= 0
+      ? { atIndex: r.breakEvenIdx, bridgeSeriesIdx: [0, 1], label: 'Payback' }
+      : undefined;
     renderLineChart(byId('cashChart'), [
-      { values: r.cash, color: below ? 'var(--red)' : 'var(--blue)' }
+      { values: r.cashOut, color: 'var(--red)' },
+      { values: r.cashIn, color: 'var(--blue)' }
     ], {
       xLabelEvery: 2, refLine: buffer, yLabelFmt: function (v) { return fmtUsdM(v); },
-      gridVals: [Math.min(buffer, r.cashTrough) * 1.05, 0, Math.max.apply(null, r.cash)],
-      hover: { onHover: showCashTooltip, onLeave: hideCashTooltip }
+      gridVals: [Math.min(buffer, Math.min.apply(null, r.cashOut)) * 1.05, 0, Math.max.apply(null, r.cashIn)],
+      hover: { onHover: showCashTooltip, onLeave: hideCashTooltip },
+      textAnnotations: cashAnnotations,
+      verticalMarker: { atIndex: 1, label: 'Launch: revenue begins' },
+      highlightPoint: cashHighlight
     });
-    byId('cashTroughReadout').textContent = fmtUsdM(r.cashTrough);
     byId('c2cReadout').textContent = r.breakEvenIdx >= 0 ? ('t' + r.breakEvenIdx) : '> t18';
     var cashWarn = byId('cashWarning');
     cashWarn.hidden = !below;
+
+    byId('cmDepositCell').textContent = 'CM Deposit + Prepaid Imports: ' + fmtUsdM(-r.cmDepositAndPrepaid) + ' (CFO)';
+    byId('peakOutflowCell').textContent = 'Peak Net Cash Outflow: ' + fmtUsdM(r.cashTrough);
+    var runway = Math.abs(buffer) - Math.abs(r.cashTrough);
+    var runwayEl = byId('runwayCell');
+    if (runway >= 0) {
+      runwayEl.textContent = 'Operational Runway: ' + fmtUsdM(runway);
+      runwayEl.classList.remove('unfavorable');
+    } else {
+      runwayEl.textContent = 'Runway Shortfall: ' + fmtUsdM(Math.abs(runway)) + ' below buffer';
+      runwayEl.classList.add('unfavorable');
+    }
 
     // 1.4 Build monitoring
     byId('ind-yield-val').textContent = state.yield + '%';
