@@ -371,6 +371,53 @@
   .data-table td.unfavorable { color: var(--red); font-weight: 700; }
   .data-table td.muted { color: var(--text-muted); }
 
+  /* ---------- milestone timeline ---------- */
+
+  .milestone-timeline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 14px;
+    overflow-x: auto;
+  }
+
+  .milestone-item {
+    flex: 1;
+    min-width: 96px;
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 9px 8px;
+  }
+
+  .milestone-item.total {
+    background: var(--blue-tint);
+    border-color: var(--blue);
+  }
+
+  .milestone-name {
+    display: block;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .milestone-item.total .milestone-name { color: var(--blue); }
+
+  .milestone-amount { font-size: 0.98rem; font-weight: 800; color: var(--text-primary); }
+
+  .milestone-item.total .milestone-amount { color: var(--blue); }
+
+  .milestone-arrow {
+    flex: 0 0 auto;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
   /* ---------- readout chips ---------- */
 
   .readout-row { display: flex; gap: 8px; margin: 10px 0 4px; flex-wrap: wrap; }
@@ -688,17 +735,31 @@
       </table>
     </div>
 
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead><tr><th>Milestone</th><th>Capex Release</th></tr></thead>
-        <tbody>
-          <tr><td>Design Freeze</td><td>$1.0M</td></tr>
-          <tr><td>Tooling Completion</td><td>$2.5M</td></tr>
-          <tr><td>Pilot Build</td><td>$2.5M</td></tr>
-          <tr><td>SOP</td><td>$1.5M</td></tr>
-          <tr class="total-row"><td>Total</td><td class="emph">$7.5M</td></tr>
-        </tbody>
-      </table>
+    <div class="milestone-timeline">
+      <div class="milestone-item">
+        <span class="milestone-name">Design Freeze</span>
+        <strong class="milestone-amount">$1.0M</strong>
+      </div>
+      <span class="milestone-arrow">&rarr;</span>
+      <div class="milestone-item">
+        <span class="milestone-name">Tooling Completion</span>
+        <strong class="milestone-amount">$2.5M</strong>
+      </div>
+      <span class="milestone-arrow">&rarr;</span>
+      <div class="milestone-item">
+        <span class="milestone-name">Pilot Build</span>
+        <strong class="milestone-amount">$2.5M</strong>
+      </div>
+      <span class="milestone-arrow">&rarr;</span>
+      <div class="milestone-item">
+        <span class="milestone-name">SOP</span>
+        <strong class="milestone-amount">$1.5M</strong>
+      </div>
+      <span class="milestone-arrow">&rarr;</span>
+      <div class="milestone-item total">
+        <span class="milestone-name">Total</span>
+        <strong class="milestone-amount">$7.5M</strong>
+      </div>
     </div>
 
     <div class="readout-row">
@@ -724,10 +785,11 @@
         <span><i class="legend-dot" style="background:var(--blue)"></i>Cumulative net cash</span>
         <span><i class="legend-dot" style="background:var(--text-muted); border-radius:0; width:12px; height:2px;"></i>Working capital safety buffer</span>
       </div>
-      <div class="chart-area">
+      <div class="chart-area" id="cashChartArea">
         <svg id="cashChart" viewBox="0 0 900 260" preserveAspectRatio="none" aria-label="Cumulative net cash position over time"></svg>
+        <div class="chart-tooltip" id="cashTooltip" hidden></div>
       </div>
-      <p class="chart-caption">t0&ndash;t18. Reacts to volume, yield, channel mix, and the logistics mode below.</p>
+      <p class="chart-caption">t0&ndash;t18. Reacts to volume, yield, channel mix, and the logistics mode below. Hover a point for the exact value.</p>
     </div>
 
     <div class="readout-row">
@@ -1305,6 +1367,27 @@
   }
 
   /* =========================================================
+     Cash chart hover tooltip
+     ========================================================= */
+  function showCashTooltip(svgX, svgY, seriesIdx, pointIdx, value) {
+    var svg = byId('cashChart');
+    var container = byId('cashChartArea');
+    var tooltip = byId('cashTooltip');
+    var vb = svg.viewBox.baseVal;
+    var rect = container.getBoundingClientRect();
+    var scaleX = rect.width / vb.width;
+    var scaleY = rect.height / vb.height;
+    tooltip.textContent = 't' + pointIdx + ': ' + fmtUsdM(value);
+    tooltip.style.left = (svgX * scaleX) + 'px';
+    tooltip.style.top = (svgY * scaleY) + 'px';
+    tooltip.hidden = false;
+  }
+
+  function hideCashTooltip() {
+    byId('cashTooltip').hidden = true;
+  }
+
+  /* =========================================================
      Indicator status helper
      ========================================================= */
   function setStatus(dotId, level) {
@@ -1375,7 +1458,11 @@
     var below = r.cashTrough < buffer;
     renderLineChart(byId('cashChart'), [
       { values: r.cash, color: below ? 'var(--red)' : 'var(--blue)' }
-    ], { xLabelEvery: 2, refLine: buffer, yLabelFmt: function (v) { return fmtUsdM(v); }, gridVals: [Math.min(buffer, r.cashTrough) * 1.05, 0, Math.max.apply(null, r.cash)] });
+    ], {
+      xLabelEvery: 2, refLine: buffer, yLabelFmt: function (v) { return fmtUsdM(v); },
+      gridVals: [Math.min(buffer, r.cashTrough) * 1.05, 0, Math.max.apply(null, r.cash)],
+      hover: { onHover: showCashTooltip, onLeave: hideCashTooltip }
+    });
     byId('cashTroughReadout').textContent = fmtUsdM(r.cashTrough);
     byId('c2cReadout').textContent = r.breakEvenIdx >= 0 ? ('t' + r.breakEvenIdx) : '> t18';
     var cashWarn = byId('cashWarning');
