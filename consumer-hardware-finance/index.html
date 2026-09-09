@@ -371,51 +371,82 @@
   .data-table td.unfavorable { color: var(--red); font-weight: 700; }
   .data-table td.muted { color: var(--text-muted); }
 
-  /* ---------- milestone timeline ---------- */
+  /* ---------- milestone timeline (progress-bar style, no card boxes) ---------- */
 
-  .milestone-timeline {
+  .milestone-track {
+    margin: 18px 6px 22px;
+  }
+
+  .milestone-row {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 4px 0 14px;
-    overflow-x: auto;
+    justify-content: space-between;
   }
 
-  .milestone-item {
+  .milestone-row.amounts span {
     flex: 1;
-    min-width: 96px;
     text-align: center;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    padding: 9px 8px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: var(--text-primary);
   }
 
-  .milestone-item.total {
-    background: var(--blue-tint);
+  .milestone-row.amounts span.total {
+    color: var(--blue);
+    font-size: 0.98rem;
+  }
+
+  .milestone-row.dots {
+    position: relative;
+    height: 12px;
+    margin: 6px 0;
+  }
+
+  .milestone-row.dots::before {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 50%;
+    height: 2px;
+    background: var(--border);
+    transform: translateY(-50%);
+  }
+
+  .milestone-row.dots span {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .milestone-row.dots .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--text-muted);
+    box-sizing: border-box;
+  }
+
+  .milestone-row.dots .dot.total {
+    background: var(--blue);
     border-color: var(--blue);
   }
 
-  .milestone-name {
-    display: block;
+  .milestone-row.labels span {
+    flex: 1;
+    text-align: center;
     font-size: 0.6rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--text-muted);
     font-weight: 700;
-    margin-bottom: 3px;
   }
 
-  .milestone-item.total .milestone-name { color: var(--blue); }
-
-  .milestone-amount { font-size: 0.98rem; font-weight: 800; color: var(--text-primary); }
-
-  .milestone-item.total .milestone-amount { color: var(--blue); }
-
-  .milestone-arrow {
-    flex: 0 0 auto;
-    color: var(--text-muted);
-    font-size: 0.9rem;
+  .milestone-row.labels span.total {
+    color: var(--blue);
+    font-weight: 800;
   }
 
   /* ---------- readout chips ---------- */
@@ -632,7 +663,6 @@
   <!-- ================= CHAPTER 0 ================= -->
   <section class="section" id="ch0">
     <h2>Chapter 0 &middot; Production Forecast &amp; Ramp Curve</h2>
-    <p class="section-sub">One volume number drives every downstream module: capex amortization, capacity utilization, cash flow, and sell-side revenue.</p>
 
     <div class="chart-card">
       <div class="chart-legend">
@@ -735,30 +765,27 @@
       </table>
     </div>
 
-    <div class="milestone-timeline">
-      <div class="milestone-item">
-        <span class="milestone-name">Design Freeze</span>
-        <strong class="milestone-amount">$1.0M</strong>
+    <div class="milestone-track">
+      <div class="milestone-row amounts">
+        <span>$1.0M</span>
+        <span>$2.5M</span>
+        <span>$2.5M</span>
+        <span>$1.5M</span>
+        <span class="total">$7.5M</span>
       </div>
-      <span class="milestone-arrow">&rarr;</span>
-      <div class="milestone-item">
-        <span class="milestone-name">Tooling Completion</span>
-        <strong class="milestone-amount">$2.5M</strong>
+      <div class="milestone-row dots">
+        <span><i class="dot"></i></span>
+        <span><i class="dot"></i></span>
+        <span><i class="dot"></i></span>
+        <span><i class="dot"></i></span>
+        <span><i class="dot total"></i></span>
       </div>
-      <span class="milestone-arrow">&rarr;</span>
-      <div class="milestone-item">
-        <span class="milestone-name">Pilot Build</span>
-        <strong class="milestone-amount">$2.5M</strong>
-      </div>
-      <span class="milestone-arrow">&rarr;</span>
-      <div class="milestone-item">
-        <span class="milestone-name">SOP</span>
-        <strong class="milestone-amount">$1.5M</strong>
-      </div>
-      <span class="milestone-arrow">&rarr;</span>
-      <div class="milestone-item total">
-        <span class="milestone-name">Total</span>
-        <strong class="milestone-amount">$7.5M</strong>
+      <div class="milestone-row labels">
+        <span>Design Freeze</span>
+        <span>Tooling Completion</span>
+        <span>Pilot Build</span>
+        <span>SOP</span>
+        <span class="total">Total</span>
       </div>
     </div>
 
