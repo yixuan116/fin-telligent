@@ -1358,7 +1358,10 @@
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     var vb = svg.viewBox.baseVal;
     var W = vb.width || 900, H = vb.height || 260;
-    var padL = opts.padL || 50, padR = opts.padR || 16, padT = opts.padT || 16, padB = opts.padB || 26;
+    var hasBelowAnnotation = !!(opts.textAnnotations && opts.textAnnotations.some(function (a) { return a.side === 'below'; }));
+    var padL = opts.padL || 50, padR = opts.padR || 16, padT = opts.padT || 16,
+      padB = opts.padB || (hasBelowAnnotation ? 34 : 26);
+    var xLabelOffset = hasBelowAnnotation ? 26 : 16;
     var plotW = W - padL - padR, plotH = H - padT - padB;
 
     var allVals = [];
@@ -1396,7 +1399,7 @@
     var xLabelEvery = opts.xLabelEvery || 1;
     for (var i = 0; i < n; i += xLabelEvery) {
       var lx = xFor(i);
-      var lt = svgEl('text', { x: lx, y: H - padB + 16, 'text-anchor': 'middle', 'font-size': '10', fill: 'var(--text-muted)' });
+      var lt = svgEl('text', { x: lx, y: H - padB + xLabelOffset, 'text-anchor': 'middle', 'font-size': '10', fill: 'var(--text-muted)' });
       lt.textContent = 't' + i;
       svg.appendChild(lt);
     }
@@ -1437,14 +1440,17 @@
       });
     });
 
-    // small text annotations hugging a given series' curve at a given data index,
-    // stacked upward (row 0 closest to the line) so they track the curve wherever it sits
+    // small text annotations anchored to a given series' curve at a given data index.
+    // side: 'below' pushes the label under the point, anything else (default) puts it above;
+    // dx nudges the label right so two annotations sharing a side/curve don't collide.
     if (opts.textAnnotations) {
       opts.textAnnotations.forEach(function (a) {
         var annotSeries = series[a.seriesIdx || 0].values;
-        var ax = xFor(a.atIndex);
-        var ay = yFor(annotSeries[a.atIndex]) - 9 - a.row * 13;
-        var t = svgEl('text', { x: ax, y: ay, 'text-anchor': 'start', 'font-size': '9.5', 'font-weight': '700', fill: 'var(--text-muted)' });
+        var ax = xFor(a.atIndex) + (a.dx || 0);
+        var baseY = yFor(annotSeries[a.atIndex]);
+        var sign = a.side === 'below' ? 1 : -1;
+        var ay = baseY + sign * (11 + (a.row || 0) * 13);
+        var t = svgEl('text', { x: ax, y: ay, 'text-anchor': 'start', 'font-size': '8.5', 'font-weight': '700', fill: 'var(--text-muted)' });
         t.textContent = a.text;
         svg.appendChild(t);
       });
@@ -1458,7 +1464,7 @@
         x1: vmX, x2: vmX, y1: padT, y2: H - padB,
         stroke: 'var(--text-muted)', 'stroke-width': 1.2, 'stroke-dasharray': '3,3'
       }));
-      var vmLabel = svgEl('text', { x: vmX, y: padT - 4, 'text-anchor': 'middle', 'font-size': '9.5', 'font-weight': '800', fill: 'var(--text-secondary)' });
+      var vmLabel = svgEl('text', { x: vmX, y: padT - 4, 'text-anchor': 'middle', 'font-size': '8.5', 'font-weight': '800', fill: 'var(--text-secondary)' });
       vmLabel.textContent = vm.label;
       svg.appendChild(vmLabel);
     }
@@ -1467,6 +1473,7 @@
     // given (bridgeSeriesIdx), also draws a dashed connector between them at that x -- since a
     // "cash out" curve staying negative and a "cash in" curve staying positive never literally
     // touch, the connector is what visually shows the gap has closed to zero at that moment.
+    // The label sits to the right of the connector, vertically centered on it.
     if (opts.highlightPoint) {
       var hp = opts.highlightPoint;
       var hpX = xFor(hp.atIndex);
@@ -1477,14 +1484,14 @@
         [yA, yB].forEach(function (y) {
           svg.appendChild(svgEl('circle', { cx: hpX, cy: y, r: 4, fill: 'var(--bg)', stroke: 'var(--text-primary)', 'stroke-width': 2 }));
         });
-        var hpLabel = svgEl('text', { x: hpX, y: Math.min(yA, yB) - 9, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': '800', fill: 'var(--text-primary)' });
+        var hpLabel = svgEl('text', { x: hpX + 8, y: (yA + yB) / 2 + 3, 'text-anchor': 'start', 'font-size': '9', 'font-weight': '800', fill: 'var(--text-primary)' });
         hpLabel.textContent = hp.label;
         svg.appendChild(hpLabel);
       } else {
         var hpSeries = series[hp.seriesIdx || 0].values;
         var hpY = yFor(hpSeries[hp.atIndex]);
         svg.appendChild(svgEl('circle', { cx: hpX, cy: hpY, r: 5.5, fill: 'var(--bg)', stroke: 'var(--text-primary)', 'stroke-width': 2.2 }));
-        var hpLabel2 = svgEl('text', { x: hpX, y: hpY - 11, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': '800', fill: 'var(--text-primary)' });
+        var hpLabel2 = svgEl('text', { x: hpX + 8, y: hpY + 3, 'text-anchor': 'start', 'font-size': '9', 'font-weight': '800', fill: 'var(--text-primary)' });
         hpLabel2.textContent = hp.label;
         svg.appendChild(hpLabel2);
       }
@@ -1611,10 +1618,10 @@
     var buffer = CASH_BUFFER;
     var below = r.cashTrough < buffer;
     var cashAnnotations = [
-      { atIndex: 0, row: 0, seriesIdx: 0, text: '→ CM deposit + prepaid parts' },
-      { atIndex: 5, row: 1, seriesIdx: 0, text: '→ MVA settlement + tariffs' },
-      { atIndex: 9, row: 0, seriesIdx: 1, text: '→ Owned collections' },
-      { atIndex: 15, row: 1, seriesIdx: 1, text: '→ Distributor AR clears' }
+      { atIndex: 0, seriesIdx: 0, side: 'below', text: 'CM deposit + prepaid parts' },
+      { atIndex: 5, seriesIdx: 0, side: 'below', dx: 6, text: 'MVA settlement + tariffs' },
+      { atIndex: 9, seriesIdx: 1, side: 'above', text: 'Owned collections' },
+      { atIndex: 15, seriesIdx: 1, side: 'above', dx: 6, text: 'Distributor AR clears' }
     ];
     var cashHighlight = r.breakEvenIdx >= 0
       ? { atIndex: r.breakEvenIdx, bridgeSeriesIdx: [0, 1], label: 'Payback' }
