@@ -387,6 +387,16 @@
   }
 
   .readout-chip strong { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); }
+
+  .readout-chip .readout-sub {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-muted);
+  }
   .readout-chip strong.warn { color: var(--amber); }
   .readout-chip strong.bad { color: var(--red); }
 
@@ -590,8 +600,8 @@
     </div>
 
     <div class="readout-row">
-      <div class="readout-chip"><span>Product A (60%)</span><strong id="volAReadout">300,000</strong></div>
-      <div class="readout-chip"><span>Product B (40%)</span><strong id="volBReadout">200,000</strong></div>
+      <div class="readout-chip"><span>Product A (60%)</span><strong id="volAReadout">300,000</strong><span class="readout-sub">ASP $200</span></div>
+      <div class="readout-chip"><span>Product B (40%)</span><strong id="volBReadout">200,000</strong><span class="readout-sub">ASP $120</span></div>
       <div class="readout-chip"><span>Hardware Gross Revenue</span><strong id="grossRevReadout">$84.00M</strong></div>
     </div>
   </section>
