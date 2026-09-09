@@ -535,12 +535,12 @@
     <div class="assumptions-columns">
       <div class="assumptions-col build">
         <span class="assumptions-col-label">Build</span>
-        <p>1 CM plant &middot; 2 products (imported + local BOM) &middot; outsourced assembly &middot; 3PL logistics</p>
+        <p>1 CM (Contract Manufacturer) plant &middot; 2 products (imported + local BOM (Bill of Materials)) &middot; outsourced assembly &middot; 3PL (Third-Party Logistics)</p>
       </div>
       <div class="assumptions-divider"></div>
       <div class="assumptions-col sell">
         <span class="assumptions-col-label">Sell</span>
-        <p>Hardware + software subscription &middot; 2 markets (US + overseas) &middot; DTC + Omnichannel &middot; unified MSRP &middot; B2C</p>
+        <p>Hardware + software subscription &middot; 2 markets (US (United States) + overseas) &middot; DTC (Direct-to-Consumer) + Omnichannel &middot; unified MSRP (Manufacturer's Suggested Retail Price) &middot; B2C (Business-to-Consumer)</p>
       </div>
     </div>
     <p class="assumptions-footnote">All figures are simulated for framework demonstration purposes.</p>
@@ -1190,6 +1190,22 @@
       svg.appendChild(lt);
     }
 
+    // phase divider (fixed at a given index, drawn light so it doesn't compete with the data lines)
+    if (opts.phaseDivider) {
+      var pd = opts.phaseDivider;
+      var pdX = xFor(pd.atIndex);
+      svg.appendChild(svgEl('line', {
+        x1: pdX, x2: pdX, y1: padT, y2: H - padB,
+        stroke: 'var(--border)', 'stroke-width': 1.2, 'stroke-dasharray': '4,4'
+      }));
+      var pdLeft = svgEl('text', { x: pdX - 8, y: padT + 12, 'text-anchor': 'end', 'font-size': '10', 'font-weight': '700', fill: 'var(--text-muted)' });
+      pdLeft.textContent = pd.leftLabel;
+      svg.appendChild(pdLeft);
+      var pdRight = svgEl('text', { x: pdX + 8, y: padT + 12, 'text-anchor': 'start', 'font-size': '10', 'font-weight': '700', fill: 'var(--text-muted)' });
+      pdRight.textContent = pd.rightLabel;
+      svg.appendChild(pdRight);
+    }
+
     // series lines
     series.forEach(function (s, si) {
       var pts = s.values.map(function (v, i) { return xFor(i) + ',' + yFor(v); }).join(' ');
@@ -1266,7 +1282,8 @@
       { values: rampB, color: 'var(--orange)' }
     ], {
       yMin: 0, xLabelEvery: 1, yLabelFmt: function (v) { return fmt0(v / 1000) + 'K'; },
-      hover: { onHover: showRampTooltip, onLeave: hideRampTooltip }
+      hover: { onHover: showRampTooltip, onLeave: hideRampTooltip },
+      phaseDivider: { atIndex: 1, leftLabel: 'Build', rightLabel: 'Sell' }
     });
 
     // 1.1 BOM
