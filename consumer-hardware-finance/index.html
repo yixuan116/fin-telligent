@@ -869,9 +869,9 @@
         <tbody>
           <tr><td>CF Investment - Tooling CapEx: &minus;$7.50M</td><td>Fixed Assets (PP&amp;E): $7.50M</td></tr>
           <tr><td id="cmDepositCell">CF Operating - CM Deposit + Prepaid Parts: &minus;$15.98M</td><td>Inventory (Raw Materials &rarr; Work in Progress &rarr; Finished Goods) + Deposits</td></tr>
-          <tr class="total-row"><td id="peakOutflowCell">CF Operating - Peak Net Cash Outflow: &minus;$23.48M</td><td>Total Assets Deployed</td></tr>
-          <tr><td id="runwayCell">CF Operating - Operational Runway: $3.48M</td><td>Cash Reserve (payroll, R&amp;D overhead)</td></tr>
-          <tr class="total-row"><td>CF Operating - Total Cash: &minus;$20.00M</td><td>Total Cash Allocated to Program</td></tr>
+          <tr class="total-row"><td id="peakOutflowCell">Peak Net Cash Outflow: &minus;$23.48M</td><td>Total Assets Deployed</td></tr>
+          <tr><td id="runwayCell">Operational Runway: $3.48M</td><td>Cash Reserve (payroll, R&amp;D overhead)</td></tr>
+          <tr class="total-row"><td>Total Cash: &minus;$20.00M</td><td>Total Cash Allocated to Program</td></tr>
         </tbody>
       </table>
     </div>
@@ -1642,14 +1642,14 @@
     cashWarn.hidden = !below;
 
     byId('cmDepositCell').textContent = 'CF Operating - CM Deposit + Prepaid Parts: ' + fmtUsdM(-r.cmDepositAndPrepaid);
-    byId('peakOutflowCell').textContent = 'CF Operating - Peak Net Cash Outflow: ' + fmtUsdM(r.cashTrough);
+    byId('peakOutflowCell').textContent = 'Peak Net Cash Outflow: ' + fmtUsdM(r.cashTrough);
     var runway = Math.abs(buffer) - Math.abs(r.cashTrough);
     var runwayEl = byId('runwayCell');
     if (runway >= 0) {
-      runwayEl.textContent = 'CF Operating - Operational Runway: ' + fmtUsdM(runway);
+      runwayEl.textContent = 'Operational Runway: ' + fmtUsdM(runway);
       runwayEl.classList.remove('unfavorable');
     } else {
-      runwayEl.textContent = 'CF Operating - Runway Shortfall: ' + fmtUsdM(Math.abs(runway));
+      runwayEl.textContent = 'Runway Shortfall: ' + fmtUsdM(Math.abs(runway));
       runwayEl.classList.add('unfavorable');
     }
 
