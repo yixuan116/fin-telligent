@@ -839,7 +839,7 @@
 
   <!-- 1.3 Cash Flow Curve -->
   <section class="section" id="sec-1-3">
-    <h2>1.3 Cash Flow</h2>
+    <h2>1.3 Cash Flow and Balance Sheet</h2>
     <div class="chip-row">
       <span class="chip">Finance</span>
       <span class="chip">Treasury</span>
@@ -1280,7 +1280,7 @@
     var operatingMarginPct = combinedNetRevenue > 0 ? (operatingIncome / combinedNetRevenue) * 100 : 0;
 
     // --- Cash flow: dual-curve model (cumulative Cash Out vs. cumulative Cash In) ---
-    // Cash Out = one-time program investment (CapEx + CM deposit/prepaid imports/initial
+    // Cash Out = one-time program investment (CapEx + CM deposit/prepaid parts/initial
     // inventory build), front-loaded by t1 and then held flat -- ongoing per-unit COGS from
     // t2 on is treated as self-funded by that period's own revenue, not a new cash call.
     // Cash In = cumulative net revenue actually collected, lagged by channel mix + logistics.
@@ -1611,7 +1611,7 @@
     var buffer = CASH_BUFFER;
     var below = r.cashTrough < buffer;
     var cashAnnotations = [
-      { atIndex: 0, row: 0, seriesIdx: 0, text: '→ CM deposit + prepaid imports' },
+      { atIndex: 0, row: 0, seriesIdx: 0, text: '→ CM deposit + prepaid parts' },
       { atIndex: 5, row: 1, seriesIdx: 0, text: '→ MVA settlement + tariffs' },
       { atIndex: 9, row: 0, seriesIdx: 1, text: '→ Owned collections' },
       { atIndex: 15, row: 1, seriesIdx: 1, text: '→ Distributor AR clears' }
@@ -1634,7 +1634,7 @@
     var cashWarn = byId('cashWarning');
     cashWarn.hidden = !below;
 
-    byId('cmDepositCell').textContent = 'CM Deposit + Prepaid Imports: ' + fmtUsdM(-r.cmDepositAndPrepaid) + ' (CFO)';
+    byId('cmDepositCell').textContent = 'CM Deposit + Prepaid Parts: ' + fmtUsdM(-r.cmDepositAndPrepaid) + ' (CFO)';
     byId('peakOutflowCell').textContent = 'Peak Net Cash Outflow: ' + fmtUsdM(r.cashTrough);
     var runway = Math.abs(buffer) - Math.abs(r.cashTrough);
     var runwayEl = byId('runwayCell');
