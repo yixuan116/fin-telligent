@@ -630,7 +630,6 @@
 
   <header class="hero">
     <h1>Consumer Hardware Finance: Build to Sell</h1>
-    <p>A production ramp drives one shared volume number through build economics, cash, and the sell-side P&amp;L</p>
   </header>
 
   <div class="assumptions">
@@ -641,7 +640,7 @@
         <ul class="assumptions-list">
           <li>1 CM (Contract Manufacturer) plant</li>
           <li>Outsourced assembly line</li>
-          <li>2 products (imported + local BOM)</li>
+          <li>2 products with BOM (imported + local)</li>
         </ul>
       </div>
       <div class="assumptions-divider"></div>
@@ -1502,12 +1501,7 @@
     ], {
       xLabelEvery: 2, refLine: buffer, yLabelFmt: function (v) { return fmtUsdM(v); },
       gridVals: [Math.min(buffer, r.cashTrough) * 1.05, 0, Math.max.apply(null, r.cash)],
-      hover: { onHover: showCashTooltip, onLeave: hideCashTooltip },
-      textAnnotations: [
-        { atIndex: 2, row: 0, text: '→ Raw Materials (prepaid imports on water)' },
-        { atIndex: 4, row: 1, text: '→ WIP (on assembly line)' },
-        { atIndex: 6, row: 2, text: '→ Finished Goods (in 3PL warehouse)' }
-      ]
+      hover: { onHover: showCashTooltip, onLeave: hideCashTooltip }
     });
     byId('cashTroughReadout').textContent = fmtUsdM(r.cashTrough);
     byId('c2cReadout').textContent = r.breakEvenIdx >= 0 ? ('t' + r.breakEvenIdx) : '> t18';
