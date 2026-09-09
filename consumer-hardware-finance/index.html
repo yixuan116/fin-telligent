@@ -785,7 +785,7 @@
         <span>Tooling Completion</span>
         <span>Pilot Build</span>
         <span>Production</span>
-        <span class="total">Launch $7.5M</span>
+        <span class="total">Launch</span>
       </div>
     </div>
 
@@ -1366,6 +1366,19 @@
       });
     });
 
+    // small text annotations hugging the first series' curve at a given data index,
+    // stacked upward (row 0 closest to the line) so they track the curve wherever it sits
+    if (opts.textAnnotations) {
+      var annotSeries = series[0].values;
+      opts.textAnnotations.forEach(function (a) {
+        var ax = xFor(a.atIndex);
+        var ay = yFor(annotSeries[a.atIndex]) - 9 - a.row * 13;
+        var t = svgEl('text', { x: ax, y: ay, 'text-anchor': 'start', 'font-size': '9.5', 'font-weight': '700', fill: 'var(--text-muted)' });
+        t.textContent = a.text;
+        svg.appendChild(t);
+      });
+    }
+
     return { xFor: xFor, yFor: yFor };
   }
 
@@ -1488,7 +1501,12 @@
     ], {
       xLabelEvery: 2, refLine: buffer, yLabelFmt: function (v) { return fmtUsdM(v); },
       gridVals: [Math.min(buffer, r.cashTrough) * 1.05, 0, Math.max.apply(null, r.cash)],
-      hover: { onHover: showCashTooltip, onLeave: hideCashTooltip }
+      hover: { onHover: showCashTooltip, onLeave: hideCashTooltip },
+      textAnnotations: [
+        { atIndex: 2, row: 0, text: '→ Raw Materials (prepaid imports on water)' },
+        { atIndex: 4, row: 1, text: '→ WIP (on assembly line)' },
+        { atIndex: 6, row: 2, text: '→ Finished Goods (in 3PL warehouse)' }
+      ]
     });
     byId('cashTroughReadout').textContent = fmtUsdM(r.cashTrough);
     byId('c2cReadout').textContent = r.breakEvenIdx >= 0 ? ('t' + r.breakEvenIdx) : '> t18';
