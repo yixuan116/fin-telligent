@@ -145,11 +145,17 @@
   .assumptions-col.build .assumptions-col-label { background: var(--blue-tint); color: var(--blue); }
   .assumptions-col.sell .assumptions-col-label { background: var(--orange-tint); color: var(--orange); }
 
-  .assumptions-col p {
+  .assumptions-list {
     margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .assumptions-list li {
     font-size: 0.82rem;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.4;
+    padding: 3px 0;
   }
 
   .assumptions-footnote {
@@ -535,12 +541,23 @@
     <div class="assumptions-columns">
       <div class="assumptions-col build">
         <span class="assumptions-col-label">Build</span>
-        <p>1 CM (Contract Manufacturer) plant &middot; 2 products (imported + local BOM (Bill of Materials)) &middot; outsourced assembly</p>
+        <ul class="assumptions-list">
+          <li>1 CM (Contract Manufacturer) plant</li>
+          <li>2 products (imported + local BOM (Bill of Materials))</li>
+          <li>Outsourced assembly</li>
+        </ul>
       </div>
       <div class="assumptions-divider"></div>
       <div class="assumptions-col sell">
         <span class="assumptions-col-label">Sell</span>
-        <p>Hardware + software subscription &middot; 2 markets (US (United States) + overseas) &middot; DTC (Direct-to-Consumer) + Omnichannel &middot; 3PL (Third-Party Logistics) &middot; unified MSRP (Manufacturer's Suggested Retail Price) &middot; B2C (Business-to-Consumer)</p>
+        <ul class="assumptions-list">
+          <li>Hardware + software subscription</li>
+          <li>2 markets (US (United States) + overseas)</li>
+          <li>DTC (Direct-to-Consumer) + Omnichannel</li>
+          <li>3PL (Third-Party Logistics)</li>
+          <li>Unified MSRP (Manufacturer's Suggested Retail Price)</li>
+          <li>B2C (Business-to-Consumer)</li>
+        </ul>
       </div>
     </div>
     <p class="assumptions-footnote">All figures are simulated for framework demonstration purposes.</p>
