@@ -649,7 +649,7 @@
         <span class="assumptions-col-label">Sell</span>
         <ul class="assumptions-list">
           <li>Hardware + software subscription</li>
-          <li>2 markets (US + overseas)</li>
+          <li>2 markets (domestic + overseas)</li>
           <li>DTC (Direct-to-Consumer) + Omnichannel</li>
           <li>3PL (Third-Party Logistics)</li>
           <li>Unified MSRP (Manufacturer's Suggested Retail Price)</li>
@@ -959,17 +959,18 @@
 
   <!-- 2.3 Logistics Toggle -->
   <section class="section sell" id="sec-2-3">
-    <h2>2.3 Logistics Mode</h2>
-    <p class="section-sub">Ocean vs. air freight trades unit cost against cash-recovery speed.</p>
+    <h2>2.3 Logistics Strategy</h2>
+    <p class="section-sub">Unit cost vs. cash-recovery speed.</p>
     <div class="chip-row">
       <span class="chip">3PL</span>
       <span class="chip">Logistics</span>
     </div>
 
     <div class="toggle-row">
-      <button class="toggle-btn active" id="oceanBtn" type="button">Ocean Freight (default)<span class="toggle-sub">$2 / unit &middot; +2 time-step cash delay</span></button>
-      <button class="toggle-btn" id="airBtn" type="button">Air Freight<span class="toggle-sub">$12 / unit &middot; no delay penalty</span></button>
+      <button class="toggle-btn active" id="oceanBtn" type="button">Standard Route (default)<span class="toggle-sub">$2 / unit &middot; +2 time-step cash delay</span></button>
+      <button class="toggle-btn" id="airBtn" type="button">Expedited Route<span class="toggle-sub">$12 / unit &middot; no delay penalty</span></button>
     </div>
+    <p class="section-memo">Route choice applies to any plant location: overseas ocean/air, or domestic ground/express.</p>
   </section>
 
   <!-- 2.4 Consolidated P&L -->
