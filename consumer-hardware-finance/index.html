@@ -78,50 +78,6 @@
     font-size: 0.92rem;
   }
 
-  /* ---------- assumptions box ---------- */
-
-  .assumptions {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 26px;
-  }
-
-  .assumptions-title {
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-muted);
-    margin: 0 0 10px;
-  }
-
-  .assumptions ul {
-    margin: 0;
-    padding: 0 0 0 18px;
-    columns: 2;
-    column-gap: 28px;
-  }
-
-  .assumptions li {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.55;
-    break-inside: avoid;
-  }
-
-  .assumptions li strong { color: var(--text-primary); }
-
-  .assumptions-footnote {
-    margin: 10px 0 0;
-    padding-top: 10px;
-    border-top: 1px dashed var(--border);
-    font-size: 0.72rem;
-    font-style: italic;
-    color: var(--text-muted);
-  }
-
   /* ---------- phase dividers ---------- */
 
   .phase-divider {
@@ -147,6 +103,13 @@
   .phase-divider .phase-line { flex: 1; height: 1px; background: var(--border); }
 
   .phase-divider .phase-caption { font-size: 0.76rem; color: var(--text-muted); flex-shrink: 0; }
+
+  .phase-context {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: -4px 0 18px;
+  }
 
   /* ---------- sections ---------- */
 
@@ -246,6 +209,26 @@
   .chart-area svg { display: block; width: 100%; height: 100%; }
 
   .chart-caption { font-size: 0.7rem; color: var(--text-muted); margin: 4px 2px 0; }
+
+  .chart-tooltip {
+    position: absolute;
+    transform: translate(-50%, -125%);
+    background: var(--text-primary);
+    color: var(--bg);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.4;
+    padding: 6px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 5;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .chart-tooltip[hidden] { display: none; }
+
+  .chart-tooltip .tooltip-t { display: block; font-weight: 800; margin-bottom: 2px; opacity: 0.85; }
 
   .warning-badge {
     display: inline-block;
@@ -492,22 +475,6 @@
     <p>A production ramp drives one shared volume number through build economics, cash, and the sell-side P&amp;L</p>
   </header>
 
-  <div class="assumptions">
-    <p class="assumptions-title">Assumptions</p>
-    <ul>
-      <li>1 contract manufacturer (CM) plant &mdash; <strong>outsourced assembly</strong>, no owned factory</li>
-      <li><strong>2 product lines:</strong> Product A (Premium), Product B (Standard)</li>
-      <li>BOM includes both <strong>imported core</strong> and <strong>locally sourced peripheral</strong> components</li>
-      <li><strong>Business model:</strong> hardware unit sales + recurring software/AI subscription</li>
-      <li><strong>2 markets:</strong> Domestic (US) + Overseas</li>
-      <li><strong>2 channels:</strong> DTC (online, direct) + Omnichannel (offline, retail/distributor)</li>
-      <li>All logistics via <strong>3PL</strong> &mdash; no owned logistics infrastructure</li>
-      <li>Pure B2C consumer end-users</li>
-      <li><strong>Unified MSRP</strong> across channels; distributors operate on wholesale price after channel margin deduction</li>
-      <li>All figures are <strong>simulated</strong> for framework demonstration purposes</li>
-    </ul>
-  </div>
-
   <!-- ================= CHAPTER 0 ================= -->
   <section class="section" id="ch0">
     <h2>Chapter 0 &middot; Production Forecast &amp; Ramp Curve</h2>
@@ -518,10 +485,11 @@
         <span><i class="legend-dot" style="background:var(--blue)"></i>Product A (Premium)</span>
         <span><i class="legend-dot" style="background:var(--orange)"></i>Product B (Standard)</span>
       </div>
-      <div class="chart-area">
+      <div class="chart-area" id="rampChartArea">
         <svg id="rampChart" viewBox="0 0 900 260" preserveAspectRatio="none" aria-label="Monthly production ramp for Product A and Product B"></svg>
+        <div class="chart-tooltip" id="rampTooltip" hidden></div>
       </div>
-      <p class="chart-caption">Monthly production volume, t0&ndash;t12. S-curve ramp: pilot &rarr; SOP ramp &rarr; steady state.</p>
+      <p class="chart-caption">Monthly production volume, t0&ndash;t12. S-curve ramp: pilot &rarr; SOP ramp &rarr; steady state. Hover a point for the exact value.</p>
     </div>
 
     <div class="slider-block">
@@ -546,6 +514,7 @@
     <span class="phase-line"></span>
     <span class="phase-caption">Build &middot; t0 &rarr; t1</span>
   </div>
+  <p class="phase-context">1 CM plant &middot; 2 products (imported + local BOM) &middot; outsourced assembly &middot; 3PL logistics</p>
 
   <!-- 1.1 BOM Unit Economics -->
   <section class="section" id="sec-1-1">
@@ -698,6 +667,7 @@
     <span class="phase-line"></span>
     <span class="phase-caption">Sell &middot; t1 &rarr; tn</span>
   </div>
+  <p class="phase-context">Hardware + software subscription &middot; 2 markets (US + overseas) &middot; DTC + Omnichannel &middot; unified MSRP &middot; B2C</p>
 
   <!-- 2.1 Revenue Model -->
   <section class="section sell" id="sec-2-1">
@@ -1152,7 +1122,7 @@
     }
 
     // series lines
-    series.forEach(function (s) {
+    series.forEach(function (s, si) {
       var pts = s.values.map(function (v, i) { return xFor(i) + ',' + yFor(v); }).join(' ');
       svg.appendChild(svgEl('polyline', {
         points: pts, fill: 'none', stroke: s.color, 'stroke-width': 2.4,
@@ -1160,10 +1130,42 @@
       }));
       s.values.forEach(function (v, i) {
         svg.appendChild(svgEl('circle', { cx: xFor(i), cy: yFor(v), r: 2.2, fill: s.color }));
+        if (opts.hover) {
+          var hit = svgEl('circle', { cx: xFor(i), cy: yFor(v), r: 9, fill: 'transparent', style: 'cursor:pointer;' });
+          hit.addEventListener('mouseenter', (function (svgX, svgY, seriesIdx, pointIdx, value) {
+            return function () { opts.hover.onHover(svgX, svgY, seriesIdx, pointIdx, value); };
+          })(xFor(i), yFor(v), si, i, v));
+          hit.addEventListener('mouseleave', function () { opts.hover.onLeave(); });
+          svg.appendChild(hit);
+        }
       });
     });
 
     return { xFor: xFor, yFor: yFor };
+  }
+
+  /* =========================================================
+     Ramp chart hover tooltip
+     ========================================================= */
+  var RAMP_SERIES_LABELS = ['Product A', 'Product B'];
+
+  function showRampTooltip(svgX, svgY, seriesIdx, pointIdx, value) {
+    var svg = byId('rampChart');
+    var container = byId('rampChartArea');
+    var tooltip = byId('rampTooltip');
+    var vb = svg.viewBox.baseVal;
+    var rect = container.getBoundingClientRect();
+    var scaleX = rect.width / vb.width;
+    var scaleY = rect.height / vb.height;
+    var label = RAMP_SERIES_LABELS[seriesIdx];
+    tooltip.innerHTML = '<span class="tooltip-t">t' + pointIdx + '</span>' + label + ': ' + fmt0(value) + ' units';
+    tooltip.style.left = (svgX * scaleX) + 'px';
+    tooltip.style.top = (svgY * scaleY) + 'px';
+    tooltip.hidden = false;
+  }
+
+  function hideRampTooltip() {
+    byId('rampTooltip').hidden = true;
   }
 
   /* =========================================================
@@ -1193,7 +1195,10 @@
     renderLineChart(byId('rampChart'), [
       { values: rampA, color: 'var(--blue)' },
       { values: rampB, color: 'var(--orange)' }
-    ], { yMin: 0, xLabelEvery: 1, yLabelFmt: function (v) { return fmt0(v / 1000) + 'K'; } });
+    ], {
+      yMin: 0, xLabelEvery: 1, yLabelFmt: function (v) { return fmt0(v / 1000) + 'K'; },
+      hover: { onHover: showRampTooltip, onLeave: hideRampTooltip }
+    });
 
     // 1.1 BOM
     byId('aCoreActual').textContent = fmtUsd(r.aCoreActual);
