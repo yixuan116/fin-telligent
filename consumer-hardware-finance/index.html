@@ -1294,11 +1294,16 @@
       rampA.push(monthlyVolumeAt(r.volume, i) * A_SHARE);
       rampB.push(monthlyVolumeAt(r.volume, i) * B_SHARE);
     }
+    // Fix the y-axis to the slider's max volume so curve height visibly
+    // grows/shrinks as volume changes, instead of auto-scaling to always
+    // fill the chart (which made the shape look static across the range).
+    var rampMaxVolume = parseInt(volumeSlider.max, 10);
+    var rampYMax = monthlyVolumeAt(rampMaxVolume, RAMP_STEPS - 1) * A_SHARE * 1.08;
     renderLineChart(byId('rampChart'), [
       { values: rampA, color: 'var(--blue)' },
       { values: rampB, color: 'var(--orange)' }
     ], {
-      yMin: 0, xLabelEvery: 1, yLabelFmt: function (v) { return fmt0(v / 1000) + 'K'; },
+      yMin: 0, yMax: rampYMax, xLabelEvery: 1, yLabelFmt: function (v) { return fmt0(v / 1000) + 'K'; },
       hover: { onHover: showRampTooltip, onLeave: hideRampTooltip },
       phaseDivider: { atIndex: 1, leftLabel: 'Build', rightLabel: 'Sell' }
     });
