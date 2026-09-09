@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consumer Hardware Finance: Build to Sell</title>
+<meta name="description" content="Interactive simulation of a consumer hardware P&L: production ramp, BOM/yield economics, tooling capex and cash flow on the build side; revenue, channel gross-to-net waterfall and a consolidated P&L on the sell side. All figures simulated.">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --card-bg: #f7f7f8;
+    --card-border: #e8e8ea;
+    --border: #e5e5e8;
+    --text-primary: #1a1a1c;
+    --text-secondary: #55555b;
+    --text-muted: #8a8a90;
+    --shadow: rgba(20, 20, 25, 0.07);
+
+    --blue: #2a78d6;
+    --orange: #eb6834;
+    --green: #0ca30c;
+    --red: #e34948;
+    --amber: #d9971f;
+    --purple: #7c5cbf;
+
+    --blue-tint: rgba(42, 120, 214, 0.12);
+    --orange-tint: rgba(235, 104, 52, 0.14);
+    --green-tint: rgba(12, 163, 12, 0.12);
+    --red-tint: rgba(227, 73, 72, 0.12);
+    --amber-tint: rgba(217, 151, 31, 0.16);
+    --purple-tint: rgba(124, 92, 191, 0.14);
+
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0c0e;
+      --card-bg: #1a1a1d;
+      --card-border: #2a2a2e;
+      --border: #29292d;
+      --text-primary: #f2f2f3;
+      --text-secondary: #b7b7bc;
+      --text-muted: #85858c;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 28px 16px 56px; }
+
+  .app { max-width: 980px; margin: 0 auto; }
+
+  header.hero { text-align: center; margin-bottom: 20px; }
+
+  header.hero h1 {
+    font-size: 1.55rem;
+    font-weight: 800;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  header.hero p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  /* ---------- assumptions box ---------- */
+
+  .assumptions {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 26px;
+  }
+
+  .assumptions-title {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+  }
+
+  .assumptions ul {
+    margin: 0;
+    padding: 0 0 0 18px;
+    columns: 2;
+    column-gap: 28px;
+  }
+
+  .assumptions li {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    break-inside: avoid;
+  }
+
+  .assumptions li strong { color: var(--text-primary); }
+
+  .assumptions-footnote {
+    margin: 10px 0 0;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--text-muted);
+  }
+
+  /* ---------- phase dividers ---------- */
+
+  .phase-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 40px 0 18px;
+  }
+
+  .phase-divider .phase-chip {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+
+  .phase-divider.build .phase-chip { background: var(--blue-tint); color: var(--blue); }
+  .phase-divider.sell .phase-chip { background: var(--orange-tint); color: var(--orange); }
+
+  .phase-divider .phase-line { flex: 1; height: 1px; background: var(--border); }
+
+  .phase-divider .phase-caption { font-size: 0.76rem; color: var(--text-muted); flex-shrink: 0; }
+
+  /* ---------- sections ---------- */
+
+  .section {
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px 22px 18px;
+    margin-bottom: 18px;
+    background: var(--bg);
+  }
+
+  .section h2 {
+    font-size: 1.02rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  .section .section-sub {
+    margin: 0 0 14px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+  }
+
+  .chip:nth-child(4n+1) { background: var(--blue-tint); color: var(--blue); }
+  .chip:nth-child(4n+2) { background: var(--green-tint); color: var(--green); }
+  .chip:nth-child(4n+3) { background: var(--purple-tint); color: var(--purple); }
+  .chip:nth-child(4n+4) { background: var(--orange-tint); color: var(--orange); }
+
+  /* ---------- sliders ---------- */
+
+  .slider-block { margin: 14px 0 4px; }
+
+  .slider-block .slider-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .slider-block .slider-label { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); }
+
+  .slider-block .slider-value { font-size: 0.92rem; font-weight: 800; color: var(--text-primary); }
+
+  .slider-block input[type="range"] {
+    width: 100%;
+    accent-color: var(--blue);
+    height: 5px;
+  }
+
+  .sell input[type="range"] { accent-color: var(--orange); }
+
+  .slider-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ---------- charts ---------- */
+
+  .chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 14px 14px 8px;
+    margin: 4px 0 14px;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .chart-area { position: relative; height: 260px; }
+
+  .chart-area svg { display: block; width: 100%; height: 100%; }
+
+  .chart-caption { font-size: 0.7rem; color: var(--text-muted); margin: 4px 2px 0; }
+
+  .warning-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: var(--red-tint);
+    color: var(--red);
+  }
+
+  .warning-badge[hidden] { display: none; }
+
+  /* ---------- tables ---------- */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 4px 0 14px;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+  }
+
+  table.data-table {
+    width: 100%;
+    min-width: 480px;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: var(--card-bg);
+  }
+
+  .data-table th, .data-table td {
+    padding: 8px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .data-table th:first-child, .data-table td:first-child {
+    text-align: left;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .data-table thead th {
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .data-table tbody tr:nth-child(even) td { background: rgba(128,128,128,0.045); }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table td.emph { font-weight: 700; color: var(--text-primary); }
+  .data-table tr.subtotal-row td { border-top: 1px dashed var(--border); }
+  .data-table tr.total-row td { border-top: 2px solid var(--card-border); font-weight: 800; }
+  .data-table tr.section-row td {
+    background: var(--card-bg);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .data-table td.live { transition: background 0.3s ease; }
+  .data-table td.live.flash { background: var(--amber-tint); }
+  .data-table td.favorable { color: var(--green); font-weight: 700; }
+  .data-table td.unfavorable { color: var(--red); font-weight: 700; }
+  .data-table td.muted { color: var(--text-muted); }
+
+  /* ---------- readout chips ---------- */
+
+  .readout-row { display: flex; gap: 8px; margin: 10px 0 4px; flex-wrap: wrap; }
+
+  .readout-chip {
+    flex: 1;
+    min-width: 110px;
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 8px 6px 9px;
+  }
+
+  .readout-chip span {
+    display: block;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .readout-chip strong { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); }
+  .readout-chip strong.warn { color: var(--amber); }
+  .readout-chip strong.bad { color: var(--red); }
+
+  /* ---------- indicator dashboard ---------- */
+
+  .indicator-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 4px 0 4px;
+  }
+
+  .indicator-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 12px 11px;
+  }
+
+  .indicator-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin: 0 0 6px;
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    line-height: 1.25;
+  }
+
+  .indicator-status { font-size: 0.9rem; line-height: 1; }
+  .indicator-current { font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+  .indicator-target { font-size: 0.68rem; color: var(--text-muted); margin: 3px 0 0; }
+  .indicator-note { font-size: 0.66rem; color: var(--amber); margin: 3px 0 0; font-weight: 700; }
+
+  /* ---------- revenue blocks ---------- */
+
+  .revenue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+
+  .revenue-block {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+
+  .revenue-block h3 {
+    font-size: 0.84rem;
+    font-weight: 800;
+    margin: 0 0 10px;
+  }
+
+  .revenue-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    padding: 4px 0;
+    color: var(--text-secondary);
+  }
+
+  .revenue-line strong { color: var(--text-primary); font-weight: 700; }
+
+  .revenue-line.total {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 8px;
+    font-weight: 800;
+  }
+
+  .revenue-line.total strong { font-size: 0.95rem; }
+
+  /* ---------- logistics toggle ---------- */
+
+  .toggle-row { display: flex; gap: 8px; margin: 4px 0 12px; }
+
+  .toggle-btn {
+    flex: 1;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .toggle-btn .toggle-sub { display: block; font-size: 0.66rem; font-weight: 600; margin-top: 2px; opacity: 0.85; }
+
+  .toggle-btn.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+  /* ---------- footer ---------- */
+
+  footer.page-footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  footer.page-footer p {
+    max-width: 640px;
+    margin: 0 auto 12px;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  footer.page-footer .gh-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.84rem;
+  }
+
+  footer.page-footer .gh-link:hover { color: var(--text-primary); }
+  footer.page-footer .gh-link svg { fill: currentColor; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 768px) {
+    .assumptions ul { columns: 1; }
+    .indicator-grid { grid-template-columns: repeat(2, 1fr); }
+    .revenue-grid { grid-template-columns: 1fr; }
+    header.hero h1 { font-size: 1.25rem; }
+  }
+
+  @media (max-width: 480px) {
+    .indicator-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="hero">
+    <h1>Consumer Hardware Finance: Build to Sell</h1>
+    <p>A production ramp drives one shared volume number through build economics, cash, and the sell-side P&amp;L</p>
+  </header>
+
+  <div class="assumptions">
+    <p class="assumptions-title">Assumptions</p>
+    <ul>
+      <li>1 contract manufacturer (CM) plant &mdash; <strong>outsourced assembly</strong>, no owned factory</li>
+      <li><strong>2 product lines:</strong> Product A (Premium), Product B (Standard)</li>
+      <li>BOM includes both <strong>imported core</strong> and <strong>locally sourced peripheral</strong> components</li>
+      <li><strong>Business model:</strong> hardware unit sales + recurring software/AI subscription</li>
+      <li><strong>2 markets:</strong> Domestic (US) + Overseas</li>
+      <li><strong>2 channels:</strong> DTC (online, direct) + Omnichannel (offline, retail/distributor)</li>
+      <li>All logistics via <strong>3PL</strong> &mdash; no owned logistics infrastructure</li>
+      <li>Pure B2C consumer end-users</li>
+      <li><strong>Unified MSRP</strong> across channels; distributors operate on wholesale price after channel margin deduction</li>
+      <li>All figures are <strong>simulated</strong> for framework demonstration purposes</li>
+    </ul>
+  </div>
+
+  <!-- ================= CHAPTER 0 ================= -->
+  <section class="section" id="ch0">
+    <h2>Chapter 0 &middot; Production Forecast &amp; Ramp Curve</h2>
+    <p class="section-sub">One volume number drives every downstream module: capex amortization, capacity utilization, cash flow, and sell-side revenue.</p>
+
+    <div class="chart-card">
+      <div class="chart-legend">
+        <span><i class="legend-dot" style="background:var(--blue)"></i>Product A (Premium)</span>
+        <span><i class="legend-dot" style="background:var(--orange)"></i>Product B (Standard)</span>
+      </div>
+      <div class="chart-area">
+        <svg id="rampChart" viewBox="0 0 900 260" preserveAspectRatio="none" aria-label="Monthly production ramp for Product A and Product B"></svg>
+      </div>
+      <p class="chart-caption">Monthly production volume, t0&ndash;t12. S-curve ramp: pilot &rarr; SOP ramp &rarr; steady state.</p>
+    </div>
+
+    <div class="slider-block">
+      <div class="slider-head">
+        <span class="slider-label">Total Annual Volume Target</span>
+        <span class="slider-value" id="volumeValue">500,000 units</span>
+      </div>
+      <input type="range" id="volumeSlider" min="200000" max="800000" step="10000" value="500000">
+      <div class="slider-scale"><span>200K</span><span>800K units</span></div>
+    </div>
+
+    <div class="readout-row">
+      <div class="readout-chip"><span>Product A (60%)</span><strong id="volAReadout">300,000</strong></div>
+      <div class="readout-chip"><span>Product B (40%)</span><strong id="volBReadout">200,000</strong></div>
+      <div class="readout-chip"><span>Hardware Gross Revenue</span><strong id="grossRevReadout">$84.00M</strong></div>
+    </div>
+  </section>
+
+  <!-- ================= PHASE 1: BUILD ================= -->
+  <div class="phase-divider build">
+    <span class="phase-chip">Phase 1</span>
+    <span class="phase-line"></span>
+    <span class="phase-caption">Build &middot; t0 &rarr; t1</span>
+  </div>
+
+  <!-- 1.1 BOM Unit Economics -->
+  <section class="section" id="sec-1-1">
+    <h2>1.1 BOM Unit Economics</h2>
+    <p class="section-sub">Standard BOM vs. actual (yield-adjusted) cost, plus flat CM assembly fee.</p>
+    <div class="chip-row">
+      <span class="chip">Engineering</span>
+      <span class="chip">Procurement</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Component</th><th>Standard</th><th>Actual (yield-adj.)</th><th>Yield Variance</th></tr></thead>
+        <tbody>
+          <tr class="section-row"><td colspan="4">Product A &mdash; Premium</td></tr>
+          <tr><td>Core High-Value Component (Imported)</td><td>$45.00</td><td class="live" id="aCoreActual">$45.00</td><td class="live" id="aCoreVar">$0.00</td></tr>
+          <tr><td>Peripheral Assembly Materials (Local)</td><td>$40.00</td><td class="live" id="aPeriphActual">$40.00</td><td class="live" id="aPeriphVar">$0.00</td></tr>
+          <tr class="subtotal-row"><td>Standard BOM &mdash; Product A</td><td class="emph">$85.00</td><td class="live emph" id="aBomActual">$85.00</td><td class="live emph" id="aBomVar">$0.00</td></tr>
+          <tr><td>CM Assembly Fee (MVA, flat)</td><td colspan="3">$10.00 / unit</td></tr>
+
+          <tr class="section-row"><td colspan="4">Product B &mdash; Standard</td></tr>
+          <tr><td>Core Component (Imported)</td><td>$25.00</td><td class="live" id="bCoreActual">$25.00</td><td class="live" id="bCoreVar">$0.00</td></tr>
+          <tr><td>Peripheral Materials (Local)</td><td>$25.00</td><td class="live" id="bPeriphActual">$25.00</td><td class="live" id="bPeriphVar">$0.00</td></tr>
+          <tr class="subtotal-row"><td>Standard BOM &mdash; Product B</td><td class="emph">$50.00</td><td class="live emph" id="bBomActual">$50.00</td><td class="live emph" id="bBomVar">$0.00</td></tr>
+          <tr><td>CM Assembly Fee (MVA, flat)</td><td colspan="3">$10.00 / unit</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="slider-block">
+      <div class="slider-head">
+        <span class="slider-label">Plant Yield Rate</span>
+        <span class="slider-value" id="yieldValue">92%</span>
+      </div>
+      <input type="range" id="yieldSlider" min="70" max="99" step="1" value="92">
+      <div class="slider-scale"><span>70%</span><span>99%</span></div>
+    </div>
+
+    <div class="readout-row">
+      <div class="readout-chip"><span>Blended Standard BOM</span><strong id="bomStdBlended">$71.00M</strong></div>
+      <div class="readout-chip"><span>Blended Actual BOM</span><strong id="bomActBlended">$77.17M</strong></div>
+      <div class="readout-chip"><span>Yield Loss Variance</span><strong id="bomVarBlended">$6.17M</strong></div>
+    </div>
+  </section>
+
+  <!-- 1.2 Tooling CapEx & Capacity -->
+  <section class="section" id="sec-1-2">
+    <h2>1.2 Tooling CapEx &amp; Capacity</h2>
+    <p class="section-sub">One-time tooling investment, amortized over the volume set in Chapter 0.</p>
+    <div class="chip-row">
+      <span class="chip">Engineering</span>
+      <span class="chip">Manufacturing</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Capex Item</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Custom Molds &amp; Tooling</td><td>$2.5M</td></tr>
+          <tr><td>Dedicated Assembly Line</td><td>$3.5M</td></tr>
+          <tr><td>Testing Fixtures</td><td>$1.5M</td></tr>
+          <tr class="total-row"><td>Total Tooling Capex</td><td class="emph">$7.5M</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="readout-row">
+      <div class="readout-chip"><span>Unit Capex Amort.</span><strong id="capexAmortReadout">$15.00</strong></div>
+      <div class="readout-chip"><span>Booked Capacity</span><strong>500,000</strong></div>
+      <div class="readout-chip"><span>Capacity Utilization</span><strong id="utilizationReadout">100%</strong></div>
+    </div>
+    <p class="warning-badge" id="utilWarning" hidden>Idle Capacity Penalty Risk</p>
+  </section>
+
+  <!-- 1.3 Cash Flow Curve -->
+  <section class="section" id="sec-1-3">
+    <h2>1.3 Cash Flow Curve</h2>
+    <p class="section-sub">Cumulative net cash position &mdash; CM deposits and prepaid imports create a trough near t1; channel collections drive recovery.</p>
+    <div class="chip-row">
+      <span class="chip">Finance</span>
+      <span class="chip">Treasury</span>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-legend">
+        <span><i class="legend-dot" style="background:var(--blue)"></i>Cumulative net cash</span>
+        <span><i class="legend-dot" style="background:var(--text-muted); border-radius:0; width:12px; height:2px;"></i>Working capital safety buffer</span>
+      </div>
+      <div class="chart-area">
+        <svg id="cashChart" viewBox="0 0 900 260" preserveAspectRatio="none" aria-label="Cumulative net cash position over time"></svg>
+      </div>
+      <p class="chart-caption">t0&ndash;t18. Reacts to volume, yield, channel mix, and the logistics mode below.</p>
+    </div>
+
+    <div class="readout-row">
+      <div class="readout-chip"><span>Cash Trough (min)</span><strong id="cashTroughReadout">&minus;$15.98M</strong></div>
+      <div class="readout-chip"><span>Safety Buffer</span><strong>&minus;$20.00M</strong></div>
+      <div class="readout-chip"><span>Cash-to-Cash Cycle</span><strong id="c2cReadout">t15</strong></div>
+    </div>
+    <p class="warning-badge" id="cashWarning" hidden>Working Capital Alert</p>
+  </section>
+
+  <!-- 1.4 Build Monitoring -->
+  <section class="section" id="sec-1-4">
+    <h2>1.4 Build Monitoring Indicators</h2>
+    <p class="section-sub">Build-side indicator dashboard.</p>
+    <div class="chip-row">
+      <span class="chip">Finance Lead</span>
+      <span class="chip">Engineering</span>
+      <span class="chip">Ops</span>
+    </div>
+
+    <div class="indicator-grid">
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Plant Yield Rate</span><span class="indicator-status" id="ind-yield-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-yield-val">92%</p>
+        <p class="indicator-target">Target: &ge;90%</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Capacity Utilization</span><span class="indicator-status" id="ind-util-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-util-val">100%</p>
+        <p class="indicator-target">Target: &ge;80%</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>BOM Cost vs Target</span><span class="indicator-status" id="ind-bom-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-bom-val">+8.7%</p>
+        <p class="indicator-target">Target: within 5%</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Unit Capex Amortization</span><span class="indicator-status">&#128309;</span></p>
+        <p class="indicator-current" id="ind-capex-val">$15.00</p>
+        <p class="indicator-target">Informational</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>RM Inventory Health</span><span class="indicator-status" id="ind-rm-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-rm-val">Balanced</p>
+        <p class="indicator-target" id="ind-rm-note">Target: yield &ge;85%</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Cash Trough Depth</span><span class="indicator-status" id="ind-cash-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-cash-val">&minus;$15.98M</p>
+        <p class="indicator-target">Buffer: &minus;$20.00M</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PHASE 2: SELL ================= -->
+  <div class="phase-divider sell">
+    <span class="phase-chip">Phase 2</span>
+    <span class="phase-line"></span>
+    <span class="phase-caption">Sell &middot; t1 &rarr; tn</span>
+  </div>
+
+  <!-- 2.1 Revenue Model -->
+  <section class="section sell" id="sec-2-1">
+    <h2>2.1 Revenue Model &mdash; Two Engines</h2>
+    <p class="section-sub">Hardware unit sales plus recurring software/AI subscription on the installed base.</p>
+    <div class="chip-row">
+      <span class="chip">Merchant Ops</span>
+      <span class="chip">Product</span>
+    </div>
+
+    <div class="revenue-grid">
+      <div class="revenue-block">
+        <h3>Hardware Revenue</h3>
+        <div class="revenue-line"><span>Product A &mdash; $200 &times; volume</span><strong id="revALine">$60.00M</strong></div>
+        <div class="revenue-line"><span>Product B &mdash; $120 &times; volume</span><strong id="revBLine">$24.00M</strong></div>
+        <div class="revenue-line total"><span>Hardware Gross Revenue (MSRP)</span><strong id="revHwTotal">$84.00M</strong></div>
+      </div>
+      <div class="revenue-block">
+        <h3>Software Subscription Revenue</h3>
+        <div class="revenue-line"><span>Installed base (cumulative units)</span><strong id="installedBaseLine">500,000</strong></div>
+        <div class="revenue-line"><span>Activated subscribers</span><strong id="activatedLine">275,000</strong></div>
+        <div class="revenue-line"><span>Annual software revenue</span><strong id="swRevLine">$49.50M</strong></div>
+        <div class="revenue-line"><span>Software COGS (10%) / GM (~90%)</span><strong id="swGmLine">$4.95M / $44.55M</strong></div>
+      </div>
+    </div>
+
+    <div class="slider-block">
+      <div class="slider-head">
+        <span class="slider-label">Hardware-to-Subscription Activation Rate</span>
+        <span class="slider-value" id="activationValue">55%</span>
+      </div>
+      <input type="range" id="activationSlider" min="30" max="80" step="1" value="55">
+      <div class="slider-scale"><span>30%</span><span>80%</span></div>
+    </div>
+  </section>
+
+  <!-- 2.2 Channel P&L Waterfall -->
+  <section class="section sell" id="sec-2-2">
+    <h2>2.2 Channel P&amp;L &mdash; Gross-to-Net Waterfall</h2>
+    <p class="section-sub">Omnichannel carries channel margin, volume rebates and price protection; DTC carries fulfillment and returns.</p>
+    <div class="chip-row">
+      <span class="chip">Channel</span>
+      <span class="chip">Merchants</span>
+    </div>
+
+    <div class="slider-block">
+      <div class="slider-head">
+        <span class="slider-label">Channel Mix &mdash; DTC vs Omnichannel</span>
+        <span class="slider-value" id="channelMixValue">60% / 40%</span>
+      </div>
+      <input type="range" id="channelMixSlider" min="30" max="90" step="1" value="60">
+      <div class="slider-scale"><span>30% DTC</span><span>90% DTC</span></div>
+    </div>
+
+    <div class="slider-block">
+      <div class="slider-head">
+        <span class="slider-label">Market Split &mdash; Domestic vs Overseas</span>
+        <span class="slider-value" id="marketSplitValue">70% / 30%</span>
+      </div>
+      <input type="range" id="marketSplitSlider" min="50" max="90" step="1" value="70">
+      <div class="slider-scale"><span>50% Domestic</span><span>90% Domestic</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Line Item</th><th>Omnichannel</th><th>DTC</th><th>Combined</th></tr></thead>
+        <tbody>
+          <tr><td>Gross Revenue (MSRP)</td><td class="live" id="wfOmniGross">$33.60M</td><td class="live" id="wfDtcGross">$50.40M</td><td class="live emph" id="wfCombinedGross">$84.00M</td></tr>
+          <tr><td>Channel Margin (30% of Omni)</td><td class="live" id="wfChannelMargin">($10.08M)</td><td class="muted">&mdash;</td><td class="live" id="wfChannelMarginC">($10.08M)</td></tr>
+          <tr><td>Volume Rebates (step)</td><td class="live" id="wfRebates">($1.01M)</td><td class="muted">&mdash;</td><td class="live" id="wfRebatesC">($1.01M)</td></tr>
+          <tr><td>Price Protection Accrual (1.5%)</td><td class="live" id="wfPriceProt">($0.50M)</td><td class="muted">&mdash;</td><td class="live" id="wfPriceProtC">($0.50M)</td></tr>
+          <tr><td>Returns &amp; Reverse Logistics</td><td class="muted">&mdash;</td><td class="live" id="wfReturns">($5.19M)</td><td class="live" id="wfReturnsC">($5.19M)</td></tr>
+          <tr class="total-row"><td>Net Hardware Revenue</td><td class="live emph" id="wfOmniNet">$22.01M</td><td class="live emph" id="wfDtcNet">$45.21M</td><td class="live emph" id="wfCombinedNet">$67.22M</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="chart-caption">DTC fulfillment ($8/unit) and reverse logistics ($5/returned unit) are captured in the 3PL Logistics COGS line in the consolidated P&amp;L below.</p>
+  </section>
+
+  <!-- 2.3 Logistics Toggle -->
+  <section class="section sell" id="sec-2-3">
+    <h2>2.3 Logistics Mode</h2>
+    <p class="section-sub">Ocean vs. air freight trades unit cost against cash-recovery speed.</p>
+    <div class="chip-row">
+      <span class="chip">3PL</span>
+      <span class="chip">Logistics</span>
+    </div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="oceanBtn" type="button">Ocean Freight (default)<span class="toggle-sub">$2 / unit &middot; +2 time-step cash delay</span></button>
+      <button class="toggle-btn" id="airBtn" type="button">Air Freight<span class="toggle-sub">$12 / unit &middot; no delay penalty</span></button>
+    </div>
+  </section>
+
+  <!-- 2.4 Consolidated P&L -->
+  <section class="section sell" id="sec-2-4">
+    <h2>2.4 Consolidated P&amp;L</h2>
+    <p class="section-sub">Plan Target is frozen at default slider positions; Dynamic Forecast updates live with every lever above.</p>
+    <div class="chip-row">
+      <span class="chip">FP&amp;A</span>
+      <span class="chip">Leadership</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>P&amp;L Line</th><th>Plan Target</th><th>Dynamic Forecast</th><th>Variance</th></tr></thead>
+        <tbody id="plBody">
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2.5 Sell Monitoring -->
+  <section class="section sell" id="sec-2-5">
+    <h2>2.5 Sell Monitoring Indicators</h2>
+    <p class="section-sub">Sell-side indicator dashboard.</p>
+    <div class="chip-row">
+      <span class="chip">GM</span>
+      <span class="chip">Category Leads</span>
+    </div>
+
+    <div class="indicator-grid">
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Marketing ROI</span><span class="indicator-status">&#128994;</span></p>
+        <p class="indicator-current">4.2x</p>
+        <p class="indicator-target">Target: &gt;3.5x</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Channel Inventory WoS</span><span class="indicator-status" id="ind-wos-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-wos-val">4.2 weeks</p>
+        <p class="indicator-target">Target: &lt;6 weeks</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Returns Rate</span><span class="indicator-status">&#128994;</span></p>
+        <p class="indicator-current">10%</p>
+        <p class="indicator-target">Target: &lt;12%</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Cost per Order (Logistics)</span><span class="indicator-status" id="ind-cpo-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-cpo-val">$6.86</p>
+        <p class="indicator-target">Target: &lt;$10.00</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Software Activation Rate</span><span class="indicator-status" id="ind-act-dot">&#128994;</span></p>
+        <p class="indicator-current" id="ind-act-val">55%</p>
+        <p class="indicator-target">Target: &gt;50%</p>
+      </div>
+      <div class="indicator-card">
+        <p class="indicator-name"><span>Cash-to-Cash Cycle</span><span class="indicator-status" id="ind-c2c-dot">&#128993;</span></p>
+        <p class="indicator-current" id="ind-c2c-val">t15</p>
+        <p class="indicator-target">North star &mdash; lower is better</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    <p>Simulated data for framework demonstration. Underlying data engineering and pipeline infrastructure (ERP integration, 3PL data feeds, channel reporting consolidation) is a separate implementation scope, not covered in this strategic demo.</p>
+    <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+      <span>github.com/yixuan116/fin-telligent</span>
+    </a>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =========================================================
+     Formatting helpers
+     ========================================================= */
+  var svgNS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs) {
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) { e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+  function byId(id) { return document.getElementById(id); }
+  function fmt0(n) { return Math.round(n).toLocaleString('en-US'); }
+  function fmt2(n) { return n.toFixed(2); }
+  function fmtUsd(n) { return '$' + fmt2(n); }
+  function fmtUsdM(n) {
+    var v = n / 1000000;
+    var sign = v < 0 ? '-' : '';
+    return sign + '$' + fmt2(Math.abs(v)) + 'M';
+  }
+  function fmtUsdMParen(n, forceNegative) {
+    var v = Math.abs(n) / 1000000;
+    return '($' + fmt2(v) + 'M)';
+  }
+  function flash(el) { if (!el) return; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+
+  /* =========================================================
+     Constants
+     ========================================================= */
+  var ASP_A = 200, ASP_B = 120;
+  var STD_BOM_A_CORE = 45, STD_BOM_A_PERIPH = 40, STD_BOM_A = 85;
+  var STD_BOM_B_CORE = 25, STD_BOM_B_PERIPH = 25, STD_BOM_B = 50;
+  var MVA_FEE = 10;
+  var TOOLING_TOTAL = 7500000;
+  var BOOKED_CAPACITY = 500000;
+  var ARPU_MONTHLY = 15;
+  var SW_COGS_RATE = 0.10;
+  var CHANNEL_MARGIN_RATE = 0.30;
+  var PRICE_PROTECTION_RATE = 0.015;
+  var RETURNS_RATE_DTC = 0.10;
+  var DTC_FULFILLMENT_PER_UNIT = 8;
+  var REVERSE_LOGISTICS_PER_UNIT = 5;
+  var TARIFF_RATE = 0.04;
+  var OCEAN_RATE = 2, AIR_RATE = 12;
+  var OCEAN_DELAY = 2, AIR_DELAY = 0;
+  var OVERSEAS_SURCHARGE_RATE = 0.03;
+  var SGA_RATE = 0.07, MARKETING_RATE = 0.07, SUPPORT_RATE = 0.03;
+  var CASH_BUFFER = -20000000;
+  var A_SHARE = 0.6, B_SHARE = 0.4;
+
+  /* =========================================================
+     Ramp curve (logistic S-curve, normalized to sum = volume)
+     ========================================================= */
+  var RAMP_STEPS = 13; // t0..t12
+  var RAMP_K = 0.7, RAMP_MID = 6;
+
+  function rampWeights() {
+    var w = [];
+    for (var t = 0; t < RAMP_STEPS; t++) {
+      w.push(1 / (1 + Math.exp(-RAMP_K * (t - RAMP_MID))));
+    }
+    return w;
+  }
+  var RAMP_WEIGHTS = rampWeights();
+  var RAMP_WEIGHT_SUM = RAMP_WEIGHTS.reduce(function (a, b) { return a + b; }, 0);
+
+  function monthlyVolumeAt(totalVolume, idx) {
+    // idx may be fractional-free integer; clamp to [0, RAMP_STEPS-1], hold steady state beyond range
+    if (idx < 0) return 0;
+    var clamped = idx > RAMP_STEPS - 1 ? RAMP_STEPS - 1 : idx;
+    var scale = totalVolume / RAMP_WEIGHT_SUM;
+    return RAMP_WEIGHTS[clamped] * scale;
+  }
+
+  /* =========================================================
+     State
+     ========================================================= */
+  var state = {
+    volume: 500000,
+    yield: 92,
+    activation: 55,
+    dtcShare: 60,
+    domesticShare: 70,
+    logistics: 'ocean'
+  };
+
+  var planSnapshot = null; // frozen at default state, computed once
+
+  /* =========================================================
+     Core compute engine
+     ========================================================= */
+  function computeAll(s) {
+    var volume = s.volume;
+    var volumeA = volume * A_SHARE;
+    var volumeB = volume * B_SHARE;
+    var yieldRate = s.yield / 100;
+    var dtcShare = s.dtcShare / 100;
+    var omniShare = 1 - dtcShare;
+    var domesticShare = s.domesticShare / 100;
+    var overseasShare = 1 - domesticShare;
+
+    // --- BOM ---
+    var aCoreActual = STD_BOM_A_CORE / yieldRate;
+    var aPeriphActual = STD_BOM_A_PERIPH / yieldRate;
+    var aBomActual = STD_BOM_A / yieldRate;
+    var bCoreActual = STD_BOM_B_CORE / yieldRate;
+    var bPeriphActual = STD_BOM_B_PERIPH / yieldRate;
+    var bBomActual = STD_BOM_B / yieldRate;
+
+    var stdBomBlended = STD_BOM_A * volumeA + STD_BOM_B * volumeB;
+    var actBomBlended = aBomActual * volumeA + bBomActual * volumeB;
+    var yieldLossVariance = actBomBlended - stdBomBlended;
+
+    var importedActualTotal = (STD_BOM_A_CORE / yieldRate) * volumeA + (STD_BOM_B_CORE / yieldRate) * volumeB;
+    var localActualTotal = (STD_BOM_A_PERIPH / yieldRate) * volumeA + (STD_BOM_B_PERIPH / yieldRate) * volumeB;
+    var mvaTotal = MVA_FEE * volume;
+
+    // --- Capex / capacity ---
+    var unitCapexAmort = TOOLING_TOTAL / volume;
+    var utilizationPct = (volume / BOOKED_CAPACITY) * 100;
+
+    // --- Hardware revenue ---
+    var revA = ASP_A * volumeA;
+    var revB = ASP_B * volumeB;
+    var hwGrossRevenue = revA + revB;
+
+    // --- Software revenue ---
+    var installedBase = volume;
+    var activationRate = s.activation / 100;
+    var activatedUsers = installedBase * activationRate;
+    var swRevenue = activatedUsers * ARPU_MONTHLY * 12;
+    var swCogs = swRevenue * SW_COGS_RATE;
+    var swGm = swRevenue - swCogs;
+
+    // --- Channel waterfall ---
+    var omniVolumeUnits = volume * omniShare;
+    var dtcVolumeUnits = volume * dtcShare;
+    var omniGross = hwGrossRevenue * omniShare;
+    var dtcGross = hwGrossRevenue * dtcShare;
+
+    var channelMargin = CHANNEL_MARGIN_RATE * omniGross;
+    var rebateRate = omniVolumeUnits > 200000 ? 0.05 : (omniVolumeUnits > 100000 ? 0.03 : 0);
+    var volumeRebates = rebateRate * omniGross;
+    var priceProtection = PRICE_PROTECTION_RATE * omniGross;
+
+    var returnedUnits = RETURNS_RATE_DTC * dtcVolumeUnits;
+    var returnsRevenueLoss = RETURNS_RATE_DTC * dtcGross;
+    var reverseLogisticsCost = REVERSE_LOGISTICS_PER_UNIT * returnedUnits;
+    var returnsAndReverse = returnsRevenueLoss + reverseLogisticsCost;
+
+    var omniNet = omniGross - channelMargin - volumeRebates - priceProtection;
+    var dtcNet = dtcGross - returnsAndReverse;
+    var netHardwareRevenue = omniNet + dtcNet;
+
+    // --- Logistics / tariffs ---
+    var freightRate = s.logistics === 'air' ? AIR_RATE : OCEAN_RATE;
+    var logisticsDelay = s.logistics === 'air' ? AIR_DELAY : OCEAN_DELAY;
+    var threePlBase = freightRate * volume + DTC_FULFILLMENT_PER_UNIT * dtcVolumeUnits;
+    var threePlTotal = threePlBase * (1 + OVERSEAS_SURCHARGE_RATE * overseasShare);
+    var landedTariffs = TARIFF_RATE * importedActualTotal;
+
+    var totalHardwareCogs = stdBomBlended + yieldLossVariance + mvaTotal + threePlTotal + landedTariffs;
+    var hardwareGm = netHardwareRevenue - totalHardwareCogs;
+    var hardwareGmPct = netHardwareRevenue > 0 ? (hardwareGm / netHardwareRevenue) * 100 : 0;
+
+    var consolidatedGm = hardwareGm + swGm;
+    var combinedNetRevenue = netHardwareRevenue + swRevenue;
+    var consolidatedGmPct = combinedNetRevenue > 0 ? (consolidatedGm / combinedNetRevenue) * 100 : 0;
+
+    var capexDep = TOOLING_TOTAL; // full-year straight-line recognition
+    var sga = SGA_RATE * combinedNetRevenue;
+    var marketing = MARKETING_RATE * combinedNetRevenue;
+    var support = SUPPORT_RATE * combinedNetRevenue;
+
+    var operatingIncome = consolidatedGm - capexDep - sga - marketing - support;
+    var operatingMarginPct = combinedNetRevenue > 0 ? (operatingIncome / combinedNetRevenue) * 100 : 0;
+
+    // --- Cash flow curve ---
+    var cashSteps = 19; // t0..t18
+    var cash = new Array(cashSteps);
+    var earlyRampFraction = (RAMP_WEIGHTS[0] + RAMP_WEIGHTS[1]) / RAMP_WEIGHT_SUM;
+    var earlyLocalCost = localActualTotal * earlyRampFraction;
+
+    cash[0] = -(0.20 * mvaTotal);
+    cash[1] = -(mvaTotal + landedTariffs + 0.5 * importedActualTotal + earlyLocalCost);
+
+    var lagRaw = dtcShare * 2 + omniShare * 3 + logisticsDelay;
+    var lag = Math.round(lagRaw);
+    if (lag < 2) lag = 2;
+    if (lag > 10) lag = 10;
+
+    var perUnitMargin = volume > 0 ? hardwareGm / volume : 0;
+
+    for (var t = 2; t < cashSteps; t++) {
+      var srcIdx = t - lag;
+      var inflow = srcIdx >= 0 ? monthlyVolumeAt(volume, srcIdx) * perUnitMargin : 0;
+      cash[t] = cash[t - 1] + inflow;
+    }
+
+    var cashTrough = Math.min.apply(null, cash);
+    var breakEvenIdx = -1;
+    for (var i = 0; i < cash.length; i++) {
+      if (cash[i] >= 0) { breakEvenIdx = i; break; }
+    }
+
+    // --- Cost per order (blended logistics $/unit) ---
+    var costPerOrder = volume > 0 ? threePlTotal / volume : 0;
+
+    // --- Channel inventory weeks of supply ---
+    var weeksOfSupply = 52 * omniShare * 0.2;
+
+    return {
+      volume: volume, volumeA: volumeA, volumeB: volumeB,
+      yieldRate: yieldRate,
+      aCoreActual: aCoreActual, aPeriphActual: aPeriphActual, aBomActual: aBomActual,
+      bCoreActual: bCoreActual, bPeriphActual: bPeriphActual, bBomActual: bBomActual,
+      stdBomBlended: stdBomBlended, actBomBlended: actBomBlended, yieldLossVariance: yieldLossVariance,
+      importedActualTotal: importedActualTotal, localActualTotal: localActualTotal, mvaTotal: mvaTotal,
+      unitCapexAmort: unitCapexAmort, utilizationPct: utilizationPct,
+      revA: revA, revB: revB, hwGrossRevenue: hwGrossRevenue,
+      installedBase: installedBase, activatedUsers: activatedUsers, swRevenue: swRevenue, swCogs: swCogs, swGm: swGm,
+      omniGross: omniGross, dtcGross: dtcGross,
+      channelMargin: channelMargin, volumeRebates: volumeRebates, priceProtection: priceProtection,
+      returnedUnits: returnedUnits, returnsAndReverse: returnsAndReverse,
+      omniNet: omniNet, dtcNet: dtcNet, netHardwareRevenue: netHardwareRevenue,
+      threePlTotal: threePlTotal, landedTariffs: landedTariffs,
+      totalHardwareCogs: totalHardwareCogs, hardwareGm: hardwareGm, hardwareGmPct: hardwareGmPct,
+      consolidatedGm: consolidatedGm, consolidatedGmPct: consolidatedGmPct, combinedNetRevenue: combinedNetRevenue,
+      capexDep: capexDep, sga: sga, marketing: marketing, support: support,
+      operatingIncome: operatingIncome, operatingMarginPct: operatingMarginPct,
+      cash: cash, cashTrough: cashTrough, breakEvenIdx: breakEvenIdx, lag: lag,
+      costPerOrder: costPerOrder, weeksOfSupply: weeksOfSupply,
+      omniVolumeUnits: omniVolumeUnits, dtcVolumeUnits: dtcVolumeUnits
+    };
+  }
+
+  /* =========================================================
+     Chart rendering (generic SVG line chart)
+     ========================================================= */
+  function renderLineChart(svg, series, opts) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var vb = svg.viewBox.baseVal;
+    var W = vb.width || 900, H = vb.height || 260;
+    var padL = opts.padL || 50, padR = opts.padR || 16, padT = opts.padT || 16, padB = opts.padB || 26;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    var allVals = [];
+    series.forEach(function (s) { allVals = allVals.concat(s.values); });
+    var yMin = opts.yMin !== undefined ? opts.yMin : Math.min.apply(null, allVals);
+    var yMax = opts.yMax !== undefined ? opts.yMax : Math.max.apply(null, allVals);
+    if (yMax === yMin) yMax = yMin + 1;
+    var n = series[0].values.length;
+
+    function xFor(i) { return padL + (i / (n - 1)) * plotW; }
+    function yFor(v) { return padT + (yMax - v) / (yMax - yMin) * plotH; }
+
+    // gridlines + y labels (zero line emphasized if in range)
+    var gridVals = opts.gridVals || [yMin, (yMin + yMax) / 2, yMax];
+    gridVals.forEach(function (v) {
+      var y = yFor(v);
+      svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: y, y2: y, stroke: 'var(--border)', 'stroke-width': 1 }));
+      var label = svgEl('text', { x: padL - 8, y: y + 3, 'text-anchor': 'end', 'font-size': '10', fill: 'var(--text-muted)' });
+      label.textContent = opts.yLabelFmt ? opts.yLabelFmt(v) : String(Math.round(v));
+      svg.appendChild(label);
+    });
+
+    if (yMin < 0 && yMax > 0) {
+      var zy = yFor(0);
+      svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: zy, y2: zy, stroke: 'var(--text-muted)', 'stroke-width': 1.2 }));
+    }
+
+    // reference line (e.g., safety buffer)
+    if (opts.refLine !== undefined) {
+      var ry = yFor(opts.refLine);
+      svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: ry, y2: ry, stroke: 'var(--text-muted)', 'stroke-width': 1.3, 'stroke-dasharray': '5,4' }));
+    }
+
+    // x labels
+    var xLabelEvery = opts.xLabelEvery || 1;
+    for (var i = 0; i < n; i += xLabelEvery) {
+      var lx = xFor(i);
+      var lt = svgEl('text', { x: lx, y: H - padB + 16, 'text-anchor': 'middle', 'font-size': '10', fill: 'var(--text-muted)' });
+      lt.textContent = 't' + i;
+      svg.appendChild(lt);
+    }
+
+    // series lines
+    series.forEach(function (s) {
+      var pts = s.values.map(function (v, i) { return xFor(i) + ',' + yFor(v); }).join(' ');
+      svg.appendChild(svgEl('polyline', {
+        points: pts, fill: 'none', stroke: s.color, 'stroke-width': 2.4,
+        'stroke-linejoin': 'round', 'stroke-linecap': 'round'
+      }));
+      s.values.forEach(function (v, i) {
+        svg.appendChild(svgEl('circle', { cx: xFor(i), cy: yFor(v), r: 2.2, fill: s.color }));
+      });
+    });
+
+    return { xFor: xFor, yFor: yFor };
+  }
+
+  /* =========================================================
+     Indicator status helper
+     ========================================================= */
+  function setStatus(dotId, level) {
+    var el = byId(dotId);
+    if (!el) return;
+    el.textContent = level === 'green' ? '🟢' : (level === 'yellow' ? '🟡' : '🔴');
+  }
+
+  /* =========================================================
+     Render: full page from computed result
+     ========================================================= */
+  function render(r, isInit) {
+    // Chapter 0
+    byId('volumeValue').textContent = fmt0(r.volume) + ' units';
+    byId('volAReadout').textContent = fmt0(r.volumeA);
+    byId('volBReadout').textContent = fmt0(r.volumeB);
+    byId('grossRevReadout').textContent = fmtUsdM(r.hwGrossRevenue);
+
+    var rampA = [], rampB = [];
+    for (var i = 0; i < RAMP_STEPS; i++) {
+      rampA.push(monthlyVolumeAt(r.volume, i) * A_SHARE);
+      rampB.push(monthlyVolumeAt(r.volume, i) * B_SHARE);
+    }
+    renderLineChart(byId('rampChart'), [
+      { values: rampA, color: 'var(--blue)' },
+      { values: rampB, color: 'var(--orange)' }
+    ], { yMin: 0, xLabelEvery: 1, yLabelFmt: function (v) { return fmt0(v / 1000) + 'K'; } });
+
+    // 1.1 BOM
+    byId('aCoreActual').textContent = fmtUsd(r.aCoreActual);
+    byId('aCoreVar').textContent = fmtUsd(r.aCoreActual - STD_BOM_A_CORE);
+    byId('aPeriphActual').textContent = fmtUsd(r.aPeriphActual);
+    byId('aPeriphVar').textContent = fmtUsd(r.aPeriphActual - STD_BOM_A_PERIPH);
+    byId('aBomActual').textContent = fmtUsd(r.aBomActual);
+    byId('aBomVar').textContent = fmtUsd(r.aBomActual - STD_BOM_A);
+    byId('bCoreActual').textContent = fmtUsd(r.bCoreActual);
+    byId('bCoreVar').textContent = fmtUsd(r.bCoreActual - STD_BOM_B_CORE);
+    byId('bPeriphActual').textContent = fmtUsd(r.bPeriphActual);
+    byId('bPeriphVar').textContent = fmtUsd(r.bPeriphActual - STD_BOM_B_PERIPH);
+    byId('bBomActual').textContent = fmtUsd(r.bBomActual);
+    byId('bBomVar').textContent = fmtUsd(r.bBomActual - STD_BOM_B);
+    byId('yieldValue').textContent = state.yield + '%';
+    byId('bomStdBlended').textContent = fmtUsdM(r.stdBomBlended);
+    byId('bomActBlended').textContent = fmtUsdM(r.actBomBlended);
+    byId('bomVarBlended').textContent = fmtUsdM(r.yieldLossVariance);
+    ['aCoreActual','aCoreVar','aPeriphActual','aPeriphVar','aBomActual','aBomVar',
+     'bCoreActual','bCoreVar','bPeriphActual','bPeriphVar','bBomActual','bBomVar'].forEach(function (id) { flash(byId(id)); });
+
+    // 1.2 Capex / capacity
+    byId('capexAmortReadout').textContent = fmtUsd(r.unitCapexAmort);
+    byId('utilizationReadout').textContent = fmt0(r.utilizationPct) + '%';
+    var utilWarn = byId('utilWarning');
+    if (r.utilizationPct < 60) { utilWarn.hidden = false; utilWarn.textContent = 'Idle Capacity Penalty Risk'; }
+    else if (r.utilizationPct < 80) { utilWarn.hidden = false; utilWarn.textContent = 'Capacity utilization below target'; }
+    else { utilWarn.hidden = true; }
+
+    // 1.3 Cash flow
+    var buffer = CASH_BUFFER;
+    var below = r.cashTrough < buffer;
+    renderLineChart(byId('cashChart'), [
+      { values: r.cash, color: below ? 'var(--red)' : 'var(--blue)' }
+    ], { xLabelEvery: 2, refLine: buffer, yLabelFmt: function (v) { return fmtUsdM(v); }, gridVals: [Math.min(buffer, r.cashTrough) * 1.05, 0, Math.max.apply(null, r.cash)] });
+    byId('cashTroughReadout').textContent = fmtUsdM(r.cashTrough);
+    byId('c2cReadout').textContent = r.breakEvenIdx >= 0 ? ('t' + r.breakEvenIdx) : '> t18';
+    var cashWarn = byId('cashWarning');
+    cashWarn.hidden = !below;
+
+    // 1.4 Build monitoring
+    byId('ind-yield-val').textContent = state.yield + '%';
+    setStatus('ind-yield-dot', state.yield >= 90 ? 'green' : (state.yield >= 80 ? 'yellow' : 'red'));
+
+    byId('ind-util-val').textContent = fmt0(r.utilizationPct) + '%';
+    setStatus('ind-util-dot', r.utilizationPct >= 80 ? 'green' : (r.utilizationPct >= 60 ? 'yellow' : 'red'));
+
+    var bomVarPct = (r.yieldLossVariance / r.stdBomBlended) * 100;
+    byId('ind-bom-val').textContent = '+' + fmt2(bomVarPct) + '%';
+    setStatus('ind-bom-dot', bomVarPct <= 5 ? 'green' : (bomVarPct <= 15 ? 'yellow' : 'red'));
+
+    byId('ind-capex-val').textContent = fmtUsd(r.unitCapexAmort);
+
+    var rmHealthy = state.yield >= 85;
+    byId('ind-rm-val').textContent = rmHealthy ? 'Balanced' : 'RM > FG imbalance';
+    byId('ind-rm-note').textContent = rmHealthy ? 'Target: yield ≥ 85%' : 'Flag: yield below 85% target';
+    setStatus('ind-rm-dot', rmHealthy ? 'green' : 'yellow');
+
+    byId('ind-cash-val').textContent = fmtUsdM(r.cashTrough);
+    setStatus('ind-cash-dot', below ? 'red' : 'green');
+
+    // 2.1 Revenue
+    byId('revALine').textContent = fmtUsdM(r.revA);
+    byId('revBLine').textContent = fmtUsdM(r.revB);
+    byId('revHwTotal').textContent = fmtUsdM(r.hwGrossRevenue);
+    byId('installedBaseLine').textContent = fmt0(r.installedBase);
+    byId('activatedLine').textContent = fmt0(r.activatedUsers);
+    byId('swRevLine').textContent = fmtUsdM(r.swRevenue);
+    byId('swGmLine').textContent = fmtUsdM(r.swCogs) + ' / ' + fmtUsdM(r.swGm);
+    byId('activationValue').textContent = state.activation + '%';
+
+    // 2.2 Waterfall
+    byId('channelMixValue').textContent = state.dtcShare + '% / ' + (100 - state.dtcShare) + '%';
+    byId('marketSplitValue').textContent = state.domesticShare + '% / ' + (100 - state.domesticShare) + '%';
+    byId('wfOmniGross').textContent = fmtUsdM(r.omniGross);
+    byId('wfDtcGross').textContent = fmtUsdM(r.dtcGross);
+    byId('wfCombinedGross').textContent = fmtUsdM(r.hwGrossRevenue);
+    byId('wfChannelMargin').textContent = fmtUsdMParen(r.channelMargin);
+    byId('wfChannelMarginC').textContent = fmtUsdMParen(r.channelMargin);
+    byId('wfRebates').textContent = fmtUsdMParen(r.volumeRebates);
+    byId('wfRebatesC').textContent = fmtUsdMParen(r.volumeRebates);
+    byId('wfPriceProt').textContent = fmtUsdMParen(r.priceProtection);
+    byId('wfPriceProtC').textContent = fmtUsdMParen(r.priceProtection);
+    byId('wfReturns').textContent = fmtUsdMParen(r.returnsAndReverse);
+    byId('wfReturnsC').textContent = fmtUsdMParen(r.returnsAndReverse);
+    byId('wfOmniNet').textContent = fmtUsdM(r.omniNet);
+    byId('wfDtcNet').textContent = fmtUsdM(r.dtcNet);
+    byId('wfCombinedNet').textContent = fmtUsdM(r.netHardwareRevenue);
+
+    // 2.4 Consolidated P&L
+    renderPL(r);
+
+    // 2.5 Sell monitoring
+    byId('ind-wos-val').textContent = fmt2(r.weeksOfSupply) + ' weeks';
+    setStatus('ind-wos-dot', r.weeksOfSupply < 6 ? 'green' : (r.weeksOfSupply < 8 ? 'yellow' : 'red'));
+
+    byId('ind-cpo-val').textContent = fmtUsd(r.costPerOrder);
+    setStatus('ind-cpo-dot', r.costPerOrder < 10 ? 'green' : (r.costPerOrder < 13 ? 'yellow' : 'red'));
+
+    byId('ind-act-val').textContent = state.activation + '%';
+    setStatus('ind-act-dot', state.activation >= 50 ? 'green' : (state.activation >= 40 ? 'yellow' : 'red'));
+
+    byId('ind-c2c-val').textContent = r.breakEvenIdx >= 0 ? ('t' + r.breakEvenIdx) : '> t18';
+    setStatus('ind-c2c-dot', r.breakEvenIdx >= 0 && r.breakEvenIdx <= 10 ? 'green' : (r.breakEvenIdx >= 0 && r.breakEvenIdx <= 15 ? 'yellow' : 'red'));
+  }
+
+  /* =========================================================
+     Consolidated P&L table
+     ========================================================= */
+  var PL_ROWS = [
+    { label: 'Gross Revenue (MSRP Basis)', key: 'hwGrossRevenue', emph: true },
+    { label: '− Channel Margin & Deductions', key: 'channelMargin', neg: true },
+    { label: '− Volume Rebates', key: 'volumeRebates', neg: true },
+    { label: '− Price Protection Accrual', key: 'priceProtection', neg: true },
+    { label: '− Returns & Reverse Logistics', key: 'returnsAndReverse', neg: true },
+    { label: '= Net Hardware Revenue', key: 'netHardwareRevenue', emph: true, subtotal: true },
+    { label: '− Standard BOM Cost (blended)', key: 'stdBomBlended', neg: true },
+    { label: '− Yield Loss Variance', key: 'yieldLossVariance', neg: true },
+    { label: '− CM Assembly (MVA)', key: 'mvaTotal', neg: true },
+    { label: '− 3PL Logistics', key: 'threePlTotal', neg: true },
+    { label: '− Landed Tariffs', key: 'landedTariffs', neg: true },
+    { label: '= Total Hardware COGS', key: 'totalHardwareCogs', emph: true, subtotal: true, isCogsSubtotal: true },
+    { label: '= Hardware Gross Margin', key: 'hardwareGm', emph: true, pctKey: 'hardwareGmPct', total: true },
+    { label: '+ Software Subscription Revenue', key: 'swRevenue', pos: true },
+    { label: '− Software Hosting COGS', key: 'swCogs', neg: true },
+    { label: '= Software Gross Margin', key: 'swGm', emph: true, subtotal: true },
+    { label: '= Consolidated Gross Margin', key: 'consolidatedGm', emph: true, pctKey: 'consolidatedGmPct', total: true },
+    { label: '− CapEx Depreciation (tooling amort)', key: 'capexDep', neg: true },
+    { label: '− SG&A & Fulfillment Overhead', key: 'sga', neg: true },
+    { label: '− Marketing', key: 'marketing', neg: true },
+    { label: '− Customer Support & Warranty', key: 'support', neg: true },
+    { label: '= Operating Income / EBIT', key: 'operatingIncome', emph: true, pctKey: 'operatingMarginPct', total: true }
+  ];
+
+  function buildPLRows() {
+    var tbody = byId('plBody');
+    tbody.innerHTML = '';
+    PL_ROWS.forEach(function (row, i) {
+      var tr = document.createElement('tr');
+      if (row.total) tr.className = 'total-row';
+      else if (row.subtotal) tr.className = 'subtotal-row';
+      var emphClass = row.emph ? ' emph' : '';
+      tr.innerHTML =
+        '<td>' + row.label + '</td>' +
+        '<td class="' + emphClass.trim() + '" id="plPlan' + i + '"></td>' +
+        '<td class="live' + emphClass + '" id="plDyn' + i + '"></td>' +
+        '<td class="live' + emphClass + '" id="plVar' + i + '"></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function fmtPLValue(row, r) {
+    var v = r[row.key];
+    var text = row.neg ? fmtUsdMParen(v) : fmtUsdM(v);
+    if (row.pctKey) text += ' (' + fmt2(r[row.pctKey]) + '%)';
+    return text;
+  }
+
+  function renderPL(dynamic) {
+    if (!planSnapshot) return;
+    PL_ROWS.forEach(function (row, i) {
+      var planVal = planSnapshot[row.key];
+      var dynVal = dynamic[row.key];
+
+      byId('plPlan' + i).textContent = fmtPLValue(row, planSnapshot);
+      byId('plDyn' + i).textContent = fmtPLValue(row, dynamic);
+      flash(byId('plDyn' + i));
+
+      var diff = dynVal - planVal;
+      var varEl = byId('plVar' + i);
+      var favorable;
+      if (row.neg) favorable = diff < 0; // less cost = favorable
+      else favorable = diff > 0; // more revenue/margin = favorable
+      var cls = '';
+      var absDiff = Math.abs(diff);
+      var threshold = Math.max(Math.abs(planVal) * 0.001, 1000);
+      if (absDiff >= threshold) cls = favorable ? 'favorable' : 'unfavorable';
+      var sign = diff > threshold ? '+' : (diff < -threshold ? '−' : '');
+      varEl.textContent = sign + fmtUsdM(Math.abs(diff));
+      varEl.classList.remove('favorable', 'unfavorable');
+      if (cls) varEl.classList.add(cls);
+    });
+  }
+
+  /* =========================================================
+     Recalc orchestrator
+     ========================================================= */
+  function recalc() {
+    var r = computeAll(state);
+    render(r);
+  }
+
+  /* =========================================================
+     Wire up controls
+     ========================================================= */
+  var volumeSlider = byId('volumeSlider');
+  var yieldSlider = byId('yieldSlider');
+  var activationSlider = byId('activationSlider');
+  var channelMixSlider = byId('channelMixSlider');
+  var marketSplitSlider = byId('marketSplitSlider');
+  var oceanBtn = byId('oceanBtn');
+  var airBtn = byId('airBtn');
+
+  volumeSlider.addEventListener('input', function () { state.volume = parseInt(volumeSlider.value, 10); recalc(); });
+  yieldSlider.addEventListener('input', function () { state.yield = parseInt(yieldSlider.value, 10); recalc(); });
+  activationSlider.addEventListener('input', function () { state.activation = parseInt(activationSlider.value, 10); recalc(); });
+  channelMixSlider.addEventListener('input', function () { state.dtcShare = parseInt(channelMixSlider.value, 10); recalc(); });
+  marketSplitSlider.addEventListener('input', function () { state.domesticShare = parseInt(marketSplitSlider.value, 10); recalc(); });
+  oceanBtn.addEventListener('click', function () { state.logistics = 'ocean'; oceanBtn.classList.add('active'); airBtn.classList.remove('active'); recalc(); });
+  airBtn.addEventListener('click', function () { state.logistics = 'air'; airBtn.classList.add('active'); oceanBtn.classList.remove('active'); recalc(); });
+
+  /* =========================================================
+     Init
+     ========================================================= */
+  buildPLRows();
+  planSnapshot = computeAll(state); // frozen plan, default slider positions
+  render(planSnapshot, true);
+})();
+</script>
+</body>
+</html>
