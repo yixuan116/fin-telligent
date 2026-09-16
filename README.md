@@ -13,6 +13,6 @@ fin-telligent = finance + intelligent. A series on bringing AI into financial an
   - link: https://yixuan116.github.io/fin-telligent/consumer-hardware-finance/
   - video walkthrough: https://www.youtube.com/watch?v=v1C6CCZM7XI
 
-- ai-compute-economics:
-  - link: https://yixuan116.github.io/fin-telligent/ai-compute-economics/
+- ai-compute-datacenter-economics:
+  - link: https://yixuan116.github.io/fin-telligent/ai-compute-datacenter-economics/
 
