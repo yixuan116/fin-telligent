@@ -10,8 +10,8 @@ fin-telligent = finance + intelligent. A series on bringing AI into financial an
    - Full README:[price-volume-mix-waterfall/README.md](price-volume-mix-waterfall/README.md)
 
 - consumer-hardware-finance:
-- link: https://yixuan116.github.io/fin-telligent/consumer-hardware-finance/
-- video walkthrough: https://www.youtube.com/watch?v=v1C6CCZM7XI
+  - link: https://yixuan116.github.io/fin-telligent/consumer-hardware-finance/
+  - video walkthrough: https://www.youtube.com/watch?v=v1C6CCZM7XI
 
 
 
