@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retail Expansion Analytics</title>
+<meta name="description" content="Channel transition and unit economics analysis for a cross-border retail expansion: revenue mix shift, store footprint growth, and an interactive unit economics model.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0a0c;
+    --bg-raised: #101013;
+    --card-bg: #16161a;
+    --card-bg-2: #1c1c21;
+    --card-border: #28282e;
+    --border: #242429;
+    --text-primary: #f2f2f4;
+    --text-secondary: #b3b3ba;
+    --text-muted: #7d7d86;
+    --shadow: rgba(0, 0, 0, 0.5);
+
+    --blue: #5b9dff;
+    --orange: #ff9057;
+    --green: #3ed98b;
+    --red: #ff6b6b;
+    --amber: #f0b93d;
+    --purple: #a98bff;
+
+    --blue-tint: rgba(91, 157, 255, 0.16);
+    --orange-tint: rgba(255, 144, 87, 0.16);
+    --green-tint: rgba(62, 217, 139, 0.16);
+    --red-tint: rgba(255, 107, 107, 0.16);
+    --amber-tint: rgba(240, 185, 61, 0.16);
+    --purple-tint: rgba(169, 139, 255, 0.16);
+
+    /* one color per reporting period, held consistent across every chart */
+    --p-fy24: var(--blue);
+    --p-fy25: var(--green);
+    --p-h1: var(--orange);
+    --p-fy24-tint: var(--blue-tint);
+    --p-fy25-tint: var(--green-tint);
+    --p-h1-tint: var(--orange-tint);
+
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "Menlo", "Consolas", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 32px 16px 60px; }
+
+  .app { max-width: 1040px; margin: 0 auto; }
+
+  /* ---------- hero ---------- */
+
+  header.hero { text-align: center; margin-bottom: 28px; }
+
+  header.hero h1 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+
+  header.hero .tagline {
+    margin: 0 auto 12px;
+    max-width: 680px;
+    color: var(--text-secondary);
+    font-size: 0.96rem;
+    line-height: 1.5;
+  }
+
+  header.hero .byline {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- sections ---------- */
+
+  .section {
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    background: var(--bg-raised);
+    padding: 22px 24px 20px;
+    margin-bottom: 20px;
+  }
+
+  .section h2 {
+    font-size: 1.06rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  .section .section-sub {
+    margin: 0 0 16px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-width: 760px;
+  }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 14px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.67rem;
+    font-weight: 700;
+  }
+
+  .chip.c-blue { background: var(--blue-tint); color: var(--blue); }
+  .chip.c-green { background: var(--green-tint); color: var(--green); }
+  .chip.c-purple { background: var(--purple-tint); color: var(--purple); }
+  .chip.c-orange { background: var(--orange-tint); color: var(--orange); }
+  .chip.c-amber { background: var(--amber-tint); color: var(--amber); }
+
+  /* ---------- period legend (shared across charts) ---------- */
+
+  .period-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 0 0 14px;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+  }
+
+  .period-legend .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+
+  .period-legend .dot.fy24 { background: var(--p-fy24); }
+  .period-legend .dot.fy25 { background: var(--p-fy25); }
+  .period-legend .dot.h1 { background: var(--p-h1); }
+
+  /* ---------- charts ---------- */
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 16px 10px;
+  }
+
+  .chart-card .chart-card-title {
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+  }
+
+  .chart-card .chart-wrap { position: relative; height: 260px; }
+
+  @media (max-width: 768px) {
+    .chart-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* ---------- data tables ---------- */
+
+  .table-wrap { overflow-x: auto; margin-bottom: 4px; }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  table.data-table th, table.data-table td {
+    padding: 8px 10px;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table.data-table th:first-child, table.data-table td:first-child {
+    text-align: left;
+    color: var(--text-secondary);
+  }
+
+  table.data-table thead th {
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  table.data-table tbody td { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+  table.data-table tr.subtotal-row td { font-weight: 700; background: var(--card-bg-2); }
+  table.data-table tr.total-row td { font-weight: 800; border-top: 1px solid var(--card-border); }
+  table.data-table td.na { color: var(--text-muted); font-style: italic; }
+
+  /* ---------- stat grid ---------- */
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 14px 12px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 2px;
+  }
+
+  .stat-card .stat-sub { font-size: 0.72rem; color: var(--text-secondary); margin: 0; }
+
+  @media (max-width: 768px) {
+    .stat-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  }
+
+  /* ---------- callout box ---------- */
+
+  .callout-box {
+    border-left: 3px solid var(--purple);
+    background: var(--card-bg);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin: 14px 0 4px;
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .callout-box strong { color: var(--text-primary); }
+
+  .callout-box.question { border-left-color: var(--amber); }
+
+  /* ---------- sliders (unit economics) ---------- */
+
+  .unit-econ-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .unit-econ-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .slider-block { margin: 0 0 16px; }
+
+  .slider-block .slider-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .slider-block .slider-label { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); }
+  .slider-block .slider-value { font-size: 0.9rem; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+  .slider-block input[type="range"] {
+    width: 100%;
+    accent-color: var(--purple);
+    height: 5px;
+  }
+
+  .slider-block .slider-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .unit-econ-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .econ-result-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .econ-result-card .result-label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+  }
+
+  .econ-result-card .result-value { font-size: 1.3rem; font-weight: 800; margin: 0 0 2px; }
+  .econ-result-card .result-sub { font-size: 0.72rem; color: var(--text-secondary); margin: 0; }
+
+  .status-positive { color: var(--green); }
+  .status-negative { color: var(--red); }
+
+  /* ---------- scenario placeholder (forecast module) ---------- */
+
+  .scenario-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+
+  .scenario-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .badge-coming-soon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--amber-tint);
+    color: var(--amber);
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+  }
+
+  .skeleton-chart {
+    position: relative;
+    height: 220px;
+    border: 1.5px dashed var(--card-border);
+    border-radius: 12px;
+    margin-bottom: 4px;
+    padding: 14px 18px 30px;
+  }
+
+  .skeleton-chart .axis-y-label {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: rotate(-90deg) translateX(50%);
+    transform-origin: left center;
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .skeleton-chart .axis-x-label {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .skeleton-chart .axis-line-x {
+    position: absolute;
+    left: 36px;
+    right: 14px;
+    bottom: 30px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .skeleton-chart .axis-line-y {
+    position: absolute;
+    left: 36px;
+    top: 14px;
+    bottom: 30px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  /* ---------- footer ---------- */
+
+  footer.page-footer {
+    margin-top: 36px;
+    padding-top: 26px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  footer.page-footer .footnote {
+    margin: 0 0 18px;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+  }
+
+  .footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    margin-bottom: 18px;
+  }
+
+  .gh-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.86rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+  }
+
+  .gh-link:hover { color: var(--text-primary); background: var(--card-bg); }
+  .gh-link svg { fill: currentColor; flex-shrink: 0; }
+
+  .coming-soon-pill {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-style: italic;
+    padding: 6px 10px;
+  }
+
+  .qr-image {
+    display: block;
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px var(--shadow);
+    margin: 0 auto 8px;
+  }
+
+  .qr-caption { font-size: 0.74rem; color: var(--text-muted); margin: 0; }
+
+  @media (max-width: 480px) {
+    header.hero h1 { font-size: 1.35rem; }
+    .section { padding: 18px 16px 16px; }
+    .stat-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+
+    <header class="hero">
+      <h1>Retail Expansion Analytics: Channel Transition &amp; Unit Economics</h1>
+      <p class="tagline">How a cross-border retailer's revenue mix flipped from online-viral to store-driven, and what that means for the unit economics of every new store.</p>
+      <p class="byline">Yixuan Jing | fin-telligent series</p>
+    </header>
+
+    <!-- ============ MODULE 1: Channel Revenue Mix ============ -->
+    <section class="section" id="channel-mix">
+      <h2>Channel Revenue Mix &mdash; Target Market</h2>
+      <p class="section-sub">Three reporting periods, one target market. Offline and online swapped places twice: a balanced start, a viral online surge, then a fade back toward stores.</p>
+      <div class="period-legend">
+        <span><span class="dot fy24"></span>FY2024</span>
+        <span><span class="dot fy25"></span>FY2025</span>
+        <span><span class="dot h1"></span>H1 2026</span>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <p class="chart-card-title">Revenue by Channel Group (RMB M)</p>
+          <div class="chart-wrap"><canvas id="chartChannelGroup"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <p class="chart-card-title">Channel Mix (% of Total Revenue)</p>
+          <div class="chart-wrap"><canvas id="chartChannelPct"></canvas></div>
+        </div>
+      </div>
+
+      <div class="callout-box">
+        <strong>Structural reversal.</strong> Offline stood at 47.3% of revenue in FY2024, was pushed down to 32.8% during FY2025's online surge, then overtook online again at 53.2% in H1 2026 as the online channel faded back.
+      </div>
+
+      <div class="table-wrap" style="margin-top:16px;">
+        <table class="data-table" id="tblChannelDetail"></table>
+      </div>
+    </section>
+
+    <!-- ============ MODULE 2: Store Expansion Tracker ============ -->
+    <section class="section" id="store-expansion">
+      <h2>Store Expansion Tracker</h2>
+      <p class="section-sub">Store count nearly quadrupled from FY2024 to H1 2026. Revenue per store peaked alongside the online surge, then normalized as new, still-ramping stores diluted the average.</p>
+      <div class="period-legend">
+        <span><span class="dot fy24"></span>End FY2024</span>
+        <span><span class="dot fy25"></span>End FY2025</span>
+        <span><span class="dot h1"></span>End H1 2026</span>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:16px;">
+        <p class="chart-card-title">Store Count (bar) vs. Revenue per Store (line, RMB M)</p>
+        <div class="chart-wrap" style="height:300px;"><canvas id="chartStoreExpansion"></canvas></div>
+      </div>
+
+      <p class="chart-card-title" style="margin: 0 0 10px;">Balance Sheet Signals (H1 2026)</p>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <p class="stat-label">Right-of-Use Assets</p>
+          <p class="stat-value">&yen;2.79B &rarr; &yen;3.60B</p>
+          <p class="stat-sub">+29% in 6 months</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Total CapEx, H1 2026</p>
+          <p class="stat-value">&yen;724M</p>
+          <p class="stat-sub">+93% YoY, mainly PP&amp;E</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Inventory Turnover</p>
+          <p class="stat-value">123 &rarr; 201 days</p>
+          <p class="stat-sub">&yen;6.10B inventory; pre-positioning for overseas stores</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">FX Impact, H1 2026</p>
+          <p class="stat-value status-negative">&yen;720M loss</p>
+          <p class="stat-sub">vs. &yen;120M gain in H1 2025</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODULE 3: Unit Store Economics ============ -->
+    <section class="section" id="unit-economics">
+      <h2>Unit Store Economics</h2>
+      <p class="section-sub">A model framework, not exact actuals &mdash; averages derived from the disclosures above. Adjust the assumptions to stress-test breakeven and payback for a representative store.</p>
+
+      <div class="unit-econ-grid">
+        <div>
+          <div class="slider-block">
+            <div class="slider-head"><span class="slider-label">Revenue per Mature Store</span><span class="slider-value" id="vRevenue">&yen;21.0M</span></div>
+            <input type="range" id="sRevenue" min="10" max="35" step="0.5" value="21">
+            <div class="slider-scale"><span>&yen;10M</span><span>&yen;35M</span></div>
+          </div>
+          <div class="slider-block">
+            <div class="slider-head"><span class="slider-label">Gross Margin</span><span class="slider-value" id="vMargin">69.7%</span></div>
+            <input type="range" id="sMargin" min="40" max="80" step="0.5" value="69.7">
+            <div class="slider-scale"><span>40%</span><span>80%</span></div>
+          </div>
+          <div class="slider-block">
+            <div class="slider-head"><span class="slider-label">Annual Lease Cost per Store</span><span class="slider-value" id="vLease">&yen;5.0M</span></div>
+            <input type="range" id="sLease" min="2" max="15" step="0.5" value="5">
+            <div class="slider-scale"><span>&yen;2M</span><span>&yen;15M</span></div>
+          </div>
+          <div class="slider-block">
+            <div class="slider-head"><span class="slider-label">Annual OpEx &amp; Allocated Overhead</span><span class="slider-value" id="vOpex">&yen;5.0M</span></div>
+            <input type="range" id="sOpex" min="2" max="20" step="0.5" value="5">
+            <div class="slider-scale"><span>&yen;2M</span><span>&yen;20M</span></div>
+          </div>
+          <div class="slider-block">
+            <div class="slider-head"><span class="slider-label">Initial CapEx per Store</span><span class="slider-value" id="vCapex">&yen;32.9M</span></div>
+            <input type="range" id="sCapex" min="10" max="60" step="0.5" value="32.9">
+            <div class="slider-scale"><span>&yen;10M</span><span>&yen;60M</span></div>
+          </div>
+          <p class="section-sub" style="margin-top:4px;">Ramp assumption: a new store opens at 60% of mature revenue in Year 1, 85% in Year 2, and reaches 100% from Year 3 onward.</p>
+        </div>
+
+        <div>
+          <div class="unit-econ-summary">
+            <div class="econ-result-card">
+              <p class="result-label">Breakeven at Maturity</p>
+              <p class="result-value" id="rBreakeven">&mdash;</p>
+              <p class="result-sub" id="rBreakevenSub">&mdash;</p>
+            </div>
+            <div class="econ-result-card">
+              <p class="result-label">Payback Period</p>
+              <p class="result-value" id="rPayback">&mdash;</p>
+              <p class="result-sub">From initial CapEx, on the ramp schedule</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="tblPayback"></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODULE 4: Scale Dynamics ============ -->
+    <section class="section" id="scale-dynamics">
+      <h2>Scale Dynamics</h2>
+      <p class="section-sub">Store count and revenue per store, side by side. The FY2025 spike lifted every store on viral demand; the H1 2026 pullback mixes viral normalization with dilution from stores that are still ramping.</p>
+      <div class="period-legend">
+        <span><span class="dot fy24"></span>FY2024</span>
+        <span><span class="dot fy25"></span>FY2025</span>
+        <span><span class="dot h1"></span>H1 2026 (annualized)</span>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:14px;">
+        <p class="chart-card-title">Store Count vs. Revenue per Store</p>
+        <div class="chart-wrap" style="height:300px;"><canvas id="chartScaleDynamics"></canvas></div>
+      </div>
+      <p class="section-sub" style="margin-bottom:14px;">FY2025's revenue-per-store spike reflects a viral tailwind lifting the entire store base. The H1 2026 decline combines that viral fade with new-store dilution &mdash; 22 of the 86 stores open at period end had opened within the prior six months and were still on the ramp curve.</p>
+
+      <div class="table-wrap" style="margin-bottom:14px;">
+        <table class="data-table" id="tblScaleDynamics"></table>
+      </div>
+
+      <div class="callout-box question">
+        <strong>Open question.</strong> Is the H1 2026 revenue-per-store decline purely viral normalization plus new-store ramp, or is there early cannibalization as store density increases within existing markets? The data available here can't fully separate the two &mdash; it needs a same-store cohort view.
+      </div>
+    </section>
+
+    <!-- ============ MODULE 6: Product Category Shift ============ -->
+    <section class="section" id="category-shift">
+      <h2>Product Category Shift &mdash; Global</h2>
+      <p class="section-sub">Category leadership flipped over the period: the largest category in FY2024 is not the largest in H1 2026.</p>
+      <div class="period-legend">
+        <span><span class="dot fy24"></span>FY2024</span>
+        <span><span class="dot fy25"></span>FY2025</span>
+        <span><span class="dot h1"></span>H1 2026</span>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:14px;">
+        <p class="chart-card-title">Category Mix (% of Global Revenue)</p>
+        <div class="chart-wrap"><canvas id="chartCategoryShift"></canvas></div>
+      </div>
+
+      <div class="callout-box">
+        <strong>Leadership flip.</strong> Category B led at 53.2% of revenue in FY2024. By H1 2026, Category A had grown to 57.2% while Category B fell to 30.2% &mdash; a full reordering, not just a narrowing gap.
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px;">
+        <table class="data-table" id="tblCategoryShift"></table>
+      </div>
+      <p class="section-sub" style="margin-top:8px; margin-bottom:0;">Category C was not separately disclosed as its own line in H1 2026.</p>
+    </section>
+
+    <!-- ============ MODULE 7: Product Line Portfolio ============ -->
+    <section class="section" id="product-portfolio">
+      <h2>Product Line Portfolio &mdash; Global, FY2025</h2>
+      <p class="section-sub">The top line still dominates, but the base is broadening: seventeen product lines each cleared &yen;100M in FY2025 revenue.</p>
+
+      <div class="chart-card" style="margin-bottom:14px;">
+        <p class="chart-card-title">FY2025 Revenue by Product Line (RMB M), with YoY Growth</p>
+        <div class="chart-wrap" style="height:320px;"><canvas id="chartPortfolio"></canvas></div>
+      </div>
+
+      <div class="callout-box">
+        <strong>First crack in the top line.</strong> Product Line A drove 38.1% of FY2025 revenue on +365.7% YoY growth, but posted its first year-over-year decline in H1 2026, down 7.5%. Product Line F, meanwhile, grew from a near-zero base to &yen;2.06B (+1,602% YoY) &mdash; the clearest sign the portfolio is diversifying away from single-line dependence.
+      </div>
+    </section>
+
+    <!-- ============ MODULE 5: Forecast Placeholder ============ -->
+    <section class="section" id="forecast">
+      <h2>Scenario Planning</h2>
+      <span class="badge-coming-soon">In Development</span>
+      <p class="section-sub">Forward projections will combine store-opening pace, revenue-per-store assumptions, and margin into base / growth / downside cases.</p>
+
+      <div class="scenario-pills">
+        <span class="scenario-pill">Base Case</span>
+        <span class="scenario-pill">Growth Case</span>
+        <span class="scenario-pill">Downside Case</span>
+      </div>
+
+      <div class="skeleton-chart">
+        <span class="axis-y-label">Revenue</span>
+        <span class="axis-x-label">Quarters</span>
+        <span class="axis-line-y"></span>
+        <span class="axis-line-x"></span>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <p class="footnote">Source: public filings (FY2024 annual report, FY2025 annual report, H1 2026 interim report). All company, brand, and product identifiers have been genericized; underlying figures are as reported. Framework demonstration only, not investment advice.</p>
+      <div class="footer-links">
+        <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+          <span>github.com/yixuan116/fin-telligent</span>
+        </a>
+        <a class="gh-link" href="../ai-compute-datacenter-economics/">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9"></path><path d="M10 19V5"></path><path d="M16 19v-9"></path></svg>
+          <span>More fin-telligent demos: AI Compute &amp; Data Center Economics</span>
+        </a>
+        <span class="coming-soon-pill">Video walkthrough (coming soon)</span>
+      </div>
+      <img src="../price-volume-mix-waterfall/Pictures/Linkedin.JPG" alt="Yixuan Jing's LinkedIn card with QR code" class="qr-image">
+      <p class="qr-caption">LinkedIn &amp; GitHub</p>
+    </footer>
+
+  </div>
+
+<script>
+  /* ============ shared color / formatting helpers ============ */
+  var COLOR = { fy24: '#5b9dff', fy25: '#3ed98b', h1: '#ff9057', purple: '#a98bff', amber: '#f0b93d', muted: '#7d7d86', border: '#242429', text: '#b3b3ba' };
+
+  Chart.defaults.color = COLOR.text;
+  Chart.defaults.borderColor = COLOR.border;
+  Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  Chart.defaults.font.size = 11;
+
+  function fmtM(m) {
+    if (m === null || m === undefined) return 'n/a';
+    var abs = Math.abs(m);
+    if (abs >= 1000) return '¥' + (m / 1000).toFixed(2) + 'B';
+    return '¥' + m.toFixed(1) + 'M';
+  }
+  function fmtPct(p, digits) {
+    if (p === null || p === undefined) return 'n/a';
+    return p.toFixed(digits === undefined ? 1 : digits) + '%';
+  }
+  function kToM(k) { return k === null || k === undefined ? null : k / 1000; }
+
+  /* ============ Module 1: Channel Revenue Mix ============ */
+  var CHANNELS = [
+    { label: 'Retail Stores', fy24: 341148, fy25: 2003799, h1: 903000 },
+    { label: 'Automated Kiosks', fy24: 38433, fy25: 231730, h1: 104000 },
+    { label: 'Owned App & Website', fy24: 191925, fy25: 2870016, h1: 491000 },
+    { label: 'Social Commerce', fy24: 107662, fy25: 1039919, h1: null },
+    { label: 'Third-Party Marketplace', fy24: null, fy25: null, h1: 168000 },
+    { label: 'Other Online', fy24: 64758, fy25: 443646, h1: 63000 },
+    { label: 'Wholesale & Other', fy24: 58293, fy25: 217079, h1: 162000 }
+  ];
+  var CHANNEL_SUBTOTALS = {
+    offline: { fy24: 379581, fy25: 2235529, h1: 1007000 },
+    online: { fy24: 364345, fy25: 4353581, h1: 722000 },
+    wholesale: { fy24: 58293, fy25: 217079, h1: 162000 },
+    total: { fy24: 802219, fy25: 6806189, h1: 1891000 }
+  };
+  var CHANNEL_PCT = {
+    offline: { fy24: 47.3, fy25: 32.8, h1: 53.2 },
+    online: { fy24: 45.4, fy25: 64.0, h1: 38.2 },
+    wholesale: { fy24: 7.3, fy25: 3.2, h1: 8.6 }
+  };
+
+  function renderChannelGroupChart() {
+    var ctx = document.getElementById('chartChannelGroup');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Offline', 'Online', 'Wholesale'],
+        datasets: [
+          { label: 'FY2024', data: [kToM(CHANNEL_SUBTOTALS.offline.fy24), kToM(CHANNEL_SUBTOTALS.online.fy24), kToM(CHANNEL_SUBTOTALS.wholesale.fy24)], backgroundColor: COLOR.fy24 },
+          { label: 'FY2025', data: [kToM(CHANNEL_SUBTOTALS.offline.fy25), kToM(CHANNEL_SUBTOTALS.online.fy25), kToM(CHANNEL_SUBTOTALS.wholesale.fy25)], backgroundColor: COLOR.fy25 },
+          { label: 'H1 2026', data: [kToM(CHANNEL_SUBTOTALS.offline.h1), kToM(CHANNEL_SUBTOTALS.online.h1), kToM(CHANNEL_SUBTOTALS.wholesale.h1)], backgroundColor: COLOR.h1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + fmtM(c.parsed.y); } } } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: function (v) { return fmtM(v); } }, grid: { color: COLOR.border } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderChannelPctChart() {
+    var ctx = document.getElementById('chartChannelPct');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['FY2024', 'FY2025', 'H1 2026'],
+        datasets: [
+          { label: 'Offline %', data: [CHANNEL_PCT.offline.fy24, CHANNEL_PCT.offline.fy25, CHANNEL_PCT.offline.h1], backgroundColor: COLOR.purple },
+          { label: 'Online %', data: [CHANNEL_PCT.online.fy24, CHANNEL_PCT.online.fy25, CHANNEL_PCT.online.h1], backgroundColor: COLOR.amber },
+          { label: 'Wholesale %', data: [CHANNEL_PCT.wholesale.fy24, CHANNEL_PCT.wholesale.fy25, CHANNEL_PCT.wholesale.h1], backgroundColor: COLOR.muted }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + fmtPct(c.parsed.y); } } } },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, max: 100, ticks: { callback: function (v) { return v + '%'; } }, grid: { color: COLOR.border } }
+        }
+      }
+    });
+  }
+
+  function renderChannelTable() {
+    var rows = '<thead><tr><th>Channel (RMB M)</th><th>FY2024</th><th>FY2025</th><th>H1 2026</th></tr></thead><tbody>';
+    CHANNELS.forEach(function (c) {
+      rows += '<tr><td>' + c.label + '</td>' +
+        '<td' + (c.fy24 === null ? ' class="na"' : '') + '>' + (c.fy24 === null ? 'n/a' : fmtM(kToM(c.fy24))) + '</td>' +
+        '<td' + (c.fy25 === null ? ' class="na"' : '') + '>' + (c.fy25 === null ? 'n/a' : fmtM(kToM(c.fy25))) + '</td>' +
+        '<td' + (c.h1 === null ? ' class="na"' : '') + '>' + (c.h1 === null ? 'n/a' : fmtM(kToM(c.h1))) + '</td></tr>';
+    });
+    ['offline', 'online', 'wholesale'].forEach(function (key) {
+      var s = CHANNEL_SUBTOTALS[key];
+      rows += '<tr class="subtotal-row"><td>' + key.charAt(0).toUpperCase() + key.slice(1) + ' Subtotal</td><td>' + fmtM(kToM(s.fy24)) + '</td><td>' + fmtM(kToM(s.fy25)) + '</td><td>' + fmtM(kToM(s.h1)) + '</td></tr>';
+    });
+    var t = CHANNEL_SUBTOTALS.total;
+    rows += '<tr class="total-row"><td>Total</td><td>' + fmtM(kToM(t.fy24)) + '</td><td>' + fmtM(kToM(t.fy25)) + '</td><td>' + fmtM(kToM(t.h1)) + '</td></tr>';
+    rows += '</tbody>';
+    document.getElementById('tblChannelDetail').innerHTML = rows;
+  }
+
+  /* ============ Module 2 + 4: Store Expansion / Scale Dynamics ============ */
+  var STORE_COUNT = { fy24: 22, fy25: 64, h1: 86 };
+  var REV_PER_STORE = { fy24: 15.507, fy25: 31.309, h1: 21.0 }; // RMB M, H1 annualized
+  var ONLINE_REV_M = { fy24: 364.345, fy25: 4353.581, h1: 1444 }; // RMB M, H1 annualized
+  var TOTAL_REV_M = { fy24: 802.219, fy25: 6806.189, h1: 3782 }; // RMB M, H1 annualized
+
+  function renderStoreExpansionChart() {
+    var ctx = document.getElementById('chartStoreExpansion');
+    new Chart(ctx, {
+      data: {
+        labels: ['End FY2024', 'End FY2025', 'End H1 2026'],
+        datasets: [
+          { type: 'bar', label: 'Store Count', data: [STORE_COUNT.fy24, STORE_COUNT.fy25, STORE_COUNT.h1], backgroundColor: [COLOR.fy24, COLOR.fy25, COLOR.h1], yAxisID: 'yCount', order: 2 },
+          { type: 'line', label: 'Revenue per Store (RMB M)', data: [REV_PER_STORE.fy24, REV_PER_STORE.fy25, REV_PER_STORE.h1], borderColor: COLOR.amber, backgroundColor: COLOR.amber, pointBackgroundColor: [COLOR.fy24, COLOR.fy25, COLOR.h1], pointRadius: 5, pointBorderColor: '#0a0a0c', pointBorderWidth: 1.5, tension: 0.25, yAxisID: 'yRev', order: 1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } } },
+        scales: {
+          x: { grid: { display: false } },
+          yCount: { position: 'left', beginAtZero: true, title: { display: true, text: 'Store Count' }, grid: { color: COLOR.border } },
+          yRev: { position: 'right', beginAtZero: true, title: { display: true, text: 'Revenue per Store (RMB M)' }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderScaleDynamicsChart() {
+    var ctx = document.getElementById('chartScaleDynamics');
+    new Chart(ctx, {
+      data: {
+        labels: ['FY2024', 'FY2025', 'H1 2026 (ann.)'],
+        datasets: [
+          { type: 'bar', label: 'Store Count', data: [STORE_COUNT.fy24, STORE_COUNT.fy25, STORE_COUNT.h1], backgroundColor: [COLOR.fy24, COLOR.fy25, COLOR.h1], yAxisID: 'yCount', order: 2 },
+          { type: 'line', label: 'Revenue per Store (RMB M)', data: [REV_PER_STORE.fy24, REV_PER_STORE.fy25, REV_PER_STORE.h1], borderColor: COLOR.amber, backgroundColor: COLOR.amber, pointBackgroundColor: [COLOR.fy24, COLOR.fy25, COLOR.h1], pointRadius: 6, pointBorderColor: '#0a0a0c', pointBorderWidth: 1.5, tension: 0.25, yAxisID: 'yRev', order: 1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+          tooltip: {
+            callbacks: {
+              afterBody: function (items) {
+                if (items[0].dataIndex === 1) return 'Viral peak: online demand lifts revenue per store across the base.';
+                if (items[0].dataIndex === 2) return 'Normalization: viral fade + dilution from stores still ramping.';
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          yCount: { position: 'left', beginAtZero: true, title: { display: true, text: 'Store Count' }, grid: { color: COLOR.border } },
+          yRev: { position: 'right', beginAtZero: true, title: { display: true, text: 'Revenue per Store (RMB M)' }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderScaleDynamicsTable() {
+    var rows = '<thead><tr><th>Metric</th><th>FY2024</th><th>FY2025</th><th>H1 2026 (ann.)</th></tr></thead><tbody>';
+    rows += '<tr><td>Store Count</td><td>' + STORE_COUNT.fy24 + '</td><td>' + STORE_COUNT.fy25 + '</td><td>' + STORE_COUNT.h1 + '</td></tr>';
+    rows += '<tr><td>Revenue per Store</td><td>' + fmtM(REV_PER_STORE.fy24) + '</td><td>' + fmtM(REV_PER_STORE.fy25) + '</td><td>' + fmtM(REV_PER_STORE.h1) + '</td></tr>';
+    rows += '<tr><td>Online Revenue</td><td>' + fmtM(ONLINE_REV_M.fy24) + '</td><td>' + fmtM(ONLINE_REV_M.fy25) + '</td><td>' + fmtM(ONLINE_REV_M.h1) + '</td></tr>';
+    rows += '<tr class="total-row"><td>Total Revenue</td><td>' + fmtM(TOTAL_REV_M.fy24) + '</td><td>' + fmtM(TOTAL_REV_M.fy25) + '</td><td>' + fmtM(TOTAL_REV_M.h1) + '</td></tr>';
+    rows += '</tbody>';
+    document.getElementById('tblScaleDynamics').innerHTML = rows;
+  }
+
+  /* ============ Module 3: Unit Store Economics (interactive) ============ */
+  var RAMP = [0.60, 0.85, 1.00]; // Year 1, 2, 3+ as a fraction of mature revenue
+
+  function rampFor(year) { return RAMP[Math.min(year - 1, RAMP.length - 1)]; }
+
+  function recalcUnitEconomics() {
+    var revenue = parseFloat(document.getElementById('sRevenue').value);
+    var margin = parseFloat(document.getElementById('sMargin').value);
+    var lease = parseFloat(document.getElementById('sLease').value);
+    var opex = parseFloat(document.getElementById('sOpex').value);
+    var capex = parseFloat(document.getElementById('sCapex').value);
+
+    document.getElementById('vRevenue').textContent = fmtM(revenue);
+    document.getElementById('vMargin').textContent = fmtPct(margin);
+    document.getElementById('vLease').textContent = fmtM(lease);
+    document.getElementById('vOpex').textContent = fmtM(opex);
+    document.getElementById('vCapex').textContent = fmtM(capex);
+
+    var matureNetOpProfit = revenue * margin / 100 - lease - opex;
+    var breakevenEl = document.getElementById('rBreakeven');
+    var breakevenSubEl = document.getElementById('rBreakevenSub');
+    if (matureNetOpProfit > 0) {
+      breakevenEl.textContent = 'Above breakeven';
+      breakevenEl.className = 'result-value status-positive';
+      breakevenSubEl.textContent = 'Mature-store net operating profit: ' + fmtM(matureNetOpProfit) + ' / year';
+    } else {
+      breakevenEl.textContent = 'Below breakeven';
+      breakevenEl.className = 'result-value status-negative';
+      breakevenSubEl.textContent = 'Mature-store net operating loss: ' + fmtM(matureNetOpProfit) + ' / year';
+    }
+
+    var cumulative = 0;
+    var paybackYear = null;
+    var rows = '<thead><tr><th>Year</th><th>Ramp</th><th>Revenue</th><th>Gross Profit</th><th>Net Op. Profit</th><th>Cumulative Cash Flow</th></tr></thead><tbody>';
+    var maxYears = 10;
+    for (var y = 1; y <= maxYears; y++) {
+      var ramp = rampFor(y);
+      var yrRevenue = revenue * ramp;
+      var grossProfit = yrRevenue * margin / 100;
+      var netOpProfit = grossProfit - lease - opex;
+      var prevCumulative = cumulative;
+      var wasUnresolved = paybackYear === null;
+      cumulative += netOpProfit;
+      if (wasUnresolved && cumulative >= capex) {
+        var prevShortfall = capex - prevCumulative;
+        paybackYear = netOpProfit > 0 ? (y - 1) + (prevShortfall / netOpProfit) : y;
+      }
+      if (y <= 5 || wasUnresolved) {
+        rows += '<tr' + (paybackYear !== null && wasUnresolved ? ' class="subtotal-row"' : '') + '>' +
+          '<td>Year ' + y + '</td><td>' + (ramp * 100).toFixed(0) + '%</td><td>' + fmtM(yrRevenue) + '</td><td>' + fmtM(grossProfit) + '</td><td>' + fmtM(netOpProfit) + '</td><td>' + fmtM(cumulative) + '</td></tr>';
+      }
+      if (paybackYear !== null) break;
+    }
+    rows += '</tbody>';
+    document.getElementById('tblPayback').innerHTML = rows;
+
+    var paybackEl = document.getElementById('rPayback');
+    if (paybackYear !== null) {
+      paybackEl.textContent = paybackYear.toFixed(1) + ' years';
+      paybackEl.className = 'result-value status-positive';
+    } else {
+      paybackEl.textContent = '> ' + maxYears + ' years';
+      paybackEl.className = 'result-value status-negative';
+    }
+  }
+
+  function wireUnitEconomicsSliders() {
+    ['sRevenue', 'sMargin', 'sLease', 'sOpex', 'sCapex'].forEach(function (id) {
+      document.getElementById(id).addEventListener('input', recalcUnitEconomics);
+    });
+    recalcUnitEconomics();
+  }
+
+  /* ============ Module 6: Product Category Shift ============ */
+  var CATEGORIES = [
+    { label: 'Category A', fy24: 21.7, fy25: 50.4, h1: 57.2, fy24k: 2832078, fy25k: 18708074, h1k: 9825000, color: COLOR.fy24 },
+    { label: 'Category B', fy24: 53.2, fy25: 32.4, h1: 30.2, fy24k: 6936087, fy25k: 12022569, h1k: 5192000, color: COLOR.fy25 },
+    { label: 'Category C', fy24: 12.9, fy25: 5.2, h1: null, fy24k: 1683780, fy25k: 1916082, h1k: null, color: COLOR.h1 },
+    { label: 'Category D', fy24: 12.2, fy25: 12.0, h1: 12.6, fy24k: 1585804, fy25k: 4473327, h1k: 2155000, color: COLOR.purple }
+  ];
+
+  function renderCategoryChart() {
+    var ctx = document.getElementById('chartCategoryShift');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['FY2024', 'FY2025', 'H1 2026'],
+        datasets: CATEGORIES.map(function (c) {
+          return { label: c.label, data: [c.fy24, c.fy25, c.h1], backgroundColor: c.color };
+        })
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + fmtPct(c.parsed.y); } } } },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, max: 100, ticks: { callback: function (v) { return v + '%'; } }, grid: { color: COLOR.border } }
+        }
+      }
+    });
+  }
+
+  function renderCategoryTable() {
+    var rows = '<thead><tr><th>Category (RMB M)</th><th>FY2024</th><th>FY2025</th><th>H1 2026</th></tr></thead><tbody>';
+    CATEGORIES.forEach(function (c) {
+      rows += '<tr><td>' + c.label + '</td><td>' + fmtM(kToM(c.fy24k)) + ' (' + fmtPct(c.fy24) + ')</td><td>' + fmtM(kToM(c.fy25k)) + ' (' + fmtPct(c.fy25) + ')</td>' +
+        '<td' + (c.h1k === null ? ' class="na"' : '') + '>' + (c.h1k === null ? 'n/a' : fmtM(kToM(c.h1k)) + ' (' + fmtPct(c.h1) + ')') + '</td></tr>';
+    });
+    rows += '</tbody>';
+    document.getElementById('tblCategoryShift').innerHTML = rows;
+  }
+
+  /* ============ Module 7: Product Line Portfolio ============ */
+  var PRODUCT_LINES = [
+    { label: 'Product Line A', revK: 14161064, pct: 38.1, yoy: 365.7 },
+    { label: 'Product Line B', revK: 3539542, pct: 9.5, yoy: 170.6 },
+    { label: 'Licensed Lines', revK: 3381994, pct: 9.1, yoy: 111.3 },
+    { label: 'Product Line C', revK: 2929006, pct: 7.9, yoy: 151.5 },
+    { label: 'Product Line D', revK: 2897084, pct: 7.8, yoy: 38.4 },
+    { label: 'Product Line E', revK: 2776695, pct: 7.5, yoy: 205.3 },
+    { label: 'Product Line F', revK: 2055580, pct: 5.5, yoy: 1602 },
+    { label: 'Product Line G', revK: 1735235, pct: 4.7, yoy: 138.8 }
+  ];
+
+  function renderPortfolioChart() {
+    var sorted = PRODUCT_LINES.slice().sort(function (a, b) { return b.revK - a.revK; });
+    var ctx = document.getElementById('chartPortfolio');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: sorted.map(function (p) { return p.label; }),
+        datasets: [{ label: 'FY2025 Revenue', data: sorted.map(function (p) { return kToM(p.revK); }), backgroundColor: COLOR.fy25 }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (c) {
+                var p = sorted[c.dataIndex];
+                return fmtM(kToM(p.revK)) + '  |  ' + p.pct + '% of total  |  +' + p.yoy + '% YoY';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { callback: function (v) { return fmtM(v); } }, grid: { color: COLOR.border } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  /* ============ init ============ */
+  renderChannelGroupChart();
+  renderChannelPctChart();
+  renderChannelTable();
+  renderStoreExpansionChart();
+  wireUnitEconomicsSliders();
+  renderScaleDynamicsChart();
+  renderScaleDynamicsTable();
+  renderCategoryChart();
+  renderCategoryTable();
+  renderPortfolioChart();
+</script>
+</body>
+</html>
