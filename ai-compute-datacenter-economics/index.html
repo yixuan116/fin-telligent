@@ -3,39 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Compute &amp; Data Center Financial Analytics</title>
-<meta name="description" content="A unified framework mapping the cloud infrastructure value chain, from compute providers to frontier model developers, with financial diagnostics on compute allocation, memory-bandwidth constraints, and long-context scaling economics.">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<title>AI Compute &amp; Data Center Intelligence</title>
+<meta name="description" content="An interactive, zoom-based console for AI compute intelligence: earnings digests, the AI compute landscape, a live dashboard, and decision support, navigated by zooming in and out of one continuous canvas.">
 <style>
   :root {
-    color-scheme: dark;
-    --bg: #0a0a0c;
-    --bg-raised: #101013;
-    --card-bg: #16161a;
-    --card-border: #28282e;
-    --border: #242429;
-    --text-primary: #f2f2f4;
-    --text-secondary: #b3b3ba;
-    --text-muted: #7d7d86;
-    --shadow: rgba(0, 0, 0, 0.5);
-
-    --blue: #5b9dff;
-    --orange: #ff9057;
-    --green: #3ed98b;
-    --red: #ff6b6b;
-    --amber: #f0b93d;
-    --purple: #a98bff;
-
-    --blue-tint: rgba(91, 157, 255, 0.16);
-    --orange-tint: rgba(255, 144, 87, 0.16);
-    --green-tint: rgba(62, 217, 139, 0.16);
-    --red-tint: rgba(255, 107, 107, 0.16);
-    --amber-tint: rgba(240, 185, 61, 0.16);
-    --purple-tint: rgba(169, 139, 255, 0.16);
-
-    --radius: 14px;
-    --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --mono: "SF Mono", "Menlo", "Consolas", monospace;
+    --bg: #0a0a0f;
+    --glass-bg: rgba(255, 255, 255, 0.045);
+    --glass-bg-strong: rgba(255, 255, 255, 0.075);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #f2f3f7;
+    --text-secondary: #a6a9b8;
+    --text-muted: #6c6f80;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.16);
+    --accent-strong: #60a5fa;
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, 0.16);
+    --amber: #fbbf24;
+    --amber-soft: rgba(251, 191, 36, 0.16);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.16);
+    --radius: 16px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -43,508 +32,1001 @@
   html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
     background: var(--bg);
     color: var(--text-primary);
     font-family: var(--font);
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
   }
 
-  body { padding: 32px 16px 60px; }
+  /* background texture: soft radial glows so the empty canvas space isn't dead flat */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(600px 400px at 15% 10%, rgba(59, 130, 246, 0.08), transparent 60%),
+      radial-gradient(700px 500px at 85% 80%, rgba(52, 211, 153, 0.06), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-  .app { max-width: 980px; margin: 0 auto; }
+  /* ============ viewport + canvas ============ */
 
-  /* ---------- hero ---------- */
+  #viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
 
-  header.hero { text-align: center; margin-bottom: 28px; }
+  #canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2600px;
+    height: 1900px;
+    transform-origin: 0 0;
+    transition: transform 600ms cubic-bezier(0.65, 0, 0.35, 1);
+    will-change: transform;
+  }
 
-  header.hero h1 {
-    font-size: 1.7rem;
-    font-weight: 800;
-    margin: 0 0 10px;
+  .scene-el {
+    position: absolute;
+  }
+
+  /* ============ act tiles ============ */
+
+  .act-tile {
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 28px 32px;
+  }
+
+  .act-tile .act-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    margin: 0 0 6px;
+  }
+
+  .act-tile .act-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
     letter-spacing: -0.01em;
   }
 
-  header.hero .tagline {
-    margin: 0 auto 12px;
-    max-width: 640px;
+  .act-tile .act-sub {
+    margin: 6px 0 0;
+    font-size: 0.9rem;
     color: var(--text-secondary);
-    font-size: 0.98rem;
-    line-height: 1.5;
   }
 
-  header.hero .byline {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
+  /* ============ glass card base ============ */
 
-  /* ---------- sections ---------- */
-
-  .section {
-    border: 1px solid var(--card-border);
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    background: var(--bg-raised);
-    padding: 22px 24px 20px;
-    margin-bottom: 20px;
+    transition: opacity 400ms ease, visibility 400ms ease, border-color 200ms ease, background 200ms ease;
   }
 
-  .section h2 {
-    font-size: 1.08rem;
-    font-weight: 800;
-    margin: 0 0 4px;
-  }
+  /* toggle-able sub-views: kept in normal layout flow (so offset geometry stays valid
+     for zoom targeting) but faded out and made non-interactive when inactive */
+  .sub-view { opacity: 0; visibility: hidden; pointer-events: none; }
+  .sub-view.is-active { opacity: 1; visibility: visible; pointer-events: auto; }
 
-  .section .section-sub {
-    margin: 0 0 16px;
-    font-size: 0.86rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-    max-width: 720px;
-  }
+  /* ============ Act 1: News Digest ============ */
 
-  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 14px; }
-
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.68rem;
-    font-weight: 700;
-  }
-
-  .chip.c-blue { background: var(--blue-tint); color: var(--blue); }
-  .chip.c-green { background: var(--green-tint); color: var(--green); }
-  .chip.c-purple { background: var(--purple-tint); color: var(--purple); }
-  .chip.c-orange { background: var(--orange-tint); color: var(--orange); }
-  .chip.c-amber { background: var(--amber-tint); color: var(--amber); }
-
-  /* ---------- value chain ---------- */
-
-  .value-chain {
-    display: flex;
-    align-items: stretch;
-    gap: 6px;
-    margin-bottom: 18px;
-  }
-
-  .chain-stage {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 14px 14px 12px;
+  .news-card {
+    padding: 22px 22px 20px;
     cursor: pointer;
-    font-family: inherit;
-    text-align: left;
-    color: var(--text-primary);
-    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
   }
 
-  .chain-stage:hover { border-color: var(--border); transform: translateY(-1px); }
+  .news-card:hover { border-color: var(--accent); background: var(--glass-bg-strong); }
 
-  .chain-stage .stage-index {
-    font-size: 0.66rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    color: var(--text-muted);
-  }
-
-  .chain-stage .stage-name {
-    font-size: 0.84rem;
-    font-weight: 800;
-    line-height: 1.25;
-  }
-
-  .chain-stage[data-active="true"] {
-    background: var(--card-bg);
-    box-shadow: inset 0 0 0 1.5px var(--stage-accent, var(--blue));
-  }
-
-  .chain-stage[data-active="true"] .stage-index { color: var(--stage-accent, var(--blue)); }
-
-  .chain-arrow {
-    flex-shrink: 0;
+  .news-card .logo-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    color: var(--text-muted);
-    font-size: 1rem;
-  }
-
-  .stage-detail {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 16px 18px;
-  }
-
-  .stage-detail .stage-detail-title {
-    margin: 0 0 6px;
-    font-size: 0.92rem;
     font-weight: 800;
+    font-size: 1.1rem;
+    margin-bottom: 14px;
   }
 
-  .stage-detail .stage-detail-desc {
-    margin: 0 0 12px;
+  .news-card .placeholder-flag {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border: 1px dashed var(--glass-border);
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-bottom: 10px;
+  }
+
+  .news-card .company-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 2px;
+  }
+
+  .news-card .period-tag {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    margin: 0 0 14px;
+  }
+
+  .news-card .headline-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent-strong);
+    margin: 0 0 2px;
+    letter-spacing: -0.01em;
+  }
+
+  .news-card .headline-label {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+  }
+
+  .news-card .kpi-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .news-card .kpi-list li {
     font-size: 0.84rem;
     color: var(--text-secondary);
-    line-height: 1.5;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
   }
 
-  .stage-detail .metric-label {
-    display: block;
-    font-size: 0.64rem;
-    font-weight: 800;
+  .news-card .kpi-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .news-card .click-hint {
+    margin: 16px 0 0;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* detail table sub-scene */
+
+  .detail-panel { padding: 22px 26px; }
+
+  .detail-panel .detail-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .detail-panel .detail-title { font-size: 1.1rem; font-weight: 700; margin: 0; }
+
+  .detail-panel .detail-back {
+    font-family: inherit;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+    background: none;
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+
+  .detail-panel .detail-back:hover { color: var(--text-primary); border-color: var(--accent); }
+
+  .placeholder-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+
+  .placeholder-table th, .placeholder-table td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--glass-border);
+    vertical-align: top;
+  }
+
+  .placeholder-table th {
+    font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-muted);
-    margin-bottom: 6px;
+    font-weight: 700;
   }
 
-  @media (max-width: 768px) {
-    .value-chain { flex-direction: column; }
-    .chain-arrow { width: auto; height: 16px; transform: rotate(90deg); }
-    .chain-stage { flex-direction: row; align-items: center; justify-content: space-between; }
+  .placeholder-table td { color: var(--text-secondary); line-height: 1.45; }
+  .placeholder-table td.col-topic { color: var(--text-primary); font-weight: 600; white-space: nowrap; }
+  .placeholder-table td em { color: var(--text-muted); font-style: italic; }
+
+  /* ============ Act 2: AI Compute Landscape ============ */
+
+  .chart-placeholder {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* ---------- modules ---------- */
-
-  .modules-intro { margin: 32px 0 14px; }
-
-  .modules-intro h2 {
-    font-size: 1.1rem;
-    font-weight: 800;
+  .chart-placeholder .chart-title {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
     margin: 0 0 4px;
   }
 
-  .modules-intro p {
-    margin: 0;
-    font-size: 0.86rem;
+  .chart-placeholder .chart-flag {
+    font-size: 0.68rem;
+    color: var(--accent-strong);
+    margin: 0 0 14px;
+  }
+
+  .scatter-mock {
+    flex: 1;
+    position: relative;
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    background:
+      linear-gradient(to top, rgba(255,255,255,0.04) 1px, transparent 1px) 0 0 / 100% 20%,
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px) 0 0 / 20% 100%;
+  }
+
+  .scatter-mock .dot {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.7;
+  }
+
+  .scatter-mock .axis-label {
+    position: absolute;
+    font-size: 0.64rem;
     color: var(--text-muted);
-    max-width: 680px;
-    line-height: 1.5;
+    letter-spacing: 0.04em;
+  }
+  .scatter-mock .axis-label.x { bottom: -22px; left: 50%; transform: translateX(-50%); }
+  .scatter-mock .axis-label.y { left: -34px; top: 50%; transform: rotate(-90deg) translateX(50%); transform-origin: left center; }
+
+  .metric-stack { display: flex; flex-direction: column; gap: 12px; height: 100%; }
+
+  .metric-mini-card { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+  .metric-mini-card .metric-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 0 0 6px;
   }
 
-  .module-head {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 4px;
-  }
+  .metric-mini-card .metric-value { font-size: 1.35rem; font-weight: 800; margin: 0 0 2px; color: var(--text-primary); }
+  .metric-mini-card .metric-sub { font-size: 0.72rem; color: var(--text-muted); margin: 0; }
 
-  .module-num {
-    flex-shrink: 0;
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+  /* ============ Act 3: Dashboard ============ */
+
+  .kpi-row { display: flex; gap: 14px; height: 100%; }
+
+  .kpi-card { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; }
+  .kpi-card .kpi-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 6px; }
+  .kpi-card .kpi-value { font-size: 1.3rem; font-weight: 800; margin: 0; }
+  .kpi-card .kpi-delta { font-size: 0.7rem; margin: 4px 0 0; color: var(--green); }
+
+  .filter-mock {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    font-weight: 700;
+    gap: 8px;
+    font-size: 0.76rem;
     color: var(--text-muted);
   }
 
-  .placeholder-box {
-    margin-top: 6px;
-    border: 1.5px dashed var(--card-border);
-    border-radius: 12px;
-    padding: 30px 20px;
+  .filter-mock select {
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 6px 10px;
+  }
+
+  .bar-mock, .line-mock {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .bar-mock .bar {
+    flex: 1;
+    background: linear-gradient(to top, var(--accent), var(--accent-strong));
+    border-radius: 4px 4px 0 0;
+    opacity: 0.85;
+  }
+
+  .line-mock svg { width: 100%; height: 100%; }
+  .line-mock polyline { fill: none; stroke: var(--green); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .line-mock circle { fill: var(--green); }
+
+  /* ============ Act 4: Decision Support ============ */
+
+  .insight-card {
+    padding: 18px 22px;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
     gap: 8px;
-    text-align: center;
   }
 
-  .placeholder-box svg { color: var(--text-muted); opacity: 0.7; }
+  .insight-card .insight-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  .insight-card .insight-headline { font-size: 1rem; font-weight: 700; margin: 0; line-height: 1.35; }
+  .insight-card .insight-action { font-size: 0.84rem; color: var(--text-secondary); margin: 0; }
+  .insight-card .insight-action b { color: var(--text-primary); font-weight: 600; }
 
-  .placeholder-box .placeholder-title {
-    margin: 4px 0 0;
+  .confidence-tag {
+    flex-shrink: 0;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .confidence-tag.high { background: var(--green-soft); color: var(--green); }
+  .confidence-tag.medium { background: var(--amber-soft); color: var(--amber); }
+  .confidence-tag.low { background: var(--red-soft); color: var(--red); }
+
+  /* ============ placeholder text helper ============ */
+
+  .ph-note {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
+  /* ============ chrome: overview button, breadcrumb, back, mini-nav ============ */
+
+  .chrome-btn {
+    font-family: inherit;
     font-size: 0.82rem;
-    font-weight: 800;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 9px 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
 
-  .placeholder-box .placeholder-sub {
-    margin: 0;
-    font-size: 0.76rem;
-    color: var(--text-muted);
-    max-width: 460px;
-    line-height: 1.45;
+  .chrome-btn:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.12); }
+  .chrome-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .chrome-btn:disabled:hover { border-color: var(--glass-border); background: var(--glass-bg-strong); }
+
+  #overview-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 50;
   }
 
-  /* ---------- footer ---------- */
-
-  footer.page-footer {
-    margin-top: 36px;
-    padding-top: 26px;
-    border-top: 1px solid var(--border);
-    text-align: center;
+  #back-btn {
+    position: fixed;
+    top: 20px;
+    left: 158px;
+    z-index: 50;
   }
 
-  footer.page-footer .footnote {
-    margin: 0 0 18px;
-    font-size: 0.76rem;
-    color: var(--text-muted);
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.5;
-  }
-
-  .footer-links {
+  #breadcrumb {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
     display: flex;
     align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 4px 6px;
-    margin-bottom: 18px;
-  }
-
-  .gh-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 0.86rem;
-    padding: 6px 10px;
-    border-radius: 999px;
-  }
-
-  .gh-link:hover { color: var(--text-primary); background: var(--card-bg); }
-
-  .gh-link svg { fill: currentColor; flex-shrink: 0; }
-
-  .coming-soon-pill {
-    display: inline-flex;
-    align-items: center;
-    color: var(--text-muted);
+    gap: 6px;
     font-size: 0.78rem;
-    font-style: italic;
-    padding: 6px 10px;
-  }
-
-  .qr-image {
-    display: block;
-    width: 200px;
-    max-width: 100%;
-    height: auto;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px var(--shadow);
-    margin: 0 auto 8px;
-  }
-
-  .qr-caption {
-    font-size: 0.74rem;
     color: var(--text-muted);
-    margin: 0;
+    background: rgba(10, 10, 15, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    max-width: 70vw;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
-  @media (max-width: 480px) {
-    header.hero h1 { font-size: 1.4rem; }
-    .section { padding: 18px 16px 16px; }
+  #breadcrumb button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  #breadcrumb button:hover { color: var(--accent-strong); }
+  #breadcrumb .crumb-current { color: var(--text-primary); font-weight: 600; }
+  #breadcrumb .crumb-sep { color: var(--text-muted); opacity: 0.6; }
+
+  #mini-nav {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    gap: 6px;
+    background: rgba(10, 10, 15, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 6px;
+  }
+
+  #mini-nav button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  #mini-nav button:hover { color: var(--text-primary); }
+  #mini-nav button.active { background: var(--accent); color: #fff; }
+
+  #kbd-hint {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 50;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+  #kbd-hint kbd {
+    font-family: inherit;
+    font-size: 0.64rem;
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  #attribution {
+    position: fixed;
+    bottom: 24px;
+    left: 20px;
+    z-index: 50;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #attribution a {
+    color: var(--text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  #attribution a:hover { color: var(--accent-strong); }
+  #attribution svg { fill: currentColor; flex-shrink: 0; }
+
+  /* ============ mobile notice ============ */
+
+  #mobile-notice {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.92);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+  }
+
+  #mobile-notice .notice-box { max-width: 320px; }
+  #mobile-notice .notice-icon { font-size: 2rem; margin-bottom: 12px; }
+  #mobile-notice h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  #mobile-notice p { font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 18px; }
+  #mobile-notice button {
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    background: none;
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 899px) {
+    #mobile-notice { display: flex; }
   }
 </style>
 </head>
 <body>
-  <div class="app">
 
-    <header class="hero">
-      <h1>AI Compute &amp; Data Center Financial Analytics</h1>
-      <p class="tagline">A unified framework mapping the cloud infrastructure value chain, from compute providers to frontier model developers.</p>
-      <p class="byline">Yixuan Jing | fin-telligent series</p>
-    </header>
+  <div id="viewport">
+    <div id="canvas">
 
-    <section class="section" id="framework">
-      <h2>The Compute Value Chain</h2>
-      <p class="section-sub">Four layers, four different cost structures and margin profiles. Select a layer to see what drives its economics.</p>
+      <!-- ============ ACT 1: News Digest ============ -->
+      <div class="scene-el act-tile" id="act1" style="left:150px; top:150px; width:1000px; height:700px;">
+        <p class="act-eyebrow">Act 1</p>
+        <h2 class="act-title">News Digest</h2>
+        <p class="act-sub">Earnings-season snapshots, side by side. Click a card to open its source breakdown.</p>
+      </div>
 
-      <div class="value-chain" id="valueChain"></div>
-      <div class="stage-detail" id="stageDetail"></div>
-    </section>
+      <!-- cards row (act1 default view) -->
+      <div class="scene-el glass-card sub-view is-active news-card" id="meta-card"
+           style="left:220px; top:330px; width:400px; height:420px;" tabindex="0" role="button"
+           aria-label="Open META Q2 2026 detail">
+        <span class="placeholder-flag">Placeholder</span>
+        <div class="logo-avatar">M</div>
+        <p class="company-name">META</p>
+        <p class="period-tag">Q2 2026 &middot; Earnings Digest</p>
+        <p class="headline-number">$42.3B</p>
+        <p class="headline-label">Revenue &mdash; placeholder figure</p>
+        <ul class="kpi-list">
+          <li>KPI bullet 1 &mdash; placeholder metric</li>
+          <li>KPI bullet 2 &mdash; placeholder metric</li>
+          <li>KPI bullet 3 &mdash; placeholder metric</li>
+        </ul>
+        <p class="click-hint">&#8599; click to open source detail</p>
+      </div>
 
-    <div class="modules-intro">
-      <h2>Core Analysis Modules</h2>
-      <p>Three deep dives into the mechanics behind compute cost and return. Structure is in place; data and interactive charts are being layered in next.</p>
+      <div class="scene-el glass-card sub-view is-active news-card" id="amzn-card"
+           style="left:680px; top:330px; width:400px; height:420px;" tabindex="0" role="button"
+           aria-label="Open AMZN Q2 2026 detail">
+        <span class="placeholder-flag">Placeholder</span>
+        <div class="logo-avatar">A</div>
+        <p class="company-name">AMZN</p>
+        <p class="period-tag">Q2 2026 &middot; Earnings Digest</p>
+        <p class="headline-number">$168.1B</p>
+        <p class="headline-label">Revenue &mdash; placeholder figure</p>
+        <ul class="kpi-list">
+          <li>KPI bullet 1 &mdash; placeholder metric</li>
+          <li>KPI bullet 2 &mdash; placeholder metric</li>
+          <li>KPI bullet 3 &mdash; placeholder metric</li>
+        </ul>
+        <p class="click-hint">&#8599; click to open source detail</p>
+      </div>
+
+      <!-- sub-scene detail tables (hidden until their card is clicked) -->
+      <div class="scene-el glass-card sub-view detail-panel" id="meta-table"
+           style="left:190px; top:260px; width:620px; height:560px;">
+        <div class="detail-header">
+          <h3 class="detail-title">META &middot; Q2 2026 Source Detail</h3>
+          <button type="button" class="detail-back" data-goto="act1">&larr; Back to cards</button>
+        </div>
+        <table class="placeholder-table">
+          <thead><tr><th>Topic</th><th>Key Notes</th><th>Original Text</th></tr></thead>
+          <tbody>
+            <tr><td class="col-topic">Revenue</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            <tr><td class="col-topic">Ad Impressions</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            <tr><td class="col-topic">Capex Guidance</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            <tr><td class="col-topic">Headcount</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scene-el glass-card sub-view detail-panel" id="amzn-table"
+           style="left:190px; top:260px; width:620px; height:560px;">
+        <div class="detail-header">
+          <h3 class="detail-title">AMZN &middot; Q2 2026 Source Detail</h3>
+          <button type="button" class="detail-back" data-goto="act1">&larr; Back to cards</button>
+        </div>
+        <table class="placeholder-table">
+          <thead><tr><th>Topic</th><th>Key Notes</th><th>Original Text</th></tr></thead>
+          <tbody>
+            <tr><td class="col-topic">AWS Revenue</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            <tr><td class="col-topic">Operating Margin</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            <tr><td class="col-topic">Capex Guidance</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            <tr><td class="col-topic">Fulfillment</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ============ ACT 2: AI Compute Landscape ============ -->
+      <div class="scene-el act-tile" id="act2" style="left:1450px; top:150px; width:1000px; height:700px;">
+        <p class="act-eyebrow">Act 2</p>
+        <h2 class="act-title">AI Compute Landscape</h2>
+        <p class="act-sub">Price-performance across the model market, and where ROI is trending.</p>
+      </div>
+
+      <div class="scene-el glass-card chart-placeholder" id="act2-chart" style="left:1500px; top:290px; width:560px; height:480px;">
+        <p class="chart-title">LLM Price / Performance</p>
+        <p class="chart-flag ph-note">Placeholder &mdash; scatter plot, data pending</p>
+        <div class="scatter-mock" id="scatter-mock">
+          <span class="axis-label x">Cost per 1M tokens &rarr;</span>
+          <span class="axis-label y">Benchmark score &rarr;</span>
+        </div>
+      </div>
+
+      <div class="scene-el metric-stack" id="act2-metrics" style="left:2090px; top:290px; width:300px; height:480px;">
+        <div class="glass-card metric-mini-card">
+          <p class="metric-label ph-note">Placeholder Metric</p>
+          <p class="metric-value">$0.42</p>
+          <p class="metric-sub">Avg. cost / 1M tokens</p>
+        </div>
+        <div class="glass-card metric-mini-card">
+          <p class="metric-label ph-note">Placeholder Metric</p>
+          <p class="metric-value">312ms</p>
+          <p class="metric-sub">Avg. inference latency</p>
+        </div>
+        <div class="glass-card metric-mini-card">
+          <p class="metric-label ph-note">Placeholder Metric</p>
+          <p class="metric-value">3.1x</p>
+          <p class="metric-sub">Blended AI ROI multiple</p>
+        </div>
+      </div>
+
+      <!-- ============ ACT 3: Dashboard ============ -->
+      <div class="scene-el act-tile" id="act3" style="left:150px; top:1000px; width:1000px; height:700px;">
+        <p class="act-eyebrow">Act 3</p>
+        <h2 class="act-title">Dashboard</h2>
+        <p class="act-sub">Live-view KPIs and trend charts. Filter placeholder shown, not yet wired to data.</p>
+      </div>
+
+      <div class="scene-el filter-mock" id="act3-filter" style="left:900px; top:1030px; width:250px; height:32px;">
+        <label for="act3-filter-select">View:</label>
+        <select id="act3-filter-select" disabled>
+          <option>All Segments &mdash; placeholder</option>
+          <option>Compute &mdash; placeholder</option>
+          <option>Storage &mdash; placeholder</option>
+        </select>
+      </div>
+
+      <div class="scene-el kpi-row" id="act3-kpis" style="left:200px; top:1150px; width:900px; height:120px;">
+        <div class="glass-card kpi-card">
+          <p class="kpi-label ph-note">Placeholder</p>
+          <p class="kpi-value">$18.4M</p>
+          <p class="kpi-delta">+6.2% vs. prior period</p>
+        </div>
+        <div class="glass-card kpi-card">
+          <p class="kpi-label ph-note">Placeholder</p>
+          <p class="kpi-value">78%</p>
+          <p class="kpi-delta">+3.1pt utilization</p>
+        </div>
+        <div class="glass-card kpi-card">
+          <p class="kpi-label ph-note">Placeholder</p>
+          <p class="kpi-value">$0.031</p>
+          <p class="kpi-delta">-9% cost / inference</p>
+        </div>
+        <div class="glass-card kpi-card">
+          <p class="kpi-label ph-note">Placeholder</p>
+          <p class="kpi-value">142</p>
+          <p class="kpi-delta">models tracked</p>
+        </div>
+      </div>
+
+      <div class="scene-el glass-card" id="act3-bar" style="left:200px; top:1300px; width:430px; height:350px;">
+        <p class="chart-title" style="padding:16px 16px 0;">Placeholder &mdash; Bar Chart</p>
+        <div class="bar-mock">
+          <div class="bar" style="height:42%;"></div>
+          <div class="bar" style="height:68%;"></div>
+          <div class="bar" style="height:55%;"></div>
+          <div class="bar" style="height:81%;"></div>
+          <div class="bar" style="height:36%;"></div>
+          <div class="bar" style="height:64%;"></div>
+        </div>
+      </div>
+
+      <div class="scene-el glass-card" id="act3-line" style="left:660px; top:1300px; width:430px; height:350px;">
+        <p class="chart-title" style="padding:16px 16px 0;">Placeholder &mdash; Line Chart</p>
+        <div class="line-mock">
+          <svg viewBox="0 0 400 260" preserveAspectRatio="none">
+            <polyline points="10,220 80,160 150,190 220,100 290,130 370,50"></polyline>
+            <circle cx="10" cy="220" r="4"></circle>
+            <circle cx="80" cy="160" r="4"></circle>
+            <circle cx="150" cy="190" r="4"></circle>
+            <circle cx="220" cy="100" r="4"></circle>
+            <circle cx="290" cy="130" r="4"></circle>
+            <circle cx="370" cy="50" r="4"></circle>
+          </svg>
+        </div>
+      </div>
+
+      <!-- ============ ACT 4: Decision Support ============ -->
+      <div class="scene-el act-tile" id="act4" style="left:1450px; top:1000px; width:1000px; height:700px;">
+        <p class="act-eyebrow">Act 4</p>
+        <h2 class="act-title">Decision Support</h2>
+        <p class="act-sub">Insight, recommended action, and how confident the model is in each call.</p>
+      </div>
+
+      <div class="scene-el glass-card insight-card" id="act4-card1" style="left:1520px; top:1140px; width:860px; height:150px;">
+        <div class="insight-row">
+          <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
+          <span class="confidence-tag high">High Confidence</span>
+        </div>
+        <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
+      </div>
+
+      <div class="scene-el glass-card insight-card" id="act4-card2" style="left:1520px; top:1320px; width:860px; height:150px;">
+        <div class="insight-row">
+          <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
+          <span class="confidence-tag medium">Medium Confidence</span>
+        </div>
+        <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
+      </div>
+
+      <div class="scene-el glass-card insight-card" id="act4-card3" style="left:1520px; top:1500px; width:860px; height:150px;">
+        <div class="insight-row">
+          <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
+          <span class="confidence-tag low">Low Confidence</span>
+        </div>
+        <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
+      </div>
+
     </div>
+  </div>
 
-    <section class="section module" id="module-1">
-      <div class="module-head">
-        <span class="module-num">01</span>
-        <div>
-          <h2>Compute Allocation Efficiency</h2>
-          <p class="section-sub">GPU utilization and the training-versus-inference workload mix, and what each implies for effective cost per unit of output.</p>
-        </div>
-      </div>
-      <div class="chip-row">
-        <span class="chip c-blue">Utilization Rate</span>
-        <span class="chip c-green">Training / Inference Mix</span>
-        <span class="chip c-purple">Effective Cost per Token</span>
-      </div>
-      <div class="placeholder-box">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 15l4-5 3 3 5-7"></path></svg>
-        <p class="placeholder-title">Analysis coming soon</p>
-        <p class="placeholder-sub">Utilization curves and workload-mix breakdowns will populate this section.</p>
-        <canvas id="chart-module-1" hidden aria-hidden="true"></canvas>
-      </div>
-    </section>
+  <!-- ============ chrome ============ -->
+  <button type="button" class="chrome-btn" id="overview-btn">&#128301; Overview</button>
+  <button type="button" class="chrome-btn" id="back-btn">&larr; Back</button>
+  <nav id="breadcrumb" aria-label="Breadcrumb"></nav>
+  <nav id="mini-nav" aria-label="Scene navigation"></nav>
+  <div id="kbd-hint">
+    <div><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move between acts</div>
+    <div><kbd>Esc</kbd> zoom out one level</div>
+  </div>
+  <div id="attribution">
+    <span>Yixuan Jing &middot; fin-telligent series</span>
+    <a href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+      <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+      GitHub
+    </a>
+  </div>
 
-    <section class="section module" id="module-2">
-      <div class="module-head">
-        <span class="module-num">02</span>
-        <div>
-          <h2>Memory-Bandwidth Wall &amp; VRAM Fragmentation</h2>
-          <p class="section-sub">How memory bandwidth, not raw compute, becomes the binding constraint at scale, and what fragmented VRAM allocation costs in practice.</p>
-        </div>
-      </div>
-      <div class="chip-row">
-        <span class="chip c-orange">Memory Bandwidth</span>
-        <span class="chip c-amber">VRAM Fragmentation</span>
-        <span class="chip c-blue">Effective Throughput</span>
-      </div>
-      <div class="placeholder-box">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
-        <p class="placeholder-title">Analysis coming soon</p>
-        <p class="placeholder-sub">Bandwidth ceiling modeling and fragmentation cost dynamics will populate this section.</p>
-        <canvas id="chart-module-2" hidden aria-hidden="true"></canvas>
-      </div>
-    </section>
-
-    <section class="section module" id="module-3">
-      <div class="module-head">
-        <span class="module-num">03</span>
-        <div>
-          <h2>Long-Context Scaling &amp; Consumption Economics</h2>
-          <p class="section-sub">How cost and latency scale with context length, and what that means for consumption-based pricing and return profiles at the application layer.</p>
-        </div>
-      </div>
-      <div class="chip-row">
-        <span class="chip c-purple">Context Scaling</span>
-        <span class="chip c-green">Consumption Pricing</span>
-        <span class="chip c-orange">Return Profile</span>
-      </div>
-      <div class="placeholder-box">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"></path><path d="M10 19V5"></path><path d="M16 19v-7"></path><path d="M22 19v-3"></path></svg>
-        <p class="placeholder-title">Analysis coming soon</p>
-        <p class="placeholder-sub">Context-length scaling curves and consumption-based return modeling will populate this section.</p>
-        <canvas id="chart-module-3" hidden aria-hidden="true"></canvas>
-      </div>
-    </section>
-
-    <footer class="page-footer">
-      <p class="footnote">Framework demonstration. Module-level data, charts, and interactivity are being built out next.</p>
-      <div class="footer-links">
-        <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
-          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-          <span>github.com/yixuan116/fin-telligent</span>
-        </a>
-        <a class="gh-link" href="../price-volume-mix-waterfall/">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9"></path><path d="M10 19V5"></path><path d="M16 19v-9"></path></svg>
-          <span>More fin-telligent demos: Price / Volume / Mix Waterfall</span>
-        </a>
-        <span class="coming-soon-pill">Video walkthrough (coming soon)</span>
-      </div>
-      <img src="../price-volume-mix-waterfall/Pictures/Linkedin.JPG" alt="Yixuan Jing's LinkedIn card with QR code" class="qr-image">
-      <p class="qr-caption">LinkedIn &amp; GitHub</p>
-    </footer>
-
+  <div id="mobile-notice">
+    <div class="notice-box">
+      <div class="notice-icon">&#128421;&#65039;</div>
+      <h2>Best viewed on desktop</h2>
+      <p>This is a zoom-based presentation built for larger screens (1440px+). You can still explore it here, but the zoom transitions will feel cramped on a small viewport.</p>
+      <button type="button" id="mobile-dismiss">Continue anyway</button>
+    </div>
   </div>
 
 <script>
-  var STAGES = [
-    {
-      name: 'Chip &amp; Accelerator Manufacturers',
-      accent: 'var(--blue)',
-      accentClass: 'c-blue',
-      desc: 'Design and fabricate the GPUs, custom silicon, and networking hardware that compute capacity is built on.',
-      metrics: ['Capex per Unit', 'Fab Utilization', 'Gross Margin']
-    },
-    {
-      name: 'Cloud Compute Providers',
-      accent: 'var(--green)',
-      accentClass: 'c-green',
-      desc: 'Operate the data centers, racks, and power infrastructure that turn chips into rentable compute capacity.',
-      metrics: ['GPU Utilization Rate', 'Cost-to-Serve', 'Depreciation Schedule']
-    },
-    {
-      name: 'Frontier Model Developers',
-      accent: 'var(--purple)',
-      accentClass: 'c-purple',
-      desc: 'Buy or lease compute to train and serve large models, trading capex intensity for inference-side margin.',
-      metrics: ['Training Cost per Run', 'Inference Unit Economics', 'Compute-to-Revenue Ratio']
-    },
-    {
-      name: 'Application Layer',
-      accent: 'var(--orange)',
-      accentClass: 'c-orange',
-      desc: 'Build products on top of model APIs, competing on distribution and unit economics rather than infrastructure.',
-      metrics: ['Customer Acquisition Cost', 'Gross Margin per Seat', 'Net Revenue Retention']
-    }
-  ];
+  var canvas = document.getElementById('canvas');
+  var viewport = document.getElementById('viewport');
+
+  /* ============ scene registry ============
+     Every scene resolves to one DOM element used purely to read its
+     canvas-relative box (offsetLeft/Top/Width/Height are unaffected by
+     the transform we apply to #canvas, so they stay reliable zoom targets
+     even while a scene is faded out via opacity/visibility). */
+  var SCENES = {
+    overview: { parent: null, label: 'Overview', order: 0 },
+    act1: { parent: 'overview', label: 'Act 1 · News Digest', el: 'act1', order: 1 },
+    act2: { parent: 'overview', label: 'Act 2 · AI Compute Landscape', el: 'act2', order: 2 },
+    act3: { parent: 'overview', label: 'Act 3 · Dashboard', el: 'act3', order: 3 },
+    act4: { parent: 'overview', label: 'Act 4 · Decision Support', el: 'act4', order: 4 },
+    act1_meta: { parent: 'act1', label: 'META Detail', el: 'meta-table', view: { host: 'act1', show: 'meta-table', hide: ['meta-card', 'amzn-card', 'amzn-table'] } },
+    act1_amzn: { parent: 'act1', label: 'AMZN Detail', el: 'amzn-table', view: { host: 'act1', show: 'amzn-table', hide: ['meta-card', 'amzn-card', 'meta-table'] } }
+  };
+
+  var MAIN_SEQUENCE = ['overview', 'act1', 'act2', 'act3', 'act4'];
+  var currentScene = 'overview';
 
   function byId(id) { return document.getElementById(id); }
 
-  function renderChain() {
-    var chain = byId('valueChain');
-    chain.innerHTML = '';
-    STAGES.forEach(function (stage, i) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'chain-stage';
-      btn.style.setProperty('--stage-accent', stage.accent);
-      btn.setAttribute('data-stage', String(i));
-      btn.setAttribute('aria-pressed', i === activeStage ? 'true' : 'false');
-      if (i === activeStage) btn.setAttribute('data-active', 'true');
-      btn.innerHTML = '<span class="stage-index">STAGE ' + (i + 1) + '</span><span class="stage-name">' + stage.name + '</span>';
-      btn.addEventListener('click', function () { setActiveStage(i); });
-      chain.appendChild(btn);
-      if (i < STAGES.length - 1) {
-        var arrow = document.createElement('span');
-        arrow.className = 'chain-arrow';
-        arrow.setAttribute('aria-hidden', 'true');
-        arrow.textContent = '→';
-        chain.appendChild(arrow);
+  function resetAct1View() {
+    ['meta-card', 'amzn-card'].forEach(function (id) { byId(id).classList.add('is-active'); });
+    ['meta-table', 'amzn-table'].forEach(function (id) { byId(id).classList.remove('is-active'); });
+  }
+
+  function applyView(sceneKey) {
+    var scene = SCENES[sceneKey];
+    if (scene.view) {
+      byId(scene.view.show).classList.add('is-active');
+      scene.view.hide.forEach(function (id) { byId(id).classList.remove('is-active'); });
+    } else if (sceneKey !== 'act1_meta' && sceneKey !== 'act1_amzn') {
+      // leaving a sub-scene (or navigating anywhere else): collapse act1 back to its card view
+      resetAct1View();
+    }
+  }
+
+  function rectFor(sceneKey) {
+    if (sceneKey === 'overview') {
+      return { left: 0, top: 0, width: canvas.offsetWidth, height: canvas.offsetHeight };
+    }
+    var el = byId(SCENES[sceneKey].el);
+    return { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight };
+  }
+
+  function zoomToRect(rect) {
+    var vw = viewport.clientWidth;
+    var vh = viewport.clientHeight;
+    var padding = 0.88;
+    var scale = Math.min(vw / rect.width, vh / rect.height) * padding;
+    var centerX = rect.left + rect.width / 2;
+    var centerY = rect.top + rect.height / 2;
+    var tx = vw / 2 - centerX * scale;
+    var ty = vh / 2 - centerY * scale;
+    canvas.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + scale + ')';
+  }
+
+  function renderBreadcrumb(sceneKey) {
+    var trail = [];
+    var k = sceneKey;
+    while (k) { trail.unshift(k); k = SCENES[k].parent; }
+    var crumb = byId('breadcrumb');
+    crumb.innerHTML = '';
+    trail.forEach(function (key, i) {
+      if (i > 0) {
+        var sep = document.createElement('span');
+        sep.className = 'crumb-sep';
+        sep.textContent = '›';
+        crumb.appendChild(sep);
+      }
+      if (i === trail.length - 1) {
+        var span = document.createElement('span');
+        span.className = 'crumb-current';
+        span.textContent = SCENES[key].label;
+        crumb.appendChild(span);
+      } else {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = SCENES[key].label;
+        btn.addEventListener('click', function () { goTo(key); });
+        crumb.appendChild(btn);
       }
     });
   }
 
-  function renderDetail() {
-    var stage = STAGES[activeStage];
-    var detail = byId('stageDetail');
-    var chipsHtml = stage.metrics.map(function (m) {
-      return '<span class="chip ' + stage.accentClass + '">' + m + '</span>';
-    }).join('');
-    detail.innerHTML =
-      '<p class="stage-detail-title">' + stage.name + '</p>' +
-      '<p class="stage-detail-desc">' + stage.desc + '</p>' +
-      '<span class="metric-label">Key Financial Metrics</span>' +
-      '<div class="chip-row" style="margin-bottom:0;">' + chipsHtml + '</div>';
+  function renderMiniNav(sceneKey) {
+    var nav = byId('mini-nav');
+    nav.innerHTML = '';
+    var activeTop = sceneKey;
+    while (SCENES[activeTop].parent && SCENES[activeTop].parent !== 'overview' && activeTop !== 'overview') {
+      activeTop = SCENES[activeTop].parent;
+    }
+    MAIN_SEQUENCE.forEach(function (key) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = key === 'overview' ? 'Overview' : SCENES[key].label.split('·')[0].trim();
+      if (key === activeTop || (key === 'overview' && sceneKey === 'overview')) btn.classList.add('active');
+      btn.addEventListener('click', function () { goTo(key); });
+      nav.appendChild(btn);
+    });
   }
 
-  var activeStage = 0;
-
-  function setActiveStage(i) {
-    activeStage = i;
-    renderChain();
-    renderDetail();
+  function updateBackButton(sceneKey) {
+    byId('back-btn').disabled = !SCENES[sceneKey].parent;
   }
 
-  setActiveStage(0);
+  function goTo(sceneKey) {
+    if (!SCENES[sceneKey]) return;
+    applyView(sceneKey);
+    // let the hidden->visible swap register before measuring, then zoom
+    requestAnimationFrame(function () {
+      zoomToRect(rectFor(sceneKey));
+    });
+    currentScene = sceneKey;
+    renderBreadcrumb(sceneKey);
+    renderMiniNav(sceneKey);
+    updateBackButton(sceneKey);
+  }
+
+  function goBack() {
+    var parent = SCENES[currentScene].parent;
+    if (parent) goTo(parent);
+  }
+
+  /* ============ wire up interactions ============ */
+
+  byId('overview-btn').addEventListener('click', function () { goTo('overview'); });
+  byId('back-btn').addEventListener('click', goBack);
+
+  byId('meta-card').addEventListener('click', function () { goTo('act1_meta'); });
+  byId('amzn-card').addEventListener('click', function () { goTo('act1_amzn'); });
+  ['meta-card', 'amzn-card'].forEach(function (id) {
+    byId(id).addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+    });
+  });
+
+  document.querySelectorAll('[data-goto]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      goTo(el.getAttribute('data-goto'));
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { goBack(); return; }
+    var idx = MAIN_SEQUENCE.indexOf(currentScene);
+    if (idx === -1) return; // inside a sub-scene; arrows do nothing there, Esc backs out
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      goTo(MAIN_SEQUENCE[Math.min(idx + 1, MAIN_SEQUENCE.length - 1)]);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goTo(MAIN_SEQUENCE[Math.max(idx - 1, 0)]);
+    }
+  });
+
+  window.addEventListener('resize', function () {
+    zoomToRect(rectFor(currentScene));
+  });
+
+  byId('mobile-dismiss').addEventListener('click', function () {
+    byId('mobile-notice').style.display = 'none';
+  });
+
+  /* ============ scatter mock: scatter a handful of dots once ============ */
+  (function seedScatter() {
+    var host = byId('scatter-mock');
+    var pts = [[12, 70], [22, 55], [30, 40], [38, 60], [45, 30], [52, 45], [60, 22], [68, 35], [75, 18], [85, 28], [18, 82], [58, 65]];
+    pts.forEach(function (p) {
+      var dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.left = p[0] + '%';
+      dot.style.top = (100 - p[1]) + '%';
+      host.appendChild(dot);
+    });
+  })();
+
+  /* ============ init ============ */
+  goTo('overview');
 </script>
 </body>
 </html>
