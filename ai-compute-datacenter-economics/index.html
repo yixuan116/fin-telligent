@@ -9,23 +9,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
-    --bg: #0a0a0f;
-    --glass-bg: rgba(255, 255, 255, 0.045);
-    --glass-bg-strong: rgba(255, 255, 255, 0.075);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --text-primary: #f2f3f7;
-    --text-secondary: #a6a9b8;
-    --text-muted: #6c6f80;
-    --accent: #3b82f6;
-    --accent-soft: rgba(59, 130, 246, 0.16);
-    --accent-strong: #60a5fa;
-    --green: #34d399;
-    --green-soft: rgba(52, 211, 153, 0.16);
-    --amber: #fbbf24;
-    --amber-soft: rgba(251, 191, 36, 0.16);
-    --red: #f87171;
-    --red-soft: rgba(248, 113, 113, 0.16);
-    --radius: 16px;
+    --bg: #f5f6f8;
+    --glass-bg: #ffffff;
+    --glass-bg-strong: rgba(0, 0, 0, 0.03);
+    --glass-border: rgba(0, 0, 0, 0.04);
+    --chrome-bg: rgba(255, 255, 255, 0.85);
+    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    --text-primary: #1a1a2e;
+    --text-secondary: #4a4a68;
+    --text-muted: #8b8ba0;
+    --accent: #4f5bd5;
+    --accent-soft: rgba(79, 91, 213, 0.1);
+    --accent-strong: #4f5bd5;
+    --accent-hover: #7b8cde;
+    --green: #0f9d68;
+    --green-soft: rgba(15, 157, 104, 0.12);
+    --amber: #b7791f;
+    --amber-soft: rgba(183, 121, 31, 0.12);
+    --red: #c0392b;
+    --red-soft: rgba(192, 57, 43, 0.12);
+    --radius: 12px;
     --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
@@ -49,8 +52,8 @@
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(600px 400px at 15% 10%, rgba(59, 130, 246, 0.08), transparent 60%),
-      radial-gradient(700px 500px at 85% 80%, rgba(52, 211, 153, 0.06), transparent 60%);
+      radial-gradient(600px 400px at 15% 10%, rgba(79, 91, 213, 0.05), transparent 60%),
+      radial-gradient(700px 500px at 85% 80%, rgba(123, 140, 222, 0.05), transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
@@ -83,7 +86,7 @@
   .act-tile {
     border: 1px solid var(--glass-border);
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.02);
+    background: transparent;
     padding: 28px 32px;
   }
 
@@ -113,8 +116,7 @@
 
   .glass-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--card-shadow);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     transition: opacity 400ms ease, visibility 400ms ease, border-color 200ms ease, background 200ms ease;
@@ -301,8 +303,8 @@
     border: 1px solid var(--glass-border);
     border-radius: 10px;
     background:
-      linear-gradient(to top, rgba(255,255,255,0.04) 1px, transparent 1px) 0 0 / 100% 20%,
-      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px) 0 0 / 20% 100%;
+      linear-gradient(to top, rgba(0,0,0,0.05) 1px, transparent 1px) 0 0 / 100% 20%,
+      linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px) 0 0 / 20% 100%;
   }
 
   .scatter-mock .dot {
@@ -375,7 +377,7 @@
 
   .bar-mock .bar {
     flex: 1;
-    background: linear-gradient(to top, var(--accent), var(--accent-strong));
+    background: linear-gradient(to top, var(--accent), var(--accent-hover));
     border-radius: 4px 4px 0 0;
     opacity: 0.85;
   }
@@ -431,9 +433,9 @@
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--text-primary);
-    background: var(--glass-bg-strong);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: var(--chrome-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 999px;
     padding: 9px 16px;
@@ -444,7 +446,7 @@
     transition: border-color 0.15s ease, background 0.15s ease;
   }
 
-  .chrome-btn:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.12); }
+  .chrome-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
   .chrome-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .chrome-btn:disabled:hover { border-color: var(--glass-border); background: var(--glass-bg-strong); }
 
@@ -473,9 +475,9 @@
     gap: 6px;
     font-size: 0.78rem;
     color: var(--text-muted);
-    background: rgba(10, 10, 15, 0.55);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--chrome-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 999px;
     padding: 8px 16px;
@@ -506,9 +508,9 @@
     z-index: 50;
     display: flex;
     gap: 6px;
-    background: rgba(10, 10, 15, 0.55);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--chrome-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 999px;
     padding: 6px;
@@ -579,9 +581,9 @@
     z-index: 50;
     width: 168px;
     text-align: center;
-    background: rgba(10, 10, 15, 0.72);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--chrome-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 14px;
     padding: 12px 14px 10px;
@@ -616,6 +618,7 @@
     border-radius: 6px;
     background: #fff;
     padding: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   #room-panel .room-url {
@@ -669,10 +672,10 @@
     z-index: 10;
   }
 
-  #remote-root .remote-header { text-align: center; color: #111827; }
+  #remote-root .remote-header { text-align: center; color: #1a1a2e; }
   #remote-root .remote-header h1 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
-  #remote-root .remote-header p { font-size: 0.82rem; color: #6b7280; margin: 0; }
-  #remote-root .remote-header .remote-room-code { font-weight: 700; color: #111827; font-family: ui-monospace, monospace; }
+  #remote-root .remote-header p { font-size: 0.82rem; color: #4a4a68; margin: 0; }
+  #remote-root .remote-header .remote-room-code { font-weight: 700; color: #1a1a2e; font-family: ui-monospace, monospace; }
 
   #remote-status {
     text-align: center;
@@ -693,7 +696,7 @@
     font-family: inherit;
     font-size: 1.15rem;
     font-weight: 700;
-    color: #111827;
+    color: #1a1a2e;
     background: #f3f4f6;
     border: 2px solid #e5e7eb;
     border-radius: 18px;
@@ -714,7 +717,7 @@
     color: #fff;
     flex: 0.8;
   }
-  .remote-btn.remote-btn-overview:active { background: var(--accent-strong); }
+  .remote-btn.remote-btn-overview:active { background: var(--accent-hover); }
 
   /* ============ mobile notice ============ */
 
@@ -723,7 +726,9 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(10, 10, 15, 0.92);
+    background: rgba(245, 246, 248, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     align-items: center;
     justify-content: center;
     text-align: center;
