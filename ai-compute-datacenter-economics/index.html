@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Compute &amp; Data Center Intelligence</title>
 <meta name="description" content="An interactive, zoom-based console for AI compute intelligence: earnings digests, the AI compute landscape, a live dashboard, and decision support, navigated by zooming in and out of one continuous canvas.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -568,6 +570,152 @@
   #attribution a:hover { color: var(--accent-strong); }
   #attribution svg { fill: currentColor; flex-shrink: 0; }
 
+  /* ============ remote control: host panel (desktop) ============ */
+
+  #room-panel {
+    position: fixed;
+    bottom: 92px;
+    right: 20px;
+    z-index: 50;
+    width: 168px;
+    text-align: center;
+    background: rgba(10, 10, 15, 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 12px 14px 10px;
+  }
+
+  #room-panel .room-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 4px;
+  }
+
+  #room-panel .room-code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin: 0 0 8px;
+    color: var(--text-primary);
+  }
+
+  #room-qr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0 8px;
+  }
+
+  #room-qr img, #room-qr canvas, #room-qr table {
+    border-radius: 6px;
+    background: #fff;
+    padding: 4px;
+  }
+
+  #room-panel .room-url {
+    font-size: 0.56rem;
+    color: var(--text-muted);
+    word-break: break-all;
+    line-height: 1.4;
+    margin: 0 0 8px;
+  }
+
+  #room-panel .room-status {
+    font-size: 0.62rem;
+    font-weight: 600;
+    margin: 0;
+    padding: 4px 0;
+    border-radius: 6px;
+  }
+
+  #room-panel .room-status.waiting { color: var(--amber); }
+  #room-panel .room-status.connected { color: var(--green); }
+  #room-panel .room-status.unavailable { color: var(--text-muted); }
+
+  /* ============ remote control: mobile controller UI ============ */
+
+  #remote-root { display: none; }
+
+  body.remote-mode { background: #ffffff; }
+
+  body.remote-mode #viewport,
+  body.remote-mode #overview-btn,
+  body.remote-mode #back-btn,
+  body.remote-mode #breadcrumb,
+  body.remote-mode #mini-nav,
+  body.remote-mode #kbd-hint,
+  body.remote-mode #attribution,
+  body.remote-mode #room-panel,
+  body.remote-mode #mobile-notice {
+    display: none !important;
+  }
+
+  body.remote-mode::before { display: none !important; }
+
+  body.remote-mode #remote-root {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: fixed;
+    inset: 0;
+    padding: 24px;
+    background: #ffffff;
+    z-index: 10;
+  }
+
+  #remote-root .remote-header { text-align: center; color: #111827; }
+  #remote-root .remote-header h1 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
+  #remote-root .remote-header p { font-size: 0.82rem; color: #6b7280; margin: 0; }
+  #remote-root .remote-header .remote-room-code { font-weight: 700; color: #111827; font-family: ui-monospace, monospace; }
+
+  #remote-status {
+    text-align: center;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  #remote-status.connecting { color: #92400e; background: #fef3c7; }
+  #remote-status.connected { color: #065f46; background: #d1fae5; }
+  #remote-status.disconnected { color: #991b1b; background: #fee2e2; }
+
+  .remote-btn-stack { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+
+  .remote-btn {
+    flex: 1;
+    min-height: 64px;
+    font-family: inherit;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #111827;
+    background: #f3f4f6;
+    border: 2px solid #e5e7eb;
+    border-radius: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s ease;
+  }
+
+  .remote-btn:active { background: #e5e7eb; }
+
+  .remote-btn.remote-btn-overview {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    flex: 0.8;
+  }
+  .remote-btn.remote-btn-overview:active { background: var(--accent-strong); }
+
   /* ============ mobile notice ============ */
 
   #mobile-notice {
@@ -844,6 +992,29 @@
     </div>
   </div>
 
+  <!-- ============ remote control: host panel (desktop only) ============ -->
+  <div id="room-panel">
+    <p class="room-label">Remote Control</p>
+    <p class="room-code" id="roomCodeDisplay">----</p>
+    <div id="room-qr"></div>
+    <p class="room-url" id="roomUrlDisplay"></p>
+    <p class="room-status waiting" id="roomStatusDisplay">Waiting for remote&hellip;</p>
+  </div>
+
+  <!-- ============ remote control: mobile controller UI (shown when ?remote=XXXX is present) ============ -->
+  <div id="remote-root">
+    <div class="remote-header">
+      <h1>Presentation Remote</h1>
+      <p>Room <span class="remote-room-code" id="remoteRoomCode">----</span></p>
+    </div>
+    <div id="remote-status" class="connecting">Connecting&hellip;</div>
+    <div class="remote-btn-stack">
+      <button type="button" class="remote-btn" id="remotePrev">&larr; Previous</button>
+      <button type="button" class="remote-btn" id="remoteNext">Next &rarr;</button>
+      <button type="button" class="remote-btn remote-btn-overview" id="remoteOverviewBtn">&#128301; Overview</button>
+    </div>
+  </div>
+
 <script>
   var canvas = document.getElementById('canvas');
   var viewport = document.getElementById('viewport');
@@ -971,6 +1142,18 @@
     if (parent) goTo(parent);
   }
 
+  function goNext() {
+    var idx = MAIN_SEQUENCE.indexOf(currentScene);
+    if (idx === -1) return; // inside a sub-scene; next/prev do nothing there
+    goTo(MAIN_SEQUENCE[Math.min(idx + 1, MAIN_SEQUENCE.length - 1)]);
+  }
+
+  function goPrev() {
+    var idx = MAIN_SEQUENCE.indexOf(currentScene);
+    if (idx === -1) return;
+    goTo(MAIN_SEQUENCE[Math.max(idx - 1, 0)]);
+  }
+
   /* ============ wire up interactions ============ */
 
   byId('overview-btn').addEventListener('click', function () { goTo('overview'); });
@@ -993,15 +1176,8 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') { goBack(); return; }
-    var idx = MAIN_SEQUENCE.indexOf(currentScene);
-    if (idx === -1) return; // inside a sub-scene; arrows do nothing there, Esc backs out
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      goTo(MAIN_SEQUENCE[Math.min(idx + 1, MAIN_SEQUENCE.length - 1)]);
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      goTo(MAIN_SEQUENCE[Math.max(idx - 1, 0)]);
-    }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goPrev(); }
   });
 
   window.addEventListener('resize', function () {
@@ -1025,8 +1201,114 @@
     });
   })();
 
+  /* ============ remote control (PeerJS) ============
+     Desktop with no ?remote param acts as the host: it picks a 4-digit
+     room code, opens a PeerJS peer at "prezi-demo-<code>", and applies
+     incoming {action:'next'|'prev'|'overview'} commands via the same
+     goNext/goPrev/goTo used by the keyboard. A phone visiting the same
+     URL with ?remote=<code> renders a completely different, white,
+     button-only UI (toggled via body.remote-mode in CSS) and just sends
+     those action messages back over the peer connection -- no server. */
+
+  function handleRemoteCommand(data) {
+    if (!data || !data.action) return;
+    if (data.action === 'next') goNext();
+    else if (data.action === 'prev') goPrev();
+    else if (data.action === 'overview') goTo('overview');
+  }
+
+  function setRoomStatus(connectedCount) {
+    var el = byId('roomStatusDisplay');
+    if (connectedCount > 0) {
+      el.textContent = connectedCount + ' remote' + (connectedCount > 1 ? 's' : '') + ' connected';
+      el.className = 'room-status connected';
+    } else {
+      el.textContent = 'Waiting for remote…';
+      el.className = 'room-status waiting';
+    }
+  }
+
+  function initRemoteHost() {
+    var roomCode = String(Math.floor(1000 + Math.random() * 9000));
+    byId('roomCodeDisplay').textContent = roomCode;
+    var remoteUrl = window.location.origin + window.location.pathname + '?remote=' + roomCode;
+    byId('roomUrlDisplay').textContent = remoteUrl;
+
+    if (typeof QRCode !== 'undefined') {
+      try {
+        new QRCode(byId('room-qr'), { text: remoteUrl, width: 112, height: 112, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+      } catch (e) { /* QR render failed -- the URL text above still works as a fallback */ }
+    }
+
+    if (typeof Peer === 'undefined') {
+      var statusEl = byId('roomStatusDisplay');
+      statusEl.textContent = 'Remote control unavailable';
+      statusEl.className = 'room-status unavailable';
+      return;
+    }
+
+    var connections = [];
+    setRoomStatus(0);
+
+    var peer = new Peer('prezi-demo-' + roomCode);
+    peer.on('connection', function (conn) {
+      connections.push(conn);
+      conn.on('data', handleRemoteCommand);
+      conn.on('open', function () { setRoomStatus(connections.length); });
+      conn.on('close', function () {
+        connections = connections.filter(function (c) { return c !== conn; });
+        setRoomStatus(connections.length);
+      });
+    });
+    peer.on('error', function (err) {
+      var statusEl = byId('roomStatusDisplay');
+      statusEl.textContent = 'Remote control unavailable';
+      statusEl.className = 'room-status unavailable';
+      if (window.console) console.warn('PeerJS host error:', err);
+    });
+  }
+
+  function setRemoteStatus(state) {
+    var el = byId('remote-status');
+    el.className = state;
+    el.textContent = state === 'connecting' ? 'Connecting…' : state === 'connected' ? 'Connected' : 'Disconnected — reopen this link';
+  }
+
+  function initRemoteClient(roomCode) {
+    byId('remoteRoomCode').textContent = roomCode;
+    setRemoteStatus('connecting');
+
+    if (typeof Peer === 'undefined') { setRemoteStatus('disconnected'); return; }
+
+    var conn = null;
+    function send(action) { if (conn && conn.open) conn.send({ action: action }); }
+
+    var myPeer = new Peer();
+    myPeer.on('open', function () {
+      conn = myPeer.connect('prezi-demo-' + roomCode);
+      conn.on('open', function () { setRemoteStatus('connected'); });
+      conn.on('close', function () { setRemoteStatus('disconnected'); });
+      conn.on('error', function () { setRemoteStatus('disconnected'); });
+    });
+    myPeer.on('error', function (err) {
+      setRemoteStatus('disconnected');
+      if (window.console) console.warn('PeerJS client error:', err);
+    });
+
+    byId('remotePrev').addEventListener('click', function () { send('prev'); });
+    byId('remoteNext').addEventListener('click', function () { send('next'); });
+    byId('remoteOverviewBtn').addEventListener('click', function () { send('overview'); });
+  }
+
   /* ============ init ============ */
-  goTo('overview');
+  var REMOTE_ROOM_CODE = new URLSearchParams(window.location.search).get('remote');
+  if (REMOTE_ROOM_CODE) {
+    document.body.classList.add('remote-mode');
+    initRemoteClient(REMOTE_ROOM_CODE);
+  } else {
+    goTo('overview');
+    initRemoteHost();
+  }
 </script>
 </body>
 </html>
