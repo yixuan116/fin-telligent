@@ -4,31 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Compute &amp; Data Center Intelligence</title>
-<meta name="description" content="An interactive, zoom-based console for AI compute intelligence: earnings digests, the AI compute landscape, a live dashboard, and decision support, navigated by zooming in and out of one continuous canvas.">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<meta name="description" content="Four data-driven views of the AI compute market: earnings digests, the AI compute pricing landscape, a live dashboard, and decision support.">
 <style>
   :root {
-    --bg: #f5f6f8;
-    --glass-bg: #ffffff;
-    --glass-bg-strong: rgba(0, 0, 0, 0.03);
-    --glass-border: rgba(0, 0, 0, 0.04);
-    --chrome-bg: rgba(255, 255, 255, 0.85);
-    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    --text-primary: #1a1a2e;
-    --text-secondary: #4a4a68;
-    --text-muted: #8b8ba0;
-    --accent: #4f5bd5;
-    --accent-soft: rgba(79, 91, 213, 0.1);
-    --accent-strong: #4f5bd5;
-    --accent-hover: #7b8cde;
-    --green: #0f9d68;
-    --green-soft: rgba(15, 157, 104, 0.12);
-    --amber: #b7791f;
-    --amber-soft: rgba(183, 121, 31, 0.12);
-    --red: #c0392b;
-    --red-soft: rgba(192, 57, 43, 0.12);
-    --radius: 12px;
+    --bg: #1a1a2e;
+    --glass-bg: #22223f;
+    --glass-bg-strong: #272749;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --text-primary: #f5f5fa;
+    --text-secondary: #a8a8c0;
+    --text-muted: #74748f;
+    --accent: #4dabf7;
+    --accent-soft: rgba(77, 171, 247, 0.14);
+    --accent-strong: #74c0fc;
+    --accent-hover: #74c0fc;
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, 0.14);
+    --amber: #fbbf24;
+    --amber-soft: rgba(251, 191, 36, 0.14);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.14);
+    --radius: 16px;
     --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
@@ -37,80 +34,62 @@
   html, body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
     background: var(--bg);
     color: var(--text-primary);
     font-family: var(--font);
-    overflow: hidden;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* background texture: soft radial glows so the empty canvas space isn't dead flat */
+  /* background texture: soft radial glows so the flat dark bg isn't dead flat */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(600px 400px at 15% 10%, rgba(79, 91, 213, 0.05), transparent 60%),
-      radial-gradient(700px 500px at 85% 80%, rgba(123, 140, 222, 0.05), transparent 60%);
+      radial-gradient(700px 500px at 15% 0%, rgba(77, 171, 247, 0.06), transparent 60%),
+      radial-gradient(800px 600px at 85% 40%, rgba(52, 211, 153, 0.05), transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
 
-  /* ============ viewport + canvas ============ */
-
-  #viewport {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
+  #page {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 56px 24px 40px;
   }
 
-  #canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 2600px;
-    height: 1900px;
-    transform-origin: 0 0;
-    transition: transform 600ms cubic-bezier(0.65, 0, 0.35, 1);
-    will-change: transform;
+  /* ============ page header ============ */
+
+  .site-header { margin-bottom: 8px; padding-bottom: 40px; border-bottom: 1px solid var(--glass-border); }
+  .site-header .site-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    margin: 0 0 10px;
   }
+  .site-header h1 { font-size: 2.1rem; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.01em; }
+  .site-header p { font-size: 1rem; color: var(--text-secondary); margin: 0; max-width: 680px; line-height: 1.6; }
 
-  .scene-el {
-    position: absolute;
-  }
+  /* ============ act sections ============ */
 
-  /* ============ act tiles ============ */
+  .act-section { padding: 48px 0; border-bottom: 1px solid var(--glass-border); }
+  .act-section:last-of-type { border-bottom: none; padding-bottom: 8px; }
 
-  .act-tile {
-    border: 1px solid var(--glass-border);
-    border-radius: 22px;
-    background: transparent;
-    padding: 28px 32px;
-  }
-
-  .act-tile .act-eyebrow {
+  .act-header { margin-bottom: 28px; }
+  .act-header .act-eyebrow {
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--accent-strong);
-    margin: 0 0 6px;
+    margin: 0 0 8px;
   }
-
-  .act-tile .act-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-
-  .act-tile .act-sub {
-    margin: 6px 0 0;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-  }
+  .act-header .act-title { font-size: 1.6rem; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .act-header .act-sub { margin: 0; font-size: 0.95rem; color: var(--text-secondary); max-width: 720px; line-height: 1.5; }
 
   /* ============ glass card base ============ */
 
@@ -119,15 +98,15 @@
     box-shadow: var(--card-shadow);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    transition: opacity 400ms ease, visibility 400ms ease, border-color 200ms ease, background 200ms ease;
+    transition: border-color 200ms ease, background 200ms ease;
   }
 
-  /* toggle-able sub-views: kept in normal layout flow (so offset geometry stays valid
-     for zoom targeting) but faded out and made non-interactive when inactive */
-  .sub-view { opacity: 0; visibility: hidden; pointer-events: none; }
-  .sub-view.is-active { opacity: 1; visibility: visible; pointer-events: auto; }
+  .act1-view { display: none; }
+  .act1-view.is-active { display: block; }
 
   /* ============ Act 1: News Digest ============ */
+
+  .act1-cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 
   .news-card {
     padding: 22px 22px 20px;
@@ -226,7 +205,7 @@
     gap: 5px;
   }
 
-  /* detail table sub-scene */
+  /* detail table view */
 
   .detail-panel { padding: 22px 26px; }
 
@@ -284,7 +263,7 @@
     justify-content: center;
     text-align: center;
     gap: 10px;
-    padding: 40px 48px;
+    padding: 48px;
     text-decoration: none;
     cursor: pointer;
   }
@@ -292,9 +271,9 @@
 
   .act2-cta .act2-cta-icon { font-size: 2.4rem; margin-bottom: 4px; }
   .act2-cta .act2-cta-desc {
-    font-size: 0.9rem;
+    font-size: 0.94rem;
     color: var(--text-secondary);
-    max-width: 460px;
+    max-width: 520px;
     line-height: 1.55;
     margin: 0 0 8px;
   }
@@ -302,24 +281,19 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.92rem;
+    font-size: 0.94rem;
     font-weight: 700;
-    color: #fff;
+    color: #0d1420;
     background: var(--accent);
     border-radius: 999px;
-    padding: 12px 24px;
+    padding: 12px 26px;
     transition: background 0.15s ease, transform 0.15s ease;
   }
   .act2-cta:hover .act2-cta-btn { background: var(--accent-hover); transform: translateY(-1px); }
 
   /* ============ Act 3: Dashboard ============ */
 
-  .kpi-row { display: flex; gap: 14px; height: 100%; }
-
-  .kpi-card { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; }
-  .kpi-card .kpi-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 6px; }
-  .kpi-card .kpi-value { font-size: 1.3rem; font-weight: 800; margin: 0; }
-  .kpi-card .kpi-delta { font-size: 0.7rem; margin: 4px 0 0; color: var(--green); }
+  .act3-filter-row { display: flex; justify-content: flex-end; margin-bottom: 20px; }
 
   .filter-mock {
     display: flex;
@@ -339,8 +313,20 @@
     padding: 6px 10px;
   }
 
+  .kpi-row-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+
+  .kpi-card { padding: 16px 18px; }
+  .kpi-card .kpi-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 6px; }
+  .kpi-card .kpi-value { font-size: 1.3rem; font-weight: 800; margin: 0; }
+  .kpi-card .kpi-delta { font-size: 0.7rem; margin: 4px 0 0; color: var(--green); }
+
+  .chart-row-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+  .chart-panel { padding: 0; height: 300px; display: flex; flex-direction: column; }
+  .chart-panel .chart-title { padding: 16px 16px 0; margin: 0; font-size: 0.8rem; color: var(--text-secondary); }
+
   .bar-mock, .line-mock {
-    height: 100%;
+    flex: 1;
     display: flex;
     align-items: flex-end;
     gap: 8px;
@@ -359,6 +345,8 @@
   .line-mock circle { fill: var(--green); }
 
   /* ============ Act 4: Decision Support ============ */
+
+  .act4-cards { display: flex; flex-direction: column; gap: 16px; }
 
   .insight-card {
     padding: 18px 22px;
@@ -395,451 +383,170 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--text-muted);
-    opacity: 0.7;
+    opacity: 0.85;
   }
 
-  /* ============ chrome: overview button, breadcrumb, back, mini-nav ============ */
+  /* ============ footer ============ */
 
-  .chrome-btn {
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    background: var(--chrome-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    padding: 9px 16px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: border-color 0.15s ease, background 0.15s ease;
-  }
-
-  .chrome-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
-  .chrome-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .chrome-btn:disabled:hover { border-color: var(--glass-border); background: var(--glass-bg-strong); }
-
-  #overview-btn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 50;
-  }
-
-  #back-btn {
-    position: fixed;
-    top: 20px;
-    left: 158px;
-    z-index: 50;
-  }
-
-  #breadcrumb {
-    position: fixed;
-    top: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  footer#attribution {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--glass-border);
     font-size: 0.78rem;
-    color: var(--text-muted);
-    background: var(--chrome-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    padding: 8px 16px;
-    max-width: 70vw;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  #breadcrumb button {
-    font-family: inherit;
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  #breadcrumb button:hover { color: var(--accent-strong); }
-  #breadcrumb .crumb-current { color: var(--text-primary); font-weight: 600; }
-  #breadcrumb .crumb-sep { color: var(--text-muted); opacity: 0.6; }
-
-  #mini-nav {
-    position: fixed;
-    bottom: 22px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 50;
-    display: flex;
-    gap: 6px;
-    background: var(--chrome-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    padding: 6px;
-  }
-
-  #mini-nav button {
-    font-family: inherit;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    background: none;
-    border: none;
-    border-radius: 999px;
-    padding: 8px 14px;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-
-  #mini-nav button:hover { color: var(--text-primary); }
-  #mini-nav button.active { background: var(--accent); color: #fff; }
-
-  #kbd-hint {
-    position: fixed;
-    bottom: 24px;
-    right: 20px;
-    z-index: 50;
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    text-align: right;
-    line-height: 1.6;
-  }
-  #kbd-hint kbd {
-    font-family: inherit;
-    font-size: 0.64rem;
-    background: var(--glass-bg-strong);
-    border: 1px solid var(--glass-border);
-    border-radius: 4px;
-    padding: 1px 5px;
-  }
-
-  #attribution {
-    position: fixed;
-    bottom: 24px;
-    left: 20px;
-    z-index: 50;
-    font-size: 0.68rem;
     color: var(--text-muted);
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  #attribution a {
+  footer#attribution a {
     color: var(--text-muted);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 4px;
   }
-  #attribution a:hover { color: var(--accent-strong); }
-  #attribution svg { fill: currentColor; flex-shrink: 0; }
+  footer#attribution a:hover { color: var(--accent-strong); }
+  footer#attribution svg { fill: currentColor; flex-shrink: 0; }
 
-  /* ============ remote control: host panel (desktop) ============ */
+  /* ============ responsive ============ */
 
-  #room-panel {
-    position: fixed;
-    bottom: 92px;
-    right: 20px;
-    z-index: 50;
-    width: 168px;
-    text-align: center;
-    background: var(--chrome-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 14px;
-    padding: 12px 14px 10px;
+  @media (max-width: 760px) {
+    .site-header h1 { font-size: 1.6rem; }
+    .act-header .act-title { font-size: 1.35rem; }
+    .act1-cards-grid { grid-template-columns: 1fr; }
+    .kpi-row-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-row-grid { grid-template-columns: 1fr; }
+    .act2-cta { padding: 32px 20px; }
   }
 
-  #room-panel .room-label {
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin: 0 0 4px;
-  }
-
-  #room-panel .room-code {
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    margin: 0 0 8px;
-    color: var(--text-primary);
-  }
-
-  #room-qr {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 0 8px;
-  }
-
-  #room-qr img, #room-qr canvas, #room-qr table {
-    border-radius: 6px;
-    background: #fff;
-    padding: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  #room-panel .room-url {
-    font-size: 0.56rem;
-    color: var(--text-muted);
-    word-break: break-all;
-    line-height: 1.4;
-    margin: 0 0 8px;
-  }
-
-  #room-panel .room-status {
-    font-size: 0.62rem;
-    font-weight: 600;
-    margin: 0;
-    padding: 4px 0;
-    border-radius: 6px;
-  }
-
-  #room-panel .room-status.waiting { color: var(--amber); }
-  #room-panel .room-status.connected { color: var(--green); }
-  #room-panel .room-status.unavailable { color: var(--text-muted); }
-
-  /* ============ remote control: mobile controller UI ============ */
-
-  #remote-root { display: none; }
-
-  body.remote-mode { background: #ffffff; }
-
-  body.remote-mode #viewport,
-  body.remote-mode #overview-btn,
-  body.remote-mode #back-btn,
-  body.remote-mode #breadcrumb,
-  body.remote-mode #mini-nav,
-  body.remote-mode #kbd-hint,
-  body.remote-mode #attribution,
-  body.remote-mode #room-panel,
-  body.remote-mode #mobile-notice {
-    display: none !important;
-  }
-
-  body.remote-mode::before { display: none !important; }
-
-  body.remote-mode #remote-root {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    position: fixed;
-    inset: 0;
-    padding: 24px;
-    background: #ffffff;
-    z-index: 10;
-  }
-
-  #remote-root .remote-header { text-align: center; color: #1a1a2e; }
-  #remote-root .remote-header h1 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
-  #remote-root .remote-header p { font-size: 0.82rem; color: #4a4a68; margin: 0; }
-  #remote-root .remote-header .remote-room-code { font-weight: 700; color: #1a1a2e; font-family: ui-monospace, monospace; }
-
-  #remote-status {
-    text-align: center;
-    font-size: 0.84rem;
-    font-weight: 600;
-    padding: 10px;
-    border-radius: 10px;
-  }
-  #remote-status.connecting { color: #92400e; background: #fef3c7; }
-  #remote-status.connected { color: #065f46; background: #d1fae5; }
-  #remote-status.disconnected { color: #991b1b; background: #fee2e2; }
-
-  .remote-btn-stack { display: flex; flex-direction: column; gap: 14px; flex: 1; }
-
-  .remote-btn {
-    flex: 1;
-    min-height: 64px;
-    font-family: inherit;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #1a1a2e;
-    background: #f3f4f6;
-    border: 2px solid #e5e7eb;
-    border-radius: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    -webkit-tap-highlight-color: transparent;
-    transition: background 0.1s ease;
-  }
-
-  .remote-btn:active { background: #e5e7eb; }
-
-  .remote-btn.remote-btn-overview {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    flex: 0.8;
-  }
-  .remote-btn.remote-btn-overview:active { background: var(--accent-hover); }
-
-  /* ============ mobile notice ============ */
-
-  #mobile-notice {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    background: rgba(245, 246, 248, 0.96);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 32px;
-  }
-
-  #mobile-notice .notice-box { max-width: 320px; }
-  #mobile-notice .notice-icon { font-size: 2rem; margin-bottom: 12px; }
-  #mobile-notice h2 { font-size: 1.1rem; margin: 0 0 8px; }
-  #mobile-notice p { font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 18px; }
-  #mobile-notice button {
-    font-family: inherit;
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    background: none;
-    border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    padding: 8px 16px;
-    cursor: pointer;
-  }
-
-  @media (max-width: 899px) {
-    #mobile-notice { display: flex; }
+  @media (max-width: 460px) {
+    .kpi-row-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
+  <div id="page">
 
-  <div id="viewport">
-    <div id="canvas">
+    <header class="site-header">
+      <p class="site-eyebrow">fin-telligent series</p>
+      <h1>AI Compute &amp; Data Center Intelligence</h1>
+      <p>Four views of the AI compute market: earnings-season digests, the LLM pricing landscape, a live dashboard, and decision support.</p>
+    </header>
 
-      <!-- ============ ACT 1: News Digest ============ -->
-      <div class="scene-el act-tile" id="act1" style="left:150px; top:150px; width:1000px; height:700px;">
+    <!-- ============ ACT 1: News Digest ============ -->
+    <section class="act-section" id="act1">
+      <div class="act-header">
         <p class="act-eyebrow">Act 1</p>
         <h2 class="act-title">News Digest</h2>
         <p class="act-sub">Earnings-season snapshots, side by side. Click a card to open its source breakdown.</p>
       </div>
 
-      <!-- cards row (act1 default view) -->
-      <div class="scene-el glass-card sub-view is-active news-card" id="meta-card"
-           style="left:220px; top:330px; width:400px; height:420px;" tabindex="0" role="button"
-           aria-label="Open META Q2 2026 detail">
-        <span class="placeholder-flag">Placeholder</span>
-        <div class="logo-avatar">M</div>
-        <p class="company-name">META</p>
-        <p class="period-tag">Q2 2026 &middot; Earnings Digest</p>
-        <p class="headline-number">$42.3B</p>
-        <p class="headline-label">Revenue &mdash; placeholder figure</p>
-        <ul class="kpi-list">
-          <li>KPI bullet 1 &mdash; placeholder metric</li>
-          <li>KPI bullet 2 &mdash; placeholder metric</li>
-          <li>KPI bullet 3 &mdash; placeholder metric</li>
-        </ul>
-        <p class="click-hint">&#8599; click to open source detail</p>
-      </div>
+      <div class="act1-view is-active" id="act1-cards-view">
+        <div class="act1-cards-grid">
+          <div class="glass-card news-card" id="meta-card" tabindex="0" role="button" aria-label="Open META Q2 2026 detail">
+            <span class="placeholder-flag">Placeholder</span>
+            <div class="logo-avatar">M</div>
+            <p class="company-name">META</p>
+            <p class="period-tag">Q2 2026 &middot; Earnings Digest</p>
+            <p class="headline-number">$42.3B</p>
+            <p class="headline-label">Revenue &mdash; placeholder figure</p>
+            <ul class="kpi-list">
+              <li>KPI bullet 1 &mdash; placeholder metric</li>
+              <li>KPI bullet 2 &mdash; placeholder metric</li>
+              <li>KPI bullet 3 &mdash; placeholder metric</li>
+            </ul>
+            <p class="click-hint">&#8599; click to open source detail</p>
+          </div>
 
-      <div class="scene-el glass-card sub-view is-active news-card" id="amzn-card"
-           style="left:680px; top:330px; width:400px; height:420px;" tabindex="0" role="button"
-           aria-label="Open AMZN Q2 2026 detail">
-        <span class="placeholder-flag">Placeholder</span>
-        <div class="logo-avatar">A</div>
-        <p class="company-name">AMZN</p>
-        <p class="period-tag">Q2 2026 &middot; Earnings Digest</p>
-        <p class="headline-number">$168.1B</p>
-        <p class="headline-label">Revenue &mdash; placeholder figure</p>
-        <ul class="kpi-list">
-          <li>KPI bullet 1 &mdash; placeholder metric</li>
-          <li>KPI bullet 2 &mdash; placeholder metric</li>
-          <li>KPI bullet 3 &mdash; placeholder metric</li>
-        </ul>
-        <p class="click-hint">&#8599; click to open source detail</p>
-      </div>
-
-      <!-- sub-scene detail tables (hidden until their card is clicked) -->
-      <div class="scene-el glass-card sub-view detail-panel" id="meta-table"
-           style="left:190px; top:260px; width:620px; height:560px;">
-        <div class="detail-header">
-          <h3 class="detail-title">META &middot; Q2 2026 Source Detail</h3>
-          <button type="button" class="detail-back" data-goto="act1">&larr; Back to cards</button>
+          <div class="glass-card news-card" id="amzn-card" tabindex="0" role="button" aria-label="Open AMZN Q2 2026 detail">
+            <span class="placeholder-flag">Placeholder</span>
+            <div class="logo-avatar">A</div>
+            <p class="company-name">AMZN</p>
+            <p class="period-tag">Q2 2026 &middot; Earnings Digest</p>
+            <p class="headline-number">$168.1B</p>
+            <p class="headline-label">Revenue &mdash; placeholder figure</p>
+            <ul class="kpi-list">
+              <li>KPI bullet 1 &mdash; placeholder metric</li>
+              <li>KPI bullet 2 &mdash; placeholder metric</li>
+              <li>KPI bullet 3 &mdash; placeholder metric</li>
+            </ul>
+            <p class="click-hint">&#8599; click to open source detail</p>
+          </div>
         </div>
-        <table class="placeholder-table">
-          <thead><tr><th>Topic</th><th>Key Notes</th><th>Original Text</th></tr></thead>
-          <tbody>
-            <tr><td class="col-topic">Revenue</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-            <tr><td class="col-topic">Ad Impressions</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-            <tr><td class="col-topic">Capex Guidance</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-            <tr><td class="col-topic">Headcount</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-          </tbody>
-        </table>
       </div>
 
-      <div class="scene-el glass-card sub-view detail-panel" id="amzn-table"
-           style="left:190px; top:260px; width:620px; height:560px;">
-        <div class="detail-header">
-          <h3 class="detail-title">AMZN &middot; Q2 2026 Source Detail</h3>
-          <button type="button" class="detail-back" data-goto="act1">&larr; Back to cards</button>
+      <div class="act1-view" id="meta-table-view">
+        <div class="glass-card detail-panel">
+          <div class="detail-header">
+            <h3 class="detail-title">META &middot; Q2 2026 Source Detail</h3>
+            <button type="button" class="detail-back" data-act1-back>&larr; Back to cards</button>
+          </div>
+          <table class="placeholder-table">
+            <thead><tr><th>Topic</th><th>Key Notes</th><th>Original Text</th></tr></thead>
+            <tbody>
+              <tr><td class="col-topic">Revenue</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+              <tr><td class="col-topic">Ad Impressions</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+              <tr><td class="col-topic">Capex Guidance</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+              <tr><td class="col-topic">Headcount</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            </tbody>
+          </table>
         </div>
-        <table class="placeholder-table">
-          <thead><tr><th>Topic</th><th>Key Notes</th><th>Original Text</th></tr></thead>
-          <tbody>
-            <tr><td class="col-topic">AWS Revenue</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-            <tr><td class="col-topic">Operating Margin</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-            <tr><td class="col-topic">Capex Guidance</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-            <tr><td class="col-topic">Fulfillment</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
-          </tbody>
-        </table>
       </div>
 
-      <!-- ============ ACT 2: AI Compute Landscape ============ -->
-      <div class="scene-el act-tile" id="act2" style="left:1450px; top:150px; width:1000px; height:700px;">
+      <div class="act1-view" id="amzn-table-view">
+        <div class="glass-card detail-panel">
+          <div class="detail-header">
+            <h3 class="detail-title">AMZN &middot; Q2 2026 Source Detail</h3>
+            <button type="button" class="detail-back" data-act1-back>&larr; Back to cards</button>
+          </div>
+          <table class="placeholder-table">
+            <thead><tr><th>Topic</th><th>Key Notes</th><th>Original Text</th></tr></thead>
+            <tbody>
+              <tr><td class="col-topic">AWS Revenue</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+              <tr><td class="col-topic">Operating Margin</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+              <tr><td class="col-topic">Capex Guidance</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+              <tr><td class="col-topic">Fulfillment</td><td>Placeholder summary note</td><td><em>&ldquo;placeholder source quote&rdquo;</em></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACT 2: AI Compute Landscape ============ -->
+    <section class="act-section" id="act2">
+      <div class="act-header">
         <p class="act-eyebrow">Act 2</p>
         <h2 class="act-title">AI Compute Landscape</h2>
         <p class="act-sub">Three data-driven views of the LLM pricing market, built from 44,775 pricing observations across 520 tracked models.</p>
       </div>
 
-      <a class="scene-el glass-card act2-cta" id="act2-cta" href="act2-ai-compute-landscape.html"
-         style="left:1520px; top:300px; width:860px; height:490px;" aria-label="Open the AI Compute Landscape interactive dashboard">
+      <a class="glass-card act2-cta" href="act2-ai-compute-landscape.html" aria-label="Open the AI Compute Landscape interactive dashboard">
         <span class="act2-cta-icon">&#128202;</span>
         <p class="act2-cta-desc">Frontier pricing trends, a live enterprise cost/latency simulator, and a model-selection router across 520 tracked LLMs.</p>
         <span class="act2-cta-btn">Open Interactive Dashboard &rarr;</span>
       </a>
+    </section>
 
-      <!-- ============ ACT 3: Dashboard ============ -->
-      <div class="scene-el act-tile" id="act3" style="left:150px; top:1000px; width:1000px; height:700px;">
+    <!-- ============ ACT 3: Dashboard ============ -->
+    <section class="act-section" id="act3">
+      <div class="act-header">
         <p class="act-eyebrow">Act 3</p>
         <h2 class="act-title">Dashboard</h2>
         <p class="act-sub">Live-view KPIs and trend charts. Filter placeholder shown, not yet wired to data.</p>
       </div>
 
-      <div class="scene-el filter-mock" id="act3-filter" style="left:900px; top:1030px; width:250px; height:32px;">
-        <label for="act3-filter-select">View:</label>
-        <select id="act3-filter-select" disabled>
-          <option>All Segments &mdash; placeholder</option>
-          <option>Compute &mdash; placeholder</option>
-          <option>Storage &mdash; placeholder</option>
-        </select>
+      <div class="act3-filter-row">
+        <div class="filter-mock">
+          <label for="act3-filter-select">View:</label>
+          <select id="act3-filter-select" disabled>
+            <option>All Segments &mdash; placeholder</option>
+            <option>Compute &mdash; placeholder</option>
+            <option>Storage &mdash; placeholder</option>
+          </select>
+        </div>
       </div>
 
-      <div class="scene-el kpi-row" id="act3-kpis" style="left:200px; top:1150px; width:900px; height:120px;">
+      <div class="kpi-row-grid">
         <div class="glass-card kpi-card">
           <p class="kpi-label ph-note">Placeholder</p>
           <p class="kpi-value">$18.4M</p>
@@ -862,399 +569,101 @@
         </div>
       </div>
 
-      <div class="scene-el glass-card" id="act3-bar" style="left:200px; top:1300px; width:430px; height:350px;">
-        <p class="chart-title" style="padding:16px 16px 0;">Placeholder &mdash; Bar Chart</p>
-        <div class="bar-mock">
-          <div class="bar" style="height:42%;"></div>
-          <div class="bar" style="height:68%;"></div>
-          <div class="bar" style="height:55%;"></div>
-          <div class="bar" style="height:81%;"></div>
-          <div class="bar" style="height:36%;"></div>
-          <div class="bar" style="height:64%;"></div>
+      <div class="chart-row-grid">
+        <div class="glass-card chart-panel">
+          <p class="chart-title">Placeholder &mdash; Bar Chart</p>
+          <div class="bar-mock">
+            <div class="bar" style="height:42%;"></div>
+            <div class="bar" style="height:68%;"></div>
+            <div class="bar" style="height:55%;"></div>
+            <div class="bar" style="height:81%;"></div>
+            <div class="bar" style="height:36%;"></div>
+            <div class="bar" style="height:64%;"></div>
+          </div>
+        </div>
+
+        <div class="glass-card chart-panel">
+          <p class="chart-title">Placeholder &mdash; Line Chart</p>
+          <div class="line-mock">
+            <svg viewBox="0 0 400 260" preserveAspectRatio="none">
+              <polyline points="10,220 80,160 150,190 220,100 290,130 370,50"></polyline>
+              <circle cx="10" cy="220" r="4"></circle>
+              <circle cx="80" cy="160" r="4"></circle>
+              <circle cx="150" cy="190" r="4"></circle>
+              <circle cx="220" cy="100" r="4"></circle>
+              <circle cx="290" cy="130" r="4"></circle>
+              <circle cx="370" cy="50" r="4"></circle>
+            </svg>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="scene-el glass-card" id="act3-line" style="left:660px; top:1300px; width:430px; height:350px;">
-        <p class="chart-title" style="padding:16px 16px 0;">Placeholder &mdash; Line Chart</p>
-        <div class="line-mock">
-          <svg viewBox="0 0 400 260" preserveAspectRatio="none">
-            <polyline points="10,220 80,160 150,190 220,100 290,130 370,50"></polyline>
-            <circle cx="10" cy="220" r="4"></circle>
-            <circle cx="80" cy="160" r="4"></circle>
-            <circle cx="150" cy="190" r="4"></circle>
-            <circle cx="220" cy="100" r="4"></circle>
-            <circle cx="290" cy="130" r="4"></circle>
-            <circle cx="370" cy="50" r="4"></circle>
-          </svg>
-        </div>
-      </div>
-
-      <!-- ============ ACT 4: Decision Support ============ -->
-      <div class="scene-el act-tile" id="act4" style="left:1450px; top:1000px; width:1000px; height:700px;">
+    <!-- ============ ACT 4: Decision Support ============ -->
+    <section class="act-section" id="act4">
+      <div class="act-header">
         <p class="act-eyebrow">Act 4</p>
         <h2 class="act-title">Decision Support</h2>
         <p class="act-sub">Insight, recommended action, and how confident the model is in each call.</p>
       </div>
 
-      <div class="scene-el glass-card insight-card" id="act4-card1" style="left:1520px; top:1140px; width:860px; height:150px;">
-        <div class="insight-row">
-          <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
-          <span class="confidence-tag high">High Confidence</span>
+      <div class="act4-cards">
+        <div class="glass-card insight-card">
+          <div class="insight-row">
+            <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
+            <span class="confidence-tag high">High Confidence</span>
+          </div>
+          <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
         </div>
-        <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
-      </div>
 
-      <div class="scene-el glass-card insight-card" id="act4-card2" style="left:1520px; top:1320px; width:860px; height:150px;">
-        <div class="insight-row">
-          <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
-          <span class="confidence-tag medium">Medium Confidence</span>
+        <div class="glass-card insight-card">
+          <div class="insight-row">
+            <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
+            <span class="confidence-tag medium">Medium Confidence</span>
+          </div>
+          <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
         </div>
-        <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
-      </div>
 
-      <div class="scene-el glass-card insight-card" id="act4-card3" style="left:1520px; top:1500px; width:860px; height:150px;">
-        <div class="insight-row">
-          <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
-          <span class="confidence-tag low">Low Confidence</span>
+        <div class="glass-card insight-card">
+          <div class="insight-row">
+            <p class="insight-headline">Placeholder insight headline goes here, describing a detected pattern.</p>
+            <span class="confidence-tag low">Low Confidence</span>
+          </div>
+          <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
         </div>
-        <p class="insight-action"><b>Recommended action:</b> placeholder recommended next step text.</p>
       </div>
+    </section>
 
-    </div>
-  </div>
+    <footer id="attribution">
+      <span>Yixuan Jing &middot; fin-telligent series</span>
+      <a href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+        <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        GitHub
+      </a>
+    </footer>
 
-  <!-- ============ chrome ============ -->
-  <button type="button" class="chrome-btn" id="overview-btn">&#128301; Overview</button>
-  <button type="button" class="chrome-btn" id="back-btn">&larr; Back</button>
-  <nav id="breadcrumb" aria-label="Breadcrumb"></nav>
-  <nav id="mini-nav" aria-label="Scene navigation"></nav>
-  <div id="kbd-hint">
-    <div><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move between acts</div>
-    <div><kbd>Esc</kbd> zoom out one level</div>
-  </div>
-  <div id="attribution">
-    <span>Yixuan Jing &middot; fin-telligent series</span>
-    <a href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
-      <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-      GitHub
-    </a>
-  </div>
-
-  <div id="mobile-notice">
-    <div class="notice-box">
-      <div class="notice-icon">&#128421;&#65039;</div>
-      <h2>Best viewed on desktop</h2>
-      <p>This is a zoom-based presentation built for larger screens (1440px+). You can still explore it here, but the zoom transitions will feel cramped on a small viewport.</p>
-      <button type="button" id="mobile-dismiss">Continue anyway</button>
-    </div>
-  </div>
-
-  <!-- ============ remote control: host panel (desktop only) ============ -->
-  <div id="room-panel">
-    <p class="room-label">Remote Control</p>
-    <p class="room-code" id="roomCodeDisplay">----</p>
-    <div id="room-qr"></div>
-    <p class="room-url" id="roomUrlDisplay"></p>
-    <p class="room-status waiting" id="roomStatusDisplay">Waiting for remote&hellip;</p>
-  </div>
-
-  <!-- ============ remote control: mobile controller UI (shown when ?remote=XXXX is present) ============ -->
-  <div id="remote-root">
-    <div class="remote-header">
-      <h1>Presentation Remote</h1>
-      <p>Room <span class="remote-room-code" id="remoteRoomCode">----</span></p>
-    </div>
-    <div id="remote-status" class="connecting">Connecting&hellip;</div>
-    <div class="remote-btn-stack">
-      <button type="button" class="remote-btn" id="remotePrev">&larr; Previous</button>
-      <button type="button" class="remote-btn" id="remoteNext">Next &rarr;</button>
-      <button type="button" class="remote-btn remote-btn-overview" id="remoteOverviewBtn">&#128301; Overview</button>
-    </div>
   </div>
 
 <script>
-  var canvas = document.getElementById('canvas');
-  var viewport = document.getElementById('viewport');
-
-  /* ============ scene registry ============
-     Every scene resolves to one DOM element used purely to read its
-     canvas-relative box (offsetLeft/Top/Width/Height are unaffected by
-     the transform we apply to #canvas, so they stay reliable zoom targets
-     even while a scene is faded out via opacity/visibility). */
-  var SCENES = {
-    overview: { parent: null, label: 'Overview', order: 0 },
-    act1: { parent: 'overview', label: 'Act 1 · News Digest', el: 'act1', order: 1 },
-    act2: { parent: 'overview', label: 'Act 2 · AI Compute Landscape', el: 'act2', order: 2 },
-    act3: { parent: 'overview', label: 'Act 3 · Dashboard', el: 'act3', order: 3 },
-    act4: { parent: 'overview', label: 'Act 4 · Decision Support', el: 'act4', order: 4 },
-    act1_meta: { parent: 'act1', label: 'META Detail', el: 'meta-table', view: { host: 'act1', show: 'meta-table', hide: ['meta-card', 'amzn-card', 'amzn-table'] } },
-    act1_amzn: { parent: 'act1', label: 'AMZN Detail', el: 'amzn-table', view: { host: 'act1', show: 'amzn-table', hide: ['meta-card', 'amzn-card', 'meta-table'] } }
-  };
-
-  var MAIN_SEQUENCE = ['overview', 'act1', 'act2', 'act3', 'act4'];
-  var currentScene = 'overview';
-
   function byId(id) { return document.getElementById(id); }
 
-  function resetAct1View() {
-    ['meta-card', 'amzn-card'].forEach(function (id) { byId(id).classList.add('is-active'); });
-    ['meta-table', 'amzn-table'].forEach(function (id) { byId(id).classList.remove('is-active'); });
-  }
-
-  function applyView(sceneKey) {
-    var scene = SCENES[sceneKey];
-    if (scene.view) {
-      byId(scene.view.show).classList.add('is-active');
-      scene.view.hide.forEach(function (id) { byId(id).classList.remove('is-active'); });
-    } else if (sceneKey !== 'act1_meta' && sceneKey !== 'act1_amzn') {
-      // leaving a sub-scene (or navigating anywhere else): collapse act1 back to its card view
-      resetAct1View();
-    }
-  }
-
-  function rectFor(sceneKey) {
-    if (sceneKey === 'overview') {
-      return { left: 0, top: 0, width: canvas.offsetWidth, height: canvas.offsetHeight };
-    }
-    var el = byId(SCENES[sceneKey].el);
-    return { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight };
-  }
-
-  function zoomToRect(rect) {
-    var vw = viewport.clientWidth;
-    var vh = viewport.clientHeight;
-    var padding = 0.88;
-    var scale = Math.min(vw / rect.width, vh / rect.height) * padding;
-    var centerX = rect.left + rect.width / 2;
-    var centerY = rect.top + rect.height / 2;
-    var tx = vw / 2 - centerX * scale;
-    var ty = vh / 2 - centerY * scale;
-    canvas.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + scale + ')';
-  }
-
-  function renderBreadcrumb(sceneKey) {
-    var trail = [];
-    var k = sceneKey;
-    while (k) { trail.unshift(k); k = SCENES[k].parent; }
-    var crumb = byId('breadcrumb');
-    crumb.innerHTML = '';
-    trail.forEach(function (key, i) {
-      if (i > 0) {
-        var sep = document.createElement('span');
-        sep.className = 'crumb-sep';
-        sep.textContent = '›';
-        crumb.appendChild(sep);
-      }
-      if (i === trail.length - 1) {
-        var span = document.createElement('span');
-        span.className = 'crumb-current';
-        span.textContent = SCENES[key].label;
-        crumb.appendChild(span);
-      } else {
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = SCENES[key].label;
-        btn.addEventListener('click', function () { goTo(key); });
-        crumb.appendChild(btn);
-      }
+  function showAct1View(id) {
+    ['act1-cards-view', 'meta-table-view', 'amzn-table-view'].forEach(function (v) {
+      byId(v).classList.toggle('is-active', v === id);
     });
   }
 
-  function renderMiniNav(sceneKey) {
-    var nav = byId('mini-nav');
-    nav.innerHTML = '';
-    var activeTop = sceneKey;
-    while (SCENES[activeTop].parent && SCENES[activeTop].parent !== 'overview' && activeTop !== 'overview') {
-      activeTop = SCENES[activeTop].parent;
-    }
-    MAIN_SEQUENCE.forEach(function (key) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = key === 'overview' ? 'Overview' : SCENES[key].label.split('·')[0].trim();
-      if (key === activeTop || (key === 'overview' && sceneKey === 'overview')) btn.classList.add('active');
-      btn.addEventListener('click', function () { goTo(key); });
-      nav.appendChild(btn);
-    });
-  }
-
-  function updateBackButton(sceneKey) {
-    byId('back-btn').disabled = !SCENES[sceneKey].parent;
-  }
-
-  function goTo(sceneKey) {
-    if (!SCENES[sceneKey]) return;
-    applyView(sceneKey);
-    // let the hidden->visible swap register before measuring, then zoom
-    requestAnimationFrame(function () {
-      zoomToRect(rectFor(sceneKey));
-    });
-    currentScene = sceneKey;
-    renderBreadcrumb(sceneKey);
-    renderMiniNav(sceneKey);
-    updateBackButton(sceneKey);
-  }
-
-  function goBack() {
-    var parent = SCENES[currentScene].parent;
-    if (parent) goTo(parent);
-  }
-
-  function goNext() {
-    var idx = MAIN_SEQUENCE.indexOf(currentScene);
-    if (idx === -1) return; // inside a sub-scene; next/prev do nothing there
-    goTo(MAIN_SEQUENCE[Math.min(idx + 1, MAIN_SEQUENCE.length - 1)]);
-  }
-
-  function goPrev() {
-    var idx = MAIN_SEQUENCE.indexOf(currentScene);
-    if (idx === -1) return;
-    goTo(MAIN_SEQUENCE[Math.max(idx - 1, 0)]);
-  }
-
-  /* ============ wire up interactions ============ */
-
-  byId('overview-btn').addEventListener('click', function () { goTo('overview'); });
-  byId('back-btn').addEventListener('click', goBack);
-
-  byId('meta-card').addEventListener('click', function () { goTo('act1_meta'); });
-  byId('amzn-card').addEventListener('click', function () { goTo('act1_amzn'); });
+  byId('meta-card').addEventListener('click', function () { showAct1View('meta-table-view'); });
+  byId('amzn-card').addEventListener('click', function () { showAct1View('amzn-table-view'); });
   ['meta-card', 'amzn-card'].forEach(function (id) {
     byId(id).addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
     });
   });
 
-  document.querySelectorAll('[data-goto]').forEach(function (el) {
-    el.addEventListener('click', function (e) {
-      e.stopPropagation();
-      goTo(el.getAttribute('data-goto'));
-    });
+  document.querySelectorAll('[data-act1-back]').forEach(function (el) {
+    el.addEventListener('click', function () { showAct1View('act1-cards-view'); });
   });
-
-  document.addEventListener('keydown', function (e) {
-    var tag = e.target && e.target.tagName;
-    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return; // don't hijack arrow keys while a form control has focus
-    if (e.key === 'Escape') { goBack(); return; }
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goPrev(); }
-  });
-
-  window.addEventListener('resize', function () {
-    zoomToRect(rectFor(currentScene));
-  });
-
-  byId('mobile-dismiss').addEventListener('click', function () {
-    byId('mobile-notice').style.display = 'none';
-  });
-
-  /* ============ remote control (PeerJS) ============
-     Desktop with no ?remote param acts as the host: it picks a 4-digit
-     room code, opens a PeerJS peer at "prezi-demo-<code>", and applies
-     incoming {action:'next'|'prev'|'overview'} commands via the same
-     goNext/goPrev/goTo used by the keyboard. A phone visiting the same
-     URL with ?remote=<code> renders a completely different, white,
-     button-only UI (toggled via body.remote-mode in CSS) and just sends
-     those action messages back over the peer connection -- no server. */
-
-  function handleRemoteCommand(data) {
-    if (!data || !data.action) return;
-    if (data.action === 'next') goNext();
-    else if (data.action === 'prev') goPrev();
-    else if (data.action === 'overview') goTo('overview');
-  }
-
-  function setRoomStatus(connectedCount) {
-    var el = byId('roomStatusDisplay');
-    if (connectedCount > 0) {
-      el.textContent = connectedCount + ' remote' + (connectedCount > 1 ? 's' : '') + ' connected';
-      el.className = 'room-status connected';
-    } else {
-      el.textContent = 'Waiting for remote…';
-      el.className = 'room-status waiting';
-    }
-  }
-
-  function initRemoteHost() {
-    var roomCode = String(Math.floor(1000 + Math.random() * 9000));
-    byId('roomCodeDisplay').textContent = roomCode;
-    var remoteUrl = window.location.origin + window.location.pathname + '?remote=' + roomCode;
-    byId('roomUrlDisplay').textContent = remoteUrl;
-
-    if (typeof QRCode !== 'undefined') {
-      try {
-        new QRCode(byId('room-qr'), { text: remoteUrl, width: 112, height: 112, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
-      } catch (e) { /* QR render failed -- the URL text above still works as a fallback */ }
-    }
-
-    if (typeof Peer === 'undefined') {
-      var statusEl = byId('roomStatusDisplay');
-      statusEl.textContent = 'Remote control unavailable';
-      statusEl.className = 'room-status unavailable';
-      return;
-    }
-
-    var connections = [];
-    setRoomStatus(0);
-
-    var peer = new Peer('prezi-demo-' + roomCode);
-    peer.on('connection', function (conn) {
-      connections.push(conn);
-      conn.on('data', handleRemoteCommand);
-      conn.on('open', function () { setRoomStatus(connections.length); });
-      conn.on('close', function () {
-        connections = connections.filter(function (c) { return c !== conn; });
-        setRoomStatus(connections.length);
-      });
-    });
-    peer.on('error', function (err) {
-      var statusEl = byId('roomStatusDisplay');
-      statusEl.textContent = 'Remote control unavailable';
-      statusEl.className = 'room-status unavailable';
-      if (window.console) console.warn('PeerJS host error:', err);
-    });
-  }
-
-  function setRemoteStatus(state) {
-    var el = byId('remote-status');
-    el.className = state;
-    el.textContent = state === 'connecting' ? 'Connecting…' : state === 'connected' ? 'Connected' : 'Disconnected — reopen this link';
-  }
-
-  function initRemoteClient(roomCode) {
-    byId('remoteRoomCode').textContent = roomCode;
-    setRemoteStatus('connecting');
-
-    if (typeof Peer === 'undefined') { setRemoteStatus('disconnected'); return; }
-
-    var conn = null;
-    function send(action) { if (conn && conn.open) conn.send({ action: action }); }
-
-    var myPeer = new Peer();
-    myPeer.on('open', function () {
-      conn = myPeer.connect('prezi-demo-' + roomCode);
-      conn.on('open', function () { setRemoteStatus('connected'); });
-      conn.on('close', function () { setRemoteStatus('disconnected'); });
-      conn.on('error', function () { setRemoteStatus('disconnected'); });
-    });
-    myPeer.on('error', function (err) {
-      setRemoteStatus('disconnected');
-      if (window.console) console.warn('PeerJS client error:', err);
-    });
-
-    byId('remotePrev').addEventListener('click', function () { send('prev'); });
-    byId('remoteNext').addEventListener('click', function () { send('next'); });
-    byId('remoteOverviewBtn').addEventListener('click', function () { send('overview'); });
-  }
-
-  /* ============ init ============ */
-  var REMOTE_ROOM_CODE = new URLSearchParams(window.location.search).get('remote');
-  if (REMOTE_ROOM_CODE) {
-    document.body.classList.add('remote-mode');
-    initRemoteClient(REMOTE_ROOM_CODE);
-  } else {
-    goTo('overview');
-    initRemoteHost();
-  }
 </script>
 </body>
 </html>
