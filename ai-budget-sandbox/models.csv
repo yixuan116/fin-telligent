@@ -1,0 +1,521 @@
+model_id,provider,release_date,context_window,modality,open_weight,parameter_count,arena_elo
+gpt-4o,OpenAI,2024-05-13,128000,multimodal,False,,1200
+gpt-4o-2024-05-13,OpenAI,2024-05-13,128000,multimodal,False,,1029
+gpt-4o-2024-08-06,OpenAI,2024-08-06,128000,multimodal,False,,1368
+gpt-4o-2024-11-20,OpenAI,2024-11-20,128000,multimodal,False,,1276
+gpt-4o-mini,OpenAI,2024-07-18,128000,multimodal,False,,1009
+gpt-4o-mini-2024-07-18,OpenAI,2024-07-18,128000,multimodal,False,,984
+gpt-4-turbo,OpenAI,2024-04-09,128000,multimodal,False,,1323
+gpt-4-turbo-2024-04-09,OpenAI,2024-04-09,128000,multimodal,False,,1190
+gpt-4-0125-preview,OpenAI,2024-01-25,128000,text,False,,1300
+gpt-4-1106-preview,OpenAI,2023-11-06,128000,text,False,,1220
+gpt-4-0613,OpenAI,2023-06-13,8192,text,False,,1170
+gpt-4-32k,OpenAI,2023-03-14,32768,text,False,,1292
+gpt-4-0314,OpenAI,2023-03-14,8192,text,False,,1023
+gpt-5,OpenAI,2025-12-18,256000,multimodal,False,,1186
+gpt-5-pro,OpenAI,2026-02-15,256000,multimodal,False,,1198
+gpt-5-mini,OpenAI,2026-01-30,256000,multimodal,False,,1084
+gpt-5-nano,OpenAI,2026-04-10,128000,text,False,,1200
+gpt-5-turbo,OpenAI,2026-05-01,256000,multimodal,False,,1176
+o1,OpenAI,2024-12-17,200000,text,False,,1202
+o1-preview,OpenAI,2024-09-12,128000,text,False,,1250
+o1-mini,OpenAI,2024-09-12,128000,text,False,,1175
+o3,OpenAI,2026-03-05,256000,text,False,,1306
+o3-mini,OpenAI,2026-02-10,256000,text,False,,1390
+o3-mini-high,OpenAI,2026-02-10,256000,text,False,,1279
+o3-pro,OpenAI,2026-05-15,256000,text,False,,1199
+o4-mini,OpenAI,2026-06-20,256000,text,False,,1049
+gpt-3.5-turbo,OpenAI,2023-03-01,16385,text,False,,1239
+gpt-3.5-turbo-0125,OpenAI,2024-01-25,16385,text,False,,1055
+gpt-3.5-turbo-1106,OpenAI,2023-11-06,16385,text,False,,1309
+chatgpt-4o-latest,OpenAI,2024-08-15,128000,multimodal,False,,1186
+gpt-4o-audio-preview,OpenAI,2024-10-01,128000,multimodal,False,,1280
+gpt-4o-realtime-preview,OpenAI,2024-10-01,128000,multimodal,False,,1324
+claude-3.5-sonnet,Anthropic,2024-06-20,200000,multimodal,False,,1042
+claude-3.5-sonnet-20240620,Anthropic,2024-06-20,200000,multimodal,False,,1056
+claude-3.5-sonnet-20241022,Anthropic,2024-10-22,200000,multimodal,False,,1221
+claude-3.5-haiku,Anthropic,2024-10-22,200000,text,False,,1158
+claude-3.5-haiku-20241022,Anthropic,2024-10-22,200000,text,False,,1136
+claude-3-opus,Anthropic,2024-02-29,200000,multimodal,False,,1169
+claude-3-opus-20240229,Anthropic,2024-02-29,200000,multimodal,False,,1193
+claude-3-sonnet,Anthropic,2024-02-29,200000,multimodal,False,,1050
+claude-3-sonnet-20240229,Anthropic,2024-02-29,200000,multimodal,False,,1286
+claude-3-haiku,Anthropic,2024-03-07,200000,text,False,,1016
+claude-3-haiku-20240307,Anthropic,2024-03-07,200000,text,False,,1015
+claude-sonnet-5,Anthropic,2025-11-15,200000,multimodal,False,,1288
+claude-opus-4,Anthropic,2026-02-20,200000,multimodal,False,,1195
+claude-haiku-4,Anthropic,2026-05-01,200000,text,False,,1247
+claude-opus-4.5,Anthropic,2026-06-15,200000,multimodal,False,,1310
+claude-2.1,Anthropic,2023-11-21,200000,text,False,,1113
+claude-2.0,Anthropic,2023-07-11,100000,text,False,,1315
+claude-instant-1.2,Anthropic,2023-08-09,100000,text,False,,1209
+gemini-1.5-pro,Google,2024-02-15,2000000,multimodal,False,,1202
+gemini-1.5-pro-001,Google,2024-05-24,2000000,multimodal,False,,960
+gemini-1.5-pro-002,Google,2024-09-24,2000000,multimodal,False,,1205
+gemini-1.5-flash,Google,2024-05-14,1000000,multimodal,False,,1233
+gemini-1.5-flash-001,Google,2024-05-24,1000000,multimodal,False,,1205
+gemini-1.5-flash-002,Google,2024-09-24,1000000,multimodal,False,,1129
+gemini-1.5-flash-8b,Google,2024-10-03,1000000,multimodal,False,,1172
+gemini-2-pro,Google,2025-12-11,2000000,multimodal,False,,1301
+gemini-2-pro-exp,Google,2025-11-15,2000000,multimodal,False,,1221
+gemini-2-flash,Google,2026-02-25,1000000,multimodal,False,,1215
+gemini-2-flash-lite,Google,2026-03-10,1000000,multimodal,False,,1275
+gemini-2-flash-thinking,Google,2026-01-20,1000000,multimodal,False,,1302
+gemini-2-nano,Google,2026-05-20,32000,text,False,,981
+gemma-2-27b,Google,2024-06-27,8192,text,True,27B,1023
+gemma-2-9b,Google,2024-06-27,8192,text,True,9B,1043
+gemma-2-2b,Google,2024-06-27,8192,text,True,2B,1261
+gemma-7b,Google,2024-02-21,8192,text,True,7B,1011
+gemma-2b,Google,2024-02-21,8192,text,True,2B,1043
+gemma-3-27b,Google,2026-03-15,16384,text,True,27B,1107
+gemma-3-12b,Google,2026-03-15,16384,text,True,12B,1001
+gemma-3-4b,Google,2026-03-15,16384,text,True,4B,1278
+gemma-3-1b,Google,2026-03-15,16384,text,True,1B,1225
+codegemma-7b,Google,2024-04-09,8192,text,True,7B,1249
+recurrentgemma-2b,Google,2024-04-09,2048,text,True,2B,1075
+gemini-1.0-pro,Google,2023-12-06,32768,text,False,,1245
+gemini-1.0-ultra,Google,2024-02-08,32768,multimodal,False,,1317
+palm-2-bison,Google,2023-05-10,8192,text,False,,1190
+palm-2-unicorn,Google,2023-05-10,8192,text,False,,1235
+llama-3.1-405b,Meta,2024-07-23,128000,text,True,405B,1305
+llama-3.1-405b-fp8,Meta,2024-07-23,128000,text,True,405B FP8,1005
+llama-3.1-70b,Meta,2024-07-23,128000,text,True,70B,1004
+llama-3.1-70b-instruct,Meta,2024-07-23,128000,text,True,70B,1220
+llama-3.1-8b,Meta,2024-07-23,128000,text,True,8B,1187
+llama-3.1-8b-instruct,Meta,2024-07-23,128000,text,True,8B,1151
+llama-3.3-70b,Meta,2024-12-06,128000,text,True,70B,1032
+llama-3.2-90b-vision,Meta,2024-09-25,128000,multimodal,True,90B,1219
+llama-3.2-11b-vision,Meta,2024-09-25,128000,multimodal,True,11B,1186
+llama-3.2-3b,Meta,2024-09-25,128000,text,True,3B,981
+llama-3.2-1b,Meta,2024-09-25,128000,text,True,1B,1100
+llama-3-70b,Meta,2024-04-18,8192,text,True,70B,1363
+llama-3-8b,Meta,2024-04-18,8192,text,True,8B,1184
+llama-4-405b,Meta,2026-01-15,128000,multimodal,True,405B,1076
+llama-4-70b,Meta,2026-01-15,128000,multimodal,True,70B,1296
+llama-4-8b,Meta,2026-01-15,128000,multimodal,True,8B,1288
+llama-4-scout,Meta,2026-04-01,128000,multimodal,True,30B,1330
+llama-4-maverick,Meta,2026-05-10,128000,multimodal,True,120B,1285
+llama-2-70b,Meta,2023-07-18,4096,text,True,70B,1371
+llama-2-13b,Meta,2023-07-18,4096,text,True,13B,1305
+llama-2-7b,Meta,2023-07-18,4096,text,True,7B,1095
+code-llama-70b,Meta,2024-01-29,16384,text,True,70B,1138
+code-llama-34b,Meta,2023-08-24,16384,text,True,34B,1070
+code-llama-13b,Meta,2023-08-24,16384,text,True,13B,1269
+code-llama-7b,Meta,2023-08-24,16384,text,True,7B,1189
+deepseek-r1,DeepSeek,2025-01-20,128000,text,True,671B MoE,1124
+deepseek-r1-zero,DeepSeek,2025-01-20,128000,text,True,671B MoE,1244
+deepseek-v3,DeepSeek,2024-12-26,128000,text,True,671B MoE,1277
+deepseek-v3.1,DeepSeek,2026-04-15,128000,text,True,671B MoE,1044
+deepseek-v2.5,DeepSeek,2024-09-06,128000,text,True,236B MoE,1296
+deepseek-v2,DeepSeek,2024-05-06,128000,text,True,236B MoE,1143
+deepseek-v2-lite,DeepSeek,2024-05-06,128000,text,True,16B MoE,1126
+deepseek-coder-v2,DeepSeek,2024-06-17,128000,text,True,236B MoE,1051
+deepseek-coder-v2-lite,DeepSeek,2024-06-17,128000,text,True,16B MoE,1242
+deepseek-coder-33b,DeepSeek,2023-11-02,16384,text,True,33B,1007
+deepseek-coder-7b,DeepSeek,2023-11-02,16384,text,True,7B,1114
+deepseek-math-7b,DeepSeek,2024-02-05,4096,text,True,7B,1240
+deepseek-r1-distill-llama-70b,DeepSeek,2025-01-20,128000,text,True,70B,1194
+deepseek-r1-distill-llama-8b,DeepSeek,2025-01-20,128000,text,True,8B,1159
+deepseek-r1-distill-qwen-32b,DeepSeek,2025-01-20,128000,text,True,32B,1224
+deepseek-r1-distill-qwen-14b,DeepSeek,2025-01-20,128000,text,True,14B,1353
+deepseek-r1-distill-qwen-7b,DeepSeek,2025-01-20,128000,text,True,7B,1005
+deepseek-r1-distill-qwen-1.5b,DeepSeek,2025-01-20,128000,text,True,1.5B,1153
+mistral-large-3,Mistral,2025-11-20,128000,multimodal,False,,1168
+mistral-large-2,Mistral,2024-07-24,128000,text,False,,1144
+mistral-large-1,Mistral,2024-02-26,32768,text,False,,1264
+mistral-medium,Mistral,2023-12-11,32768,text,False,,1031
+mistral-small-3,Mistral,2025-01-30,128000,text,False,,1226
+mistral-small-2,Mistral,2024-09-18,32768,text,False,,1124
+mistral-small-1,Mistral,2023-12-11,32768,text,False,,1154
+mistral-nemo,Mistral,2024-07-18,128000,text,True,12B,1163
+mistral-7b,Mistral,2023-09-27,8192,text,True,7B,1239
+mixtral-8x22b,Mistral,2024-04-10,65536,text,True,141B MoE,1291
+mixtral-8x7b,Mistral,2023-12-11,32768,text,True,46.7B MoE,1046
+codestral-latest,Mistral,2025-05-29,256000,text,False,,1232
+codestral-22b,Mistral,2024-05-29,32000,text,True,22B,1161
+codestral-mamba,Mistral,2024-07-16,256000,text,True,7B,1172
+pixtral-large,Mistral,2025-09-10,128000,multimodal,False,,1337
+pixtral-12b,Mistral,2024-09-17,128000,multimodal,True,12B,1109
+ministral-8b,Mistral,2024-10-16,128000,text,False,,976
+ministral-3b,Mistral,2024-10-16,128000,text,False,,1290
+mathstral-7b,Mistral,2024-07-16,32768,text,True,7B,1283
+qwen-3-235b,Alibaba,2026-04-01,128000,text,True,235B MoE,1222
+qwen-3-72b,Alibaba,2026-04-01,128000,text,True,72B,1159
+qwen-3-32b,Alibaba,2026-04-01,128000,text,True,32B,1166
+qwen-3-14b,Alibaba,2026-04-01,128000,text,True,14B,1276
+qwen-3-8b,Alibaba,2026-04-01,128000,text,True,8B,1363
+qwen-3-vl-72b,Alibaba,2026-05-15,128000,multimodal,True,72B,1185
+qwen-3-coder-32b,Alibaba,2026-05-01,128000,text,True,32B,1355
+qwen-2.5-72b,Alibaba,2024-09-19,128000,text,True,72B,1373
+qwen-2.5-32b,Alibaba,2024-09-19,128000,text,True,32B,1070
+qwen-2.5-14b,Alibaba,2024-09-19,128000,text,True,14B,1022
+qwen-2.5-7b,Alibaba,2024-09-19,128000,text,True,7B,1358
+qwen-2.5-3b,Alibaba,2024-09-19,32768,text,True,3B,1042
+qwen-2.5-1.5b,Alibaba,2024-09-19,32768,text,True,1.5B,1277
+qwen-2.5-0.5b,Alibaba,2024-09-19,32768,text,True,0.5B,1124
+qwen-2.5-coder-32b,Alibaba,2024-11-12,128000,text,True,32B,1286
+qwen-2.5-coder-14b,Alibaba,2024-11-12,128000,text,True,14B,1335
+qwen-2.5-coder-7b,Alibaba,2024-09-19,128000,text,True,7B,1054
+qwen-2.5-coder-1.5b,Alibaba,2024-09-19,32768,text,True,1.5B,1131
+qwen-2.5-math-72b,Alibaba,2024-09-19,4096,text,True,72B,1198
+qwen-2.5-math-7b,Alibaba,2024-09-19,4096,text,True,7B,1185
+qwen-2.5-vl-72b,Alibaba,2024-09-19,128000,multimodal,True,72B,1026
+qwen-2.5-vl-7b,Alibaba,2024-09-19,128000,multimodal,True,7B,1058
+qwen-2-72b,Alibaba,2024-06-06,128000,text,True,72B,1258
+qwen-2-57b-a14b,Alibaba,2024-06-06,32768,text,True,57B MoE,1260
+qwen-1.5-110b,Alibaba,2024-04-25,32768,text,True,110B,1369
+grok-3,xAI,2025-12-12,128000,multimodal,False,,1368
+grok-3-mini,xAI,2026-03-18,128000,text,False,,1214
+grok-3-vision,xAI,2026-04-05,128000,multimodal,False,,1216
+grok-2,xAI,2024-08-13,128000,multimodal,False,,1196
+grok-2-mini,xAI,2024-08-13,128000,text,False,,1288
+grok-2-vision,xAI,2024-11-01,128000,multimodal,False,,1126
+grok-1.5,xAI,2024-03-28,128000,text,False,,1045
+grok-1,xAI,2023-11-04,8192,text,True,314B MoE,1163
+phi-4,Microsoft,2024-12-12,16000,text,True,14B,1352
+phi-4-reasoning,Microsoft,2026-03-25,32000,text,True,14B,1163
+phi-4-multimodal,Microsoft,2026-04-30,128000,multimodal,True,14B,1059
+phi-4-mini,Microsoft,2026-05-10,32000,text,True,3.8B,1034
+phi-3.5-moe,Microsoft,2024-08-21,128000,text,True,42B MoE,1233
+phi-3.5-vision,Microsoft,2024-08-21,128000,multimodal,True,4.2B,1221
+phi-3.5-mini,Microsoft,2024-08-21,128000,text,True,3.8B,1285
+phi-3-medium,Microsoft,2024-05-21,128000,text,True,14B,1031
+phi-3-small,Microsoft,2024-05-21,128000,text,True,7B,1031
+phi-3-mini,Microsoft,2024-04-23,128000,text,True,3.8B,1134
+phi-2,Microsoft,2023-12-13,2048,text,True,2.7B,1198
+llama-3.3-70b-groq,Groq,2024-12-06,128000,text,True,70B,1081
+llama-3.1-70b-groq,Groq,2024-07-23,128000,text,True,70B,1315
+llama-3.1-8b-groq,Groq,2024-07-23,128000,text,True,8B,1219
+deepseek-r1-groq,Groq,2025-01-20,128000,text,True,70B,1345
+mixtral-8x7b-groq,Groq,2024-01-15,32768,text,True,46.7B MoE,1042
+gemma-2-9b-groq,Groq,2024-07-01,8192,text,True,9B,1070
+llama-3.3-70b-cerebras,Cerebras,2024-12-06,128000,text,True,70B,1197
+llama-3.1-70b-cerebras,Cerebras,2024-08-01,128000,text,True,70B,1182
+llama-3.1-8b-cerebras,Cerebras,2024-08-01,128000,text,True,8B,1039
+llama-3.3-70b-sambanova,SambaNova,2024-12-06,128000,text,True,70B,1210
+llama-3.1-405b-sambanova,SambaNova,2024-08-15,128000,text,True,405B,1156
+deepseek-r1-sambanova,SambaNova,2025-01-20,128000,text,True,671B MoE,1111
+qwen-2.5-72b-sambanova,SambaNova,2024-10-01,128000,text,True,72B,1343
+claude-3.5-sonnet-bedrock,AWS Bedrock,2024-06-20,200000,multimodal,False,,1261
+claude-3.5-haiku-bedrock,AWS Bedrock,2024-10-22,200000,text,False,,1038
+claude-3-opus-bedrock,AWS Bedrock,2024-03-01,200000,multimodal,False,,1232
+nova-pro-bedrock,AWS Bedrock,2024-12-03,128000,multimodal,False,,1037
+nova-lite-bedrock,AWS Bedrock,2024-12-03,128000,multimodal,False,,1148
+nova-micro-bedrock,AWS Bedrock,2024-12-03,128000,text,False,,1138
+llama-3.3-70b-bedrock,AWS Bedrock,2024-12-06,128000,text,True,70B,1029
+mistral-large-bedrock,AWS Bedrock,2024-03-01,128000,text,False,,1315
+gpt-4o-azure,Azure OpenAI,2024-05-13,128000,multimodal,False,,1377
+gpt-4o-mini-azure,Azure OpenAI,2024-07-18,128000,multimodal,False,,1188
+o1-azure,Azure OpenAI,2024-12-17,200000,text,False,,1314
+o3-mini-azure,Azure OpenAI,2026-02-10,256000,text,False,,1132
+gpt-4-turbo-azure,Azure OpenAI,2024-04-09,128000,multimodal,False,,1184
+phi-4-azure,Azure OpenAI,2024-12-12,16000,text,True,14B,1134
+gemini-2-flash-vertex,GCP Vertex AI,2026-02-25,1000000,multimodal,False,,1201
+gemini-2-pro-vertex,GCP Vertex AI,2025-12-11,2000000,multimodal,False,,1127
+gemini-1.5-pro-vertex,GCP Vertex AI,2024-02-15,2000000,multimodal,False,,1277
+gemini-1.5-flash-vertex,GCP Vertex AI,2024-05-14,1000000,multimodal,False,,1286
+claude-3.5-sonnet-vertex,GCP Vertex AI,2024-06-20,200000,multimodal,False,,1198
+llama-3.3-70b-vertex,GCP Vertex AI,2024-12-06,128000,text,True,70B,1028
+deepseek-v3-fireworks,Fireworks AI,2024-12-26,128000,text,True,671B MoE,1120
+deepseek-r1-fireworks,Fireworks AI,2025-01-20,128000,text,True,671B MoE,1246
+llama-3.3-70b-fireworks,Fireworks AI,2024-12-06,128000,text,True,70B,1266
+qwen-2.5-coder-32b-fireworks,Fireworks AI,2024-11-12,128000,text,True,32B,1067
+yi-large-fireworks,Fireworks AI,2024-06-01,32768,text,False,,1117
+llama-3.3-70b-together,Together AI,2024-12-06,128000,text,True,70B,1028
+llama-3.1-405b-together,Together AI,2024-07-23,128000,text,True,405B,1371
+deepseek-v3-together,Together AI,2024-12-26,128000,text,True,671B MoE,1010
+deepseek-r1-together,Together AI,2025-01-20,128000,text,True,671B MoE,1023
+qwen-2.5-72b-together,Together AI,2024-09-19,128000,text,True,72B,1057
+mixtral-8x22b-together,Together AI,2024-04-10,65536,text,True,141B MoE,1008
+llama-3.3-70b-deepinfra,DeepInfra,2024-12-06,128000,text,True,70B,1027
+deepseek-v3-deepinfra,DeepInfra,2024-12-26,128000,text,True,671B MoE,1362
+qwen-2.5-72b-deepinfra,DeepInfra,2024-09-19,128000,text,True,72B,1009
+wizardlm-2-8x22b-deepinfra,DeepInfra,2024-04-15,65536,text,True,141B MoE,1137
+claude-3.5-sonnet-openrouter,OpenRouter,2024-06-20,200000,multimodal,False,,1036
+gpt-4o-openrouter,OpenRouter,2024-05-13,128000,multimodal,False,,1102
+deepseek-r1-openrouter,OpenRouter,2025-01-20,128000,text,True,671B MoE,1126
+llama-3.3-70b-openrouter,OpenRouter,2024-12-06,128000,text,True,70B,1055
+nemotron-4-340b,NVIDIA,2024-06-24,4096,text,True,340B,1170
+llama-3.1-nemotron-70b,NVIDIA,2024-10-01,128000,text,True,70B,1289
+nemotron-ultra-253b,NVIDIA,2026-03-10,128000,text,True,253B,1244
+nemotron-4-15b,NVIDIA,2024-06-24,4096,text,True,15B,1044
+jamba-1.5-large,AI21,2024-08-21,256000,text,False,,1241
+jamba-1.5-mini,AI21,2024-08-21,256000,text,False,,1101
+jamba-instruct,AI21,2024-04-10,256000,text,True,52B MoE,1170
+jurassic-2-ultra,AI21,2023-03-08,8192,text,False,,1094
+jurassic-2-mid,AI21,2023-03-08,8192,text,False,,1094
+nova-pro-v1,Amazon,2024-12-03,128000,multimodal,False,,1114
+nova-lite-v1,Amazon,2024-12-03,128000,multimodal,False,,1363
+nova-micro-v1,Amazon,2024-12-03,128000,text,False,,1290
+titan-text-express,Amazon,2023-11-29,8192,text,False,,1285
+titan-text-lite,Amazon,2023-11-29,4096,text,False,,1112
+command-r-plus-2,Cohere,2025-09-10,128000,text,False,,1313
+command-r-plus,Cohere,2024-04-04,128000,text,False,,1367
+command-r,Cohere,2024-03-11,128000,text,False,,1058
+command-light,Cohere,2023-08-01,4096,text,False,,1030
+ernie-4.0-turbo,Baidu,2024-06-28,128000,text,False,,1069
+ernie-4.0-8k,Baidu,2024-10-01,8000,text,False,,1099
+ernie-3.5-8k,Baidu,2024-03-01,8000,text,False,,1320
+ernie-speed-128k,Baidu,2025-02-01,128000,text,False,,1042
+ernie-lite-8k,Baidu,2024-04-01,8000,text,False,,1179
+doubao-pro-128k,ByteDance,2024-11-01,128000,text,False,,1072
+doubao-pro-32k,ByteDance,2024-08-01,32000,text,False,,1093
+doubao-lite-32k,ByteDance,2024-08-01,32000,text,False,,1009
+hunyuan-pro,Tencent,2024-09-05,256000,multimodal,False,,1050
+hunyuan-turbos,Tencent,2025-01-15,128000,text,False,,1152
+hunyuan-large,Tencent,2025-06-01,256000,text,True,389B MoE,1209
+yi-lightning,01.AI,2025-09-20,128000,text,False,,1083
+yi-large,01.AI,2024-07-25,32768,text,False,,1188
+yi-1.5-34b,01.AI,2024-05-13,200000,text,True,34B,1065
+yi-1.5-9b,01.AI,2024-05-13,200000,text,True,9B,1279
+yi-1.5-6b,01.AI,2024-05-13,200000,text,True,6B,1300
+glm-4-plus,Zhipu,2024-09-01,128000,multimodal,False,,1185
+glm-4-air,Zhipu,2024-09-01,128000,text,False,,1349
+glm-4-flash,Zhipu,2024-09-01,128000,text,False,,1108
+glm-4v-plus,Zhipu,2024-10-15,128000,multimodal,False,,1230
+codegeex-4,Zhipu,2025-12-01,128000,text,True,9B,1218
+granite-3.1-32b,IBM,2025-02-05,128000,text,True,32B,1159
+granite-3.1-8b,IBM,2025-02-05,128000,text,True,8B,1098
+granite-3.1-2b,IBM,2025-02-05,128000,text,True,2B,1133
+granite-vision-3.2,IBM,2025-06-10,128000,multimodal,True,2B,1350
+sonar-pro,Perplexity,2024-11-18,200000,text,False,,1359
+sonar-reasoning,Perplexity,2025-01-25,200000,text,False,,1098
+sonar-small-online,Perplexity,2024-08-01,128000,text,False,,1218
+dbrx-132b,Databricks,2024-03-27,32768,text,True,132B MoE,1215
+dbrx-instruct,Databricks,2024-03-27,32768,text,True,132B MoE,1359
+llama-3.1-dbrx-70b,Databricks,2025-02-10,128000,text,True,70B,1298
+dbrx-8b-preview,Databricks,2026-01-15,128000,text,True,8B,1134
+mpt-30b,Databricks,2024-05-01,8192,text,True,30B,1101
+palmyra-x-005,Writer,2025-11-14,128000,text,False,,1148
+palmyra-x-004,Writer,2024-09-10,128000,text,False,,1183
+palmyra-creative,Writer,2026-05-20,128000,text,False,,1263
+reka-core-20240904,Reka,2024-09-04,128000,multimodal,False,,1209
+reka-flash-20241219,Reka,2024-12-19,128000,multimodal,False,,1191
+reka-edge,Reka,2024-03-01,32768,multimodal,False,,1172
+solar-pro-2,Upstage,2025-09-01,128000,text,False,,1319
+solar-pro,Upstage,2024-11-15,128000,text,False,,1345
+solar-10.7b,Upstage,2024-03-15,4096,text,True,10.7B,1202
+xlam-2-35b,Salesforce,2025-10-01,128000,text,True,35B MoE,1323
+xgen-7b,Salesforce,2024-06-15,8192,text,True,7B,1154
+stable-llm-12b,Stability AI,2024-10-20,4096,text,True,12B,1273
+stable-llm-3b,Stability AI,2024-06-10,4096,text,True,3B,950
+apple-foundation-llm,Apple,2025-06-10,32000,text,False,,1092
+apple-foundation-3b,Apple,2025-06-10,32000,text,True,3B,962
+milm-13b,Xiaomi,2024-09-15,32000,text,True,13B,950
+milm-6b,Xiaomi,2024-04-01,32000,text,True,6B,1225
+samsung-gauss-13b,Samsung,2025-06-01,32000,text,True,13B,1192
+samsung-gauss-7b,Samsung,2024-11-20,32000,text,True,7B,1162
+olmo-7b-v1.7,Allen AI,2024-07-01,4096,text,True,7B,1002
+olmoe-1b-7b,Allen AI,2024-09-01,4096,text,True,7B MoE,1152
+starcoder-2-15b,BigCode,2024-02-28,16384,text,True,15B,1005
+starcoder-2-7b,BigCode,2024-02-28,16384,text,True,7B,1170
+starcoder-2-3b,BigCode,2024-02-28,16384,text,True,3B,1278
+wizardlm-2-8x22b,WizardLM,2024-04-15,65536,text,True,141B MoE,1160
+wizardlm-2-7b,WizardLM,2024-04-15,32768,text,True,7B,1045
+act-2,Adept,2025-12-01,128000,text,False,,1168
+act-1,Adept,2024-06-01,32768,text,False,,1130
+inflection-3,Inflection,2025-06-10,128000,multimodal,False,,1224
+inflection-2.5,Inflection,2024-03-08,32768,text,False,,1217
+dolphin-2.9-llama3-70b,Cognitive Computations,2024-05-01,8192,text,True,70B,1024
+dolphin-2.8-mistral-7b,Cognitive Computations,2024-04-01,8192,text,True,7B,1118
+gemma-2-27b-groq,Groq,2024-06-27,8192,text,True,27B,1228
+gemma-2-9b-cerebras,Cerebras,2024-06-27,8192,text,True,9B,1166
+gemma-2-2b-togetherai,Together AI,2024-06-27,8192,text,True,2B,1001
+gemma-7b-fireworksai,Fireworks AI,2024-02-21,8192,text,True,7B,1035
+gemma-2b-deepinfra,DeepInfra,2024-02-21,8192,text,True,2B,1312
+gemma-3-27b-openrouter,OpenRouter,2026-03-15,16384,text,True,27B,1146
+gemma-3-12b-leptonai,Lepton AI,2026-03-15,16384,text,True,12B,1146
+gemma-3-4b-replicate,Replicate,2026-03-15,16384,text,True,4B,1251
+gemma-3-1b-novitaai,Novita AI,2026-03-15,16384,text,True,1B,978
+codegemma-7b-awsbedrock,AWS Bedrock,2024-04-09,8192,text,True,7B,1277
+recurrentgemma-2b-anyscale,Anyscale,2024-04-09,2048,text,True,2B,1168
+llama-3.1-405b-fp8-hyperbolic,Hyperbolic,2024-07-23,128000,text,True,405B FP8,1218
+llama-3.1-70b-lambdalabs,Lambda Labs,2024-07-23,128000,text,True,70B,1091
+llama-3.1-70b-instruct-runpod,RunPod,2024-07-23,128000,text,True,70B,1038
+llama-3.1-8b-vastai,Vast AI,2024-07-23,128000,text,True,8B,1379
+llama-3.1-8b-instruct-featherlessai,Featherless AI,2024-07-23,128000,text,True,8B,1183
+llama-3.3-70b-chutesai,Chutes AI,2024-12-06,128000,text,True,70B,1159
+llama-3.2-90b-vision-infermatic,Infermatic,2024-09-25,128000,multimodal,True,90B,1290
+llama-3.2-11b-vision-unifyai,Unify AI,2024-09-25,128000,multimodal,True,11B,950
+llama-3.2-3b-groq,Groq,2024-09-25,128000,text,True,3B,1116
+llama-3.2-1b-cerebras,Cerebras,2024-09-25,128000,text,True,1B,950
+llama-3-70b-togetherai,Together AI,2024-04-18,8192,text,True,70B,1057
+llama-3-8b-fireworksai,Fireworks AI,2024-04-18,8192,text,True,8B,1250
+llama-4-405b-deepinfra,DeepInfra,2026-01-15,128000,multimodal,True,405B,1198
+llama-4-70b-openrouter,OpenRouter,2026-01-15,128000,multimodal,True,70B,1017
+llama-4-8b-leptonai,Lepton AI,2026-01-15,128000,multimodal,True,8B,1184
+llama-4-scout-replicate,Replicate,2026-04-01,128000,multimodal,True,30B,1295
+llama-4-maverick-novitaai,Novita AI,2026-05-10,128000,multimodal,True,120B,1112
+llama-2-70b-awsbedrock,AWS Bedrock,2023-07-18,4096,text,True,70B,1240
+llama-2-13b-anyscale,Anyscale,2023-07-18,4096,text,True,13B,1053
+llama-2-7b-sambanova,SambaNova,2023-07-18,4096,text,True,7B,1040
+code-llama-70b-hyperbolic,Hyperbolic,2024-01-29,16384,text,True,70B,1173
+code-llama-34b-lambdalabs,Lambda Labs,2023-08-24,16384,text,True,34B,1332
+code-llama-13b-runpod,RunPod,2023-08-24,16384,text,True,13B,1148
+code-llama-7b-vastai,Vast AI,2023-08-24,16384,text,True,7B,1283
+deepseek-r1-featherlessai,Featherless AI,2025-01-20,128000,text,True,671B MoE,1002
+deepseek-r1-zero-chutesai,Chutes AI,2025-01-20,128000,text,True,671B MoE,1148
+deepseek-v3-infermatic,Infermatic,2024-12-26,128000,text,True,671B MoE,1042
+deepseek-v3.1-unifyai,Unify AI,2026-04-15,128000,text,True,671B MoE,1306
+deepseek-v2.5-groq,Groq,2024-09-06,128000,text,True,236B MoE,1099
+deepseek-v2-cerebras,Cerebras,2024-05-06,128000,text,True,236B MoE,1040
+deepseek-v2-lite-togetherai,Together AI,2024-05-06,128000,text,True,16B MoE,1071
+deepseek-coder-v2-fireworksai,Fireworks AI,2024-06-17,128000,text,True,236B MoE,1256
+deepseek-coder-v2-lite-deepinfra,DeepInfra,2024-06-17,128000,text,True,16B MoE,1235
+deepseek-coder-33b-openrouter,OpenRouter,2023-11-02,16384,text,True,33B,1103
+deepseek-coder-7b-leptonai,Lepton AI,2023-11-02,16384,text,True,7B,1157
+deepseek-math-7b-replicate,Replicate,2024-02-05,4096,text,True,7B,1337
+deepseek-r1-distill-llama-70b-novitaai,Novita AI,2025-01-20,128000,text,True,70B,1252
+deepseek-r1-distill-llama-8b-awsbedrock,AWS Bedrock,2025-01-20,128000,text,True,8B,1160
+deepseek-r1-distill-qwen-32b-anyscale,Anyscale,2025-01-20,128000,text,True,32B,1260
+deepseek-r1-distill-qwen-14b-sambanova,SambaNova,2025-01-20,128000,text,True,14B,1037
+deepseek-r1-distill-qwen-7b-hyperbolic,Hyperbolic,2025-01-20,128000,text,True,7B,1317
+deepseek-r1-distill-qwen-1.5b-lambdalabs,Lambda Labs,2025-01-20,128000,text,True,1.5B,1286
+mistral-nemo-runpod,RunPod,2024-07-18,128000,text,True,12B,1326
+mistral-7b-vastai,Vast AI,2023-09-27,8192,text,True,7B,1338
+mixtral-8x22b-featherlessai,Featherless AI,2024-04-10,65536,text,True,141B MoE,1061
+mixtral-8x7b-chutesai,Chutes AI,2023-12-11,32768,text,True,46.7B MoE,1115
+codestral-22b-infermatic,Infermatic,2024-05-29,32000,text,True,22B,1252
+codestral-mamba-unifyai,Unify AI,2024-07-16,256000,text,True,7B,1330
+pixtral-12b-groq,Groq,2024-09-17,128000,multimodal,True,12B,1149
+mathstral-7b-cerebras,Cerebras,2024-07-16,32768,text,True,7B,1260
+qwen-3-235b-togetherai,Together AI,2026-04-01,128000,text,True,235B MoE,1339
+qwen-3-72b-fireworksai,Fireworks AI,2026-04-01,128000,text,True,72B,1169
+qwen-3-32b-deepinfra,DeepInfra,2026-04-01,128000,text,True,32B,1077
+qwen-3-14b-openrouter,OpenRouter,2026-04-01,128000,text,True,14B,1099
+qwen-3-8b-leptonai,Lepton AI,2026-04-01,128000,text,True,8B,1052
+qwen-3-vl-72b-replicate,Replicate,2026-05-15,128000,multimodal,True,72B,1174
+qwen-3-coder-32b-novitaai,Novita AI,2026-05-01,128000,text,True,32B,1002
+qwen-2.5-72b-awsbedrock,AWS Bedrock,2024-09-19,128000,text,True,72B,1083
+qwen-2.5-32b-anyscale,Anyscale,2024-09-19,128000,text,True,32B,1013
+qwen-2.5-14b-sambanova,SambaNova,2024-09-19,128000,text,True,14B,1150
+qwen-2.5-7b-hyperbolic,Hyperbolic,2024-09-19,128000,text,True,7B,1015
+qwen-2.5-3b-lambdalabs,Lambda Labs,2024-09-19,32768,text,True,3B,1063
+qwen-2.5-1.5b-runpod,RunPod,2024-09-19,32768,text,True,1.5B,1261
+qwen-2.5-0.5b-vastai,Vast AI,2024-09-19,32768,text,True,0.5B,1203
+qwen-2.5-coder-32b-featherlessai,Featherless AI,2024-11-12,128000,text,True,32B,1079
+qwen-2.5-coder-14b-chutesai,Chutes AI,2024-11-12,128000,text,True,14B,1035
+qwen-2.5-coder-7b-infermatic,Infermatic,2024-09-19,128000,text,True,7B,1189
+qwen-2.5-coder-1.5b-unifyai,Unify AI,2024-09-19,32768,text,True,1.5B,1127
+qwen-2.5-math-72b-groq,Groq,2024-09-19,4096,text,True,72B,1219
+qwen-2.5-math-7b-cerebras,Cerebras,2024-09-19,4096,text,True,7B,1300
+qwen-2.5-vl-72b-togetherai,Together AI,2024-09-19,128000,multimodal,True,72B,1238
+qwen-2.5-vl-7b-fireworksai,Fireworks AI,2024-09-19,128000,multimodal,True,7B,1255
+qwen-2-72b-deepinfra,DeepInfra,2024-06-06,128000,text,True,72B,1182
+qwen-2-57b-a14b-openrouter,OpenRouter,2024-06-06,32768,text,True,57B MoE,1043
+qwen-1.5-110b-leptonai,Lepton AI,2024-04-25,32768,text,True,110B,1151
+grok-1-replicate,Replicate,2023-11-04,8192,text,True,314B MoE,1126
+phi-4-novitaai,Novita AI,2024-12-12,16000,text,True,14B,1083
+phi-4-reasoning-awsbedrock,AWS Bedrock,2026-03-25,32000,text,True,14B,1164
+phi-4-multimodal-anyscale,Anyscale,2026-04-30,128000,multimodal,True,14B,1277
+phi-4-mini-sambanova,SambaNova,2026-05-10,32000,text,True,3.8B,1258
+phi-3.5-moe-hyperbolic,Hyperbolic,2024-08-21,128000,text,True,42B MoE,1094
+phi-3.5-vision-lambdalabs,Lambda Labs,2024-08-21,128000,multimodal,True,4.2B,1217
+phi-3.5-mini-runpod,RunPod,2024-08-21,128000,text,True,3.8B,1317
+phi-3-medium-vastai,Vast AI,2024-05-21,128000,text,True,14B,1056
+phi-3-small-featherlessai,Featherless AI,2024-05-21,128000,text,True,7B,1123
+phi-3-mini-chutesai,Chutes AI,2024-04-23,128000,text,True,3.8B,1251
+phi-2-infermatic,Infermatic,2023-12-13,2048,text,True,2.7B,1297
+llama-3.3-70b-groq-unifyai,Unify AI,2024-12-06,128000,text,True,70B,1092
+llama-3.1-70b-groq-groq,Groq,2024-07-23,128000,text,True,70B,1182
+llama-3.1-8b-groq-cerebras,Cerebras,2024-07-23,128000,text,True,8B,1001
+deepseek-r1-groq-togetherai,Together AI,2025-01-20,128000,text,True,70B,1081
+mixtral-8x7b-groq-fireworksai,Fireworks AI,2024-01-15,32768,text,True,46.7B MoE,1281
+gemma-2-9b-groq-deepinfra,DeepInfra,2024-07-01,8192,text,True,9B,1337
+llama-3.3-70b-cerebras-openrouter,OpenRouter,2024-12-06,128000,text,True,70B,1035
+llama-3.1-70b-cerebras-leptonai,Lepton AI,2024-08-01,128000,text,True,70B,1350
+llama-3.1-8b-cerebras-replicate,Replicate,2024-08-01,128000,text,True,8B,1026
+llama-3.3-70b-sambanova-novitaai,Novita AI,2024-12-06,128000,text,True,70B,1136
+llama-3.1-405b-sambanova-awsbedrock,AWS Bedrock,2024-08-15,128000,text,True,405B,1254
+deepseek-r1-sambanova-anyscale,Anyscale,2025-01-20,128000,text,True,671B MoE,1184
+qwen-2.5-72b-sambanova-sambanova,SambaNova,2024-10-01,128000,text,True,72B,1159
+llama-3.3-70b-bedrock-hyperbolic,Hyperbolic,2024-12-06,128000,text,True,70B,1067
+phi-4-azure-lambdalabs,Lambda Labs,2024-12-12,16000,text,True,14B,1110
+llama-3.3-70b-vertex-runpod,RunPod,2024-12-06,128000,text,True,70B,1371
+deepseek-v3-fireworks-vastai,Vast AI,2024-12-26,128000,text,True,671B MoE,1083
+deepseek-r1-fireworks-featherlessai,Featherless AI,2025-01-20,128000,text,True,671B MoE,1314
+llama-3.3-70b-fireworks-chutesai,Chutes AI,2024-12-06,128000,text,True,70B,1084
+qwen-2.5-coder-32b-fireworks-infermatic,Infermatic,2024-11-12,128000,text,True,32B,1296
+llama-3.3-70b-together-unifyai,Unify AI,2024-12-06,128000,text,True,70B,1340
+llama-3.1-405b-together-groq,Groq,2024-07-23,128000,text,True,405B,1093
+deepseek-v3-together-cerebras,Cerebras,2024-12-26,128000,text,True,671B MoE,1348
+deepseek-r1-together-togetherai,Together AI,2025-01-20,128000,text,True,671B MoE,1012
+qwen-2.5-72b-together-fireworksai,Fireworks AI,2024-09-19,128000,text,True,72B,1259
+mixtral-8x22b-together-deepinfra,DeepInfra,2024-04-10,65536,text,True,141B MoE,1133
+llama-3.3-70b-deepinfra-openrouter,OpenRouter,2024-12-06,128000,text,True,70B,1105
+deepseek-v3-deepinfra-leptonai,Lepton AI,2024-12-26,128000,text,True,671B MoE,1164
+qwen-2.5-72b-deepinfra-replicate,Replicate,2024-09-19,128000,text,True,72B,1208
+wizardlm-2-8x22b-deepinfra-novitaai,Novita AI,2024-04-15,65536,text,True,141B MoE,1298
+deepseek-r1-openrouter-awsbedrock,AWS Bedrock,2025-01-20,128000,text,True,671B MoE,1185
+llama-3.3-70b-openrouter-anyscale,Anyscale,2024-12-06,128000,text,True,70B,1284
+nemotron-4-340b-sambanova,SambaNova,2024-06-24,4096,text,True,340B,1127
+llama-3.1-nemotron-70b-hyperbolic,Hyperbolic,2024-10-01,128000,text,True,70B,1093
+nemotron-ultra-253b-lambdalabs,Lambda Labs,2026-03-10,128000,text,True,253B,1089
+nemotron-4-15b-runpod,RunPod,2024-06-24,4096,text,True,15B,1347
+jamba-instruct-vastai,Vast AI,2024-04-10,256000,text,True,52B MoE,1030
+hunyuan-large-featherlessai,Featherless AI,2025-06-01,256000,text,True,389B MoE,1039
+yi-1.5-34b-chutesai,Chutes AI,2024-05-13,200000,text,True,34B,1298
+yi-1.5-9b-infermatic,Infermatic,2024-05-13,200000,text,True,9B,1134
+yi-1.5-6b-unifyai,Unify AI,2024-05-13,200000,text,True,6B,1162
+codegeex-4-groq,Groq,2025-12-01,128000,text,True,9B,1113
+granite-3.1-32b-cerebras,Cerebras,2025-02-05,128000,text,True,32B,1050
+granite-3.1-8b-togetherai,Together AI,2025-02-05,128000,text,True,8B,1275
+granite-3.1-2b-fireworksai,Fireworks AI,2025-02-05,128000,text,True,2B,1271
+granite-vision-3.2-deepinfra,DeepInfra,2025-06-10,128000,multimodal,True,2B,1374
+dbrx-132b-openrouter,OpenRouter,2024-03-27,32768,text,True,132B MoE,1354
+dbrx-instruct-leptonai,Lepton AI,2024-03-27,32768,text,True,132B MoE,1118
+llama-3.1-dbrx-70b-replicate,Replicate,2025-02-10,128000,text,True,70B,1203
+dbrx-8b-preview-novitaai,Novita AI,2026-01-15,128000,text,True,8B,1085
+mpt-30b-awsbedrock,AWS Bedrock,2024-05-01,8192,text,True,30B,1103
+solar-10.7b-anyscale,Anyscale,2024-03-15,4096,text,True,10.7B,1054
+xlam-2-35b-sambanova,SambaNova,2025-10-01,128000,text,True,35B MoE,1372
+xgen-7b-hyperbolic,Hyperbolic,2024-06-15,8192,text,True,7B,1327
+stable-llm-12b-lambdalabs,Lambda Labs,2024-10-20,4096,text,True,12B,1239
+stable-llm-3b-runpod,RunPod,2024-06-10,4096,text,True,3B,1157
+apple-foundation-3b-vastai,Vast AI,2025-06-10,32000,text,True,3B,1248
+milm-13b-featherlessai,Featherless AI,2024-09-15,32000,text,True,13B,1162
+milm-6b-chutesai,Chutes AI,2024-04-01,32000,text,True,6B,1296
+samsung-gauss-13b-infermatic,Infermatic,2025-06-01,32000,text,True,13B,988
+samsung-gauss-7b-unifyai,Unify AI,2024-11-20,32000,text,True,7B,1313
+olmo-7b-v1.7-groq,Groq,2024-07-01,4096,text,True,7B,1292
+olmoe-1b-7b-cerebras,Cerebras,2024-09-01,4096,text,True,7B MoE,1199
+starcoder-2-15b-togetherai,Together AI,2024-02-28,16384,text,True,15B,1256
+starcoder-2-7b-fireworksai,Fireworks AI,2024-02-28,16384,text,True,7B,1216
+starcoder-2-3b-deepinfra,DeepInfra,2024-02-28,16384,text,True,3B,998
+wizardlm-2-8x22b-openrouter,OpenRouter,2024-04-15,65536,text,True,141B MoE,1357
+wizardlm-2-7b-leptonai,Lepton AI,2024-04-15,32768,text,True,7B,1141
+dolphin-2.9-llama3-70b-replicate,Replicate,2024-05-01,8192,text,True,70B,1277
+dolphin-2.8-mistral-7b-novitaai,Novita AI,2024-04-01,8192,text,True,7B,1065
+gemma-2-27b-awsbedrock,AWS Bedrock,2024-06-27,8192,text,True,27B,1340
+gemma-2-9b-anyscale,Anyscale,2024-06-27,8192,text,True,9B,1009
+gemma-2-2b-sambanova,SambaNova,2024-06-27,8192,text,True,2B,1018
+gemma-7b-hyperbolic,Hyperbolic,2024-02-21,8192,text,True,7B,1014
+gemma-2b-lambdalabs,Lambda Labs,2024-02-21,8192,text,True,2B,1059
+gemma-3-27b-runpod,RunPod,2026-03-15,16384,text,True,27B,1239
+gemma-3-12b-vastai,Vast AI,2026-03-15,16384,text,True,12B,1252
+gemma-3-4b-featherlessai,Featherless AI,2026-03-15,16384,text,True,4B,1116
+gemma-3-1b-chutesai,Chutes AI,2026-03-15,16384,text,True,1B,1091
+codegemma-7b-infermatic,Infermatic,2024-04-09,8192,text,True,7B,1238
+recurrentgemma-2b-unifyai,Unify AI,2024-04-09,2048,text,True,2B,1162
+llama-3.1-405b-groq,Groq,2024-07-23,128000,text,True,405B,1125
+llama-3.1-405b-fp8-cerebras,Cerebras,2024-07-23,128000,text,True,405B FP8,1312
+llama-3.1-70b-togetherai,Together AI,2024-07-23,128000,text,True,70B,1195
+llama-3.1-70b-instruct-fireworksai,Fireworks AI,2024-07-23,128000,text,True,70B,1357
+llama-3.1-8b-deepinfra,DeepInfra,2024-07-23,128000,text,True,8B,1204
+llama-3.1-8b-instruct-openrouter,OpenRouter,2024-07-23,128000,text,True,8B,1250
+llama-3.3-70b-leptonai,Lepton AI,2024-12-06,128000,text,True,70B,1281
+llama-3.2-90b-vision-replicate,Replicate,2024-09-25,128000,multimodal,True,90B,1254
+llama-3.2-11b-vision-novitaai,Novita AI,2024-09-25,128000,multimodal,True,11B,1140
+llama-3.2-3b-awsbedrock,AWS Bedrock,2024-09-25,128000,text,True,3B,1193
+llama-3.2-1b-anyscale,Anyscale,2024-09-25,128000,text,True,1B,1092
+llama-3-70b-sambanova,SambaNova,2024-04-18,8192,text,True,70B,1086
+llama-3-8b-hyperbolic,Hyperbolic,2024-04-18,8192,text,True,8B,1373
+llama-4-405b-lambdalabs,Lambda Labs,2026-01-15,128000,multimodal,True,405B,1121
+llama-4-70b-runpod,RunPod,2026-01-15,128000,multimodal,True,70B,1289
+llama-4-8b-vastai,Vast AI,2026-01-15,128000,multimodal,True,8B,1329
+llama-4-scout-featherlessai,Featherless AI,2026-04-01,128000,multimodal,True,30B,1237
+llama-4-maverick-chutesai,Chutes AI,2026-05-10,128000,multimodal,True,120B,1343
+llama-2-70b-infermatic,Infermatic,2023-07-18,4096,text,True,70B,1263
+llama-2-13b-unifyai,Unify AI,2023-07-18,4096,text,True,13B,1128
+llama-2-7b-groq,Groq,2023-07-18,4096,text,True,7B,1116
+code-llama-70b-cerebras,Cerebras,2024-01-29,16384,text,True,70B,1012
