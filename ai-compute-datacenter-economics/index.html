@@ -501,6 +501,24 @@
   .file-links a:hover { border-color: var(--accent); color: var(--accent); }
   .file-links .kaggle-note { font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; padding: 7px 4px; }
 
+  /* ============ source table preview cards (static, inline-embedded sample) ============ */
+
+  .source-preview-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+  }
+  .source-preview-card .mini-card-title { margin-bottom: 10px; }
+  .source-preview-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .source-preview-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .source-preview-table th, .source-preview-table td {
+    text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .source-preview-table th { background: var(--bg); font-weight: 700; color: var(--text-secondary); }
+  .source-preview-table tbody tr:last-child td { border-bottom: none; }
+
   /* ============ controls ============ */
   .controls-row { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-end; margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
   .control-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); min-width: 0; }
@@ -795,6 +813,10 @@
               <a href="performance_benchmarks.csv" download>&#128193; performance_benchmarks.csv</a>
               <span class="kaggle-note">Source dataset: LLM API Pricing and Performance Benchmark Tracker (Kaggle)</span>
             </div>
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Source Table Snapshots</h3>
+            <p class="section-sub" style="margin-bottom:12px;">Headers and first 5 rows of each source CSV, embedded directly in the page at build time.</p>
+            <div class="card-grid cols-2" id="source-preview-grid"></div>
           </div>
         </div>
       </div>
@@ -2142,6 +2164,74 @@
     setActive(0);
   }
 
+  // ============ Source table snapshots (static, inline-embedded sample) ============
+  // Headers + first 5 data rows of each source CSV, read directly from the files
+  // in "LLM API Pricing & Performance Benchmark Tracker/" and embedded here at
+  // build time -- no fetch, no intermediate JSON file.
+
+  var SOURCE_PREVIEWS = {
+    "models.csv": {
+      rows: 520, cols: 8,
+      headers: ["model_id", "provider", "release_date", "context_window", "modality", "open_weight", "parameter_count", "arena_elo"],
+      sample: [
+        ["gpt-4o", "OpenAI", "2024-05-13", "128000", "multimodal", "False", "", "1200"],
+        ["gpt-4o-2024-05-13", "OpenAI", "2024-05-13", "128000", "multimodal", "False", "", "1029"],
+        ["gpt-4o-2024-08-06", "OpenAI", "2024-08-06", "128000", "multimodal", "False", "", "1368"],
+        ["gpt-4o-2024-11-20", "OpenAI", "2024-11-20", "128000", "multimodal", "False", "", "1276"],
+        ["gpt-4o-mini", "OpenAI", "2024-07-18", "128000", "multimodal", "False", "", "1009"]
+      ]
+    },
+    "pricing_history.csv": {
+      rows: 44775, cols: 7,
+      headers: ["model_id", "date_recorded", "input_price_per_mtok", "output_price_per_mtok", "cached_input_price", "batch_discount_pct", "source_url"],
+      sample: [
+        ["gpt-4o", "2024-06-03", "2.1000", "7.3500", "1.0500", "50", "https://web.archive.org/web/20240603/https://openai.com/pricing"],
+        ["gpt-4o", "2024-06-10", "2.1000", "7.3500", "1.0500", "50", "https://web.archive.org/web/20240610/https://openai.com/pricing"],
+        ["gpt-4o", "2024-06-17", "2.1000", "7.3500", "1.0500", "50", "https://web.archive.org/web/20240617/https://openai.com/pricing"],
+        ["gpt-4o", "2024-06-24", "2.1000", "7.3500", "1.0500", "50", "https://web.archive.org/web/20240624/https://openai.com/pricing"],
+        ["gpt-4o", "2024-07-01", "2.1000", "7.3500", "1.0500", "50", "https://web.archive.org/web/20240701/https://openai.com/pricing"]
+      ]
+    },
+    "performance_benchmarks.csv": {
+      rows: 358200, cols: 9,
+      headers: ["model_id", "date_tested", "benchmark_name", "score", "latency_ttft_ms", "latency_p50_output_ms", "latency_total_ms", "tokens_per_sec", "test_prompt_set"],
+      sample: [
+        ["gpt-4o", "2024-06-03", "MMLU", "78.0", "380", "1768", "2206", "60", "prompt_set_v2"],
+        ["gpt-4o", "2024-06-03", "HumanEval", "73.0", "380", "372", "756", "60", "prompt_set_v2"],
+        ["gpt-4o", "2024-06-03", "GSM8K", "78.0", "380", "438", "1763", "60", "prompt_set_v2"],
+        ["gpt-4o", "2024-06-03", "GPQA_Diamond", "54.6", "380", "1639", "3151", "60", "prompt_set_v2"],
+        ["gpt-4o", "2024-06-03", "LiveCodeBench", "66.3", "380", "1653", "2208", "60", "prompt_set_v2"]
+      ]
+    },
+    "cost_efficiency.csv": {
+      rows: 44775, cols: 8,
+      headers: ["model_id", "date", "quality_score", "cost_per_1k_queries", "quality_per_dollar", "speed_per_dollar", "price_performance_ratio", "elo_benchmark_blend"],
+      sample: [
+        ["gpt-4o", "2024-06-03", "60.15", "2.5200", "23.8690", "23.8095", "47.4197", "0.7007"],
+        ["gpt-4o", "2024-06-10", "60.15", "2.5200", "23.8690", "23.8095", "47.4197", "0.7007"],
+        ["gpt-4o", "2024-06-17", "60.15", "2.5200", "23.8690", "23.8095", "47.4197", "0.7007"],
+        ["gpt-4o", "2024-06-24", "60.15", "2.5200", "23.8690", "23.8095", "47.4197", "0.7007"],
+        ["gpt-4o", "2024-07-01", "60.15", "2.5200", "23.8690", "23.8095", "47.4197", "0.7007"]
+      ]
+    }
+  };
+
+  function renderSourcePreviews() {
+    var grid = byId("source-preview-grid");
+    grid.innerHTML = Object.keys(SOURCE_PREVIEWS).map(function (filename) {
+      var t = SOURCE_PREVIEWS[filename];
+      var thead = "<tr>" + t.headers.map(function (h) { return "<th>" + h + "</th>"; }).join("") + "</tr>";
+      var tbody = t.sample.map(function (row) {
+        return "<tr>" + row.map(function (v) { return "<td>" + (v === "" ? "&nbsp;" : v) + "</td>"; }).join("") + "</tr>";
+      }).join("");
+      return '<div class="source-preview-card">' +
+        '<p class="mini-card-title">' + filename + '<span class="badge">' + t.rows.toLocaleString() + " rows × " + t.cols + " cols</span></p>" +
+        '<div class="source-preview-table-wrap"><table class="source-preview-table"><thead>' + thead + "</thead><tbody>" + tbody + "</tbody></table></div>" +
+        '<p class="table-note">Showing 5 of ' + t.rows.toLocaleString() + " rows</p>" +
+        "</div>";
+    }).join("");
+  }
+
   // ============ boot ============
 
   function initUI() {
@@ -2149,6 +2239,7 @@
     initCollapsible("toggle-data-eng", "body-data-eng");
     initCollapsible("toggle-audit", "body-audit");
     renderSection1();
+    renderSourcePreviews();
     initCharts();
     bindControls();
 
