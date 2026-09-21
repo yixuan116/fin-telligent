@@ -19,6 +19,3 @@ fin-telligent = finance + intelligent. A series on bringing AI into financial an
 - retail-expansion-analytics:
   - link: https://yixuan116.github.io/fin-telligent/retail-expansion-analytics/
 
-- ai-budget-sandbox:
-  - link: https://yixuan116.github.io/fin-telligent/ai-budget-sandbox/
-
