@@ -520,6 +520,40 @@
   .source-preview-table th { background: var(--bg); font-weight: 700; color: var(--text-secondary); }
   .source-preview-table tbody tr:last-child td { border-bottom: none; }
 
+  /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
+
+  .benchmark-story { background: var(--card-bg); }
+  .bstory-intro { font-size: 0.86rem; color: var(--text-secondary); max-width: 760px; margin: 0 0 20px; line-height: 1.55; }
+
+  .bstory-group { margin-bottom: 20px; }
+  .bstory-group-label {
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 10px;
+  }
+  .bstory-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .bstory-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .bstory-card .bstory-card-name { font-size: 0.9rem; font-weight: 800; margin: 0 0 6px; text-transform: capitalize; }
+  .bstory-card .bstory-card-desc { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.45; margin: 0 0 8px; }
+  .bstory-card .bstory-card-analogy { font-size: 0.74rem; color: var(--accent); font-weight: 600; line-height: 1.4; }
+
+  .bstory-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+  .bstory-tab {
+    font-family: inherit; font-size: 0.74rem; font-weight: 600; color: var(--text-secondary);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; text-transform: capitalize;
+  }
+  .bstory-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .bstory-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .bstory-rank-table, .bstory-flagship-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .bstory-rank-table th, .bstory-rank-table td, .bstory-flagship-table th, .bstory-flagship-table td {
+    text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .bstory-rank-table th, .bstory-flagship-table th { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); background: var(--bg); }
+  .bstory-rank-table td.bstory-rank-num { color: var(--text-muted); width: 28px; }
+  .bstory-rank-table tr:first-child td { font-weight: 700; color: var(--text-primary); }
+  .bstory-flagship-table td.bstory-model-name { font-weight: 700; color: var(--text-primary); }
+  .bstory-flagship-table th { text-transform: capitalize; }
+
   /* ============ controls ============ */
   .controls-row { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-end; margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
   .control-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); min-width: 0; }
@@ -1592,6 +1626,127 @@
     });
   }
 
+  // ============ Benchmark story (performance_benchmarks.csv deep dive) ============
+  // Pre-aggregated offline from performance_benchmarks.csv + models.csv via
+  // data_prep_benchmark_story.py (top-10-per-benchmark at the latest test date,
+  // weekly distinct-model-id counts, and the four flagship models' fixed scores)
+  // and embedded here -- no re-parsing of the 358,200-row file for this.
+
+  var BENCHMARK_STORY_DATA = {"max_date":"2026-07-20","min_date":"2024-06-03","top10":{"MMLU":[{"model_id":"code-llama-7b","provider":"Meta","score":94.9},{"model_id":"gemma-3-4b","provider":"Google","score":94.8},{"model_id":"granite-3.1-8b","provider":"IBM","score":94.8},{"model_id":"qwen-2.5-coder-32b","provider":"Alibaba","score":94.6},{"model_id":"mistral-large-1","provider":"Mistral","score":94.4},{"model_id":"llama-3.1-8b-deepinfra","provider":"DeepInfra","score":94.4},{"model_id":"yi-1.5-6b-unifyai","provider":"Unify AI","score":94.2},{"model_id":"qwen-2.5-3b","provider":"Alibaba","score":94.2},{"model_id":"olmo-7b-v1.7-groq","provider":"Groq","score":94.2},{"model_id":"code-llama-34b-lambdalabs","provider":"Lambda Labs","score":94.2}],"GPQA_Diamond":[{"model_id":"code-llama-7b","provider":"Meta","score":75.4},{"model_id":"llama-3.1-8b-groq","provider":"Groq","score":74.7},{"model_id":"deepseek-v2.5-groq","provider":"Groq","score":74.7},{"model_id":"qwen-2.5-math-72b-groq","provider":"Groq","score":74.7},{"model_id":"pixtral-12b","provider":"Mistral","score":74.7},{"model_id":"mistral-7b","provider":"Mistral","score":74.7},{"model_id":"code-llama-13b","provider":"Meta","score":74.7},{"model_id":"granite-3.1-8b","provider":"IBM","score":74.4},{"model_id":"gemma-3-4b","provider":"Google","score":74.4},{"model_id":"yi-1.5-9b","provider":"01.AI","score":74.0}],"MT_Bench":[{"model_id":"doubao-lite-32k","provider":"ByteDance","score":9.4},{"model_id":"o3-mini-high","provider":"OpenAI","score":9.4},{"model_id":"ernie-4.0-turbo","provider":"Baidu","score":9.4},{"model_id":"llama-3.1-8b-cerebras","provider":"Cerebras","score":9.4},{"model_id":"qwen-2.5-coder-32b-featherlessai","provider":"Featherless AI","score":9.4},{"model_id":"ernie-4.0-8k","provider":"Baidu","score":9.4},{"model_id":"llama-3.1-8b-groq","provider":"Groq","score":9.4},{"model_id":"gpt-4o-2024-05-13","provider":"OpenAI","score":9.4},{"model_id":"phi-4-multimodal","provider":"Microsoft","score":9.4},{"model_id":"gpt-3.5-turbo","provider":"OpenAI","score":9.4}],"custom_reasoning_v1":[{"model_id":"qwen-2.5-math-72b-groq","provider":"Groq","score":96.0},{"model_id":"llama-2-70b-infermatic","provider":"Infermatic","score":96.0},{"model_id":"qwen-2.5-3b","provider":"Alibaba","score":96.0},{"model_id":"deepseek-v2.5-groq","provider":"Groq","score":96.0},{"model_id":"phi-3-small-featherlessai","provider":"Featherless AI","score":96.0},{"model_id":"mistral-7b","provider":"Mistral","score":96.0},{"model_id":"gemma-3-4b","provider":"Google","score":96.0},{"model_id":"gemma-2b","provider":"Google","score":96.0},{"model_id":"granite-3.1-32b","provider":"IBM","score":95.9},{"model_id":"phi-4-mini","provider":"Microsoft","score":95.4}],"HumanEval":[{"model_id":"qwen-3-coder-32b-novitaai","provider":"Novita AI","score":98.0},{"model_id":"llama-3.3-70b-together","provider":"Together AI","score":98.0},{"model_id":"command-r-plus-2","provider":"Cohere","score":98.0},{"model_id":"deepseek-r1-distill-qwen-7b-hyperbolic","provider":"Hyperbolic","score":98.0},{"model_id":"phi-4-mini","provider":"Microsoft","score":98.0},{"model_id":"qwen-3-235b-togetherai","provider":"Together AI","score":98.0},{"model_id":"llama-3.1-405b-sambanova-awsbedrock","provider":"AWS Bedrock","score":98.0},{"model_id":"llama-3.1-70b-lambdalabs","provider":"Lambda Labs","score":98.0},{"model_id":"mistral-large-1","provider":"Mistral","score":98.0},{"model_id":"mathstral-7b-cerebras","provider":"Cerebras","score":98.0}],"LiveCodeBench":[{"model_id":"code-llama-7b","provider":"Meta","score":80.7},{"model_id":"gemma-3-4b","provider":"Google","score":80.6},{"model_id":"granite-3.1-8b","provider":"IBM","score":80.6},{"model_id":"qwen-2.5-coder-32b","provider":"Alibaba","score":80.4},{"model_id":"mistral-large-1","provider":"Mistral","score":80.2},{"model_id":"llama-3.1-8b-deepinfra","provider":"DeepInfra","score":80.2},{"model_id":"yi-1.5-6b-unifyai","provider":"Unify AI","score":80.1},{"model_id":"qwen-2.5-3b","provider":"Alibaba","score":80.1},{"model_id":"olmo-7b-v1.7-groq","provider":"Groq","score":80.1},{"model_id":"code-llama-34b-lambdalabs","provider":"Lambda Labs","score":80.1}],"GSM8K":[{"model_id":"llama-3.1-8b-groq","provider":"Groq","score":99.0},{"model_id":"llama-3-70b","provider":"Meta","score":99.0},{"model_id":"phi-3-small-featherlessai","provider":"Featherless AI","score":99.0},{"model_id":"gemma-3-1b-chutesai","provider":"Chutes AI","score":99.0},{"model_id":"qwen-2.5-3b","provider":"Alibaba","score":99.0},{"model_id":"dbrx-instruct","provider":"Databricks","score":99.0},{"model_id":"deepseek-r1-distill-qwen-7b-hyperbolic","provider":"Hyperbolic","score":99.0},{"model_id":"qwen-3-235b-togetherai","provider":"Together AI","score":99.0},{"model_id":"qwen-2.5-math-72b-groq","provider":"Groq","score":99.0},{"model_id":"nova-lite-bedrock","provider":"AWS Bedrock","score":99.0}],"AIME":[{"model_id":"code-llama-7b","provider":"Meta","score":56.9},{"model_id":"granite-3.1-8b","provider":"IBM","score":56.9},{"model_id":"gemma-3-4b","provider":"Google","score":56.9},{"model_id":"qwen-2.5-coder-32b","provider":"Alibaba","score":56.8},{"model_id":"mistral-large-1","provider":"Mistral","score":56.6},{"model_id":"llama-3.1-8b-deepinfra","provider":"DeepInfra","score":56.6},{"model_id":"code-llama-34b-lambdalabs","provider":"Lambda Labs","score":56.5},{"model_id":"jamba-1.5-mini","provider":"AI21","score":56.5},{"model_id":"qwen-2.5-3b","provider":"Alibaba","score":56.5},{"model_id":"olmo-7b-v1.7-groq","provider":"Groq","score":56.5}]},"model_count_growth":{"weeks":["2024-06-03","2024-06-10","2024-06-17","2024-06-24","2024-07-01","2024-07-08","2024-07-15","2024-07-22","2024-07-29","2024-08-05","2024-08-12","2024-08-19","2024-08-26","2024-09-02","2024-09-09","2024-09-16","2024-09-23","2024-09-30","2024-10-07","2024-10-14","2024-10-21","2024-10-28","2024-11-04","2024-11-11","2024-11-18","2024-11-25","2024-12-02","2024-12-09","2024-12-16","2024-12-23","2024-12-30","2025-01-06","2025-01-13","2025-01-20","2025-01-27","2025-02-03","2025-02-10","2025-02-17","2025-02-24","2025-03-03","2025-03-10","2025-03-17","2025-03-24","2025-03-31","2025-04-07","2025-04-14","2025-04-21","2025-04-28","2025-05-05","2025-05-12","2025-05-19","2025-05-26","2025-06-02","2025-06-09","2025-06-16","2025-06-23","2025-06-30","2025-07-07","2025-07-14","2025-07-21","2025-07-28","2025-08-04","2025-08-11","2025-08-18","2025-08-25","2025-09-01","2025-09-08","2025-09-15","2025-09-22","2025-09-29","2025-10-06","2025-10-13","2025-10-20","2025-10-27","2025-11-03","2025-11-10","2025-11-17","2025-11-24","2025-12-01","2025-12-08","2025-12-15","2025-12-22","2025-12-29","2026-01-05","2026-01-12","2026-01-19","2026-01-26","2026-02-02","2026-02-09","2026-02-16","2026-02-23","2026-03-02","2026-03-09","2026-03-16","2026-03-23","2026-03-30","2026-04-06","2026-04-13","2026-04-20","2026-04-27","2026-05-04","2026-05-11","2026-05-18","2026-05-25","2026-06-01","2026-06-08","2026-06-15","2026-06-22","2026-06-29","2026-07-06","2026-07-13","2026-07-20"],"counts":[157,163,169,178,192,192,192,201,226,233,234,239,247,252,256,261,294,308,316,316,321,325,327,327,335,338,338,365,369,372,380,380,380,407,408,410,418,418,418,418,418,418,418,418,418,418,418,418,418,418,418,418,423,423,429,429,429,429,429,429,429,429,429,429,429,430,430,432,433,433,435,435,435,435,435,435,438,439,442,442,445,446,446,446,446,457,458,459,459,463,464,466,467,482,483,485,499,500,502,502,508,513,516,518,518,518,519,520,520,520,520,520]},"flagship_scores":{"gpt-4o":{"MMLU":78.0,"GPQA_Diamond":54.6,"MT_Bench":6.5,"custom_reasoning_v1":78.0,"HumanEval":73.0,"LiveCodeBench":66.3,"GSM8K":78.0,"AIME":46.8},"claude-3.5-sonnet":{"MMLU":77.2,"GPQA_Diamond":56.0,"MT_Bench":8.7,"custom_reasoning_v1":75.2,"HumanEval":79.2,"LiveCodeBench":65.6,"GSM8K":87.2,"AIME":46.3},"gpt-5":{"MMLU":63.6,"GPQA_Diamond":50.5,"MT_Bench":7.1,"custom_reasoning_v1":61.6,"HumanEval":64.6,"LiveCodeBench":54.1,"GSM8K":69.6,"AIME":38.2},"deepseek-r1":{"MMLU":60.4,"GPQA_Diamond":46.3,"MT_Bench":7.9,"custom_reasoning_v1":56.4,"HumanEval":69.4,"LiveCodeBench":51.3,"GSM8K":68.4,"AIME":36.2}},"scores_are_constant_over_time":true};
+
+  var BENCHMARK_META = {
+    MMLU: { desc: "Multiple-choice questions across 57 academic subjects — history, law, medicine, and more.", analogy: "Like the SAT or GRE: broad knowledge recall across many fields." },
+    GPQA_Diamond: { desc: "PhD-level science questions in biology, physics, and chemistry, designed to resist simple lookup.", analogy: "Closer to a PhD qualifying exam — expert-level, not general trivia." },
+    MT_Bench: { desc: "Multi-turn conversation quality, graded 0–10 for helpfulness and coherence across dialogue turns.", analogy: "Less a test, more a performance review — judges how well a model holds a conversation." },
+    custom_reasoning_v1: { desc: "An in-house reasoning benchmark for this tracker, testing multi-step logical inference.", analogy: "A custom brain-teaser set, in the spirit of LSAT logic games." },
+    HumanEval: { desc: "164 hand-written programming problems, graded by whether generated code passes unit tests.", analogy: "An entry-level coding interview: write a function, run the test cases." },
+    LiveCodeBench: { desc: "Coding problems sourced continuously after each model's training cutoff, to avoid memorization.", analogy: "A live coding contest with fresh problems — no studying from past answers." },
+    GSM8K: { desc: "8,500+ grade-school word problems requiring multi-step arithmetic reasoning.", analogy: "Elementary/middle-school word problems — no calculus, just careful multi-step logic." },
+    AIME: { desc: "American Invitational Mathematics Examination — proof-adjacent problems for top high-school competitors.", analogy: "A math olympiad qualifier, several tiers above GSM8K in difficulty." }
+  };
+
+  var BENCHMARK_GROUPS = [
+    { label: "General Reasoning", keys: ["MMLU", "GPQA_Diamond", "MT_Bench", "custom_reasoning_v1"] },
+    { label: "Code", keys: ["HumanEval", "LiveCodeBench"] },
+    { label: "Math", keys: ["GSM8K", "AIME"] }
+  ];
+
+  var FLAGSHIP_LABELS = { "gpt-4o": "GPT-4o", "claude-3.5-sonnet": "Claude 3.5 Sonnet", "gpt-5": "GPT-5", "deepseek-r1": "DeepSeek R1" };
+
+  var bstoryActiveTab = "MMLU";
+
+  function benchmarkStoryHtml() {
+    var cardsHtml = BENCHMARK_GROUPS.map(function (g) {
+      var cards = g.keys.map(function (k) {
+        var m = BENCHMARK_META[k];
+        return '<div class="bstory-card"><p class="bstory-card-name">' + k.replace(/_/g, " ") + "</p>" +
+          '<p class="bstory-card-desc">' + m.desc + "</p>" +
+          '<p class="bstory-card-analogy">≈ ' + m.analogy + "</p></div>";
+      }).join("");
+      return '<div class="bstory-group"><p class="bstory-group-label">' + g.label + '</p><div class="bstory-cards-grid">' + cards + "</div></div>";
+    }).join("");
+
+    var tabsHtml = BENCHMARK_GROUPS.map(function (g) {
+      return g.keys.map(function (k) {
+        return '<button type="button" class="bstory-tab' + (k === bstoryActiveTab ? " active" : "") + '" data-benchmark="' + k + '">' + k.replace(/_/g, " ") + "</button>";
+      }).join("");
+    }).join("");
+
+    return '<div class="mini-card benchmark-story" id="benchmark-story">' +
+      '<p class="mini-card-title">Benchmark Deep Dive <span class="badge">performance_benchmarks.csv · 358,200 rows</span></p>' +
+      '<p class="bstory-intro">What do these 8 benchmarks actually test, who is winning each one as of ' + BENCHMARK_STORY_DATA.max_date +
+      ', and how has the field changed since ' + BENCHMARK_STORY_DATA.min_date + '?</p>' +
+      cardsHtml +
+      '<h4 style="font-size:0.92rem; font-weight:700; margin:22px 0 4px;">Top 10, latest test date (' + BENCHMARK_STORY_DATA.max_date + ')</h4>' +
+      '<div class="bstory-tabs" id="bstory-tabs">' + tabsHtml + "</div>" +
+      '<div id="bstory-rank-table"></div>' +
+      '<h4 style="font-size:0.92rem; font-weight:700; margin:26px 0 4px;">The model pool grew 3.3× in 25 months</h4>' +
+      '<p class="bstory-card-desc" style="margin-bottom:12px;">Tracked models went from 157 (' + BENCHMARK_STORY_DATA.min_date + ') to 520 (' + BENCHMARK_STORY_DATA.max_date + ').</p>' +
+      '<div class="chart-card"><div class="chart-wrap" style="height:220px;"><canvas id="chart-model-growth"></canvas></div></div>' +
+      '<div class="assumption-note" style="margin-top:14px;">Checked directly against the data: every model’s score on every benchmark is fixed for its entire tracked lifetime (0 exceptions across all 520 models × 8 benchmarks). Scores are fixed — the ranking movement you see over time comes entirely from new models entering the pool, not existing models improving or declining.</div>' +
+      '<div id="bstory-flagship-table" style="margin-top:14px;"></div>' +
+      "</div>";
+  }
+
+  function renderBstoryRankTable() {
+    var rows = BENCHMARK_STORY_DATA.top10[bstoryActiveTab];
+    var html = '<div class="table-scroll" style="max-height:none;"><table class="bstory-rank-table"><thead><tr><th>#</th><th>Model</th><th>Provider</th><th>Score</th></tr></thead><tbody>' +
+      rows.map(function (r, i) {
+        return "<tr><td class=\"bstory-rank-num\">" + (i + 1) + "</td><td>" + r.model_id + "</td><td>" + r.provider + "</td><td>" + r.score.toFixed(1) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+    byId("bstory-rank-table").innerHTML = html;
+  }
+
+  function renderBstoryFlagshipTable() {
+    var benchKeys = Object.keys(BENCHMARK_META);
+    var html = '<p style="font-size:0.78rem; font-weight:700; margin:0 0 8px;">Four flagship models, fixed score per benchmark</p>' +
+      '<div class="table-scroll" style="max-height:none;"><table class="bstory-flagship-table"><thead><tr><th>Model</th>' +
+      benchKeys.map(function (k) { return "<th>" + k.replace(/_/g, " ") + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      Object.keys(FLAGSHIP_LABELS).map(function (m) {
+        var scores = BENCHMARK_STORY_DATA.flagship_scores[m];
+        return "<tr><td class=\"bstory-model-name\">" + FLAGSHIP_LABELS[m] + "</td>" +
+          benchKeys.map(function (k) { return "<td>" + (scores[k] != null ? scores[k].toFixed(1) : "—") + "</td>"; }).join("") + "</tr>";
+      }).join("") + "</tbody></table></div>";
+    byId("bstory-flagship-table").innerHTML = html;
+  }
+
+  function renderModelGrowthChart() {
+    var g = BENCHMARK_STORY_DATA.model_count_growth;
+    if (modelGrowthChart) modelGrowthChart.destroy();
+    modelGrowthChart = new Chart(byId("chart-model-growth").getContext("2d"), {
+      type: "line",
+      data: {
+        labels: g.weeks,
+        datasets: [{
+          label: "Models tracked", data: g.counts,
+          borderColor: "#4f5bd5", backgroundColor: "rgba(79,91,213,0.08)",
+          borderWidth: 2.5, pointRadius: 0, fill: true, tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { ticks: { maxTicksLimit: 8, font: { size: 9 } }, grid: { color: "rgba(0,0,0,0.05)" } },
+          y: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: "rgba(0,0,0,0.05)" }, title: { display: true, text: "Models tracked", font: { size: 9 } } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function renderBenchmarkStory() {
+    renderBstoryRankTable();
+    renderBstoryFlagshipTable();
+    renderModelGrowthChart();
+    byId("bstory-tabs").querySelectorAll(".bstory-tab").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        bstoryActiveTab = btn.getAttribute("data-benchmark");
+        byId("bstory-tabs").querySelectorAll(".bstory-tab").forEach(function (b) { b.classList.toggle("active", b === btn); });
+        renderBstoryRankTable();
+      });
+    });
+  }
+
   function renderRawPreviews() {
     var grid = byId("raw-preview-grid");
     var specs = [
@@ -1603,11 +1758,14 @@
     var counts = { "models.csv": RAW.models.length, "pricing_history.csv": RAW.pricing.length, "performance_benchmarks.csv": 358200, "cost_efficiency.csv": RAW.costEff.length };
     var colCounts = { "models.csv": 8, "pricing_history.csv": 7, "performance_benchmarks.csv": 9, "cost_efficiency.csv": 8 };
 
-    grid.innerHTML = specs.map(function (s, i) {
+    var cardHtml = specs.map(function (s, i) {
       return '<div class="mini-card"><p class="mini-card-title">' + s.file +
         '<span class="badge">' + counts[s.file].toLocaleString() + " rows × " + colCounts[s.file] + " cols</span></p>" +
         '<div id="raw-table-' + i + '" style="margin-top:10px;"></div></div>';
-    }).join("");
+    });
+
+    // benchmark story goes directly above the performance_benchmarks.csv card (index 2)
+    grid.innerHTML = cardHtml[0] + cardHtml[1] + benchmarkStoryHtml() + cardHtml[2] + cardHtml[3];
 
     specs.forEach(function (s, i) {
       makeTable({
@@ -1620,6 +1778,8 @@
         note: s.note
       });
     });
+
+    renderBenchmarkStory();
   }
 
   var sqlText =
@@ -1748,7 +1908,7 @@
     return state.selectedModels.map(function (id) { return GOLDEN_BY_ID[id]; }).filter(Boolean);
   }
 
-  var radarChart, budgetBarChart, breakevenChart, costExplosionChart, latencyChart;
+  var radarChart, budgetBarChart, breakevenChart, costExplosionChart, latencyChart, modelGrowthChart;
 
   function initCharts() {
     var radarCtx = byId("chart-radar").getContext("2d");
