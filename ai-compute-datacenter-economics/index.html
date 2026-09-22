@@ -578,6 +578,39 @@
 
   .pbench-bridge { text-align: center; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 28px 0 4px; }
 
+  .pbench-matrix-legend { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 14px; }
+
+  .pbench-matrix-scroll { overflow-x: auto; margin: 0 0 4px; }
+  .pbench-matrix {
+    display: grid;
+    grid-template-columns: 168px repeat(5, minmax(84px, 1fr));
+    gap: 8px;
+    min-width: 620px;
+  }
+  .pbench-matrix-corner { position: sticky; left: 0; background: var(--card-bg); z-index: 2; }
+  .pbench-matrix-colhead {
+    font-size: 0.74rem; font-weight: 700; color: var(--text-primary); text-align: center;
+    padding: 8px 4px; background: var(--accent-soft); border-radius: var(--radius);
+  }
+  .pbench-matrix-rowhead {
+    position: sticky; left: 0; background: var(--card-bg); z-index: 1;
+    font-size: 0.76rem; font-weight: 600; color: var(--text-primary);
+    display: flex; align-items: center; padding: 8px 10px; border-radius: var(--radius);
+  }
+  .pbench-matrix-cell {
+    background: var(--bg); border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.92rem; letter-spacing: 1px; padding: 8px 4px; min-height: 18px;
+  }
+  .pbench-star-fill { color: var(--accent); }
+  .pbench-star-empty { color: var(--text-muted); }
+
+  .pbench-matrix-closing { text-align: center; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 20px 0 4px; }
+
+  @media (max-width: 900px) {
+    .pbench-matrix { grid-template-columns: 140px repeat(5, minmax(70px, 1fr)); }
+  }
+
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
   .benchmark-story { background: var(--card-bg); }
@@ -1016,6 +1049,64 @@
             <div class="pbench-lanes" id="pbench-lanes"></div>
 
             <p class="pbench-bridge">&#129513; No all round champion. Each department picks what it needs.</p>
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 4px;">&#127970; Every department needs a different mix.</h3>
+            <p class="pbench-matrix-legend">&#9733;&#9733;&#9733; core &#9733;&#9733;&#9734; important &#9733;&#9734;&#9734; helpful</p>
+
+            <div class="pbench-matrix-scroll">
+              <div class="pbench-matrix">
+                <div class="pbench-matrix-corner"></div>
+                <div class="pbench-matrix-colhead">&#129504; Knowledge</div>
+                <div class="pbench-matrix-colhead">&#128187; Coding</div>
+                <div class="pbench-matrix-colhead">&#128208; Math</div>
+                <div class="pbench-matrix-colhead">&#128172; Dialogue</div>
+                <div class="pbench-matrix-colhead">&#129513; Reasoning</div>
+
+    <div class="pbench-matrix-rowhead">&#129518; Finance / FP&amp;A</div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
+
+    <div class="pbench-matrix-rowhead">&#128736;&#65039; Engineering</div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
+
+    <div class="pbench-matrix-rowhead">&#128202; Data &amp; Analytics</div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"></div>
+
+    <div class="pbench-matrix-rowhead">&#9878;&#65039; Legal &amp; Compliance</div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
+
+    <div class="pbench-matrix-rowhead">&#127911; Customer Support</div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
+    <div class="pbench-matrix-cell"></div>
+
+    <div class="pbench-matrix-rowhead">&#128227; Marketing &amp; Sales</div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"></div>
+    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
+    <div class="pbench-matrix-cell"></div>
+              </div>
+            </div>
+
+            <p class="pbench-matrix-closing">&#128161; Nobody needs every skill. Paying for the ones you don't use is the first leak.</p>
 
           </div>
         </div>
