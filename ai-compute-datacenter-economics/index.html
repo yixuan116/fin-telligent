@@ -561,45 +561,40 @@
   .source-preview-table th { background: var(--bg); font-weight: 700; color: var(--text-secondary); }
   .source-preview-table tbody tr:last-child td { border-bottom: none; }
 
-  /* ============ Benchmark Step 1 (exam leaderboard) ============ */
+  /* ============ Performance Benchmark (5-lane leaderboard) ============ */
 
-  .step1-subline { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 14px; }
-  .step1-rule { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 14px; }
+  .pbench-subline { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 8px; }
+  .pbench-subline a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .pbench-subline a:hover { text-decoration: underline; }
+  .pbench-rule { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 18px; }
 
-  .exam-card-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
-  @media (max-width: 900px) { .exam-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 480px) { .exam-card-grid { grid-template-columns: minmax(0, 1fr); } }
-
-  .exam-card { perspective: 1000px; height: 190px; }
-  .exam-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s; transform-style: preserve-3d; }
-  .exam-card:hover .exam-card-inner { transform: rotateY(180deg); }
-  .exam-card-face {
-    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  .pbench-shared-band {
     background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px; display: flex; flex-direction: column; justify-content: center;
+    padding: 14px 16px; margin: 0 0 18px;
   }
-  .exam-card-front .exam-card-emoji { font-size: 1.3rem; margin: 0 0 6px; }
-  .exam-card-front .exam-card-title { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
-  .exam-card-front .exam-card-desc { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.4; margin: 0; }
-  .exam-card-back {
-    transform: rotateY(180deg); background: var(--card-bg); box-shadow: var(--shadow);
-    justify-content: center; gap: 8px; align-items: flex-start;
+  .pbench-shared-label { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; }
+  .pbench-shared-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pbench-chip {
+    display: inline-block; background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: 4px 12px; font-size: 0.72rem; font-weight: 600;
   }
-  .exam-card-back a { font-size: 0.74rem; font-weight: 600; color: var(--accent); text-decoration: none; word-break: break-word; }
-  .exam-card-back a:hover { text-decoration: underline; }
 
-  .model-mini-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 4px; }
-  @media (max-width: 900px) { .model-mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 480px) { .model-mini-grid { grid-template-columns: minmax(0, 1fr); } }
+  .pbench-lanes { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
+  @media (max-width: 900px) { .pbench-lanes { grid-template-columns: minmax(0, 1fr); } }
 
-  .model-mini-card {
-    background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 14px 10px; text-align: center;
+  .pbench-lane {
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    display: flex; flex-direction: column; overflow: hidden;
   }
-  .model-mini-card .model-mini-name { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px; line-height: 1.25; }
-  .model-mini-card .model-mini-stat { font-size: 0.74rem; color: var(--text-secondary); margin: 2px 0; }
+  .pbench-lane-header { background: var(--card-bg); box-shadow: var(--shadow); padding: 14px 12px; border-bottom: 1px solid var(--border); }
+  .pbench-lane-title { font-size: 0.86rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+  .pbench-lane-bench { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); margin: 0 0 4px; }
+  .pbench-lane-desc { font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin: 0; }
+  .pbench-lane-body { padding: 10px 12px; flex: 1; }
+  .pbench-lane-name { font-size: 0.76rem; color: var(--text-secondary); margin: 0; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+  .pbench-lane-name:last-child { border-bottom: none; }
 
-  .step1-bridge { text-align: center; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 28px 0 32px; }
+  .pbench-bridge { text-align: center; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 28px 0 4px; }
 
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
@@ -1003,81 +998,6 @@
             <p class="section-sub" style="margin-bottom:12px;">520 rows &times; 22 columns. Every interactive section below is powered by this table.</p>
             <div id="golden-preview-table"></div>
 
-            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">&#127891; Models take exams too</h3>
-            <p class="step1-subline">7 exams. Each tests one skill.</p>
-            <div class="exam-card-grid">
-              <div class="exam-card">
-                <div class="exam-card-inner">
-                  <div class="exam-card-face exam-card-front">
-                    <p class="exam-card-emoji">&#128225;</p>
-                    <p class="exam-card-title">Source</p>
-                    <p class="exam-card-desc">Artificial Analysis public evals, compiled on Kaggle. Static snapshot.</p>
-                  </div>
-                  <div class="exam-card-face exam-card-back">
-                    <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a>
-                    <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">Kaggle dataset</a>
-                  </div>
-                </div>
-              </div>
-              <div class="exam-card">
-                <div class="exam-card-inner">
-                  <div class="exam-card-face exam-card-front">
-                    <p class="exam-card-emoji">&#129504;</p>
-                    <p class="exam-card-title">Knowledge (MMLU / GPQA)</p>
-                    <p class="exam-card-desc">General knowledge to PhD level science.</p>
-                  </div>
-                  <div class="exam-card-face exam-card-back">
-                    <a href="https://arxiv.org/abs/2009.03300" target="_blank" rel="noopener noreferrer">MMLU</a>
-                    <a href="https://arxiv.org/abs/2311.12022" target="_blank" rel="noopener noreferrer">GPQA</a>
-                  </div>
-                </div>
-              </div>
-              <div class="exam-card">
-                <div class="exam-card-inner">
-                  <div class="exam-card-face exam-card-front">
-                    <p class="exam-card-emoji">&#128187;</p>
-                    <p class="exam-card-title">Coding (HumanEval / LiveCodeBench)</p>
-                    <p class="exam-card-desc">Does the code run on the first try? Every retry is a bill.</p>
-                  </div>
-                  <div class="exam-card-face exam-card-back">
-                    <a href="https://github.com/openai/human-eval" target="_blank" rel="noopener noreferrer">HumanEval</a>
-                    <a href="https://livecodebench.github.io" target="_blank" rel="noopener noreferrer">LiveCodeBench</a>
-                  </div>
-                </div>
-              </div>
-              <div class="exam-card">
-                <div class="exam-card-inner">
-                  <div class="exam-card-face exam-card-front">
-                    <p class="exam-card-emoji">&#128208;</p>
-                    <p class="exam-card-title">Math (GSM8K / AIME)</p>
-                    <p class="exam-card-desc">Word problems to competition math.</p>
-                  </div>
-                  <div class="exam-card-face exam-card-back">
-                    <a href="https://github.com/openai/grade-school-math" target="_blank" rel="noopener noreferrer">GSM8K</a>
-                    <a href="https://artofproblemsolving.com/wiki/index.php/AIME_Problems_and_Solutions" target="_blank" rel="noopener noreferrer">AIME</a>
-                  </div>
-                </div>
-              </div>
-              <div class="exam-card">
-                <div class="exam-card-inner">
-                  <div class="exam-card-face exam-card-front">
-                    <p class="exam-card-emoji">&#128172;</p>
-                    <p class="exam-card-title">Dialogue (MT-Bench)</p>
-                    <p class="exam-card-desc">Multi turn conversation quality.</p>
-                  </div>
-                  <div class="exam-card-face exam-card-back">
-                    <a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener noreferrer">MT-Bench</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">10 models, picked in the open</h3>
-            <p class="step1-rule">Score = 70% exam average + 30% speed to first word (TTFT)</p>
-            <div class="model-mini-grid" id="step1-model-grid"></div>
-
-            <p class="step1-bridge">&#129513; No all round champion. Each department picks what it needs.</p>
-
             <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 8px;">Source Files</h3>
             <div class="file-links">
               <a href="models.csv" download>&#128193; models.csv</a>
@@ -1089,6 +1009,35 @@
             <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Source Table Snapshots</h3>
             <p class="section-sub" style="margin-bottom:12px;">Headers and first 5 rows of each source CSV, embedded directly in the page at build time.</p>
             <div class="card-grid cols-2" id="source-preview-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PERFORMANCE BENCHMARK (collapsible) ============ -->
+    <section class="section" id="sec-perf-benchmark">
+      <button type="button" class="collapsible-toggle" id="toggle-perf-benchmark" aria-expanded="false" aria-controls="body-perf-benchmark">
+        <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="ct-title">Performance Benchmark</span>
+        <span class="ct-sub">8 benchmarks &middot; 5 lanes &middot; 520 models deduped to base</span>
+      </button>
+      <div class="collapsible-body" id="body-perf-benchmark">
+        <div class="collapsible-body-inner">
+          <div class="section-card">
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:0 0 6px;">&#127891; Models take exams too. 8 exams, 5 skills.</h3>
+            <p class="pbench-subline">&#128225; Source: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a> public evals, compiled on <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">Kaggle</a>. Static snapshot.</p>
+            <p class="pbench-rule">Ranking = 70% exam score + 30% speed to first word (TTFT)</p>
+
+            <div class="pbench-shared-band">
+              <p class="pbench-shared-label">&#11088; Strong across lanes</p>
+              <div class="pbench-shared-chips" id="pbench-shared-chips"></div>
+            </div>
+
+            <div class="pbench-lanes" id="pbench-lanes"></div>
+
+            <p class="pbench-bridge">&#129513; No all round champion. Each department picks what it needs.</p>
+
           </div>
         </div>
       </div>
@@ -2278,38 +2227,62 @@
     return html;
   }
 
-  // ============ Benchmark Step 1 (exam leaderboard) ============
+  // ============ Performance Benchmark (5-lane leaderboard) ============
   // Reuses GOLDEN (already built from performance_benchmarks.csv + models.csv
-  // + pricing_history.csv above) -- no new fetch(), no re-parsing. The
-  // pricing join doesn't narrow the model set (verified offline: models.csv,
-  // performance_benchmarks.csv, and pricing_history.csv all cover the same
-  // 520 model_ids), so GOLDEN's fields for these 7 benchmarks + TTFT match
-  // exactly what a models.csv + performance_benchmarks.csv only join would
-  // produce.
+  // + pricing_history.csv above) -- no new fetch(), no re-parsing. GOLDEN
+  // already carries latest-per-model-per-benchmark scores for all 8
+  // benchmarks plus the averaged latency_ttft_ms, so it stands in for a
+  // fresh performance_benchmarks.csv + models.csv join for this section too.
 
-  var STEP1_BENCH_KEYS = ["MMLU", "GPQA_Diamond", "GSM8K", "AIME", "HumanEval", "LiveCodeBench", "MT_Bench"];
-  var STEP1_HOST_SUFFIXES = ["groq", "cerebras", "together", "togetherai", "sambanova", "awsbedrock", "openrouter", "hyperbolic", "fireworks", "lambdalabs", "deepinfra", "vastai", "unifyai"];
-  var STEP1_NAME_OVERRIDES = { "olmo-7b-v1.7": "OLMo 7B" };
-  var STEP1_BRAND_WORDS = { llama: "Llama", deepseek: "DeepSeek", qwen: "Qwen", mathstral: "Mathstral", olmo: "OLMo", olmoe: "OLMoE", math: "Math" };
+  var PBENCH_LANES = [
+    { id: "Knowledge", emoji: "&#129504;", label: "Knowledge", benchLine: "MMLU &middot; GPQA", desc: "General knowledge to PhD level science.", keys: ["MMLU", "GPQA_Diamond"] },
+    { id: "Coding", emoji: "&#128187;", label: "Coding", benchLine: "HumanEval &middot; LiveCodeBench", desc: "Does the code run on the first try? Every retry is a bill.", keys: ["HumanEval", "LiveCodeBench"] },
+    { id: "Math", emoji: "&#128208;", label: "Math", benchLine: "GSM8K &middot; AIME", desc: "Word problems to competition math.", keys: ["GSM8K", "AIME"] },
+    { id: "Dialogue", emoji: "&#128172;", label: "Dialogue", benchLine: "MT-Bench", desc: "Multi turn conversation quality.", keys: ["MT_Bench"] },
+    { id: "Reasoning", emoji: "&#129513;", label: "Reasoning", benchLine: "Custom reasoning (dataset internal)", desc: "Multi step logic, dataset's own test.", keys: ["custom_reasoning_v1"] }
+  ];
 
-  function step1BaseId(modelId) {
+  var PBENCH_HOST_SUFFIXES = ["groq", "cerebras", "together", "togetherai", "sambanova", "awsbedrock", "openrouter",
+    "hyperbolic", "fireworks", "fireworksai", "lambdalabs", "deepinfra", "vastai", "unifyai",
+    "replicate", "leptonai", "featherlessai", "infermatic"];
+
+  var PBENCH_NAME_OVERRIDES = { "olmo-7b-v1.7": "OLMo 7B", "olmoe-1b-7b": "OLMoE 1B 7B" };
+  var PBENCH_BRAND_WORDS = {
+    llama: "Llama", deepseek: "DeepSeek", qwen: "Qwen", mathstral: "Mathstral", olmo: "OLMo", olmoe: "OLMoE",
+    gpt: "GPT", chatgpt: "ChatGPT", claude: "Claude", gemma: "Gemma", gemini: "Gemini", mistral: "Mistral",
+    granite: "Granite", pixtral: "Pixtral", codestral: "Codestral", codegemma: "CodeGemma", codegeex: "CodeGeeX",
+    code: "Code", xlam: "xLAM", yi: "Yi", phi: "Phi", nemotron: "Nemotron", grok: "Grok", starcoder: "StarCoder",
+    nova: "Nova", ernie: "ERNIE", doubao: "Doubao", dbrx: "DBRX", jamba: "Jamba", apple: "Apple"
+  };
+
+  function pbenchIsStrippable(tok) {
+    var low = tok.toLowerCase();
+    if (PBENCH_HOST_SUFFIXES.indexOf(low) !== -1) return true;
+    if (low === "latest") return true;
+    if (/^\d{8}$/.test(tok)) return true;
+    if (/^\d{4}$/.test(tok)) return true;
+    return false;
+  }
+
+  function pbenchBaseId(modelId) {
     var parts = modelId.split("-");
-    while (parts.length > 1 && STEP1_HOST_SUFFIXES.indexOf(parts[parts.length - 1]) !== -1) parts.pop();
+    while (parts.length > 1 && pbenchIsStrippable(parts[parts.length - 1])) parts.pop();
     return parts.join("-");
   }
 
-  function step1PrettyName(baseId) {
-    if (STEP1_NAME_OVERRIDES[baseId]) return STEP1_NAME_OVERRIDES[baseId];
+  function pbenchPrettyName(baseId) {
+    if (PBENCH_NAME_OVERRIDES[baseId]) return PBENCH_NAME_OVERRIDES[baseId];
     return baseId.split("-").map(function (tok) {
       var low = tok.toLowerCase();
-      if (STEP1_BRAND_WORDS[low]) return STEP1_BRAND_WORDS[low];
+      if (PBENCH_BRAND_WORDS[low]) return PBENCH_BRAND_WORDS[low];
       if (/^\d+[bm]$/i.test(tok)) return tok.slice(0, -1) + tok.slice(-1).toUpperCase();
       if (/^v\d+(\.\d+)?$/i.test(tok)) return "V" + tok.slice(1);
+      if (/^\d/.test(tok)) return tok;
       return tok.charAt(0).toUpperCase() + tok.slice(1);
     }).join(" ");
   }
 
-  function step1PercentileRank(values, value, lowerIsBetter) {
+  function pbenchPercentileRank(values, value, lowerIsBetter) {
     var count = 0;
     for (var i = 0; i < values.length; i++) {
       if (lowerIsBetter ? values[i] >= value : values[i] <= value) count++;
@@ -2317,24 +2290,24 @@
     return count / values.length;
   }
 
-  function computeExamTop10() {
+  function pbenchComputeLane(keys) {
     var rows = GOLDEN.map(function (row) {
-      var scores = STEP1_BENCH_KEYS.map(function (k) {
+      var scores = keys.map(function (k) {
         var v = row[k];
         if (v == null) return null;
         return k === "MT_Bench" ? v * 10 : v;
       });
       if (scores.indexOf(null) !== -1 || row.latency_ttft_ms == null) return null;
-      var examAvg = scores.reduce(function (a, b) { return a + b; }, 0) / scores.length;
-      return { model_id: row.model_id, base: step1BaseId(row.model_id), examAvg: examAvg, ttft: row.latency_ttft_ms };
+      var laneScore = scores.reduce(function (a, b) { return a + b; }, 0) / scores.length;
+      return { model_id: row.model_id, base: pbenchBaseId(row.model_id), laneScore: laneScore, ttft: row.latency_ttft_ms };
     }).filter(function (r) { return r != null; });
 
-    var examVals = rows.map(function (r) { return r.examAvg; });
+    var laneVals = rows.map(function (r) { return r.laneScore; });
     var ttftVals = rows.map(function (r) { return r.ttft; });
     rows.forEach(function (r) {
-      var pctExam = step1PercentileRank(examVals, r.examAvg, false);
-      var pctTtft = step1PercentileRank(ttftVals, r.ttft, true);
-      r.composite = 0.7 * pctExam + 0.3 * pctTtft;
+      var pctLane = pbenchPercentileRank(laneVals, r.laneScore, false);
+      var pctTtft = pbenchPercentileRank(ttftVals, r.ttft, true);
+      r.composite = 0.7 * pctLane + 0.3 * pctTtft;
     });
 
     var bestByBase = {};
@@ -2343,21 +2316,75 @@
     });
     var deduped = Object.keys(bestByBase).map(function (k) { return bestByBase[k]; });
     deduped.sort(function (a, b) { return b.composite - a.composite; });
+    deduped.forEach(function (r, i) { r.rank = i + 1; });
 
-    return deduped.slice(0, 10).map(function (r) {
-      return { base: r.base, name: step1PrettyName(r.base), examAvg: r.examAvg, ttft: r.ttft };
-    });
+    return { rows: rows, deduped: deduped };
   }
 
-  function renderExamTop10() {
-    var top10 = computeExamTop10();
-    top10.sort(function (a, b) { return a.name < b.name ? -1 : (a.name > b.name ? 1 : 0); });
-    byId("step1-model-grid").innerHTML = top10.map(function (r) {
-      return '<div class="model-mini-card">' +
-        '<p class="model-mini-name">' + r.name + '</p>' +
-        '<p class="model-mini-stat">&#129504; ' + r.examAvg.toFixed(1) + '</p>' +
-        '<p class="model-mini-stat">&#9889; ' + Math.round(r.ttft) + 'ms</p>' +
-        '</div>';
+  function pbenchLaneList(deduped, sharedSet) {
+    var names = [];
+    for (var i = 0; i < deduped.length && i < 40; i++) {
+      var r = deduped[i];
+      if (sharedSet.indexOf(r.base) !== -1) continue;
+      names.push(r.base);
+      if (names.length >= 10) break;
+    }
+    return names;
+  }
+
+  function pbenchLogCollapseMapping(laneResults) {
+    var byBase = {};
+    GOLDEN.forEach(function (row) {
+      var base = pbenchBaseId(row.model_id);
+      if (!byBase[base]) byBase[base] = [];
+      byBase[base].push(row.model_id);
+    });
+    var collapsed = Object.keys(byBase).filter(function (b) { return byBase[b].length > 1; }).sort();
+    console.group("Performance Benchmark: hosted/dated variant collapse mapping (" + collapsed.length + " base models with multiple variants)");
+    collapsed.forEach(function (base) {
+      var winners = PBENCH_LANES.map(function (lane) {
+        var found = laneResults[lane.id].deduped.filter(function (r) { return r.base === base; })[0];
+        return lane.id + ": " + (found ? found.model_id : "n/a");
+      }).join(", ");
+      console.log(base + " <= [" + byBase[base].join(", ") + "]  |  winners -> " + winners);
+    });
+    console.groupEnd();
+  }
+
+  function renderPerfBenchmark() {
+    var laneResults = {};
+    PBENCH_LANES.forEach(function (lane) {
+      laneResults[lane.id] = pbenchComputeLane(lane.keys);
+    });
+
+    pbenchLogCollapseMapping(laneResults);
+
+    var sharedCount = {};
+    PBENCH_LANES.forEach(function (lane) {
+      laneResults[lane.id].deduped.slice(0, 20).forEach(function (r) {
+        sharedCount[r.base] = (sharedCount[r.base] || 0) + 1;
+      });
+    });
+    var shared = Object.keys(sharedCount).filter(function (b) { return sharedCount[b] >= 3; }).sort();
+    console.log("Performance Benchmark: shared set (" + shared.length + "):", shared);
+
+    byId("pbench-shared-chips").innerHTML = shared.map(function (base) {
+      return '<span class="pbench-chip">' + pbenchPrettyName(base) + "</span>";
+    }).join("");
+
+    byId("pbench-lanes").innerHTML = PBENCH_LANES.map(function (lane) {
+      var names = pbenchLaneList(laneResults[lane.id].deduped, shared);
+      var nameHtml = names.map(function (base) {
+        return '<p class="pbench-lane-name">' + pbenchPrettyName(base) + "</p>";
+      }).join("");
+      return '<div class="pbench-lane">' +
+        '<div class="pbench-lane-header">' +
+        '<p class="pbench-lane-title">' + lane.emoji + " " + lane.label + "</p>" +
+        '<p class="pbench-lane-bench">' + lane.benchLine + "</p>" +
+        '<p class="pbench-lane-desc">' + lane.desc + "</p>" +
+        "</div>" +
+        '<div class="pbench-lane-body">' + nameHtml + "</div>" +
+        "</div>";
     }).join("");
   }
 
@@ -2373,7 +2400,6 @@
       searchable: true,
       note: null
     });
-    renderExamTop10();
   }
 
   // ============ Section 2: Cost Model ============
@@ -3100,7 +3126,9 @@
     initProgressNav();
     initCollapsible("toggle-data-eng", "body-data-eng");
     initCollapsible("toggle-audit", "body-audit");
+    initCollapsible("toggle-perf-benchmark", "body-perf-benchmark");
     renderSection1();
+    renderPerfBenchmark();
     renderSourcePreviews();
     initCharts();
     bindControls();
