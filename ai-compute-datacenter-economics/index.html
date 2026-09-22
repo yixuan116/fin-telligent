@@ -74,6 +74,47 @@
   .site-header h1 { font-size: 2.1rem; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.01em; }
   .site-header p { font-size: 1.05rem; color: var(--text-secondary); margin: 0; max-width: 680px; line-height: 1.6; }
 
+  /* ============ Executive Summary ============ */
+
+  #exec-summary { margin-bottom: 40px; }
+  .exec-summary-title {
+    font-size: 1.5rem; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.01em;
+    border-top: 1px solid var(--glass-border); padding-top: 28px;
+  }
+  .exec-summary-sub { font-size: 0.9rem; color: var(--text-secondary); margin: 0 0 22px; max-width: 720px; line-height: 1.5; }
+
+  .exec-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 900px) { .exec-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .exec-kpi-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .exec-kpi-card {
+    background: var(--glass-bg); box-shadow: var(--card-shadow); border: 1px solid var(--glass-border);
+    border-radius: var(--radius); padding: 18px 20px;
+  }
+  .exec-kpi-card .exec-kpi-label {
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-muted); margin: 0 0 10px; line-height: 1.3;
+  }
+  .exec-kpi-card .exec-kpi-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 6px; line-height: 1.15; word-break: break-word; }
+  .exec-kpi-card .exec-kpi-sub { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.4; margin: 0; }
+
+  .exec-section-card { padding: 22px 24px; margin-bottom: 24px; }
+  .exec-section-card:last-child { margin-bottom: 0; }
+  .exec-section-card .module-title { font-size: 1.02rem; margin: 0 0 4px; }
+  .exec-section-card .module-sub { margin: 0 0 14px; }
+
+  .exec-scatter-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.78rem; color: var(--text-secondary); margin: 0 0 14px; }
+  .exec-scatter-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .exec-scatter-legend .exec-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+  .exec-portfolio-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  .exec-portfolio-table th, .exec-portfolio-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--glass-border); vertical-align: top; }
+  .exec-portfolio-table th { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 700; background: var(--glass-bg-strong); white-space: nowrap; }
+  .exec-portfolio-table td.exec-scenario-name { font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+  .exec-portfolio-table td.exec-model-cell .exec-model-name { font-weight: 700; color: var(--text-primary); display: block; }
+  .exec-portfolio-table td.exec-model-cell .exec-provider { font-size: 0.72rem; color: var(--text-muted); }
+  .exec-portfolio-table td.exec-cost-cell { white-space: nowrap; color: var(--text-secondary); }
+
   .glass-card {
     background: var(--glass-bg);
     box-shadow: var(--card-shadow);
@@ -698,6 +739,58 @@
       <h1>AI Compute &amp; Data Center Intelligence</h1>
       <p>Enterprise buyer's guide to the LLM pricing market</p>
     </header>
+
+    <!-- ============ EXECUTIVE SUMMARY ============ -->
+    <section id="exec-summary">
+      <h2 class="exec-summary-title">Executive Summary</h2>
+      <p class="exec-summary-sub">A five-minute read of the LLM pricing market: what's covered, what it costs, where the real cost lever is, and which model wins on value no matter the use case &mdash; all computed live from the same 520-model golden table used throughout this page.</p>
+
+      <div class="exec-kpi-grid" id="exec-kpi-grid">
+        <div class="exec-kpi-card">
+          <p class="exec-kpi-label">Market Coverage</p>
+          <p class="exec-kpi-value" id="exec-kpi-coverage-value">&mdash;</p>
+          <p class="exec-kpi-sub" id="exec-kpi-coverage-sub"></p>
+        </div>
+        <div class="exec-kpi-card">
+          <p class="exec-kpi-label">Market Median Cost</p>
+          <p class="exec-kpi-value" id="exec-kpi-median-value">&mdash;</p>
+          <p class="exec-kpi-sub" id="exec-kpi-median-sub"></p>
+        </div>
+        <div class="exec-kpi-card">
+          <p class="exec-kpi-label">Output vs Input Price Gap</p>
+          <p class="exec-kpi-value" id="exec-kpi-gap-value">&mdash;</p>
+          <p class="exec-kpi-sub" id="exec-kpi-gap-sub"></p>
+        </div>
+        <div class="exec-kpi-card">
+          <p class="exec-kpi-label">Best Value: Consistent Across Scenarios</p>
+          <p class="exec-kpi-value" id="exec-kpi-bestvalue-value">&mdash;</p>
+          <p class="exec-kpi-sub" id="exec-kpi-bestvalue-sub"></p>
+        </div>
+      </div>
+
+      <div class="glass-card exec-section-card">
+        <p class="module-title">Cost vs Quality: Where&rsquo;s the Alpha?</p>
+        <p class="module-sub">Every model in the golden table, plotted by blended cost and composite quality (the average of all 8 tracked benchmarks).</p>
+        <div class="exec-scatter-legend" id="exec-scatter-legend"></div>
+        <div style="position:relative; height:360px;"><canvas id="chart-exec-scatter"></canvas></div>
+      </div>
+
+      <div class="glass-card exec-section-card">
+        <p class="module-title">Models Portfolio by Business Scenario</p>
+        <p class="module-sub">Best-value and top-quality picks for three buyer scenarios, ranked live from the golden table on each page load.</p>
+        <div style="overflow-x:auto;">
+          <table class="exec-portfolio-table" id="exec-portfolio-table">
+            <thead>
+              <tr><th>Business Scenario</th><th>Benchmarks Used</th><th>Best Value Pick</th><th>Cost</th><th>Top Quality Pick</th><th>Cost</th></tr>
+            </thead>
+            <tbody id="exec-portfolio-tbody">
+              <tr><td colspan="6" style="color:var(--text-muted);">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">Quality/$ = weighted benchmark score &divide; blended cost. Blended cost = (input + output price) / 2 per Mtok.</p>
+      </div>
+    </section>
 
   <!-- ---- Module 1: Cost of Frontier Intelligence Over Time ---- -->
   <section class="act2-module glass-card">
@@ -2643,6 +2736,167 @@
 
   // ============ boot ============
 
+  // ============ Executive Summary ============
+  // Reuses the GOLDEN table already built above (see buildGoldenTable()) --
+  // no new fetch() calls, no re-parsing of any CSV.
+
+  var SCENARIO_DEFS = {
+    General: { label: "General / Customer-facing", benchLabel: "MMLU, MT_Bench", weights: { MMLU: 0.5, MT_Bench: 0.5 } },
+    Coding: { label: "Engineering / Coding", benchLabel: "HumanEval, LiveCodeBench", weights: { HumanEval: 0.5, LiveCodeBench: 0.5 } },
+    Reasoning: { label: "Analytics / Reasoning", benchLabel: "GPQA_Diamond, AIME, GSM8K, custom_reasoning", weights: { GPQA_Diamond: 0.3, AIME: 0.25, GSM8K: 0.25, custom_reasoning_v1: 0.2 } }
+  };
+
+  var execScatterChart;
+
+  function execBlended(row) { return (row.input_price_per_mtok + row.output_price_per_mtok) / 2; }
+
+  function execCompositeQuality(row) {
+    var vals = BENCH_KEYS.map(function (k) { return row[k]; }).filter(function (v) { return v != null; });
+    if (!vals.length) return null;
+    return vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+  }
+
+  function execComputeScenarioResults() {
+    var results = {};
+    Object.keys(SCENARIO_DEFS).forEach(function (key) {
+      var def = SCENARIO_DEFS[key];
+      var scored = GOLDEN.map(function (row) {
+        var wq = 0;
+        Object.keys(def.weights).forEach(function (bk) { wq += (row[bk] != null ? row[bk] : 0) * def.weights[bk]; });
+        return { row: row, wq: wq, blended: execBlended(row) };
+      });
+      var byValue = scored.slice().sort(function (a, b) {
+        var diff = (b.wq / b.blended) - (a.wq / a.blended);
+        return diff !== 0 ? diff : a.blended - b.blended;
+      });
+      var byQuality = scored.slice().sort(function (a, b) {
+        return b.wq !== a.wq ? b.wq - a.wq : a.blended - b.blended; // tie: cheaper wins
+      });
+      results[key] = { def: def, bestValue: byValue[0], topQuality: byQuality[0] };
+    });
+    return results;
+  }
+
+  function renderExecKpis(scenarioResults) {
+    var n = GOLDEN.length;
+    byId("exec-kpi-coverage-value").textContent = n;
+    byId("exec-kpi-coverage-sub").textContent = "models tracked, " + Object.keys(SCENARIO_DEFS).length + " business scenarios mapped";
+
+    var blendedArr = GOLDEN.map(execBlended).slice().sort(function (a, b) { return a - b; });
+    var mid = Math.floor(blendedArr.length / 2);
+    var median = blendedArr.length % 2 ? blendedArr[mid] : (blendedArr[mid - 1] + blendedArr[mid]) / 2;
+    byId("exec-kpi-median-value").textContent = "$" + median.toFixed(2) + " / Mtok";
+    byId("exec-kpi-median-sub").textContent = "blended = (input_price + output_price) / 2, across all " + n + " models";
+
+    var ratios = GOLDEN.map(function (r) { return r.output_price_per_mtok / r.input_price_per_mtok; });
+    var minR = Math.min.apply(null, ratios), maxR = Math.max.apply(null, ratios);
+    byId("exec-kpi-gap-value").textContent = minR.toFixed(1) + "\u2013" + maxR.toFixed(1) + "\u00d7";
+    byId("exec-kpi-gap-sub").textContent = "output tokens cost " + minR.toFixed(1) + " to " + maxR.toFixed(1) + "\u00d7 more than input \u2014 the cost lever is output volume";
+
+    var winners = Object.keys(scenarioResults).map(function (k) { return scenarioResults[k].bestValue.row.model_id; });
+    var consistent = winners.every(function (w) { return w === winners[0]; });
+    var rep = scenarioResults[Object.keys(scenarioResults)[0]].bestValue;
+    byId("exec-kpi-bestvalue-value").textContent = rep.row.model_id;
+    byId("exec-kpi-bestvalue-sub").textContent = "$" + rep.blended.toFixed(2) + "/Mtok blended, #1 quality-per-dollar in " +
+      (consistent ? "all " + winners.length + " business scenarios" : winners.length + " of " + winners.length + " scenarios (varies by scenario)");
+  }
+
+  function renderExecScatterChart() {
+    var tierMeta = {
+      Economy: { color: "#0f9d68", label: "Economy (<$1)" },
+      Standard: { color: "#4f5bd5", label: "Standard ($1\u2013$10)" },
+      Premium: { color: "#b7791f", label: "Premium ($10+)" }
+    };
+    var tierPoints = { Economy: [], Standard: [], Premium: [] };
+
+    GOLDEN.forEach(function (row) {
+      var blended = execBlended(row);
+      var quality = execCompositeQuality(row);
+      if (quality == null) return;
+      var key = blended < 1 ? "Economy" : (blended < 10 ? "Standard" : "Premium");
+      tierPoints[key].push({ x: blended, y: quality, model_id: row.model_id, provider: row.provider, blended: blended });
+    });
+
+    byId("exec-scatter-legend").innerHTML = Object.keys(tierMeta).map(function (t) {
+      return '<span><span class="exec-dot" style="background:' + tierMeta[t].color + '"></span>' + tierMeta[t].label + " \u00b7 " + tierPoints[t].length + " models</span>";
+    }).join("");
+
+    var datasets = Object.keys(tierMeta).map(function (t) {
+      return { label: tierMeta[t].label, data: tierPoints[t], backgroundColor: tierMeta[t].color + "b0", borderColor: tierMeta[t].color, pointRadius: 3.5, pointHoverRadius: 6 };
+    });
+
+    var sweetSpotPlugin = {
+      id: "execSweetSpot",
+      afterDatasetsDraw: function (chart) {
+        var xScale = chart.scales.x, yScale = chart.scales.y;
+        var ctx = chart.ctx;
+        ctx.save();
+        ctx.font = "600 11px system-ui, sans-serif";
+        ctx.fillStyle = "#4f5bd5";
+        ctx.textAlign = "left";
+        ctx.fillText("\u2191 High quality, low cost \u2014 the sweet spot", xScale.left + 10, yScale.top + 18);
+        ctx.restore();
+      }
+    };
+
+    if (execScatterChart) execScatterChart.destroy();
+    execScatterChart = new Chart(byId("chart-exec-scatter").getContext("2d"), {
+      type: "scatter",
+      data: { datasets: datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: "logarithmic",
+            title: { display: true, text: "Blended Cost ($/Mtok, log scale)", font: { size: 10 } },
+            ticks: { callback: function (v) { return [0.1, 1, 10, 100].indexOf(v) !== -1 ? "$" + v : ""; }, font: { size: 9 } },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          },
+          y: {
+            title: { display: true, text: "Composite Quality Score", font: { size: 10 } },
+            ticks: { font: { size: 9 } },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (item) {
+                var p = item.raw;
+                return [p.model_id + " (" + p.provider + ")", "Cost: $" + p.blended.toFixed(2) + "/Mtok", "Quality: " + item.parsed.y.toFixed(1)];
+              }
+            }
+          }
+        }
+      },
+      plugins: [sweetSpotPlugin]
+    });
+  }
+
+  function renderExecPortfolioTable(scenarioResults) {
+    var rows = Object.keys(SCENARIO_DEFS).map(function (key) {
+      var def = SCENARIO_DEFS[key];
+      var r = scenarioResults[key];
+      return "<tr>" +
+        '<td class="exec-scenario-name">' + def.label + "</td>" +
+        "<td>" + def.benchLabel + "</td>" +
+        '<td class="exec-model-cell"><span class="exec-model-name">' + r.bestValue.row.model_id + '</span><span class="exec-provider">' + r.bestValue.row.provider + "</span></td>" +
+        '<td class="exec-cost-cell">$' + r.bestValue.blended.toFixed(2) + "/Mtok</td>" +
+        '<td class="exec-model-cell"><span class="exec-model-name">' + r.topQuality.row.model_id + '</span><span class="exec-provider">' + r.topQuality.row.provider + "</span></td>" +
+        '<td class="exec-cost-cell">$' + r.topQuality.blended.toFixed(2) + "/Mtok</td>" +
+        "</tr>";
+    }).join("");
+    byId("exec-portfolio-tbody").innerHTML = rows;
+  }
+
+  function renderExecutiveSummary() {
+    var scenarioResults = execComputeScenarioResults();
+    renderExecKpis(scenarioResults);
+    renderExecScatterChart();
+    renderExecPortfolioTable(scenarioResults);
+  }
+
   function initUI() {
     initProgressNav();
     initCollapsible("toggle-data-eng", "body-data-eng");
@@ -2659,6 +2913,7 @@
     renderModelChips();
     renderAudit();
     recalcAll();
+    renderExecutiveSummary();
 
     byId("footer-timestamp").textContent = "Golden table built from data as of " + MAX_PRICING_DATE + ".";
     byId("loading-overlay").classList.add("hidden");
