@@ -561,6 +561,46 @@
   .source-preview-table th { background: var(--bg); font-weight: 700; color: var(--text-secondary); }
   .source-preview-table tbody tr:last-child td { border-bottom: none; }
 
+  /* ============ Benchmark Step 1 (exam leaderboard) ============ */
+
+  .step1-subline { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 14px; }
+  .step1-rule { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 14px; }
+
+  .exam-card-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
+  @media (max-width: 900px) { .exam-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 480px) { .exam-card-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .exam-card { perspective: 1000px; height: 190px; }
+  .exam-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s; transform-style: preserve-3d; }
+  .exam-card:hover .exam-card-inner { transform: rotateY(180deg); }
+  .exam-card-face {
+    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .exam-card-front .exam-card-emoji { font-size: 1.3rem; margin: 0 0 6px; }
+  .exam-card-front .exam-card-title { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+  .exam-card-front .exam-card-desc { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.4; margin: 0; }
+  .exam-card-back {
+    transform: rotateY(180deg); background: var(--card-bg); box-shadow: var(--shadow);
+    justify-content: center; gap: 8px; align-items: flex-start;
+  }
+  .exam-card-back a { font-size: 0.74rem; font-weight: 600; color: var(--accent); text-decoration: none; word-break: break-word; }
+  .exam-card-back a:hover { text-decoration: underline; }
+
+  .model-mini-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 4px; }
+  @media (max-width: 900px) { .model-mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 480px) { .model-mini-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .model-mini-card {
+    background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 10px; text-align: center;
+  }
+  .model-mini-card .model-mini-name { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px; line-height: 1.25; }
+  .model-mini-card .model-mini-stat { font-size: 0.74rem; color: var(--text-secondary); margin: 2px 0; }
+
+  .step1-bridge { text-align: center; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 28px 0 32px; }
+
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
   .benchmark-story { background: var(--card-bg); }
@@ -962,6 +1002,81 @@
             <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Joined Table Preview</h3>
             <p class="section-sub" style="margin-bottom:12px;">520 rows &times; 22 columns. Every interactive section below is powered by this table.</p>
             <div id="golden-preview-table"></div>
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">&#127891; Models take exams too</h3>
+            <p class="step1-subline">7 exams. Each tests one skill.</p>
+            <div class="exam-card-grid">
+              <div class="exam-card">
+                <div class="exam-card-inner">
+                  <div class="exam-card-face exam-card-front">
+                    <p class="exam-card-emoji">&#128225;</p>
+                    <p class="exam-card-title">Source</p>
+                    <p class="exam-card-desc">Artificial Analysis public evals, compiled on Kaggle. Static snapshot.</p>
+                  </div>
+                  <div class="exam-card-face exam-card-back">
+                    <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a>
+                    <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">Kaggle dataset</a>
+                  </div>
+                </div>
+              </div>
+              <div class="exam-card">
+                <div class="exam-card-inner">
+                  <div class="exam-card-face exam-card-front">
+                    <p class="exam-card-emoji">&#129504;</p>
+                    <p class="exam-card-title">Knowledge (MMLU / GPQA)</p>
+                    <p class="exam-card-desc">General knowledge to PhD level science.</p>
+                  </div>
+                  <div class="exam-card-face exam-card-back">
+                    <a href="https://arxiv.org/abs/2009.03300" target="_blank" rel="noopener noreferrer">MMLU</a>
+                    <a href="https://arxiv.org/abs/2311.12022" target="_blank" rel="noopener noreferrer">GPQA</a>
+                  </div>
+                </div>
+              </div>
+              <div class="exam-card">
+                <div class="exam-card-inner">
+                  <div class="exam-card-face exam-card-front">
+                    <p class="exam-card-emoji">&#128187;</p>
+                    <p class="exam-card-title">Coding (HumanEval / LiveCodeBench)</p>
+                    <p class="exam-card-desc">Does the code run on the first try? Every retry is a bill.</p>
+                  </div>
+                  <div class="exam-card-face exam-card-back">
+                    <a href="https://github.com/openai/human-eval" target="_blank" rel="noopener noreferrer">HumanEval</a>
+                    <a href="https://livecodebench.github.io" target="_blank" rel="noopener noreferrer">LiveCodeBench</a>
+                  </div>
+                </div>
+              </div>
+              <div class="exam-card">
+                <div class="exam-card-inner">
+                  <div class="exam-card-face exam-card-front">
+                    <p class="exam-card-emoji">&#128208;</p>
+                    <p class="exam-card-title">Math (GSM8K / AIME)</p>
+                    <p class="exam-card-desc">Word problems to competition math.</p>
+                  </div>
+                  <div class="exam-card-face exam-card-back">
+                    <a href="https://github.com/openai/grade-school-math" target="_blank" rel="noopener noreferrer">GSM8K</a>
+                    <a href="https://artofproblemsolving.com/wiki/index.php/AIME_Problems_and_Solutions" target="_blank" rel="noopener noreferrer">AIME</a>
+                  </div>
+                </div>
+              </div>
+              <div class="exam-card">
+                <div class="exam-card-inner">
+                  <div class="exam-card-face exam-card-front">
+                    <p class="exam-card-emoji">&#128172;</p>
+                    <p class="exam-card-title">Dialogue (MT-Bench)</p>
+                    <p class="exam-card-desc">Multi turn conversation quality.</p>
+                  </div>
+                  <div class="exam-card-face exam-card-back">
+                    <a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener noreferrer">MT-Bench</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">10 models, picked in the open</h3>
+            <p class="step1-rule">Score = 70% exam average + 30% speed to first word (TTFT)</p>
+            <div class="model-mini-grid" id="step1-model-grid"></div>
+
+            <p class="step1-bridge">&#129513; No all round champion. Each department picks what it needs.</p>
 
             <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 8px;">Source Files</h3>
             <div class="file-links">
@@ -2163,6 +2278,89 @@
     return html;
   }
 
+  // ============ Benchmark Step 1 (exam leaderboard) ============
+  // Reuses GOLDEN (already built from performance_benchmarks.csv + models.csv
+  // + pricing_history.csv above) -- no new fetch(), no re-parsing. The
+  // pricing join doesn't narrow the model set (verified offline: models.csv,
+  // performance_benchmarks.csv, and pricing_history.csv all cover the same
+  // 520 model_ids), so GOLDEN's fields for these 7 benchmarks + TTFT match
+  // exactly what a models.csv + performance_benchmarks.csv only join would
+  // produce.
+
+  var STEP1_BENCH_KEYS = ["MMLU", "GPQA_Diamond", "GSM8K", "AIME", "HumanEval", "LiveCodeBench", "MT_Bench"];
+  var STEP1_HOST_SUFFIXES = ["groq", "cerebras", "together", "togetherai", "sambanova", "awsbedrock", "openrouter", "hyperbolic", "fireworks", "lambdalabs", "deepinfra", "vastai", "unifyai"];
+  var STEP1_NAME_OVERRIDES = { "olmo-7b-v1.7": "OLMo 7B" };
+  var STEP1_BRAND_WORDS = { llama: "Llama", deepseek: "DeepSeek", qwen: "Qwen", mathstral: "Mathstral", olmo: "OLMo", olmoe: "OLMoE", math: "Math" };
+
+  function step1BaseId(modelId) {
+    var parts = modelId.split("-");
+    while (parts.length > 1 && STEP1_HOST_SUFFIXES.indexOf(parts[parts.length - 1]) !== -1) parts.pop();
+    return parts.join("-");
+  }
+
+  function step1PrettyName(baseId) {
+    if (STEP1_NAME_OVERRIDES[baseId]) return STEP1_NAME_OVERRIDES[baseId];
+    return baseId.split("-").map(function (tok) {
+      var low = tok.toLowerCase();
+      if (STEP1_BRAND_WORDS[low]) return STEP1_BRAND_WORDS[low];
+      if (/^\d+[bm]$/i.test(tok)) return tok.slice(0, -1) + tok.slice(-1).toUpperCase();
+      if (/^v\d+(\.\d+)?$/i.test(tok)) return "V" + tok.slice(1);
+      return tok.charAt(0).toUpperCase() + tok.slice(1);
+    }).join(" ");
+  }
+
+  function step1PercentileRank(values, value, lowerIsBetter) {
+    var count = 0;
+    for (var i = 0; i < values.length; i++) {
+      if (lowerIsBetter ? values[i] >= value : values[i] <= value) count++;
+    }
+    return count / values.length;
+  }
+
+  function computeExamTop10() {
+    var rows = GOLDEN.map(function (row) {
+      var scores = STEP1_BENCH_KEYS.map(function (k) {
+        var v = row[k];
+        if (v == null) return null;
+        return k === "MT_Bench" ? v * 10 : v;
+      });
+      if (scores.indexOf(null) !== -1 || row.latency_ttft_ms == null) return null;
+      var examAvg = scores.reduce(function (a, b) { return a + b; }, 0) / scores.length;
+      return { model_id: row.model_id, base: step1BaseId(row.model_id), examAvg: examAvg, ttft: row.latency_ttft_ms };
+    }).filter(function (r) { return r != null; });
+
+    var examVals = rows.map(function (r) { return r.examAvg; });
+    var ttftVals = rows.map(function (r) { return r.ttft; });
+    rows.forEach(function (r) {
+      var pctExam = step1PercentileRank(examVals, r.examAvg, false);
+      var pctTtft = step1PercentileRank(ttftVals, r.ttft, true);
+      r.composite = 0.7 * pctExam + 0.3 * pctTtft;
+    });
+
+    var bestByBase = {};
+    rows.forEach(function (r) {
+      if (!bestByBase[r.base] || r.composite > bestByBase[r.base].composite) bestByBase[r.base] = r;
+    });
+    var deduped = Object.keys(bestByBase).map(function (k) { return bestByBase[k]; });
+    deduped.sort(function (a, b) { return b.composite - a.composite; });
+
+    return deduped.slice(0, 10).map(function (r) {
+      return { base: r.base, name: step1PrettyName(r.base), examAvg: r.examAvg, ttft: r.ttft };
+    });
+  }
+
+  function renderExamTop10() {
+    var top10 = computeExamTop10();
+    top10.sort(function (a, b) { return a.name < b.name ? -1 : (a.name > b.name ? 1 : 0); });
+    byId("step1-model-grid").innerHTML = top10.map(function (r) {
+      return '<div class="model-mini-card">' +
+        '<p class="model-mini-name">' + r.name + '</p>' +
+        '<p class="model-mini-stat">&#129504; ' + r.examAvg.toFixed(1) + '</p>' +
+        '<p class="model-mini-stat">&#9889; ' + Math.round(r.ttft) + 'ms</p>' +
+        '</div>';
+    }).join("");
+  }
+
   function renderSection1() {
     renderRawPreviews();
     byId("sql-block").innerHTML = highlightSQL(sqlText);
@@ -2175,6 +2373,7 @@
       searchable: true,
       note: null
     });
+    renderExamTop10();
   }
 
   // ============ Section 2: Cost Model ============
