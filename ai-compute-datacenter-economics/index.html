@@ -743,7 +743,7 @@
     <!-- ============ EXECUTIVE SUMMARY ============ -->
     <section id="exec-summary">
       <h2 class="exec-summary-title">Executive Summary</h2>
-      <p class="exec-summary-sub">A five-minute read of the LLM pricing market: what's covered, what it costs, where the real cost lever is, and which model wins on value no matter the use case &mdash; all computed live from the same 520-model golden table used throughout this page.</p>
+      <p class="exec-summary-sub">A five-minute read of the LLM pricing market: what's covered, what it costs, where the real cost lever is, and which model wins on value no matter the use case &mdash; all computed live from the same 520-model joined table used throughout this page.</p>
 
       <div class="exec-kpi-grid" id="exec-kpi-grid">
         <div class="exec-kpi-card">
@@ -770,14 +770,14 @@
 
       <div class="glass-card exec-section-card">
         <p class="module-title">Cost vs Quality: Where&rsquo;s the Alpha?</p>
-        <p class="module-sub">Every model in the golden table, plotted by blended cost and composite quality (the average of all 8 tracked benchmarks).</p>
+        <p class="module-sub">Every model in the joined table, plotted by blended cost and composite quality (the average of all 8 tracked benchmarks).</p>
         <div class="exec-scatter-legend" id="exec-scatter-legend"></div>
         <div style="position:relative; height:360px;"><canvas id="chart-exec-scatter"></canvas></div>
       </div>
 
       <div class="glass-card exec-section-card">
         <p class="module-title">Models Portfolio by Business Scenario</p>
-        <p class="module-sub">Best-value and top-quality picks for three buyer scenarios, ranked live from the golden table on each page load.</p>
+        <p class="module-sub">Best-value and top-quality picks for three buyer scenarios, ranked live from the joined table on each page load.</p>
         <div style="overflow-x:auto;">
           <table class="exec-portfolio-table" id="exec-portfolio-table">
             <thead>
@@ -947,7 +947,7 @@
       <button type="button" class="collapsible-toggle" id="toggle-data-eng" aria-expanded="false" aria-controls="body-data-eng">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="ct-title">Data Engineering: Source Tables &amp; Pipeline</span>
-        <span class="ct-sub">3 CSVs &middot; 403,495 rows &middot; joined into a 520-row golden table</span>
+        <span class="ct-sub">3 CSVs &middot; 403,495 rows &middot; joined into a 520-row joined table</span>
       </button>
       <div class="collapsible-body" id="body-data-eng">
         <div class="collapsible-body-inner">
@@ -956,10 +956,10 @@
             <h3 class="section-title" style="font-size:1.05rem; margin-bottom:14px;">Raw Table Previews</h3>
             <div class="card-grid cols-1" id="raw-preview-grid"></div>
 
-            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Golden Table Construction (SQL logic)</h3>
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Joined Table Construction (SQL logic)</h3>
             <pre class="sql-block" id="sql-block"></pre>
 
-            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Golden Table Preview</h3>
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Joined Table Preview</h3>
             <p class="section-sub" style="margin-bottom:12px;">520 rows &times; 22 columns. Every interactive section below is powered by this table.</p>
             <div id="golden-preview-table"></div>
 
@@ -1118,13 +1118,13 @@
       <button type="button" class="collapsible-toggle" id="toggle-audit" aria-expanded="false" aria-controls="body-audit">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="ct-title">Audit Trail: Full Data &amp; Export</span>
-        <span class="ct-sub">Golden table, sortable &amp; searchable &middot; export to Excel</span>
+        <span class="ct-sub">Joined table, sortable &amp; searchable &middot; export to Excel</span>
       </button>
       <div class="collapsible-body" id="body-audit">
         <div class="collapsible-body-inner">
           <div class="section-card">
             <div class="table-toolbar">
-              <p class="section-sub" style="margin:0;">All 520 rows of the golden table, exactly as used by the model above.</p>
+              <p class="section-sub" style="margin:0;">All 520 rows of the joined table, exactly as used by the model above.</p>
               <button type="button" class="export-btn" id="btn-export">&#8681; Export to Excel</button>
             </div>
             <div id="audit-table"></div>
@@ -1136,8 +1136,8 @@
   </div>
 
   <footer id="site-footer">
-    <p>Data Source: LLM API Pricing and Performance Benchmark Tracker &mdash; Kaggle</p>
-    <p id="footer-timestamp">Golden table built from data as of &hellip;</p>
+    <p>Data source: LLM API Pricing and Performance Benchmark Tracker, Kaggle (<a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data</a>), originally compiled by Artificial Analysis</p>
+    <p id="footer-timestamp">Four tables joined in SQL, weekly data from 2024-06-03 to 2026-07-20.</p>
     <p>Built with fin-telligent &middot; <a href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">GitHub</a></p>
   </footer>
 
@@ -2119,7 +2119,7 @@
   }
 
   var sqlText =
-'-- Golden Table: Latest pricing + benchmarks + model metadata\n' +
+'-- Joined Table: Latest pricing + benchmarks + model metadata\n' +
 'WITH latest_price AS (\n' +
 '    SELECT model_id, input_price_per_mtok, output_price_per_mtok,\n' +
 '           cached_input_price, batch_discount_pct\n' +
@@ -2915,7 +2915,7 @@
     recalcAll();
     renderExecutiveSummary();
 
-    byId("footer-timestamp").textContent = "Golden table built from data as of " + MAX_PRICING_DATE + ".";
+    byId("footer-timestamp").textContent = "Four tables joined in SQL, weekly data from 2024-06-03 to 2026-07-20.";
     byId("loading-overlay").classList.add("hidden");
   }
 
