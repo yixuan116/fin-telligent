@@ -609,6 +609,36 @@
     .pbench-matrix { grid-template-columns: 140px repeat(5, minmax(70px, 1fr)); }
   }
 
+  /* ============ Price & Cost ============ */
+
+  .pcard-types { display: flex; flex-direction: column; gap: 8px; margin: 0 0 20px; }
+  .pcard-type-row { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+  .pcard-type-row b { color: var(--text-primary); font-weight: 700; }
+
+  .pcard-strip { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 20px; }
+  .pcard-tile {
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 12px; width: 168px;
+  }
+  .pcard-tile-name {
+    font-size: 0.76rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pcard-tile-bar { display: flex; height: 22px; border-radius: 5px; overflow: hidden; }
+  .pcard-bar-in, .pcard-bar-out {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.62rem; font-weight: 700; white-space: nowrap; min-width: 34px;
+  }
+  .pcard-bar-in { background: var(--accent-soft); color: var(--accent); }
+  .pcard-bar-out { background: var(--accent); color: #fff; }
+
+  .pcard-insight { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 8px; line-height: 1.5; }
+  .pcard-insight:last-of-type { margin-bottom: 20px; }
+
+  .pcard-footer { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
+  .pcard-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .pcard-footer a:hover { text-decoration: underline; }
+
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
   .benchmark-story { background: var(--card-bg); }
@@ -1103,6 +1133,38 @@
     <div class="pbench-matrix-cell"></div>
               </div>
             </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRICE & COST (collapsible) ============ -->
+    <section class="section" id="sec-price-cost">
+      <button type="button" class="collapsible-toggle" id="toggle-price-cost" aria-expanded="false" aria-controls="body-price-cost">
+        <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="ct-title">Price &amp; Cost</span>
+        <span class="ct-sub">4 price types &middot; Artificial Analysis snapshot, 2026-03-31</span>
+      </button>
+      <div class="collapsible-body" id="body-price-cost">
+        <div class="collapsible-body-inner">
+          <div class="section-card">
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:0 0 14px;">&#128178; Price Tag</h3>
+
+            <div class="pcard-types">
+              <p class="pcard-type-row">&#128483;&#65039; <b>Input</b>: what you pay per 1M tokens you send in</p>
+              <p class="pcard-type-row">&#128172; <b>Output</b>: what you pay per 1M tokens the model writes back</p>
+              <p class="pcard-type-row">&#128257; <b>Cached Input</b>: repeat the same content (policies, templates), input at 50% off</p>
+              <p class="pcard-type-row">&#128230; <b>Batch</b>: queue non-urgent jobs, 50% off overall</p>
+            </div>
+
+            <div class="pcard-strip" id="pcard-strip"></div>
+
+            <p class="pcard-insight" id="pcard-insight-ratio"></p>
+            <p class="pcard-insight">&#128161; List price is the ceiling. Cache and batch can cut the bill in half.</p>
+
+            <p class="pcard-footer">Data: pricing_history.csv &amp; llm_price_performance_tracker_2026-03-31.csv, <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">Kaggle</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">Kaggle</a></p>
 
           </div>
         </div>
@@ -1619,6 +1681,7 @@
   var GOLDEN = [];
   var GOLDEN_BY_ID = {};
   var AA_TRACKER = [];
+  var PBENCH_SHARED_BASES = [];
   var BENCH_RANGE = {};
   var MAX_PRICING_DATE = null;
   var MAX_CONTEXT_WINDOW = 128000;
@@ -2378,6 +2441,7 @@
     var shared = Object.keys(sharedCount).filter(function (b) { return sharedCount[b] >= 3; })
       .sort(function (a, b) { return sharedCount[b] - sharedCount[a]; });
     console.log("Performance Benchmark: shared set (" + shared.length + "):", shared);
+    PBENCH_SHARED_BASES = shared;
 
     var speedCutoff = pbenchSpeedCutoff();
 
@@ -2401,6 +2465,59 @@
         '<div class="pbench-lane-body">' + nameHtml + "</div>" +
         "</div>";
     }).join("");
+  }
+
+  // ============ Price & Cost (Card 1: Price Tag) ============
+  // Reuses AA_TRACKER (already loaded for Performance Benchmark) and the
+  // exact shared model list computed there (PBENCH_SHARED_BASES) -- no new
+  // fetch(), no re-selecting a model set.
+
+  function pcardFormatPrice(v) {
+    var rounded = Math.round(v * 100) / 100;
+    return "$" + (rounded % 1 === 0 ? rounded.toFixed(0) : String(rounded));
+  }
+
+  function pcardLookupPrice(base) {
+    var row = AA_TRACKER.filter(function (r) {
+      return pbenchBaseName(r.model_name) === base &&
+        r.input_cost_usd_per_1m != null && r.input_cost_usd_per_1m !== "" &&
+        r.output_cost_usd_per_1m != null && r.output_cost_usd_per_1m !== "";
+    })[0];
+    return row ? { input: row.input_cost_usd_per_1m, output: row.output_cost_usd_per_1m } : null;
+  }
+
+  function pcardMedianRatio() {
+    var ratios = AA_TRACKER.map(function (row) {
+      var input = row.input_cost_usd_per_1m;
+      var output = row.output_cost_usd_per_1m;
+      if (input == null || input === "" || input <= 0 || output == null || output === "") return null;
+      return output / input;
+    }).filter(function (v) { return v != null; }).sort(function (a, b) { return a - b; });
+    if (!ratios.length) return null;
+    var mid = Math.floor(ratios.length / 2);
+    return ratios.length % 2 === 0 ? (ratios[mid - 1] + ratios[mid]) / 2 : ratios[mid];
+  }
+
+  function renderPriceCost() {
+    var tiles = PBENCH_SHARED_BASES.map(function (base) {
+      var price = pcardLookupPrice(base);
+      return price ? { base: base, input: price.input, output: price.output } : null;
+    }).filter(function (t) { return t != null; });
+
+    byId("pcard-strip").innerHTML = tiles.map(function (t) {
+      return '<div class="pcard-tile">' +
+        '<p class="pcard-tile-name">' + t.base + "</p>" +
+        '<div class="pcard-tile-bar">' +
+        '<span class="pcard-bar-in" style="flex:' + t.input + '">' + pcardFormatPrice(t.input) + "</span>" +
+        '<span class="pcard-bar-out" style="flex:' + t.output + '">' + pcardFormatPrice(t.output) + "</span>" +
+        "</div>" +
+        "</div>";
+    }).join("");
+
+    var median = pcardMedianRatio();
+    var rounded = median == null ? null : Math.round(median * 10) / 10;
+    var label = rounded == null ? "" : (rounded % 1 === 0 ? rounded.toFixed(0) : String(rounded));
+    byId("pcard-insight-ratio").innerHTML = "&#128161; Models charge more to talk than to listen: output runs ~" + label + "x input at the median.";
   }
 
   function renderSection1() {
@@ -3075,8 +3192,10 @@
     initCollapsible("toggle-data-eng", "body-data-eng");
     initCollapsible("toggle-audit", "body-audit");
     initCollapsible("toggle-perf-benchmark", "body-perf-benchmark");
+    initCollapsible("toggle-price-cost", "body-price-cost");
     renderSection1();
     renderPerfBenchmark();
+    renderPriceCost();
     initCharts();
     bindControls();
 
