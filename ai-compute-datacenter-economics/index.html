@@ -622,8 +622,9 @@
   @media (max-width: 640px) { .pcard-tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .pcard-tier-tile {
     background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 12px; text-align: center;
+    padding: 14px 12px; text-align: center; cursor: pointer;
   }
+  .pcard-tier-tile:hover:not(.active) { border-color: var(--accent); }
   .pcard-tier-tile.active { border-color: var(--accent); background: var(--accent-soft); }
   .pcard-tier-name { font-size: 0.84rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
   .pcard-tier-range { font-size: 0.78rem; color: var(--text-secondary); margin: 0 0 4px; }
@@ -634,12 +635,13 @@
   /* --- (2) Distribution --- */
   .pcard-dist-scroll { overflow-x: auto; margin: 0 0 8px; }
   .pcard-dist-svg { width: 100%; min-width: 700px; height: auto; display: block; }
-  .pcard-dist-band-label { font-size: 9px; fill: var(--text-muted); font-family: var(--font); }
+  .pcard-dist-band { cursor: pointer; }
+  .pcard-dist-band-label { font-size: 9px; fill: var(--text-muted); font-family: var(--font); pointer-events: none; }
   .pcard-dist-sep { stroke: var(--border); stroke-width: 1; }
   .pcard-dist-tick { stroke: var(--text-muted); stroke-width: 1; }
   .pcard-dist-tick-label { font-size: 9px; fill: var(--text-muted); font-family: var(--font); }
-  .pcard-dist-pt { fill: var(--text-muted); opacity: 0.45; }
-  .pcard-dist-pt-hl { fill: var(--accent); opacity: 0.95; }
+  .pcard-dist-pt { fill: var(--text-muted); opacity: 0.45; cursor: pointer; }
+  .pcard-dist-pt-hl { fill: var(--accent); opacity: 0.95; cursor: pointer; }
   .pcard-dist-leader { stroke: var(--text-muted); stroke-width: 0.6; opacity: 0.55; }
   .pcard-dist-anchor-label { font-size: 8.5px; font-weight: 600; fill: var(--text-secondary); font-family: var(--font); }
   .pcard-insight-dist { font-size: 0.84rem; color: var(--text-secondary); margin: 10px 0 26px; line-height: 1.5; }
@@ -2701,13 +2703,67 @@
     byId("pcard-tiers").innerHTML = [1, 2, 3, 4].map(function (t) {
       var s = stats[t];
       var active = t === PCARD_SELECTED_TIER ? " active" : "";
-      return '<div class="pcard-tier-tile' + active + '">' +
+      return '<div class="pcard-tier-tile' + active + '" data-tier="' + t + '">' +
         '<p class="pcard-tier-name">Tier ' + t + '</p>' +
         '<p class="pcard-tier-range">' + pcardMoneyTrim(s.min) + ' to ' + pcardMoneyTrim(s.max) + '</p>' +
         '<p class="pcard-tier-count">' + s.count + ' models</p>' +
         '<p class="pcard-tier-mult">Output ' + pcardMultLabel(s.inputMedian, s.outputMedian) + 'x input</p>' +
         '</div>';
     }).join("");
+    Array.prototype.forEach.call(byId("pcard-tiers").querySelectorAll(".pcard-tier-tile"), function (tile) {
+      tile.addEventListener("click", function () { pcardSetTier(+tile.getAttribute("data-tier")); });
+    });
+  }
+
+  // ============ three-way tier linkage (tiles / flow buttons / distribution
+  // bands all share PCARD_SELECTED_TIER; any one of them can drive it) ====
+
+  function pcardSetTier(t) {
+    if (t === PCARD_SELECTED_TIER) return;
+    PCARD_SELECTED_TIER = t;
+    renderTiers();
+    renderTierSwitch();
+    renderDistribution();
+    renderPriceFlow();
+  }
+
+  // ============ staircase entrance animation (plays once) ============
+
+  var PCARD_TIER_ANIM_DONE = false;
+
+  function pcardPlayTierAnimation() {
+    var tiles = byId("pcard-tiers").querySelectorAll(".pcard-tier-tile");
+    var startOffsets = [40, 28, 16, 6];
+    Array.prototype.forEach.call(tiles, function (tile, i) {
+      tile.style.transition = "none";
+      tile.style.opacity = "0";
+      tile.style.transform = "translateY(" + (startOffsets[i] || 6) + "px)";
+      void tile.offsetWidth;
+      setTimeout(function () {
+        tile.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+        tile.style.opacity = "1";
+        tile.style.transform = "translateY(0)";
+      }, i * 150);
+    });
+  }
+
+  function pcardInitTierAnimation() {
+    var container = byId("pcard-tiers");
+    if (!container || typeof IntersectionObserver === "undefined") return;
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) { PCARD_TIER_ANIM_DONE = true; return; }
+
+    var toggle = byId("toggle-price-cost");
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (PCARD_TIER_ANIM_DONE || !entry.isIntersecting) return;
+        if (toggle && toggle.getAttribute("aria-expanded") !== "true") return;
+        PCARD_TIER_ANIM_DONE = true;
+        pcardPlayTierAnimation();
+        observer.disconnect();
+      });
+    }, { threshold: 0.3 });
+    observer.observe(container);
   }
 
   function pcardEscapeXml(s) {
@@ -2740,6 +2796,10 @@
     { name: "o1-pro", short: "o1-pro" }
   ];
 
+  function pcardLabelWidth(text) {
+    return text.length * 5.2 + 6;
+  }
+
   function renderDistribution() {
     var baseRows = pcardTierRows().filter(function (r) { return r.blended != null && r.blended > 0; });
 
@@ -2757,18 +2817,18 @@
 
     var W = 960, H = 200;
     var x0 = 14, plotW = W - 28;
-    var plotTop = 44, plotBottom = 160;
-    var jitterTop = 58, jitterBottom = 154;
-    var bandColors = ["rgba(79,91,213,0.035)", "rgba(79,91,213,0.06)", "rgba(79,91,213,0.09)", "rgba(79,91,213,0.13)"];
+    var plotTop = 48, plotBottom = 164;
+    var jitterTop = 62, jitterBottom = 158;
+    var fillSelected = "rgba(79,91,213,0.22)", fillFaint = "rgba(79,91,213,0.03)";
 
     var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="pcard-dist-svg" role="img">';
 
     for (var i = 0; i < 4; i++) {
       var xa = pcardLogX(PCARD_BOUNDARIES[i], x0, plotW);
       var xb = pcardLogX(PCARD_BOUNDARIES[i + 1], x0, plotW);
-      var count = rows.filter(function (r) { return r.tier === i + 1; }).length;
-      svg += '<rect x="' + xa + '" y="' + plotTop + '" width="' + (xb - xa) + '" height="' + (plotBottom - plotTop) + '" fill="' + bandColors[i] + '"></rect>';
-      svg += '<text x="' + ((xa + xb) / 2) + '" y="' + (plotTop + 13) + '" text-anchor="middle" class="pcard-dist-band-label">Tier ' + (i + 1) + ' &#183; ' + count + '</text>';
+      var fill = (i + 1 === PCARD_SELECTED_TIER) ? fillSelected : fillFaint;
+      svg += '<rect x="' + xa + '" y="' + plotTop + '" width="' + (xb - xa) + '" height="' + (plotBottom - plotTop) + '" fill="' + fill + '" class="pcard-dist-band" data-tier="' + (i + 1) + '"></rect>';
+      svg += '<text x="' + ((xa + xb) / 2) + '" y="' + (plotTop + 13) + '" text-anchor="middle" class="pcard-dist-band-label">Tier ' + (i + 1) + '</text>';
     }
 
     [0.5, 5, 30].forEach(function (b) {
@@ -2791,30 +2851,46 @@
       var highlighted = PBENCH_SHARED_BASES.indexOf(r.base) !== -1;
       var cls = highlighted ? "pcard-dist-pt pcard-dist-pt-hl" : "pcard-dist-pt";
       var radius = highlighted ? 3.6 : 2.6;
-      svg += '<circle cx="' + x + '" cy="' + y + '" r="' + radius + '" class="' + cls + '"><title>' + pcardEscapeXml(r.base) + ' &#183; ' + pcardMoneyTrim(r.blended) + '</title></circle>';
+      svg += '<circle cx="' + x + '" cy="' + y + '" r="' + radius + '" class="' + cls + '" data-tier="' + r.tier + '"><title>' + pcardEscapeXml(r.base) + ' &#183; ' + pcardMoneyTrim(r.blended) + '</title></circle>';
     });
 
-    // greedy lane assignment: walk anchors left-to-right, each one goes in
-    // whichever lane has been unused longest (largest x-gap since that
-    // lane's last label), so nearby-priced anchors land in different lanes
-    // and their labels stagger without overlapping.
+    // 3-tier staggered labels. Level 0 sits nearest the plot (shortest
+    // leader line); level 2 sits farthest (longest line, passing through
+    // levels 0 and 1). An item can only use a level if its label doesn't
+    // overlap any already-placed label at that level OR any level its own
+    // leader line would cross through -- so a line never runs through
+    // another label's text.
+    var LANE_YS_BY_LEVEL = [40, 24, 8];
+    var placedByLevel = [[], [], []];
+
     var anchorPts = PCARD_ANCHORS.map(function (a) {
       var pos = pointPos[a.name];
       var srcRow = baseRows.filter(function (r) { return r.modelName === a.name; })[0];
       return pos ? { a: a, x: pos.x, y: pos.y, price: srcRow ? pcardMoneyTrim(srcRow.blended) : "" } : null;
     }).filter(function (p) { return p != null; }).sort(function (p1, p2) { return p1.x - p2.x; });
 
-    var LANE_YS = [8, 17, 26, 35];
-    var laneLastX = LANE_YS.map(function () { return -Infinity; });
-
     anchorPts.forEach(function (p) {
-      var bestLane = 0, bestGap = -Infinity;
-      for (var L = 0; L < LANE_YS.length; L++) {
-        var gap = p.x - laneLastX[L];
-        if (gap > bestGap) { bestGap = gap; bestLane = L; }
+      var label = p.a.short + " · " + p.price;
+      var halfWidth = pcardLabelWidth(label) / 2;
+      var chosenLevel = 2;
+      for (var level = 0; level < 3; level++) {
+        var ok = true;
+        // same level: two labels need combined clearance to not overlap
+        for (var k = 0; k < placedByLevel[level].length && ok; k++) {
+          if (Math.abs(p.x - placedByLevel[level][k].x) < halfWidth + placedByLevel[level][k].halfWidth) ok = false;
+        }
+        // lower levels: only this item's (zero-width) line passes through
+        // them, so it just needs to miss the other label's own half-width
+        for (var lvl = 0; lvl < level && ok; lvl++) {
+          for (var k2 = 0; k2 < placedByLevel[lvl].length && ok; k2++) {
+            if (Math.abs(p.x - placedByLevel[lvl][k2].x) < placedByLevel[lvl][k2].halfWidth) ok = false;
+          }
+        }
+        if (ok) { chosenLevel = level; break; }
       }
-      laneLastX[bestLane] = p.x;
-      var laneY = LANE_YS[bestLane];
+      placedByLevel[chosenLevel].push({ x: p.x, halfWidth: halfWidth });
+
+      var laneY = LANE_YS_BY_LEVEL[chosenLevel];
       var anchorMode = "middle", textX = p.x;
       if (p.x > W - 70) { anchorMode = "end"; textX = p.x + 4; }
       else if (p.x < 70) { anchorMode = "start"; textX = p.x - 4; }
@@ -2824,6 +2900,10 @@
 
     svg += "</svg>";
     byId("pcard-dist-chart").innerHTML = svg;
+
+    Array.prototype.forEach.call(byId("pcard-dist-chart").querySelectorAll(".pcard-dist-band, .pcard-dist-pt, .pcard-dist-pt-hl"), function (el) {
+      el.addEventListener("click", function () { pcardSetTier(+el.getAttribute("data-tier")); });
+    });
 
     var gpt5nano = baseRows.filter(function (r) { return r.modelName === "GPT-5 nano (high)"; })[0];
     var o1pro = baseRows.filter(function (r) { return r.modelName === "o1-pro"; })[0];
@@ -2879,12 +2959,7 @@
       return '<button type="button" class="pcard-chip-btn' + active + '" data-tier="' + t + '">Tier ' + t + "</button>";
     }).join("");
     Array.prototype.forEach.call(byId("pcard-tier-switch").querySelectorAll(".pcard-chip-btn"), function (btn) {
-      btn.addEventListener("click", function () {
-        PCARD_SELECTED_TIER = +btn.getAttribute("data-tier");
-        renderTiers();
-        renderTierSwitch();
-        renderPriceFlow();
-      });
+      btn.addEventListener("click", function () { pcardSetTier(+btn.getAttribute("data-tier")); });
     });
   }
 
@@ -2893,6 +2968,7 @@
     renderDistribution();
     renderTierSwitch();
     renderPriceFlow();
+    pcardInitTierAnimation();
   }
 
   function renderSection1() {
