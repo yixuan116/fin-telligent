@@ -1229,7 +1229,15 @@
 </style>
 </head>
 <body>
-  <div id="page" style="display:none;">
+  <div style="max-width:1280px; margin:0 auto; padding:20px 24px 0;">
+    <button type="button" class="collapsible-toggle" id="toggle-legacy-dashboard" aria-expanded="false" aria-controls="legacy-dashboard-body">
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="ct-title">Legacy Dashboard: AI Compute &amp; Data Center Intelligence</span>
+      <span class="ct-sub">The original page this was built from &mdash; kept for reference, collapsed by default</span>
+    </button>
+  </div>
+  <div class="collapsible-body" id="legacy-dashboard-body">
+  <div id="page">
 
     <header class="site-header">
       <p class="site-eyebrow">fin-telligent series</p>
@@ -1415,6 +1423,7 @@
       </a>
     </footer>
 
+  </div>
   </div>
 
   <div id="budget-sandbox">
@@ -5127,6 +5136,7 @@
 
   function initUI() {
     initProgressNav();
+    initCollapsible("toggle-legacy-dashboard", "legacy-dashboard-body");
     initCollapsible("toggle-data-eng", "body-data-eng");
     initCollapsible("toggle-audit", "body-audit");
     initCollapsible("toggle-perf-benchmark", "body-perf-benchmark");
