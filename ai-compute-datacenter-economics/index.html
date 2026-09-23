@@ -884,8 +884,11 @@
     background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 24px 28px; margin: 0 0 20px;
   }
-  .pcart-receipt-total { font-size: 2.1rem; font-weight: 800; color: var(--text-primary); text-align: center; margin: 0 0 4px; }
-  .pcart-receipt-savings { font-size: 0.82rem; font-weight: 700; color: var(--green); text-align: center; margin: 0 0 6px; }
+  .pcart-receipt-totals { display: flex; justify-content: center; gap: 36px; margin: 0 0 4px; flex-wrap: wrap; }
+  .pcart-receipt-total-block { text-align: center; }
+  .pcart-receipt-total-label { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 2px; }
+  .pcart-receipt-total-value { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+  .pcart-receipt-savings { font-size: 0.82rem; font-weight: 700; color: var(--green); text-align: center; margin: 8px 0 6px; }
   .pcart-receipt-selected { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin: 0 0 16px; }
 
   .pcart-view-toggle { display: flex; justify-content: center; gap: 8px; margin: 0 0 16px; }
@@ -897,13 +900,15 @@
 
   .pcart-receipt-lines { border-top: 1px dashed var(--border); padding-top: 14px; }
   .pcart-dept-block { margin: 0 0 12px; }
-  .pcart-dept-head { display: flex; justify-content: space-between; gap: 10px; font-size: 0.82rem; font-weight: 700; color: var(--text-primary); padding: 4px 0; }
+  .pcart-dept-head { display: flex; align-items: baseline; gap: 10px; font-size: 0.82rem; font-weight: 700; color: var(--text-primary); padding: 4px 0; }
   .pcart-dept-tasks { padding: 0 0 0 12px; }
-  .pcart-receipt-line { display: flex; justify-content: space-between; gap: 14px; font-size: 0.74rem; color: var(--text-secondary); padding: 3px 0; }
+  .pcart-receipt-line { display: flex; align-items: baseline; gap: 10px; font-size: 0.74rem; color: var(--text-secondary); padding: 3px 0; }
   .pcart-receipt-line b { color: var(--text-primary); white-space: nowrap; }
+  .pcart-line-label { flex: 1; min-width: 0; }
+  .pcart-line-tokens { color: var(--text-muted); font-weight: 600; font-size: 0.9em; white-space: nowrap; }
 
   .pcart-model-block { margin: 0 0 14px; }
-  .pcart-model-bar-row { display: flex; justify-content: space-between; gap: 10px; font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+  .pcart-model-bar-row { display: flex; align-items: baseline; gap: 10px; font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
   .pcart-model-bar-track { background: var(--bg); border-radius: 6px; height: 10px; overflow: hidden; margin: 0 0 4px; }
   .pcart-model-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; }
   .pcart-model-served { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; margin: 0; }
@@ -941,6 +946,22 @@
   }
   .rcpt-metric-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
   .rcpt-metric-formula { font-size: 0.66rem; color: var(--text-muted); font-family: var(--mono); margin-top: 6px; line-height: 1.4; }
+
+  .rcpt-group { margin: 0 0 24px; }
+  .rcpt-group:last-child { margin-bottom: 0; }
+  .rcpt-group-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+  .rcpt-group-sub { font-size: 0.78rem; color: var(--text-secondary); margin: 0 0 14px; }
+  .rcpt-group-note { font-size: 0.68rem; color: var(--text-muted); text-align: center; margin: 10px 0 0; }
+
+  .rcpt-business-lines {
+    max-width: 430px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 4px 18px; font-family: var(--mono);
+  }
+  .rcpt-biz-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.78rem; padding: 9px 0; }
+  .rcpt-biz-row + .rcpt-biz-row { border-top: 1px dashed var(--border); }
+  .rcpt-biz-label { color: var(--text-primary); }
+  .rcpt-biz-value { color: var(--accent); font-weight: 700; white-space: nowrap; }
+  .rcpt-biz-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; text-align: center; padding: 16px 0; }
 
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
@@ -1109,6 +1130,8 @@
     .section-card, .collapsible-toggle { padding: 18px 18px; }
     .kpi-row, .model-picker { flex-direction: column; }
     .model-chips { width: 100%; }
+    .pcart-receipt-totals { gap: 20px; }
+    .pcart-receipt-total-value { font-size: 1.4rem; }
     .rcpt-slip { padding: 20px 12px; max-width: 100%; }
     .rcpt-cols-head, .rcpt-row { grid-template-columns: 1fr 68px 50px 68px; gap: 4px; }
     .rcpt-cols-head { font-size: 0.56rem; }
@@ -1614,7 +1637,16 @@
             <p class="pcard-formula">Unit Budget = (I/O Ratio &times; Input price + Thinking Multiplier &times; Output price) &divide; (I/O Ratio + 1)</p>
 
             <div class="pcard-receipt" id="cart-receipt">
-              <p class="pcart-receipt-total" id="cart-receipt-total">$0.00</p>
+              <div class="pcart-receipt-totals">
+                <div class="pcart-receipt-total-block">
+                  <p class="pcart-receipt-total-label">Token Budget</p>
+                  <p class="pcart-receipt-total-value" id="cart-receipt-tokens">0</p>
+                </div>
+                <div class="pcart-receipt-total-block">
+                  <p class="pcart-receipt-total-label">$ Budget</p>
+                  <p class="pcart-receipt-total-value" id="cart-receipt-total">$0.00</p>
+                </div>
+              </div>
               <p class="pcart-receipt-savings" id="cart-receipt-savings"></p>
               <p class="pcart-receipt-selected" id="cart-receipt-selected"></p>
               <div class="pcart-view-toggle">
@@ -1831,19 +1863,29 @@
               <p class="rcpt-footer-line">Thank you for shopping.<br>Tokens are a line item now.</p>
             </div>
 
-            <div class="rcpt-metrics">
-              <div class="rcpt-metric">
-                <p class="rcpt-metric-value" id="rcpt-metric-arr">$0</p>
-                <p class="rcpt-metric-formula">Annual Run Rate = Monthly Token Spend &times; 12</p>
+            <div class="rcpt-group">
+              <p class="rcpt-group-title">&#128181; Financial</p>
+              <div class="rcpt-metrics">
+                <div class="rcpt-metric">
+                  <p class="rcpt-metric-value" id="rcpt-metric-arr">$0</p>
+                  <p class="rcpt-metric-formula">Annual Run Rate = Monthly Token Spend &times; 12</p>
+                </div>
+                <div class="rcpt-metric">
+                  <p class="rcpt-metric-value" id="rcpt-metric-bps">0 bps</p>
+                  <p class="rcpt-metric-formula">Gross Margin Impact = COGS Tokens &divide; Revenue &times; 10,000</p>
+                </div>
+                <div class="rcpt-metric">
+                  <p class="rcpt-metric-value" id="rcpt-metric-unit">$0.00</p>
+                  <p class="rcpt-metric-formula">Portfolio Unit Budget = Total Token Spend &divide; Total Tokens, per 1M</p>
+                </div>
               </div>
-              <div class="rcpt-metric">
-                <p class="rcpt-metric-value" id="rcpt-metric-bps">0 bps</p>
-                <p class="rcpt-metric-formula">Gross Margin Impact = COGS Tokens &divide; Revenue &times; 10,000</p>
-              </div>
-              <div class="rcpt-metric">
-                <p class="rcpt-metric-value" id="rcpt-metric-unit">$0.00</p>
-                <p class="rcpt-metric-formula">Portfolio Unit Budget = Total Token Spend &divide; Total Tokens, per 1M</p>
-              </div>
+            </div>
+
+            <div class="rcpt-group">
+              <p class="rcpt-group-title">&#128230; Business</p>
+              <p class="rcpt-group-sub">Every token lands on a business outcome.</p>
+              <div class="rcpt-business-lines" id="rcpt-business-lines"></div>
+              <p class="rcpt-group-note">Placeholder volumes. Swap in your own.</p>
             </div>
 
           </div>
@@ -3851,6 +3893,41 @@
     });
   }
 
+  function pcartFmtTokensBig(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+    return String(Math.round(n));
+  }
+
+  function pcartParseCompactTokens(text) {
+    var m = /^([\d.]+)\s*(K|M|B)?/.exec(text);
+    if (!m) return 0;
+    var num = parseFloat(m[1]) || 0;
+    if (m[2] === "B") return num * 1e9;
+    if (m[2] === "M") return num * 1e6;
+    if (m[2] === "K") return num * 1e3;
+    return num;
+  }
+
+  function pcartAnimateTokenAmount(el, to) {
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var from = pcartParseCompactTokens(el.textContent);
+    if (reduced || !isFinite(from) || from === to) {
+      el.textContent = pcartFmtTokensBig(to);
+      return;
+    }
+    var duration = 450, start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var progress = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = pcartFmtTokensBig(from + (to - from) * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function renderCartReceiptLines(deptTotals, modelTotals, total) {
     var container = byId("cart-receipt-lines");
     if (PCART_VIEW === "dept") {
@@ -3858,10 +3935,11 @@
         var d = PBENCH_DEPARTMENTS[dept];
         var taskLines = Object.keys(PCART_SHARES[dept]).map(function (task) {
           var calc = pcartLineCalc(dept, task);
-          return '<div class="pcart-receipt-line"><span>' + pcardEscapeXml(task) + ' · ' + Math.round(PCART_SHARES[dept][task]) + '%</span><b>' + pcardMoney2(calc.cost) + '</b></div>';
+          return '<div class="pcart-receipt-line"><span class="pcart-line-label">' + pcardEscapeXml(task) + ' · ' + Math.round(PCART_SHARES[dept][task]) + '%</span><span class="pcart-line-tokens">' + pcartFmtTokensBig(calc.tokens) + '</span><b>' + pcardMoney2(calc.cost) + '</b></div>';
         }).join("");
+        var dt = deptTotals[dept] || { cost: 0, tokens: 0 };
         return '<div class="pcart-dept-block">' +
-          '<div class="pcart-dept-head"><span>' + pcardEscapeXml(d.label) + '</span><b>' + pcardMoney2(deptTotals[dept] || 0) + '</b></div>' +
+          '<div class="pcart-dept-head"><span class="pcart-line-label">' + pcardEscapeXml(d.label) + '</span><span class="pcart-line-tokens">' + pcartFmtTokensBig(dt.tokens) + '</span><b>' + pcardMoney2(dt.cost) + '</b></div>' +
           '<div class="pcart-dept-tasks">' + taskLines + '</div>' +
           '</div>';
       }).join("");
@@ -3872,7 +3950,7 @@
         var pct = total > 0 ? (info.cost / total * 100) : 0;
         var servedText = info.served.map(function (s) { return s.dept + " · " + s.task; }).join(", ");
         return '<div class="pcart-model-block">' +
-          '<div class="pcart-model-bar-row"><span>' + pcardEscapeXml(m) + '</span><span>' + pcardMoney2(info.cost) + '</span></div>' +
+          '<div class="pcart-model-bar-row"><span class="pcart-line-label">' + pcardEscapeXml(m) + '</span><span class="pcart-line-tokens">' + pcartFmtTokensBig(info.tokens) + '</span><span>' + pcardMoney2(info.cost) + '</span></div>' +
           '<div class="pcart-model-bar-track"><div class="pcart-model-bar-fill" style="width:' + pct + '%;"></div></div>' +
           '<p class="pcart-model-served">' + pcardEscapeXml(servedText) + '</p>' +
           '</div>';
@@ -3881,23 +3959,26 @@
   }
 
   function renderCartAll() {
-    var total = 0, baseTotal = 0, selectedPeople = 0;
+    var total = 0, totalTokens = 0, baseTotal = 0, selectedPeople = 0;
     var deptTotals = {};
     var modelTotals = {};
 
     PCART_POOL.forEach(function (dept) {
       var teamSize = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : PBENCH_DEPARTMENTS[dept].people;
       selectedPeople += teamSize;
-      var deptCost = 0;
+      var deptCost = 0, deptTokens = 0;
       Object.keys(PCART_SHARES[dept]).forEach(function (task) {
         var calc = pcartLineCalc(dept, task);
         deptCost += calc.cost;
+        deptTokens += calc.tokens;
         total += calc.cost;
+        totalTokens += calc.tokens;
         baseTotal += calc.baseCost;
 
         var modelName = PCART_TASK_MODEL[dept][task].model;
-        if (!modelTotals[modelName]) modelTotals[modelName] = { cost: 0, served: [] };
+        if (!modelTotals[modelName]) modelTotals[modelName] = { cost: 0, tokens: 0, served: [] };
         modelTotals[modelName].cost += calc.cost;
+        modelTotals[modelName].tokens += calc.tokens;
         modelTotals[modelName].served.push({ dept: PBENCH_DEPARTMENTS[dept].label, task: task });
 
         var lineEl = document.querySelector('.pcart-task-line[data-dept="' + dept + '"][data-task="' + task + '"]');
@@ -3906,13 +3987,14 @@
           lineEl.querySelector(".pcart-task-badge").innerHTML = calc.reasoning ? "&#129504;" : "";
         }
       });
-      deptTotals[dept] = deptCost;
+      deptTotals[dept] = { cost: deptCost, tokens: deptTokens };
       var cardEl = document.querySelector('.pcart-card[data-dept="' + dept + '"]');
       if (cardEl) pcardAnimateBillAmount(cardEl.querySelector(".pcart-card-subtotal"), deptCost);
     });
 
     var companySize = +byId("cart-company-size").value || 100;
     pcardAnimateBillAmount(byId("cart-receipt-total"), total);
+    pcartAnimateTokenAmount(byId("cart-receipt-tokens"), totalTokens);
 
     var savings = baseTotal - total;
     var savingsEl = byId("cart-receipt-savings");
@@ -3985,9 +4067,24 @@
   var PRCPT_OPEX_CLASSIC = 800000;
   var PRCPT_COGS_DEPTS = { customer: true };
 
+  var PRCPT_OUTCOMES = {
+    finance: { label: "Cost per Forecast", perPerson: 2 },
+    engineering: { label: "Cost per Merged PR", perPerson: 10 },
+    rd: { label: "Cost per Research Brief", perPerson: 4 },
+    legal: { label: "Cost per Contract Reviewed", perPerson: 15 },
+    customer: { label: "Cost per Ticket Resolved", perPerson: 200 }
+  };
+
   function rcptMoney(v) {
     var sign = v < 0 ? "-" : "";
     return sign + fmtUSD(Math.abs(v), 2);
+  }
+
+  function rcptUnitMoney(v) {
+    var sign = v < 0 ? "-" : "";
+    var abs = Math.abs(v);
+    var d = abs > 0 && abs < 0.01 ? 4 : 2;
+    return sign + fmtUSD(abs, d);
   }
 
   function rcptSetRow(id, classicVal, tokensVal, totalVal) {
@@ -3997,17 +4094,37 @@
     row.querySelector(".rcpt-col-total").textContent = totalVal;
   }
 
+  function renderReceiptBusiness(deptCosts) {
+    var container = byId("rcpt-business-lines");
+    if (!PCART_POOL.length) {
+      container.innerHTML = '<p class="rcpt-biz-empty">Add a department to the Cart to see this.</p>';
+      return;
+    }
+    container.innerHTML = PCART_POOL.map(function (dept) {
+      var outcome = PRCPT_OUTCOMES[dept];
+      var teamSize = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : PBENCH_DEPARTMENTS[dept].people;
+      var monthlyOutput = teamSize * outcome.perPerson;
+      var unitCost = monthlyOutput > 0 ? (deptCosts[dept] || 0) / monthlyOutput : 0;
+      return '<div class="rcpt-biz-row"><span class="rcpt-biz-label">' + pcardEscapeXml(PBENCH_DEPARTMENTS[dept].label) + ' · ' + outcome.label + '</span><span class="rcpt-biz-value">' + rcptUnitMoney(unitCost) + '</span></div>';
+    }).join("");
+  }
+
   function renderReceipt() {
     var cogsTokens = 0, opexTokens = 0, totalTokens = 0;
+    var deptCosts = {};
     PCART_POOL.forEach(function (dept) {
       var bucket = PRCPT_COGS_DEPTS[dept] ? "cogs" : "opex";
+      var deptCost = 0;
       Object.keys(PCART_SHARES[dept]).forEach(function (task) {
         var calc = pcartLineCalc(dept, task);
         if (bucket === "cogs") cogsTokens += calc.cost; else opexTokens += calc.cost;
         totalTokens += calc.tokens;
+        deptCost += calc.cost;
       });
+      deptCosts[dept] = deptCost;
     });
     var tokenSpend = cogsTokens + opexTokens;
+    renderReceiptBusiness(deptCosts);
 
     var revenueTotal = PRCPT_REVENUE_CLASSIC;
     var cogsTotal = PRCPT_COGS_CLASSIC + cogsTokens;
