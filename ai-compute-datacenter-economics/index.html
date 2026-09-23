@@ -491,6 +491,25 @@
   }
   .collapsible-body-inner { padding-top: 20px; }
 
+  /* full section-head as the toggle, for Step 2/3/4 -- eyebrow/title/sub stay
+     visible in the button at all times, only the body below collapses */
+  .step-collapse-toggle {
+    width: 100%; display: flex; align-items: flex-start; gap: 14px; cursor: pointer;
+    background: none; border: none; padding: 0; margin: 0 0 22px; text-align: left; font: inherit; color: inherit;
+  }
+  .step-collapse-toggle .chevron { margin-top: 9px; }
+  .step-collapse-toggle[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+  .step-collapse-toggle .section-head { margin-bottom: 0; }
+
+  .expand-all-row { display: flex; justify-content: flex-end; margin: 0 0 12px; }
+  .raw-preview-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  .raw-toggle-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.92rem; font-weight: 700; }
+  .expand-all-btn {
+    font-family: inherit; font-size: 0.78rem; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid transparent; border-radius: 999px; padding: 8px 16px; cursor: pointer;
+  }
+  .expand-all-btn:hover { border-color: var(--accent); }
+
   /* ============ generic UI atoms ============ */
   .card-grid { display: grid; gap: 20px; min-width: 0; }
   .card-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1459,7 +1478,10 @@
         <div class="collapsible-body-inner">
           <div class="section-card">
 
-            <h3 class="section-title" style="font-size:1.05rem; margin-bottom:14px;">Raw Table Previews</h3>
+            <div class="raw-preview-head">
+              <h3 class="section-title" style="font-size:1.05rem; margin:0;">Raw Table Previews</h3>
+              <button type="button" class="expand-all-btn" id="expand-all-raw">Expand all</button>
+            </div>
             <div class="card-grid cols-1" id="raw-preview-grid"></div>
 
             <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 14px;">Joined Table Construction (SQL logic)</h3>
@@ -1769,13 +1791,23 @@
     </section>
 
     <!-- ============ SECTION 2: COST MODEL ============ -->
+    <div class="expand-all-row">
+      <button type="button" class="expand-all-btn" id="expand-all-steps">Expand all</button>
+    </div>
+
     <section class="section" id="sec-cost-model">
       <div class="section-card">
-        <div class="section-head">
-          <p class="section-eyebrow">Step 2</p>
-          <h2 class="section-title">AI Budget Cost Model</h2>
-          <p class="section-sub">Pick a task type, choose up to three models, and set your expected volume. See exactly what it costs per month &mdash; and why output tokens dominate the bill.</p>
-        </div>
+        <button type="button" class="step-collapse-toggle" id="toggle-cost-model" aria-expanded="false" aria-controls="body-cost-model">
+          <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="section-head">
+            <p class="section-eyebrow">Step 2</p>
+            <h2 class="section-title">AI Budget Cost Model</h2>
+            <p class="section-sub">Pick a task type, choose up to three models, and set your expected volume. See exactly what it costs per month &mdash; and why output tokens dominate the bill.</p>
+          </div>
+        </button>
+
+        <div class="collapsible-body" id="body-cost-model">
+        <div class="collapsible-body-inner">
 
         <div class="controls-row">
           <label class="control-field">
@@ -1829,17 +1861,26 @@
             <div class="chart-wrap" style="height:320px;"><canvas id="chart-budget-bar"></canvas></div>
           </div>
         </div>
+
+        </div>
+        </div>
       </div>
     </section>
 
     <!-- ============ SECTION 3: BREAKEVEN ============ -->
     <section class="section" id="sec-breakeven">
       <div class="section-card">
-        <div class="section-head">
-          <p class="section-eyebrow">Step 3</p>
-          <h2 class="section-title">Breakeven: When Does AI Pay for Itself?</h2>
-          <p class="section-sub">Every AI interaction is worth something &mdash; labor saved, errors avoided, revenue captured. Compare that value against the running cost to find the payback month.</p>
-        </div>
+        <button type="button" class="step-collapse-toggle" id="toggle-breakeven" aria-expanded="false" aria-controls="body-breakeven">
+          <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="section-head">
+            <p class="section-eyebrow">Step 3</p>
+            <h2 class="section-title">Breakeven: When Does AI Pay for Itself?</h2>
+            <p class="section-sub">Every AI interaction is worth something &mdash; labor saved, errors avoided, revenue captured. Compare that value against the running cost to find the payback month.</p>
+          </div>
+        </button>
+
+        <div class="collapsible-body" id="body-breakeven">
+        <div class="collapsible-body-inner">
 
         <div class="controls-row">
           <label class="control-field grow">
@@ -1860,17 +1901,26 @@
         </div>
 
         <div class="kpi-row" id="breakeven-kpis"></div>
+
+        </div>
+        </div>
       </div>
     </section>
 
     <!-- ============ SECTION 4: STRESS TEST ============ -->
     <section class="section" id="sec-stress">
       <div class="section-card">
-        <div class="section-head">
-          <p class="section-eyebrow">Step 4</p>
-          <h2 class="section-title">Stress Test: What Happens at Scale?</h2>
-          <p class="section-sub">Push context length and concurrency to see where cost blows through budget and latency blows through your SLA.</p>
-        </div>
+        <button type="button" class="step-collapse-toggle" id="toggle-stress" aria-expanded="false" aria-controls="body-stress">
+          <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="section-head">
+            <p class="section-eyebrow">Step 4</p>
+            <h2 class="section-title">Stress Test: What Happens at Scale?</h2>
+            <p class="section-sub">Push context length and concurrency to see where cost blows through budget and latency blows through your SLA.</p>
+          </div>
+        </button>
+
+        <div class="collapsible-body" id="body-stress">
+        <div class="collapsible-body-inner">
 
         <div class="controls-row">
           <label class="control-field grow">
@@ -1898,6 +1948,9 @@
             <p class="chart-card-sub">Estimated time-to-first-token as context grows. SLA threshold: 2s.</p>
             <div class="chart-wrap" style="height:320px;"><canvas id="chart-latency"></canvas></div>
           </div>
+        </div>
+
+        </div>
         </div>
       </div>
     </section>
@@ -2623,6 +2676,51 @@
     });
   }
 
+  // Charts created while their collapsible was still collapsed (0-height
+  // container) render broken until told to resize -- call this once their
+  // section actually opens.
+  function initStepChartResize(toggleId, getCharts) {
+    var toggle = byId(toggleId);
+    toggle.addEventListener("click", function () {
+      if (toggle.getAttribute("aria-expanded") !== "true") return;
+      setTimeout(function () {
+        getCharts().forEach(function (c) { if (c && c.resize) c.resize(); });
+      }, 360);
+    });
+  }
+
+  // One "Expand all / Collapse all" button driving a group of independent
+  // collapsibles; label reflects whether the whole group is open, and stays
+  // in sync if a card in the group is opened/closed on its own.
+  function initExpandAllGroup(btnId, toggleIds) {
+    var btn = byId(btnId);
+    if (!btn) return;
+    function allExpanded() {
+      return toggleIds.every(function (id) {
+        var t = byId(id);
+        return t && t.getAttribute("aria-expanded") === "true";
+      });
+    }
+    function refreshLabel() {
+      btn.textContent = allExpanded() ? "Collapse all" : "Expand all";
+    }
+    btn.addEventListener("click", function () {
+      var expand = !allExpanded();
+      toggleIds.forEach(function (id) {
+        var t = byId(id);
+        if (!t) return;
+        var expanded = t.getAttribute("aria-expanded") === "true";
+        if (expanded !== expand) t.click();
+      });
+      refreshLabel();
+    });
+    toggleIds.forEach(function (id) {
+      var t = byId(id);
+      if (t) t.addEventListener("click", refreshLabel);
+    });
+    refreshLabel();
+  }
+
   // ============ Benchmark story (performance_benchmarks.csv deep dive) ============
   // Pre-aggregated offline from performance_benchmarks.csv + models.csv via
   // data_prep_benchmark_story.py (top-10-per-benchmark at the latest test date,
@@ -2969,16 +3067,42 @@
     var colCounts = { "models.csv": 8, "pricing_history.csv": 7, "performance_benchmarks.csv": 9, "cost_efficiency.csv": 8 };
     var sizeLabels = { "models.csv": "35 KB", "pricing_history.csv": "5.2 MB", "performance_benchmarks.csv": "27.9 MB", "cost_efficiency.csv": "3.4 MB" };
 
+    // pricing_history.csv and performance_benchmarks.csv (the two heaviest
+    // files) collapse independently; models.csv and cost_efficiency.csv stay
+    // as plain always-open cards.
+    var collapsibleRaw = { 1: true, 2: true };
+
     var cardHtml = specs.map(function (s, i) {
-      return '<div class="mini-card"><p class="mini-card-title">' +
-        '<a class="raw-download-link" href="' + s.file + '" download>' + s.file + ' <span class="raw-download-icon">&#8681;</span></a>' +
+      var titleInner = '<a class="raw-download-link" href="' + s.file + '" download>' + s.file + ' <span class="raw-download-icon">&#8681;</span></a>' +
         '<span class="badge">' + counts[s.file].toLocaleString() + " rows × " + colCounts[s.file] + " cols</span>" +
-        '<span class="raw-size-label">&middot; ' + sizeLabels[s.file] + '</span></p>' +
+        '<span class="raw-size-label">&middot; ' + sizeLabels[s.file] + '</span>';
+
+      if (collapsibleRaw[i]) {
+        return '<div class="raw-collapsible-card">' +
+          '<div class="collapsible-toggle" role="button" tabindex="0" id="toggle-raw-' + i + '" aria-expanded="false" aria-controls="rawbody-' + i + '">' +
+          '<svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '<span class="raw-toggle-title">' + titleInner + '</span>' +
+          '</div>' +
+          '<div class="collapsible-body" id="rawbody-' + i + '">' +
+          '<div class="collapsible-body-inner">' +
+          '<div id="raw-table-' + i + '"></div>' +
+          '</div></div></div>';
+      }
+      return '<div class="mini-card"><p class="mini-card-title">' + titleInner + '</p>' +
         '<div id="raw-table-' + i + '" style="margin-top:10px;"></div></div>';
     });
 
     // benchmark story goes directly above the performance_benchmarks.csv card (index 2)
     grid.innerHTML = cardHtml[0] + cardHtml[1] + benchmarkStoryHtml() + priceStoryHtml() + cardHtml[2] + cardHtml[3];
+
+    [1, 2].forEach(function (i) {
+      var toggle = byId("toggle-raw-" + i);
+      initCollapsible("toggle-raw-" + i, "rawbody-" + i);
+      toggle.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle.click(); }
+      });
+      toggle.querySelector(".raw-download-link").addEventListener("click", function (e) { e.stopPropagation(); });
+    });
 
     specs.forEach(function (s, i) {
       makeTable({
@@ -5142,7 +5266,15 @@
     initCollapsible("toggle-perf-benchmark", "body-perf-benchmark");
     initCollapsible("toggle-price-cost", "body-price-cost");
     initCollapsible("toggle-receipt", "body-receipt");
+    initCollapsible("toggle-cost-model", "body-cost-model");
+    initCollapsible("toggle-breakeven", "body-breakeven");
+    initCollapsible("toggle-stress", "body-stress");
+    initStepChartResize("toggle-cost-model", function () { return [radarChart, budgetBarChart]; });
+    initStepChartResize("toggle-breakeven", function () { return [breakevenChart]; });
+    initStepChartResize("toggle-stress", function () { return [costExplosionChart, latencyChart]; });
+    initExpandAllGroup("expand-all-steps", ["toggle-cost-model", "toggle-breakeven", "toggle-stress", "toggle-audit"]);
     renderSection1();
+    initExpandAllGroup("expand-all-raw", ["toggle-raw-1", "toggle-raw-2"]);
     renderPerfBenchmark();
     renderMatrixTags();
     renderPriceCost();
