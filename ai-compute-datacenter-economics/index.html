@@ -779,6 +779,61 @@
   .pcard-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
   .pcard-footer a:hover { text-decoration: underline; }
 
+  /* --- Card 3: Cart --- */
+  .pcard-cart-copy { font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 18px; line-height: 1.5; }
+
+  .pcard-cart-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin: 0 0 16px; }
+  .pcart-control-field { display: flex; flex-direction: column; gap: 4px; font-size: 0.76rem; font-weight: 600; color: var(--text-secondary); }
+  .pcart-control-field input, .pcart-control-field select {
+    font-family: inherit; font-size: 0.84rem; font-weight: 600; color: var(--text-primary);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px;
+  }
+  .pcart-select-all-btn {
+    font-family: inherit; font-size: 0.78rem; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: none; border-radius: 999px; padding: 9px 16px; cursor: pointer;
+  }
+  .pcart-select-all-btn:hover { background: var(--accent); color: #fff; }
+
+  .pcard-cart-toggles { display: flex; flex-wrap: wrap; gap: 20px; margin: 0 0 18px; }
+  .pcart-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 600; color: var(--text-primary); cursor: pointer; }
+  .pcart-toggle-label input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .pcart-toggle-sub { font-size: 0.68rem; color: var(--text-muted); font-weight: 400; }
+
+  .pcard-cart-rows { display: flex; flex-direction: column; gap: 10px; margin: 0 0 20px; }
+  .pcart-row {
+    display: grid; grid-template-columns: 24px 1fr 64px 1.3fr 1.6fr 22px 96px;
+    gap: 10px; align-items: center;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px;
+    transition: opacity 0.2s ease;
+  }
+  .pcart-row.pcart-row-off { opacity: 0.42; }
+  @media (max-width: 900px) {
+    .pcart-row { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+    .pcart-cell-subtotal { text-align: left; }
+  }
+  .pcart-row input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+  .pcart-row-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .pcart-row input[type="number"], .pcart-row select {
+    font-family: inherit; font-size: 0.76rem; color: var(--text-primary);
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; width: 100%;
+  }
+  .pcart-row-task-detail { font-size: 0.66rem; color: var(--text-secondary); margin: 4px 0 0; }
+  .pcart-row-tokens { color: var(--text-muted); }
+  .pcart-row-badge { font-size: 0.9rem; }
+  .pcart-row-subtotal { font-size: 0.92rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+  .pcart-cell-subtotal { text-align: right; }
+
+  .pcard-receipt {
+    background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px 28px; margin: 0 0 20px;
+  }
+  .pcart-receipt-total { font-size: 2.1rem; font-weight: 800; color: var(--text-primary); text-align: center; margin: 0 0 4px; }
+  .pcart-receipt-savings { font-size: 0.82rem; font-weight: 700; color: var(--green); text-align: center; margin: 0 0 6px; }
+  .pcart-receipt-selected { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin: 0 0 16px; }
+  .pcart-receipt-lines { border-top: 1px dashed var(--border); padding-top: 14px; }
+  .pcart-receipt-line { display: flex; justify-content: space-between; gap: 14px; font-size: 0.78rem; color: var(--text-secondary); padding: 5px 0; }
+  .pcart-receipt-line b { color: var(--text-primary); white-space: nowrap; }
+
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
   .benchmark-story { background: var(--card-bg); }
@@ -1291,6 +1346,8 @@
         <div class="collapsible-body-inner">
           <div class="section-card">
 
+            <div id="pcard-card1-scope">
+
             <h3 class="section-title" style="font-size:1.05rem; margin:0 0 6px;">&#128178; Price Tag: what models cost and how 1,000 requests get billed</h3>
             <p class="pcard-subtitle">Three levers set the bill: which tier you pick, whether you cache, whether you batch.</p>
             <p class="pcard-source">Prices: <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker: (March 2026)</a> &middot; live API rates collected March 31, 2026</p>
@@ -1407,6 +1464,46 @@
             <p class="pcard-assumption">Illustrative token mix. Cache and batch discounts assumed to stack.</p>
 
             <p class="pcard-footer" id="pcard2-footer"></p>
+            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
+
+            </div>
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">&#128722; Cart</h3>
+            <p class="pcard-cart-copy">Same shelf, whole company. Add departments to the cart and watch the register run.</p>
+
+            <div class="pcard-cart-controls">
+              <label class="pcart-control-field">Company Size
+                <input type="number" id="cart-company-size" value="100" min="1" max="100000">
+              </label>
+              <label class="pcart-control-field">Period
+                <select id="cart-period">
+                  <option value="20" selected>1 month (20 working days)</option>
+                  <option value="5">5 days</option>
+                  <option value="10">10 days</option>
+                </select>
+              </label>
+              <button type="button" class="pcart-select-all-btn" id="cart-select-all">Select all</button>
+            </div>
+
+            <div class="pcard-cart-toggles">
+              <label class="pcart-toggle-label"><input type="checkbox" id="cart-cache-toggle">&#128257; Cache <span class="pcart-toggle-sub">(80% repeated input, 50% off)</span></label>
+              <label class="pcart-toggle-label"><input type="checkbox" id="cart-batch-toggle">&#128230; Batch <span class="pcart-toggle-sub">(whole bill 50% off)</span></label>
+            </div>
+
+            <div class="pcard-cart-rows" id="cart-rows"></div>
+
+            <p class="pcard-formula">Monthly Cost = Team Size &times; Daily Tokens per Person &times; Days &times; Unit Budget</p>
+            <p class="pcard-formula">Unit Budget = (I/O Ratio &times; Input price + Thinking Multiplier &times; Output price) &divide; (I/O Ratio + 1)</p>
+
+            <div class="pcard-receipt" id="cart-receipt">
+              <p class="pcart-receipt-total" id="cart-receipt-total">$0.00</p>
+              <p class="pcart-receipt-savings" id="cart-receipt-savings"></p>
+              <p class="pcart-receipt-selected" id="cart-receipt-selected"></p>
+              <div class="pcart-receipt-lines" id="cart-receipt-lines"></div>
+            </div>
+
+            <p class="pcard-assumption">Task presets are illustrative usage assumptions. 1 token &asymp; 0.75 words; 1 page &asymp; 500 words.</p>
+
             <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
 
           </div>
@@ -3183,6 +3280,209 @@
     observer.observe(sentinel);
   }
 
+  // ============ Card 3: Cart ============
+  // PBENCH_DEPARTMENTS (department -> team size + default task) is defined
+  // once, above, for the department matrix -- reused here as-is, not
+  // redefined, so the two places can never drift apart.
+
+  var PCARD_CART_DEFAULT_MODEL = "Claude Sonnet 4.6 (Adaptive Reasoning, Max Effort)";
+
+  var PCARD_TASK_PRESETS = {
+    "Q&A": { dailyTokens: 30000, ioRatio: 3 },
+    "Document Analysis": { dailyTokens: 150000, ioRatio: 10 },
+    "Report Generation": { dailyTokens: 60000, ioRatio: 1 },
+    "Coding": { dailyTokens: 400000, ioRatio: 8 },
+    "Hybrid": { dailyTokens: 100000, ioRatio: 3 }
+  };
+
+  // 1 page ~= 500 words; 1 token ~= 0.75 words -> 1 page ~= 500/0.75 tokens.
+  var PCART_TOKENS_PER_PAGE = 500 / 0.75;
+
+  var PCARD_CART_STATE = { cacheOn: false, batchOn: false };
+
+  function pcartPages(tokens) {
+    return Math.round(tokens / PCART_TOKENS_PER_PAGE);
+  }
+
+  function pcartFormatTokens(tokens) {
+    return (tokens >= 1000 ? (tokens / 1000) + "K" : String(tokens)) + " tokens";
+  }
+
+  function pcardIsReasoningModel(name) {
+    return /reasoning/i.test(name) && !/non-reasoning/i.test(name);
+  }
+
+  function pcardCartFindModel(name) {
+    return AA_TRACKER.filter(function (r) { return r.model_name === name; })[0] || null;
+  }
+
+  var PCARD_CART_MODEL_OPTIONS_HTML = null;
+  function pcardCartModelOptionsHtml() {
+    if (PCARD_CART_MODEL_OPTIONS_HTML) return PCARD_CART_MODEL_OPTIONS_HTML;
+    var rows = pcardTierRows().slice().sort(function (a, b) { return a.modelName < b.modelName ? -1 : (a.modelName > b.modelName ? 1 : 0); });
+    var byTier = { 1: [], 2: [], 3: [], 4: [] };
+    rows.forEach(function (r) { byTier[r.tier].push(r); });
+    var html = "";
+    [1, 2, 3, 4].forEach(function (t) {
+      html += '<optgroup label="Tier ' + t + '">';
+      byTier[t].forEach(function (r) {
+        html += '<option value="' + pcardEscapeXml(r.modelName) + '">' + pcardEscapeXml(r.modelName) + '</option>';
+      });
+      html += '</optgroup>';
+    });
+    PCARD_CART_MODEL_OPTIONS_HTML = html;
+    return html;
+  }
+
+  function renderCartRows() {
+    var optionsHtml = pcardCartModelOptionsHtml();
+    var taskOptionsHtml = Object.keys(PCARD_TASK_PRESETS).map(function (t) {
+      return '<option value="' + t + '">' + t + '</option>';
+    }).join("");
+
+    byId("cart-rows").innerHTML = Object.keys(PBENCH_DEPARTMENTS).map(function (dept) {
+      var d = PBENCH_DEPARTMENTS[dept];
+      return '<div class="pcart-row" data-dept="' + dept + '">' +
+        '<input type="checkbox" class="pcart-row-check" checked>' +
+        '<p class="pcart-row-name">' + d.label + '</p>' +
+        '<input type="number" class="pcart-row-team" value="' + d.people + '" min="0">' +
+        '<div class="pcart-cell-task">' +
+        '<select class="pcart-row-task">' + taskOptionsHtml + '</select>' +
+        '<p class="pcart-row-task-detail"></p>' +
+        '</div>' +
+        '<select class="pcart-row-model">' + optionsHtml + '</select>' +
+        '<span class="pcart-row-badge"></span>' +
+        '<span class="pcart-cell-subtotal pcart-row-subtotal">$0.00</span>' +
+        '</div>';
+    }).join("");
+
+    Array.prototype.forEach.call(document.querySelectorAll(".pcart-row"), function (rowEl) {
+      var dept = rowEl.getAttribute("data-dept");
+      var d = PBENCH_DEPARTMENTS[dept];
+      rowEl.querySelector(".pcart-row-task").value = d.task;
+      rowEl.querySelector(".pcart-row-model").value = PCARD_CART_DEFAULT_MODEL;
+
+      rowEl.querySelector(".pcart-row-check").addEventListener("change", renderCartAll);
+      rowEl.querySelector(".pcart-row-team").addEventListener("input", renderCartAll);
+      rowEl.querySelector(".pcart-row-task").addEventListener("change", renderCartAll);
+      rowEl.querySelector(".pcart-row-model").addEventListener("change", renderCartAll);
+    });
+  }
+
+  function pcardCartRowCalc(rowEl) {
+    var teamSize = parseFloat(rowEl.querySelector(".pcart-row-team").value) || 0;
+    var taskName = rowEl.querySelector(".pcart-row-task").value;
+    var modelName = rowEl.querySelector(".pcart-row-model").value;
+    var task = PCARD_TASK_PRESETS[taskName];
+    var priceRow = pcardCartFindModel(modelName);
+    if (!task || !priceRow) return { cost: 0, baseCost: 0, reasoning: false };
+
+    var pIn = priceRow.input_cost_usd_per_1m;
+    var pOut = priceRow.output_cost_usd_per_1m;
+    var mult = pcardIsReasoningModel(modelName) ? 2 : 1;
+    var days = +byId("cart-period").value || 20;
+    var totalTokens = teamSize * task.dailyTokens * days;
+
+    function unitBudget(cacheOn) {
+      var effectivePin = cacheOn ? pIn * 0.6 : pIn;
+      return (task.ioRatio * effectivePin + mult * pOut) / (task.ioRatio + 1);
+    }
+
+    var baseCost = totalTokens * unitBudget(false) / 1e6;
+    var cost = totalTokens * unitBudget(PCARD_CART_STATE.cacheOn) / 1e6;
+    if (PCARD_CART_STATE.batchOn) cost *= 0.5;
+
+    return { cost: cost, baseCost: baseCost, reasoning: mult === 2 };
+  }
+
+  function pcardCartRescaleTeams() {
+    var companySize = +byId("cart-company-size").value || 100;
+    Array.prototype.forEach.call(document.querySelectorAll(".pcart-row"), function (rowEl) {
+      var dept = rowEl.getAttribute("data-dept");
+      var base = PBENCH_DEPARTMENTS[dept].people;
+      rowEl.querySelector(".pcart-row-team").value = Math.round(base / 100 * companySize);
+    });
+  }
+
+  function renderCartAll() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".pcart-row"));
+    var total = 0, baseTotal = 0, selectedPeople = 0;
+    var lines = [];
+
+    rows.forEach(function (rowEl) {
+      var checked = rowEl.querySelector(".pcart-row-check").checked;
+      rowEl.classList.toggle("pcart-row-off", !checked);
+
+      var taskName = rowEl.querySelector(".pcart-row-task").value;
+      var task = PCARD_TASK_PRESETS[taskName];
+      var detailEl = rowEl.querySelector(".pcart-row-task-detail");
+      if (task) {
+        detailEl.innerHTML = "about " + pcartPages(task.dailyTokens) + " pages a day <span class=\"pcart-row-tokens\">" +
+          pcartFormatTokens(task.dailyTokens) + " \u00b7 I/O " + task.ioRatio + "</span>";
+      }
+
+      var calc = pcardCartRowCalc(rowEl);
+      rowEl.querySelector(".pcart-row-badge").innerHTML = calc.reasoning ? "&#129504;" : "";
+
+      var subtotalEl = rowEl.querySelector(".pcart-row-subtotal");
+      pcardAnimateBillAmount(subtotalEl, checked ? calc.cost : 0);
+
+      if (checked) {
+        total += calc.cost;
+        baseTotal += calc.baseCost;
+        var teamSize = parseFloat(rowEl.querySelector(".pcart-row-team").value) || 0;
+        selectedPeople += teamSize;
+        var modelName = rowEl.querySelector(".pcart-row-model").value;
+        var deptLabel = rowEl.querySelector(".pcart-row-name").textContent;
+        lines.push({ dept: deptLabel, team: teamSize, model: modelName, cost: calc.cost });
+      }
+    });
+
+    var companySize = +byId("cart-company-size").value || 100;
+
+    pcardAnimateBillAmount(byId("cart-receipt-total"), total);
+
+    var savings = baseTotal - total;
+    var savingsEl = byId("cart-receipt-savings");
+    if ((PCARD_CART_STATE.cacheOn || PCARD_CART_STATE.batchOn) && savings > 0.005) {
+      savingsEl.textContent = "You saved " + pcardMoney2(savings);
+      savingsEl.style.display = "";
+    } else {
+      savingsEl.style.display = "none";
+    }
+
+    byId("cart-receipt-selected").textContent = "Selected: " + selectedPeople + " of " + companySize + " people";
+
+    byId("cart-receipt-lines").innerHTML = lines.map(function (l) {
+      return '<div class="pcart-receipt-line"><span>' + pcardEscapeXml(l.dept) + " \u00b7 " + l.team + " people \u00b7 " +
+        pcardEscapeXml(l.model) + '</span><b>' + pcardMoney2(l.cost) + '</b></div>';
+    }).join("");
+  }
+
+  function renderCartCard() {
+    renderCartRows();
+    pcardCartRescaleTeams();
+    renderCartAll();
+
+    byId("cart-company-size").addEventListener("input", function () {
+      pcardCartRescaleTeams();
+      renderCartAll();
+    });
+    byId("cart-period").addEventListener("change", renderCartAll);
+    byId("cart-select-all").addEventListener("click", function () {
+      Array.prototype.forEach.call(document.querySelectorAll(".pcart-row-check"), function (cb) { cb.checked = true; });
+      renderCartAll();
+    });
+    byId("cart-cache-toggle").addEventListener("change", function (e) {
+      PCARD_CART_STATE.cacheOn = e.target.checked;
+      renderCartAll();
+    });
+    byId("cart-batch-toggle").addEventListener("change", function (e) {
+      PCARD_CART_STATE.batchOn = e.target.checked;
+      renderCartAll();
+    });
+  }
+
   function renderPriceCost() {
     renderTiers();
     renderDistribution();
@@ -3192,6 +3492,7 @@
     renderBillAdds();
     pcardInitHeroAnimation();
     pcardInitTierStickyObserver();
+    renderCartCard();
   }
 
   function renderSection1() {
