@@ -655,6 +655,19 @@
 
   /* --- (3) Flow --- */
   .pcard-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+
+  #pcard-tier-sentinel { height: 0; }
+  #pcard-tier-switch {
+    position: sticky; top: 63px; z-index: 50;
+    flex-wrap: nowrap; overflow-x: auto;
+    padding: 8px 4px; margin: 0 0 14px -4px; border-radius: var(--radius);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  #pcard-tier-switch.pcard-tier-stuck {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  }
   .pcard-chip-btn {
     border: 1px solid var(--border); background: var(--bg); color: var(--text-primary);
     border-radius: 999px; padding: 6px 14px; font-size: 0.76rem; font-weight: 600;
@@ -734,7 +747,10 @@
     background: var(--accent-soft); border-radius: 5px; padding: 4px 9px; margin: 0 0 7px; display: inline-block;
   }
   .pcard-bill-track { background: var(--border); border-radius: 7px; height: 14px; overflow: hidden; margin-bottom: 6px; }
-  .pcard-bill-fill { height: 100%; border-radius: 7px; display: block; }
+  .pcard-bill-fill { height: 100%; border-radius: 7px; display: block; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+  @media (prefers-reduced-motion: reduce) {
+    .pcard-bill-fill { transition: none; }
+  }
   .pcard-bill-fill-1, .pcard-bill-fill-2 { background: var(--text-muted); opacity: 0.5; }
   .pcard-bill-fill-3 { background: var(--accent); opacity: 1; }
   .pcard-bill-label { font-size: 0.84rem; color: var(--text-secondary); margin: 0; }
@@ -1288,6 +1304,7 @@
             </div>
             <p class="pcard-insight-dist" id="pcard-insight-dist"></p>
 
+            <div id="pcard-tier-sentinel"></div>
             <div class="pcard-chips" id="pcard-tier-switch"></div>
 
             <h3 class="section-title" style="font-size:1.05rem; margin:0 0 8px;">&#129518; How the Bill Adds Up</h3>
@@ -2160,12 +2177,18 @@
       var expanded = toggle.getAttribute("aria-expanded") === "true";
       toggle.setAttribute("aria-expanded", String(!expanded));
       if (expanded) {
+        // re-clip before collapsing so the shrink animation doesn't show
+        // overflow (sticky descendants need overflow:visible while open).
+        body.style.overflow = "hidden";
         body.style.maxHeight = body.scrollHeight + "px";
         requestAnimationFrame(function () { body.style.maxHeight = "0px"; });
       } else {
         body.style.maxHeight = body.scrollHeight + "px";
         body.addEventListener("transitionend", function handler() {
-          if (toggle.getAttribute("aria-expanded") === "true") body.style.maxHeight = "none";
+          if (toggle.getAttribute("aria-expanded") === "true") {
+            body.style.maxHeight = "none";
+            body.style.overflow = "visible";
+          }
           body.removeEventListener("transitionend", handler);
         });
       }
@@ -3019,6 +3042,29 @@
   // Word formulas: describe the operation in words, dollar result only at
   // the end. Token counts never appear here -- the scenario line above the
   // flow is the only place 8M/2M/10M/1M shows up.
+  // Rolls the displayed dollar figure from its current value to the new one
+  // (reads the number already on screen, so it works regardless of render
+  // order). Instant under reduced motion.
+  function pcardAnimateBillAmount(el, to) {
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var fromText = el.textContent.replace(/[^0-9.]/g, "");
+    var from = fromText ? parseFloat(fromText) : to;
+    if (reduced || !isFinite(from) || from === to) {
+      el.textContent = pcardMoney2(to);
+      return;
+    }
+    var duration = 450;
+    var start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var progress = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = pcardMoney2(from + (to - from) * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function renderPriceFlow() {
     var stats = pcardTierStats()[PCARD_SELECTED_TIER];
     var calc = pcardCalc(stats);
@@ -3032,9 +3078,9 @@
 
     byId("pflow-output-multiple").textContent = "Output = " + pcardMultLabel(calc.pIn, calc.pOut) + "x input price";
 
-    byId("pflow-bill-none").textContent = pcardMoney2(calc.noLevers);
-    byId("pflow-bill-cache").textContent = pcardMoney2(calc.withCache);
-    byId("pflow-bill-both").textContent = pcardMoney2(calc.cacheBatch);
+    pcardAnimateBillAmount(byId("pflow-bill-none"), calc.noLevers);
+    pcardAnimateBillAmount(byId("pflow-bill-cache"), calc.withCache);
+    pcardAnimateBillAmount(byId("pflow-bill-both"), calc.cacheBatch);
 
     byId("pflow-formula-none").textContent = "Input tokens \u00d7 Input price + Output tokens \u00d7 Output price = " + pcardMoney2(calc.noLevers);
     byId("pflow-formula-cache").textContent = "Cached input + Fresh input + Answer = " + pcardMoney2(calc.withCache);
@@ -3125,6 +3171,18 @@
     });
   }
 
+  function pcardInitTierStickyObserver() {
+    var sentinel = byId("pcard-tier-sentinel");
+    var sticky = byId("pcard-tier-switch");
+    if (!sentinel || !sticky || typeof IntersectionObserver === "undefined") return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        sticky.classList.toggle("pcard-tier-stuck", !entry.isIntersecting);
+      });
+    }, { rootMargin: "-64px 0px 0px 0px", threshold: 0 });
+    observer.observe(sentinel);
+  }
+
   function renderPriceCost() {
     renderTiers();
     renderDistribution();
@@ -3133,6 +3191,7 @@
     pcardInitTierAnimation();
     renderBillAdds();
     pcardInitHeroAnimation();
+    pcardInitTierStickyObserver();
   }
 
   function renderSection1() {
