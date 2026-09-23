@@ -835,10 +835,10 @@
 
   /* tier-mix bar segments, shared by sticky bar + collapsed department cards */
   .pcart-tiermix-seg { position: relative; min-width: 0; }
-  .pcart-tiermix-seg[data-tier="1"] { background: rgba(79, 91, 213, 0.92); }
-  .pcart-tiermix-seg[data-tier="2"] { background: rgba(79, 91, 213, 0.66); }
-  .pcart-tiermix-seg[data-tier="3"] { background: rgba(79, 91, 213, 0.4); }
-  .pcart-tiermix-seg[data-tier="4"] { background: rgba(79, 91, 213, 0.2); }
+  .pcart-tiermix-seg[data-tier="1"] { background: rgba(79, 91, 213, 0.2); }
+  .pcart-tiermix-seg[data-tier="2"] { background: rgba(79, 91, 213, 0.4); }
+  .pcart-tiermix-seg[data-tier="3"] { background: rgba(79, 91, 213, 0.66); }
+  .pcart-tiermix-seg[data-tier="4"] { background: rgba(79, 91, 213, 0.92); }
   .pcart-tiermix-seg[data-tip]:hover::after {
     content: attr(data-tip); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
     background: var(--text-primary); color: #fff; font-size: 0.64rem; font-weight: 600; white-space: nowrap;
@@ -926,10 +926,10 @@
   .pcart-tier-tag {
     font-size: 0.6rem; font-weight: 700; color: #fff; border-radius: 4px; padding: 2px 6px; white-space: nowrap;
   }
-  .pcart-tier-tag[data-tier="1"] { background: rgba(79, 91, 213, 0.92); }
-  .pcart-tier-tag[data-tier="2"] { background: rgba(79, 91, 213, 0.66); }
-  .pcart-tier-tag[data-tier="3"] { background: rgba(79, 91, 213, 0.42); }
-  .pcart-tier-tag[data-tier="4"] { background: rgba(79, 91, 213, 0.24); color: var(--text-primary); }
+  .pcart-tier-tag[data-tier="1"] { background: rgba(79, 91, 213, 0.24); color: var(--text-primary); }
+  .pcart-tier-tag[data-tier="2"] { background: rgba(79, 91, 213, 0.42); }
+  .pcart-tier-tag[data-tier="3"] { background: rgba(79, 91, 213, 0.66); }
+  .pcart-tier-tag[data-tier="4"] { background: rgba(79, 91, 213, 0.92); }
 
   .pcart-task-subtotal { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 
@@ -3620,18 +3620,15 @@
     customer: { "Q&A": 80, "Document Analysis": 20 }
   };
 
-  // Cart's own tier numbering is the reverse of PCARD_TIER_MAP: Tier 1 is the
-  // priciest shelf (Ultra), Tier 4 the leanest (Budget) -- "Tier 1" reads as
-  // "top shelf" the way a shopper expects, even though Card 1 numbers its own
-  // tiers cheap-to-expensive. Both sides still read the same pricing_tier
-  // column off AA_TRACKER, just labelled in opposite directions.
-  var CART_TIER_PRICING = { 1: "Ultra", 2: "Premium", 3: "Mid", 4: "Budget" };
+  // Same direction as PCARD_TIER_MAP / Card 1: Tier 1 is the cheapest shelf
+  // (Budget), Tier 4 the priciest (Ultra).
+  var CART_TIER_PRICING = { 1: "Budget", 2: "Mid", 3: "Premium", 4: "Ultra" };
 
   // Centralized so the pack -> tier rules are easy to retune later.
   var CART_PACK_DEFS = {
-    Performance: { "Hybrid": 1, "Coding": 1, "Modeling / Analytics": 1, "Document Analysis": 2, "Q&A": 3 },
-    Balanced: { "Hybrid": 1, "Coding": 2, "Modeling / Analytics": 2, "Document Analysis": 3, "Q&A": 4 },
-    Lean: { "Hybrid": 2, "Coding": 3, "Modeling / Analytics": 3, "Document Analysis": 4, "Q&A": 4 }
+    Performance: { "Hybrid": 4, "Coding": 4, "Modeling / Analytics": 4, "Document Analysis": 3, "Q&A": 2 },
+    Balanced: { "Hybrid": 4, "Coding": 3, "Modeling / Analytics": 3, "Document Analysis": 2, "Q&A": 1 },
+    Lean: { "Hybrid": 3, "Coding": 2, "Modeling / Analytics": 2, "Document Analysis": 1, "Q&A": 1 }
   };
   var CART_PACK_CAPTIONS = {
     Performance: "Top-shelf models everywhere. Cost is not the constraint.",
@@ -3641,8 +3638,8 @@
 
   // Curated pool: mainstream, in-production model families, newest generation
   // only (no Llama 2 / GPT-3.5 Turbo / GPT-4 Turbo -era models). Exception:
-  // Claude 4 Opus, not Claude Opus 4.6, represents Anthropic at Tier 1 --
-  // Opus 4.6 repriced down into Tier 2 this generation, so the older Opus is
+  // Claude 4 Opus, not Claude Opus 4.6, represents Anthropic at Tier 4 --
+  // Opus 4.6 repriced down into Tier 3 this generation, so the older Opus is
   // kept as the one model actually still selling at the Ultra shelf.
   // Centralized here so the shortlist is easy to review and retune.
   var CART_CURATED_POOL = [
@@ -4039,13 +4036,13 @@
       var taskLinesHtml = tasks.map(function (task) {
         var tm = PCART_TASK_MODEL[dept][task];
         var base = pbenchBaseName(tm.model);
-        var canUp = tm.tier > 1, canDown = tm.tier < 4;
+        var canUp = tm.tier < 4, canDown = tm.tier > 1;
         return '<div class="pcart-task-line" data-dept="' + dept + '" data-task="' + pcardEscapeXml(task) + '">' +
           '<span class="pcart-task-name">' + pcardEscapeXml(task) + '</span>' +
           '<div class="pcart-task-mid">' +
           '<div class="pcart-tier-arrows">' +
-          '<button type="button" class="pcart-tier-arrow" data-dir="-1"' + (canUp ? "" : " disabled") + ' title="Move up a tier">&#9650;</button>' +
-          '<button type="button" class="pcart-tier-arrow" data-dir="1"' + (canDown ? "" : " disabled") + ' title="Move down a tier">&#9660;</button>' +
+          '<button type="button" class="pcart-tier-arrow" data-dir="1"' + (canUp ? "" : " disabled") + ' title="Move up a tier (pricier)">&#9650;</button>' +
+          '<button type="button" class="pcart-tier-arrow" data-dir="-1"' + (canDown ? "" : " disabled") + ' title="Move down a tier (leaner)">&#9660;</button>' +
           '</div>' +
           '<button type="button" class="pcart-chip" title="' + pcardEscapeXml(tm.model) + '">' + pcardEscapeXml(base) + '</button>' +
           '<span class="pcart-tier-tag" data-tier="' + tm.tier + '">Tier ' + tm.tier + (tm.custom ? " ✓" : "") + '</span>' +
