@@ -640,6 +640,8 @@
   .pcard-dist-tick-label { font-size: 9px; fill: var(--text-muted); font-family: var(--font); }
   .pcard-dist-pt { fill: var(--text-muted); opacity: 0.45; }
   .pcard-dist-pt-hl { fill: var(--accent); opacity: 0.95; }
+  .pcard-dist-leader { stroke: var(--text-muted); stroke-width: 0.6; opacity: 0.55; }
+  .pcard-dist-anchor-label { font-size: 8.5px; font-weight: 600; fill: var(--text-secondary); font-family: var(--font); }
   .pcard-insight-dist { font-size: 0.84rem; color: var(--text-secondary); margin: 10px 0 26px; line-height: 1.5; }
 
   /* --- (3) Flow --- */
@@ -1241,7 +1243,7 @@
             <div class="pcard-dist-scroll">
               <div id="pcard-dist-chart"></div>
             </div>
-            <p class="pcard-insight-dist">&#128161; Most models live in Tier 1 and 2. Many benchmark leaders sit in Tier 2 and 3, so top quality does not require the top tier.</p>
+            <p class="pcard-insight-dist" id="pcard-insight-dist"></p>
 
             <div class="pcard-chips" id="pcard-tier-switch"></div>
 
@@ -2646,6 +2648,8 @@
       .map(function (r) {
         return {
           base: pbenchBaseName(r.model_name),
+          modelName: r.model_name,
+          intelligence: r.aa_intelligence_index,
           tier: PCARD_TIER_MAP[r.pricing_tier],
           blended: r.blended_cost_usd_per_1m,
           input: r.input_cost_usd_per_1m,
@@ -2720,12 +2724,41 @@
     return x0 + (Math.log10(v) - lo) / (hi - lo) * w;
   }
 
+  // 10 named anchor points: labeled with a short name + CSV-read price and
+  // a thin leader line to the actual point, staggered across two label
+  // lanes (alternating near/far) so adjacent-by-price labels don't collide.
+  var PCARD_ANCHORS = [
+    { name: "GPT-5 nano (high)", short: "GPT-5 nano" },
+    { name: "DeepSeek V3.2 (Reasoning)", short: "DeepSeek V3.2" },
+    { name: "Llama 4 Maverick", short: "Llama 4 Maverick" },
+    { name: "Qwen3.5 397B A17B (Reasoning)", short: "Qwen3.5 397B" },
+    { name: "Grok 4.20 Beta 0309 (Reasoning)", short: "Grok 4.20" },
+    { name: "Gemini 3.1 Pro Preview", short: "Gemini 3.1 Pro" },
+    { name: "Claude Sonnet 4.6 (Adaptive Reasoning, Max Effort)", short: "Claude Sonnet 4.6" },
+    { name: "Claude Opus 4.6 (Adaptive Reasoning, Max Effort)", short: "Claude Opus 4.6" },
+    { name: "o3-pro", short: "o3-pro" },
+    { name: "o1-pro", short: "o1-pro" }
+  ];
+
   function renderDistribution() {
-    var rows = pcardTierRows().filter(function (r) { return r.blended != null && r.blended > 0; });
-    var W = 960, H = 210;
+    var baseRows = pcardTierRows().filter(function (r) { return r.blended != null && r.blended > 0; });
+
+    // highlight dedup: top model set (PBENCH_SHARED_BASES) draws exactly
+    // one point per base -- the variant with the highest intelligence score.
+    // Non-highlighted bases keep every priced variant, same as before.
+    var bestByBase = {};
+    baseRows.forEach(function (r) {
+      if (PBENCH_SHARED_BASES.indexOf(r.base) === -1) return;
+      if (!bestByBase[r.base] || r.intelligence > bestByBase[r.base].intelligence) bestByBase[r.base] = r;
+    });
+    var rows = baseRows.filter(function (r) {
+      return PBENCH_SHARED_BASES.indexOf(r.base) === -1 || bestByBase[r.base] === r;
+    });
+
+    var W = 960, H = 200;
     var x0 = 14, plotW = W - 28;
-    var plotTop = 30, plotBottom = 150;
-    var jitterTop = 44, jitterBottom = 140;
+    var plotTop = 44, plotBottom = 160;
+    var jitterTop = 58, jitterBottom = 154;
     var bandColors = ["rgba(79,91,213,0.035)", "rgba(79,91,213,0.06)", "rgba(79,91,213,0.09)", "rgba(79,91,213,0.13)"];
 
     var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="pcard-dist-svg" role="img">';
@@ -2749,18 +2782,57 @@
       svg += '<text x="' + x + '" y="' + (plotBottom + 18) + '" text-anchor="middle" class="pcard-dist-tick-label">' + PCARD_TICK_LABELS[t] + '</text>';
     });
 
+    var pointPos = {};
     rows.forEach(function (r, i) {
       var x = pcardLogX(r.blended, x0, plotW);
       var jitter = ((i * 53 + 17) % 97) / 97;
       var y = jitterTop + jitter * (jitterBottom - jitterTop);
+      pointPos[r.modelName] = { x: x, y: y };
       var highlighted = PBENCH_SHARED_BASES.indexOf(r.base) !== -1;
       var cls = highlighted ? "pcard-dist-pt pcard-dist-pt-hl" : "pcard-dist-pt";
       var radius = highlighted ? 3.6 : 2.6;
       svg += '<circle cx="' + x + '" cy="' + y + '" r="' + radius + '" class="' + cls + '"><title>' + pcardEscapeXml(r.base) + ' &#183; ' + pcardMoneyTrim(r.blended) + '</title></circle>';
     });
 
+    // greedy lane assignment: walk anchors left-to-right, each one goes in
+    // whichever lane has been unused longest (largest x-gap since that
+    // lane's last label), so nearby-priced anchors land in different lanes
+    // and their labels stagger without overlapping.
+    var anchorPts = PCARD_ANCHORS.map(function (a) {
+      var pos = pointPos[a.name];
+      var srcRow = baseRows.filter(function (r) { return r.modelName === a.name; })[0];
+      return pos ? { a: a, x: pos.x, y: pos.y, price: srcRow ? pcardMoneyTrim(srcRow.blended) : "" } : null;
+    }).filter(function (p) { return p != null; }).sort(function (p1, p2) { return p1.x - p2.x; });
+
+    var LANE_YS = [8, 17, 26, 35];
+    var laneLastX = LANE_YS.map(function () { return -Infinity; });
+
+    anchorPts.forEach(function (p) {
+      var bestLane = 0, bestGap = -Infinity;
+      for (var L = 0; L < LANE_YS.length; L++) {
+        var gap = p.x - laneLastX[L];
+        if (gap > bestGap) { bestGap = gap; bestLane = L; }
+      }
+      laneLastX[bestLane] = p.x;
+      var laneY = LANE_YS[bestLane];
+      var anchorMode = "middle", textX = p.x;
+      if (p.x > W - 70) { anchorMode = "end"; textX = p.x + 4; }
+      else if (p.x < 70) { anchorMode = "start"; textX = p.x - 4; }
+      svg += '<line x1="' + p.x + '" y1="' + (laneY + 3) + '" x2="' + p.x + '" y2="' + p.y + '" class="pcard-dist-leader"></line>';
+      svg += '<text x="' + textX + '" y="' + laneY + '" text-anchor="' + anchorMode + '" class="pcard-dist-anchor-label">' + pcardEscapeXml(p.a.short) + ' &#183; ' + p.price + '</text>';
+    });
+
     svg += "</svg>";
     byId("pcard-dist-chart").innerHTML = svg;
+
+    var gpt5nano = baseRows.filter(function (r) { return r.modelName === "GPT-5 nano (high)"; })[0];
+    var o1pro = baseRows.filter(function (r) { return r.modelName === "o1-pro"; })[0];
+    if (gpt5nano && o1pro) {
+      var ratio = o1pro.blended / gpt5nano.blended;
+      var roundedMult = Math.round(ratio / 1000) * 1000;
+      byId("pcard-insight-dist").innerHTML = "&#128161; From " + pcardMoneyTrim(gpt5nano.blended) + " to " + pcardMoneyTrim(o1pro.blended) +
+        " per 1M tokens: the same request can cost nearly " + roundedMult.toLocaleString() + "x more depending on the model.";
+    }
   }
 
   // scenario: 8K repeated (cached) + 2K new (fresh) input, 1K output tokens
