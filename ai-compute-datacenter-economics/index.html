@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Compute &amp; Data Center Intelligence</title>
+<title>AI Model Shopping Cart &middot; fin-telligent</title>
 <meta name="description" content="Enterprise buyer's guide to the LLM pricing market: frontier price deflation over time, a live cost/latency simulator, and a model-selection router across 520 tracked models.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1229,7 +1229,7 @@
 </style>
 </head>
 <body>
-  <div id="page">
+  <div id="page" style="display:none;">
 
     <header class="site-header">
       <p class="site-eyebrow">fin-telligent series</p>
@@ -1432,8 +1432,8 @@
   <header class="hero">
     <div class="hero-inner">
       <p class="hero-eyebrow">fin-telligent series</p>
-      <h1>AI Budget Sandbox</h1>
-      <p>A company wants to adopt AI. Finance needs to approve the budget. This sandbox walks the decision chain end to end: engineer the data, model the cost, find breakeven, and stress-test the plan &mdash; across 520 tracked LLMs.</p>
+      <h1>AI Model Shopping Cart</h1>
+      <p>A company wants to adopt AI. How much should it spend? Walk the aisles end to end: check the benchmarks, read the price tags, fill the cart, get the receipt. Across 450+ tracked LLMs.</p>
     </div>
   </header>
 
@@ -1692,7 +1692,7 @@
 
             </div>
 
-            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">&#128722; Cart</h3>
+            <h3 class="section-title" id="cart-anchor" style="font-size:1.05rem; margin:30px 0 6px;">&#128722; Cart</h3>
             <p class="pcard-cart-copy">Pick a department, pick a pack, watch the register run.</p>
 
             <div class="pcard-cart-controls">
@@ -4874,18 +4874,24 @@
 
   // ============ progress nav ============
 
+  // Data Engineering keeps its own collapsible up top but isn't one of the
+  // four steps -- it's watched below only so the stepper can clear back to
+  // its unactivated state while the user is still up there, before Benchmark.
   var STEPS = [
-    { id: "sec-data-eng", label: "Data Engineering" },
-    { id: "sec-cost-model", label: "Cost Model" },
-    { id: "sec-breakeven", label: "Breakeven" },
-    { id: "sec-stress", label: "Stress Test" }
+    { id: "sec-perf-benchmark", label: "Benchmark", toggleId: "toggle-perf-benchmark" },
+    { id: "sec-price-cost", label: "Price & Cost", toggleId: "toggle-price-cost" },
+    // scrolls to the Cart heading itself, but highlights off #pcart-scope
+    // (the whole Cart module) -- the heading alone is too short to ever win
+    // the intersection-ratio race against its parent Price & Cost section.
+    { id: "cart-anchor", observeId: "pcart-scope", label: "Cart", toggleId: "toggle-price-cost" },
+    { id: "sec-receipt", label: "Receipt", toggleId: "toggle-receipt" }
   ];
 
   function initProgressNav() {
     var inner = byId("progress-inner");
     var html = "";
     STEPS.forEach(function (s, i) {
-      html += '<button type="button" class="progress-step" data-target="' + s.id + '" data-idx="' + i + '">' +
+      html += '<button type="button" class="progress-step" data-idx="' + i + '">' +
         '<span class="step-circle">' + (i + 1) + '</span><span class="step-label">' + s.label + "</span></button>";
       if (i < STEPS.length - 1) html += '<span class="progress-line" data-idx="' + i + '"></span>';
     });
@@ -4893,10 +4899,22 @@
 
     inner.querySelectorAll(".progress-step").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var target = byId(btn.getAttribute("data-target"));
-        var navHeight = byId("progress-nav").offsetHeight;
-        var y = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 16;
-        window.scrollTo({ top: y, behavior: "smooth" });
+        var s = STEPS[+btn.getAttribute("data-idx")];
+        var toggle = s.toggleId ? byId(s.toggleId) : null;
+
+        function doScroll() {
+          var target = byId(s.id);
+          var navHeight = byId("progress-nav").offsetHeight;
+          var y = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 16;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+
+        if (toggle && toggle.getAttribute("aria-expanded") !== "true") {
+          toggle.click();
+          setTimeout(doScroll, 380);
+        } else {
+          doScroll();
+        }
       });
     });
 
@@ -4912,17 +4930,35 @@
       });
     }
 
-    var sections = STEPS.map(function (s) { return byId(s.id); });
-    var observer = new IntersectionObserver(function (entries) {
-      var visible = entries.filter(function (e) { return e.isIntersecting; });
-      if (!visible.length) return;
-      visible.sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; });
-      var idx = sections.indexOf(visible[0].target);
+    var preSentinel = byId("sec-data-eng");
+    var sections = STEPS.map(function (s) { return byId(s.observeId || s.id); });
+    // IntersectionObserver only reports targets whose ratio crossed a
+    // threshold since the last check, not the full state of every observed
+    // target -- so state has to accumulate across calls; recomputing off
+    // only the latest entries batch would drop targets that didn't move.
+    var pnavState = {};
+    function pnavRecompute() {
+      var bestEl = null, bestRatio = -1;
+      [preSentinel].concat(sections).forEach(function (el) {
+        if (!el) return;
+        var s = pnavState[el.id];
+        if (s && s.isIntersecting && s.ratio > bestRatio) { bestRatio = s.ratio; bestEl = el; }
+      });
+      if (!bestEl) return;
+      if (bestEl === preSentinel) { setActive(null); return; }
+      var idx = sections.indexOf(bestEl);
       if (idx !== -1) setActive(idx);
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        pnavState[e.target.id] = { isIntersecting: e.isIntersecting, ratio: e.intersectionRatio };
+      });
+      pnavRecompute();
     }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] });
+    if (preSentinel) observer.observe(preSentinel);
     sections.forEach(function (s) { observer.observe(s); });
 
-    setActive(0);
+    setActive(null);
   }
 
   // ============ Source table snapshots (static, inline-embedded sample) ============
