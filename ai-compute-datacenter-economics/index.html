@@ -611,6 +611,38 @@
 
   /* ============ Price & Cost ============ */
 
+  .pcard-subtitle { font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 6px; line-height: 1.5; font-weight: 600; }
+  .pcard-source { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 22px; }
+  .pcard-source a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .pcard-source a:hover { text-decoration: underline; }
+
+  /* --- (1) Tiers --- */
+  .pcard-tier-intro { font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.5; }
+  .pcard-tiers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 6px; }
+  @media (max-width: 640px) { .pcard-tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .pcard-tier-tile {
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 12px; text-align: center;
+  }
+  .pcard-tier-tile.active { border-color: var(--accent); background: var(--accent-soft); }
+  .pcard-tier-name { font-size: 0.84rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
+  .pcard-tier-range { font-size: 0.78rem; color: var(--text-secondary); margin: 0 0 4px; }
+  .pcard-tier-count { font-size: 0.72rem; color: var(--text-muted); margin: 0 0 4px; }
+  .pcard-tier-mult { font-size: 0.72rem; color: var(--accent); font-weight: 600; margin: 0; }
+  .pcard-tier-caption { font-size: 0.72rem; color: var(--text-muted); margin: 6px 0 26px; }
+
+  /* --- (2) Distribution --- */
+  .pcard-dist-scroll { overflow-x: auto; margin: 0 0 8px; }
+  .pcard-dist-svg { width: 100%; min-width: 700px; height: auto; display: block; }
+  .pcard-dist-band-label { font-size: 9px; fill: var(--text-muted); font-family: var(--font); }
+  .pcard-dist-sep { stroke: var(--border); stroke-width: 1; }
+  .pcard-dist-tick { stroke: var(--text-muted); stroke-width: 1; }
+  .pcard-dist-tick-label { font-size: 9px; fill: var(--text-muted); font-family: var(--font); }
+  .pcard-dist-pt { fill: var(--text-muted); opacity: 0.45; }
+  .pcard-dist-pt-hl { fill: var(--accent); opacity: 0.95; }
+  .pcard-insight-dist { font-size: 0.84rem; color: var(--text-secondary); margin: 10px 0 26px; line-height: 1.5; }
+
+  /* --- (3) Flow --- */
   .pcard-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
   .pcard-chip-btn {
     border: 1px solid var(--border); background: var(--bg); color: var(--text-primary);
@@ -623,35 +655,59 @@
   .pcard-scenario { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 20px; line-height: 1.5; }
 
   .pflow-scroll { overflow-x: auto; margin: 0 0 20px; padding-bottom: 4px; }
-  .pflow { display: flex; align-items: center; gap: 10px; min-width: max-content; padding: 4px 2px; }
-  .pflow-arrow { font-size: 1.1rem; color: var(--text-muted); flex: 0 0 auto; }
+  .pflow-grid {
+    display: grid;
+    grid-template-columns: 150px 28px 150px 28px 150px 28px 150px 28px 190px;
+    grid-template-rows: 130px 130px auto;
+    gap: 8px 4px;
+    min-width: max-content;
+    padding: 4px 2px;
+  }
+  .pflow-arrow { display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--text-muted); }
   .pflow-node {
     background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 12px 14px; width: 150px; flex: 0 0 auto; text-align: center;
+    padding: 10px 12px; text-align: center; height: 100%; box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
   }
-  .pflow-fork { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
-  .pflow-emoji { font-size: 1.2rem; margin: 0 0 4px; }
-  .pflow-term { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .pflow-emoji { font-size: 1.15rem; margin: 0 0 3px; line-height: 1; }
+  .pflow-term { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); margin: 0; }
   .pflow-sub {
-    font-size: 0.66rem; font-weight: 700; color: var(--accent); margin: 2px 0;
+    font-size: 0.64rem; font-weight: 700; color: var(--accent); margin: 2px 0;
     text-transform: uppercase; letter-spacing: 0.4px;
   }
-  .pflow-plain { font-size: 0.7rem; color: var(--text-secondary); line-height: 1.35; margin: 2px 0 0; }
-  .pflow-amount { font-size: 0.76rem; font-weight: 700; color: var(--accent); margin: 6px 0 0; }
+  .pflow-plain { font-size: 0.66rem; color: var(--text-secondary); line-height: 1.3; margin: 2px 0 0; }
+  .pflow-amount { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); margin: 4px 0 0; }
+  .pflow-callout { font-size: 0.68rem; font-weight: 800; color: var(--accent); margin: 4px 0 0; line-height: 1.3; }
 
-  .pflow-bill { width: 190px; background: var(--card-bg); box-shadow: var(--shadow); }
-  .pflow-bill-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; align-items: center; }
-  .pflow-bill-step { display: block; font-weight: 700; color: var(--text-primary); }
-  .pflow-bill-step em { font-style: normal; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
-  .pflow-bill-1 { font-size: 1rem; }
-  .pflow-bill-2 { font-size: 0.88rem; color: var(--text-secondary); }
-  .pflow-bill-3 { font-size: 0.76rem; color: var(--text-secondary); }
+  .pflow-cell-ask { grid-column: 1; grid-row: 1 / 3; }
+  .pflow-cell-arrow1 { grid-column: 2; grid-row: 1 / 3; }
+  .pflow-cell-cached { grid-column: 3; grid-row: 1; }
+  .pflow-cell-fresh { grid-column: 3; grid-row: 2; }
+  .pflow-cell-arrow2 { grid-column: 4; grid-row: 1 / 3; }
+  .pflow-cell-answer { grid-column: 5; grid-row: 1 / 3; }
+  .pflow-cell-arrow3 { grid-column: 6; grid-row: 1 / 3; }
+  .pflow-cell-realtime { grid-column: 7; grid-row: 1; }
+  .pflow-cell-batch { grid-column: 7; grid-row: 2; }
+  .pflow-cell-arrow4 { grid-column: 8; grid-row: 1 / 3; }
+  .pflow-cell-bill { grid-column: 9; grid-row: 1 / 3; }
+  .pflow-cell-note-cache { grid-column: 3; grid-row: 3; }
+  .pflow-cell-note-batch { grid-column: 7; grid-row: 3; }
 
-  .pflow-notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 0 20px; }
-  @media (max-width: 640px) { .pflow-notes { grid-template-columns: minmax(0, 1fr); } }
-  .pflow-note { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
-  .pflow-note-title { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
-  .pflow-note-line { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; margin: 0 0 4px; }
+  .pflow-bill { background: var(--card-bg); box-shadow: var(--shadow); padding: 12px 14px; }
+  .pflow-bill-bars { width: 100%; display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+  .pflow-bill-row { width: 100%; }
+  .pflow-bill-track { background: var(--border); border-radius: 4px; height: 7px; overflow: hidden; margin-bottom: 3px; }
+  .pflow-bill-fill { height: 100%; border-radius: 4px; display: block; }
+  .pflow-bill-fill-1, .pflow-bill-fill-2 { background: var(--text-muted); opacity: 0.5; }
+  .pflow-bill-fill-3 { background: var(--accent); opacity: 1; }
+  .pflow-bill-label { font-size: 0.62rem; color: var(--text-secondary); margin: 0; text-align: left; }
+  .pflow-bill-label b { color: var(--text-primary); font-weight: 700; }
+  .pflow-bill-label-final { font-size: 0.7rem; color: var(--text-primary); margin: 0; text-align: left; }
+  .pflow-bill-label-final b { color: var(--accent); font-weight: 800; font-size: 0.92rem; }
+
+  .pflow-note { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; height: 100%; box-sizing: border-box; }
+  .pflow-note-title { font-size: 0.74rem; font-weight: 700; color: var(--text-primary); margin: 0 0 5px; }
+  .pflow-note-line { font-size: 0.64rem; color: var(--text-secondary); line-height: 1.4; margin: 0 0 3px; }
   .pflow-note-line:last-child { margin-bottom: 0; }
 
   .pcard-insight { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 8px; line-height: 1.5; }
@@ -1174,94 +1230,104 @@
         <div class="collapsible-body-inner">
           <div class="section-card">
 
-            <h3 class="section-title" style="font-size:1.05rem; margin:0 0 14px;">&#128178; Price Tag: how one request gets billed</h3>
+            <h3 class="section-title" style="font-size:1.05rem; margin:0 0 6px;">&#128178; Price Tag: what models cost and how 1,000 requests get billed</h3>
+            <p class="pcard-subtitle">Three levers set the bill: which tier you pick, whether you cache, whether you batch.</p>
+            <p class="pcard-source">Prices: <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker: (March 2026)</a> &middot; live API rates collected March 31, 2026</p>
 
-            <div class="pcard-chips" id="pcard-chips"></div>
+            <p class="pcard-tier-intro">Tiers are cut on blended price (3 input : 1 output). Each tier starts roughly 6 to 10x above the last.</p>
+            <div class="pcard-tiers" id="pcard-tiers"></div>
+            <p class="pcard-tier-caption">Tier cutoffs observed from the data.</p>
+
+            <div class="pcard-dist-scroll">
+              <div id="pcard-dist-chart"></div>
+            </div>
+            <p class="pcard-insight-dist">&#128161; Most models live in Tier 1 and 2. Many benchmark leaders sit in Tier 2 and 3, so top quality does not require the top tier.</p>
+
+            <div class="pcard-chips" id="pcard-tier-switch"></div>
 
             <p class="pcard-scenario">Example: Finance asks to summarize a policy doc &middot; 10K tokens in (8K repeated doc + 2K new question) &middot; 1K tokens out &middot; &times; 1,000 requests</p>
 
             <div class="pflow-scroll">
-              <div class="pflow">
-                <div class="pflow-node">
+              <div class="pflow-grid">
+                <div class="pflow-node pflow-cell-ask">
                   <p class="pflow-emoji">&#128483;&#65039;</p>
                   <p class="pflow-term">Ask</p>
                   <p class="pflow-sub">Input</p>
-                  <p class="pflow-plain">what you send in</p>
+                  <p class="pflow-plain">what you send in &middot; 10M tokens</p>
                 </div>
-                <div class="pflow-arrow">&#8594;</div>
-                <div class="pflow-fork">
-                  <div class="pflow-node">
-                    <p class="pflow-emoji">&#128257;</p>
-                    <p class="pflow-term">Cached Input</p>
-                    <p class="pflow-plain">8M tokens &middot; 50% off input</p>
-                    <p class="pflow-amount" id="pflow-amt-cached"></p>
-                  </div>
-                  <div class="pflow-node">
-                    <p class="pflow-emoji">&#127381;</p>
-                    <p class="pflow-term">Fresh Input</p>
-                    <p class="pflow-plain">2M tokens &middot; full input price</p>
-                    <p class="pflow-amount" id="pflow-amt-fresh"></p>
-                  </div>
+                <div class="pflow-arrow pflow-cell-arrow1">&#8594;</div>
+                <div class="pflow-node pflow-cell-cached">
+                  <p class="pflow-emoji">&#128257;</p>
+                  <p class="pflow-term">Cached Input</p>
+                  <p class="pflow-plain">8M tokens &middot; 50% off</p>
+                  <p class="pflow-amount" id="pflow-amt-cached"></p>
                 </div>
-                <div class="pflow-arrow">&#8594;</div>
-                <div class="pflow-node">
-                  <p class="pflow-emoji">&#129504;</p>
-                  <p class="pflow-term">Model</p>
-                  <p class="pflow-plain">the selected model processes the request</p>
+                <div class="pflow-node pflow-cell-fresh">
+                  <p class="pflow-emoji">&#127381;</p>
+                  <p class="pflow-term">Fresh Input</p>
+                  <p class="pflow-plain">2M tokens &middot; full price</p>
+                  <p class="pflow-amount" id="pflow-amt-fresh"></p>
                 </div>
-                <div class="pflow-arrow">&#8594;</div>
-                <div class="pflow-node">
+                <div class="pflow-arrow pflow-cell-arrow2">&#8594;</div>
+                <div class="pflow-node pflow-cell-answer">
                   <p class="pflow-emoji">&#128172;</p>
                   <p class="pflow-term">Answer</p>
                   <p class="pflow-sub">Output</p>
                   <p class="pflow-plain">what the model writes back &middot; 1M tokens</p>
                   <p class="pflow-amount" id="pflow-amt-output"></p>
+                  <p class="pflow-callout" id="pflow-output-multiple"></p>
                 </div>
-                <div class="pflow-arrow">&#8594;</div>
-                <div class="pflow-fork">
-                  <div class="pflow-node">
-                    <p class="pflow-emoji">&#9889;</p>
-                    <p class="pflow-term">Real-time</p>
-                    <p class="pflow-plain">answer now &middot; full price</p>
-                  </div>
-                  <div class="pflow-node">
-                    <p class="pflow-emoji">&#128230;</p>
-                    <p class="pflow-term">Batch</p>
-                    <p class="pflow-plain">wait up to 24h &middot; 50% off the whole bill</p>
-                  </div>
+                <div class="pflow-arrow pflow-cell-arrow3">&#8594;</div>
+                <div class="pflow-node pflow-cell-realtime">
+                  <p class="pflow-emoji">&#9889;</p>
+                  <p class="pflow-term">Real-time</p>
+                  <p class="pflow-plain">answer now &middot; full price</p>
+                  <p class="pflow-amount" id="pflow-amt-realtime"></p>
                 </div>
-                <div class="pflow-arrow">&#8594;</div>
-                <div class="pflow-node pflow-bill">
+                <div class="pflow-node pflow-cell-batch">
+                  <p class="pflow-emoji">&#128230;</p>
+                  <p class="pflow-term">Batch</p>
+                  <p class="pflow-plain">wait up to 24h &middot; 50% off</p>
+                  <p class="pflow-amount" id="pflow-amt-batch"></p>
+                </div>
+                <div class="pflow-arrow pflow-cell-arrow4">&#8594;</div>
+                <div class="pflow-node pflow-bill pflow-cell-bill">
                   <p class="pflow-emoji">&#129534;</p>
                   <p class="pflow-term">Bill</p>
-                  <div class="pflow-bill-steps">
-                    <span class="pflow-bill-step pflow-bill-1" id="pflow-bill-none"></span>
-                    <span class="pflow-bill-step pflow-bill-2" id="pflow-bill-cache"></span>
-                    <span class="pflow-bill-step pflow-bill-3" id="pflow-bill-both"></span>
+                  <div class="pflow-bill-bars">
+                    <div class="pflow-bill-row">
+                      <div class="pflow-bill-track"><div class="pflow-bill-fill pflow-bill-fill-1" id="pflow-bar-none"></div></div>
+                      <p class="pflow-bill-label">No levers <b id="pflow-bill-none"></b></p>
+                    </div>
+                    <div class="pflow-bill-row">
+                      <div class="pflow-bill-track"><div class="pflow-bill-fill pflow-bill-fill-2" id="pflow-bar-cache"></div></div>
+                      <p class="pflow-bill-label">With cache <b id="pflow-bill-cache"></b></p>
+                    </div>
+                    <div class="pflow-bill-row">
+                      <div class="pflow-bill-track"><div class="pflow-bill-fill pflow-bill-fill-3" id="pflow-bar-both"></div></div>
+                      <p class="pflow-bill-label-final">Cache + batch <b id="pflow-bill-both"></b></p>
+                    </div>
                   </div>
+                </div>
+                <div class="pflow-note pflow-cell-note-cache">
+                  <p class="pflow-note-title">&#128257; Cache</p>
+                  <p class="pflow-note-line">Triggers when the prompt starts with content you sent recently</p>
+                  <p class="pflow-note-line">Why cheaper: repeated content needs no recompute</p>
+                </div>
+                <div class="pflow-note pflow-cell-note-batch">
+                  <p class="pflow-note-title">&#128230; Batch</p>
+                  <p class="pflow-note-line">Triggers when you submit jobs in bulk and wait up to 24h</p>
+                  <p class="pflow-note-line">Why cheaper: waiting lets providers fill idle GPU time</p>
                 </div>
               </div>
             </div>
 
-            <div class="pflow-notes">
-              <div class="pflow-note">
-                <p class="pflow-note-title">&#128257; Cache</p>
-                <p class="pflow-note-line">Triggers when the prompt starts with content you sent recently</p>
-                <p class="pflow-note-line">Why cheaper: repeated content needs no recompute, so the saved compute is passed back to you</p>
-              </div>
-              <div class="pflow-note">
-                <p class="pflow-note-title">&#128230; Batch</p>
-                <p class="pflow-note-line">Triggers when you submit jobs in bulk and wait up to 24h</p>
-                <p class="pflow-note-line">Why cheaper: waiting lets providers fill idle GPU time, so higher utilization is passed back to you</p>
-              </div>
-            </div>
-
-            <p class="pcard-insight" id="pcard-insight-ratio"></p>
-            <p class="pcard-insight">&#128161; List price is the ceiling. Cache and batch can cut the bill in half.</p>
+            <p class="pcard-insight">&#128161; Models charge more to talk than to listen, and the premium grows with the tier.</p>
+            <p class="pcard-insight">&#128161; The posted rate is the ceiling. Cache and batch can cut the bill in half.</p>
 
             <p class="pcard-assumption">Illustrative token mix. Cache and batch discounts assumed to stack.</p>
 
-            <p class="pcard-footer">Data: pricing_history.csv &amp; llm_price_performance_tracker_2026-03-31.csv, <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">Kaggle</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">Kaggle</a></p>
+            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
 
           </div>
         </div>
@@ -1779,7 +1845,8 @@
   var GOLDEN_BY_ID = {};
   var AA_TRACKER = [];
   var PBENCH_SHARED_BASES = [];
-  var PCARD_SELECTED_MODEL = "Claude Opus 4.6";
+  var PCARD_TIER_MAP = { Budget: 1, Mid: 2, Premium: 3, Ultra: 4 };
+  var PCARD_SELECTED_TIER = 3;
   var BENCH_RANGE = {};
   var MAX_PRICING_DATE = null;
   var MAX_CONTEXT_WINDOW = 128000;
@@ -2570,77 +2637,190 @@
   // exact shared model list computed there (PBENCH_SHARED_BASES) -- no new
   // fetch(), no re-selecting a model set.
 
-  function pcardLookupPrice(base) {
-    var row = AA_TRACKER.filter(function (r) {
-      return pbenchBaseName(r.model_name) === base &&
-        r.input_cost_usd_per_1m != null && r.input_cost_usd_per_1m !== "" &&
-        r.output_cost_usd_per_1m != null && r.output_cost_usd_per_1m !== "";
-    })[0];
-    return row ? { input: row.input_cost_usd_per_1m, output: row.output_cost_usd_per_1m } : null;
+  // Tiers/Distribution/Flow all read from AA_TRACKER's own pricing_tier and
+  // blended_cost_usd_per_1m columns -- no new fetch(), no model-level join
+  // for the cache/batch 50% (those are global constants, shown as copy).
+
+  function pcardTierRows() {
+    return AA_TRACKER.filter(function (r) { return PCARD_TIER_MAP[r.pricing_tier] != null; })
+      .map(function (r) {
+        return {
+          base: pbenchBaseName(r.model_name),
+          tier: PCARD_TIER_MAP[r.pricing_tier],
+          blended: r.blended_cost_usd_per_1m,
+          input: r.input_cost_usd_per_1m,
+          output: r.output_cost_usd_per_1m
+        };
+      });
   }
 
-  function pcardMedianRatio() {
-    var ratios = AA_TRACKER.map(function (row) {
-      var input = row.input_cost_usd_per_1m;
-      var output = row.output_cost_usd_per_1m;
-      if (input == null || input === "" || input <= 0 || output == null || output === "") return null;
-      return output / input;
-    }).filter(function (v) { return v != null; }).sort(function (a, b) { return a - b; });
-    if (!ratios.length) return null;
-    var mid = Math.floor(ratios.length / 2);
-    return ratios.length % 2 === 0 ? (ratios[mid - 1] + ratios[mid]) / 2 : ratios[mid];
+  function pcardMedian(values) {
+    var sorted = values.filter(function (v) { return v != null && v !== ""; }).sort(function (a, b) { return a - b; });
+    if (!sorted.length) return null;
+    var mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
   }
 
-  function pcardMoney(v) { return "$" + v.toFixed(2); }
+  function pcardTierStats() {
+    var rows = pcardTierRows();
+    var stats = {};
+    [1, 2, 3, 4].forEach(function (t) {
+      var sub = rows.filter(function (r) { return r.tier === t; });
+      var blendeds = sub.map(function (r) { return r.blended; }).filter(function (v) { return v != null; }).sort(function (a, b) { return a - b; });
+      stats[t] = {
+        count: sub.length,
+        min: blendeds.length ? blendeds[0] : null,
+        max: blendeds.length ? blendeds[blendeds.length - 1] : null,
+        inputMedian: pcardMedian(sub.map(function (r) { return r.input; })),
+        outputMedian: pcardMedian(sub.map(function (r) { return r.output; }))
+      };
+    });
+    return stats;
+  }
+
+  function pcardMoneyTrim(v) {
+    var s = v.toFixed(2);
+    return "$" + (s.slice(-3) === ".00" ? s.slice(0, -3) : s);
+  }
+
+  function pcardMoney2(v) { return "$" + v.toFixed(2); }
+
+  function pcardMultLabel(inputMedian, outputMedian) {
+    if (!inputMedian) return "";
+    var mult = outputMedian / inputMedian;
+    var rounded = Math.round(mult * 10) / 10;
+    return rounded % 1 === 0 ? rounded.toFixed(0) : String(rounded);
+  }
+
+  function renderTiers() {
+    var stats = pcardTierStats();
+    byId("pcard-tiers").innerHTML = [1, 2, 3, 4].map(function (t) {
+      var s = stats[t];
+      var active = t === PCARD_SELECTED_TIER ? " active" : "";
+      return '<div class="pcard-tier-tile' + active + '">' +
+        '<p class="pcard-tier-name">Tier ' + t + '</p>' +
+        '<p class="pcard-tier-range">' + pcardMoneyTrim(s.min) + ' to ' + pcardMoneyTrim(s.max) + '</p>' +
+        '<p class="pcard-tier-count">' + s.count + ' models</p>' +
+        '<p class="pcard-tier-mult">Output ' + pcardMultLabel(s.inputMedian, s.outputMedian) + 'x input</p>' +
+        '</div>';
+    }).join("");
+  }
+
+  function pcardEscapeXml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  var PCARD_X_MIN = 0.02, PCARD_X_MAX = 262.5;
+  var PCARD_TICKS = [0.01, 0.1, 1, 10, 100];
+  var PCARD_TICK_LABELS = { 0.01: "$0.01", 0.1: "$0.1", 1: "$1", 10: "$10", 100: "$100" };
+  var PCARD_BOUNDARIES = [0.02, 0.5, 5, 30, 262.5];
+
+  function pcardLogX(v, x0, w) {
+    var lo = Math.log10(PCARD_X_MIN), hi = Math.log10(PCARD_X_MAX);
+    return x0 + (Math.log10(v) - lo) / (hi - lo) * w;
+  }
+
+  function renderDistribution() {
+    var rows = pcardTierRows().filter(function (r) { return r.blended != null && r.blended > 0; });
+    var W = 960, H = 210;
+    var x0 = 14, plotW = W - 28;
+    var plotTop = 30, plotBottom = 150;
+    var jitterTop = 44, jitterBottom = 140;
+    var bandColors = ["rgba(79,91,213,0.035)", "rgba(79,91,213,0.06)", "rgba(79,91,213,0.09)", "rgba(79,91,213,0.13)"];
+
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="pcard-dist-svg" role="img">';
+
+    for (var i = 0; i < 4; i++) {
+      var xa = pcardLogX(PCARD_BOUNDARIES[i], x0, plotW);
+      var xb = pcardLogX(PCARD_BOUNDARIES[i + 1], x0, plotW);
+      var count = rows.filter(function (r) { return r.tier === i + 1; }).length;
+      svg += '<rect x="' + xa + '" y="' + plotTop + '" width="' + (xb - xa) + '" height="' + (plotBottom - plotTop) + '" fill="' + bandColors[i] + '"></rect>';
+      svg += '<text x="' + ((xa + xb) / 2) + '" y="' + (plotTop + 13) + '" text-anchor="middle" class="pcard-dist-band-label">Tier ' + (i + 1) + ' &#183; ' + count + '</text>';
+    }
+
+    [0.5, 5, 30].forEach(function (b) {
+      var x = pcardLogX(b, x0, plotW);
+      svg += '<line x1="' + x + '" y1="' + plotTop + '" x2="' + x + '" y2="' + plotBottom + '" class="pcard-dist-sep"></line>';
+    });
+
+    PCARD_TICKS.forEach(function (t) {
+      var x = pcardLogX(t, x0, plotW);
+      svg += '<line x1="' + x + '" y1="' + plotBottom + '" x2="' + x + '" y2="' + (plotBottom + 5) + '" class="pcard-dist-tick"></line>';
+      svg += '<text x="' + x + '" y="' + (plotBottom + 18) + '" text-anchor="middle" class="pcard-dist-tick-label">' + PCARD_TICK_LABELS[t] + '</text>';
+    });
+
+    rows.forEach(function (r, i) {
+      var x = pcardLogX(r.blended, x0, plotW);
+      var jitter = ((i * 53 + 17) % 97) / 97;
+      var y = jitterTop + jitter * (jitterBottom - jitterTop);
+      var highlighted = PBENCH_SHARED_BASES.indexOf(r.base) !== -1;
+      var cls = highlighted ? "pcard-dist-pt pcard-dist-pt-hl" : "pcard-dist-pt";
+      var radius = highlighted ? 3.6 : 2.6;
+      svg += '<circle cx="' + x + '" cy="' + y + '" r="' + radius + '" class="' + cls + '"><title>' + pcardEscapeXml(r.base) + ' &#183; ' + pcardMoneyTrim(r.blended) + '</title></circle>';
+    });
+
+    svg += "</svg>";
+    byId("pcard-dist-chart").innerHTML = svg;
+  }
 
   // scenario: 8K repeated (cached) + 2K new (fresh) input, 1K output tokens
-  // per request, x1,000 requests -- in millions of tokens: 8 / 2 / 1
-  function pcardCalc(base) {
-    var price = pcardLookupPrice(base);
-    if (!price) return null;
-    var pIn = price.input, pOut = price.output;
+  // per request, x1,000 requests -- in millions of tokens: 8 / 2 / 1.
+  // P_in / P_out are the selected tier's median input/output price.
+  function pcardCalc(tierStats) {
+    var pIn = tierStats.inputMedian, pOut = tierStats.outputMedian;
+    if (!pIn || !pOut) return null;
     var cached = 8 * pIn * 0.5;
     var fresh = 2 * pIn;
     var output = 1 * pOut;
     var noLevers = 10 * pIn + 1 * pOut;
     var withCache = cached + fresh + output;
     var cacheBatch = withCache * 0.5;
-    return { cached: cached, fresh: fresh, output: output, noLevers: noLevers, withCache: withCache, cacheBatch: cacheBatch };
+    return { cached: cached, fresh: fresh, output: output, noLevers: noLevers, withCache: withCache, cacheBatch: cacheBatch, pIn: pIn, pOut: pOut };
   }
 
   function renderPriceFlow() {
-    var calc = pcardCalc(PCARD_SELECTED_MODEL);
+    var stats = pcardTierStats()[PCARD_SELECTED_TIER];
+    var calc = pcardCalc(stats);
     if (!calc) return;
-    byId("pflow-amt-cached").textContent = pcardMoney(calc.cached);
-    byId("pflow-amt-fresh").textContent = pcardMoney(calc.fresh);
-    byId("pflow-amt-output").textContent = pcardMoney(calc.output);
-    byId("pflow-bill-none").innerHTML = pcardMoney(calc.noLevers) + " <em>no levers</em>";
-    byId("pflow-bill-cache").innerHTML = pcardMoney(calc.withCache) + " <em>with cache</em>";
-    byId("pflow-bill-both").innerHTML = pcardMoney(calc.cacheBatch) + " <em>cache + batch</em>";
+
+    byId("pflow-amt-cached").textContent = pcardMoney2(calc.cached);
+    byId("pflow-amt-fresh").textContent = pcardMoney2(calc.fresh);
+    byId("pflow-amt-output").textContent = pcardMoney2(calc.output);
+    byId("pflow-amt-realtime").textContent = pcardMoney2(calc.withCache);
+    byId("pflow-amt-batch").textContent = pcardMoney2(calc.cacheBatch);
+
+    byId("pflow-output-multiple").textContent = "Output = " + pcardMultLabel(calc.pIn, calc.pOut) + "x input price";
+
+    byId("pflow-bill-none").textContent = pcardMoney2(calc.noLevers);
+    byId("pflow-bill-cache").textContent = pcardMoney2(calc.withCache);
+    byId("pflow-bill-both").textContent = pcardMoney2(calc.cacheBatch);
+
+    var maxVal = calc.noLevers || 1;
+    byId("pflow-bar-none").style.width = "100%";
+    byId("pflow-bar-cache").style.width = (calc.withCache / maxVal * 100) + "%";
+    byId("pflow-bar-both").style.width = (calc.cacheBatch / maxVal * 100) + "%";
   }
 
-  function renderPriceChips() {
-    byId("pcard-chips").innerHTML = PBENCH_SHARED_BASES.map(function (base) {
-      var active = base === PCARD_SELECTED_MODEL ? " active" : "";
-      return '<button type="button" class="pcard-chip-btn' + active + '" data-model="' + base + '">' + base + "</button>";
+  function renderTierSwitch() {
+    byId("pcard-tier-switch").innerHTML = [1, 2, 3, 4].map(function (t) {
+      var active = t === PCARD_SELECTED_TIER ? " active" : "";
+      return '<button type="button" class="pcard-chip-btn' + active + '" data-tier="' + t + '">Tier ' + t + "</button>";
     }).join("");
-    Array.prototype.forEach.call(byId("pcard-chips").querySelectorAll(".pcard-chip-btn"), function (btn) {
+    Array.prototype.forEach.call(byId("pcard-tier-switch").querySelectorAll(".pcard-chip-btn"), function (btn) {
       btn.addEventListener("click", function () {
-        PCARD_SELECTED_MODEL = btn.getAttribute("data-model");
-        renderPriceChips();
+        PCARD_SELECTED_TIER = +btn.getAttribute("data-tier");
+        renderTiers();
+        renderTierSwitch();
         renderPriceFlow();
       });
     });
   }
 
   function renderPriceCost() {
-    renderPriceChips();
+    renderTiers();
+    renderDistribution();
+    renderTierSwitch();
     renderPriceFlow();
-
-    var median = pcardMedianRatio();
-    var rounded = median == null ? null : Math.round(median * 10) / 10;
-    var label = rounded == null ? "" : (rounded % 1 === 0 ? rounded.toFixed(0) : String(rounded));
-    byId("pcard-insight-ratio").innerHTML = "&#128161; Models charge more to talk than to listen: output runs ~" + label + "x input at the median.";
   }
 
   function renderSection1() {
