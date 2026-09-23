@@ -665,7 +665,7 @@
   .pflow-scroll { overflow-x: auto; margin: 0 0 20px; padding-bottom: 4px; }
   .pflow-grid {
     display: grid;
-    grid-template-columns: 150px 28px 150px 28px 150px 28px 150px 28px 190px;
+    grid-template-columns: 150px 28px 150px 28px 150px 28px 150px 28px 270px;
     grid-template-rows: 130px 130px auto;
     gap: 8px 4px;
     min-width: max-content;
@@ -683,8 +683,11 @@
     font-size: 0.64rem; font-weight: 700; color: var(--accent); margin: 2px 0;
     text-transform: uppercase; letter-spacing: 0.4px;
   }
-  .pflow-plain { font-size: 0.66rem; color: var(--text-secondary); line-height: 1.3; margin: 2px 0 0; }
-  .pflow-amount { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); margin: 4px 0 0; }
+  .pflow-formula {
+    font-family: var(--mono); font-size: 0.6rem; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border-radius: 4px; padding: 3px 6px; margin: 6px 0 0;
+    line-height: 1.35; display: inline-block;
+  }
   .pflow-callout { font-size: 0.68rem; font-weight: 800; color: var(--accent); margin: 4px 0 0; line-height: 1.3; }
 
   .pflow-cell-ask { grid-column: 1; grid-row: 1 / 3; }
@@ -701,9 +704,14 @@
   .pflow-cell-note-cache { grid-column: 3; grid-row: 3; }
   .pflow-cell-note-batch { grid-column: 7; grid-row: 3; }
 
-  .pflow-bill { background: var(--card-bg); box-shadow: var(--shadow); padding: 12px 14px; }
-  .pflow-bill-bars { width: 100%; display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+  .pflow-bill { background: var(--card-bg); box-shadow: var(--shadow); padding: 14px 16px; height: auto; overflow: visible; align-self: start; }
+  .pflow-bill-bars { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
   .pflow-bill-row { width: 100%; }
+  .pflow-bill-formula {
+    font-family: var(--mono); font-size: 0.58rem; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border-radius: 4px; padding: 2px 6px; margin: 0 0 4px;
+    text-align: left; display: inline-block;
+  }
   .pflow-bill-track { background: var(--border); border-radius: 4px; height: 7px; overflow: hidden; margin-bottom: 3px; }
   .pflow-bill-fill { height: 100%; border-radius: 4px; display: block; }
   .pflow-bill-fill-1, .pflow-bill-fill-2 { background: var(--text-muted); opacity: 0.5; }
@@ -712,6 +720,16 @@
   .pflow-bill-label b { color: var(--text-primary); font-weight: 700; }
   .pflow-bill-label-final { font-size: 0.7rem; color: var(--text-primary); margin: 0; text-align: left; }
   .pflow-bill-label-final b { color: var(--accent); font-weight: 800; font-size: 0.92rem; }
+
+  .pflow-blended { width: 100%; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); }
+  .pflow-blended-title { font-size: 0.64rem; font-weight: 700; color: var(--text-primary); margin: 0 0 2px; text-align: left; }
+  .pflow-blended-formula {
+    font-family: var(--mono); font-size: 0.56rem; color: var(--text-muted); margin: 0 0 4px; text-align: left;
+  }
+  .pflow-blended-values {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; text-align: left;
+  }
+  .pflow-blended-ref { font-size: 0.58rem; color: var(--text-muted); font-style: italic; margin: 0; text-align: left; line-height: 1.35; }
 
   .pflow-note { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; height: 100%; box-sizing: border-box; }
   .pflow-note-title { font-size: 0.74rem; font-weight: 700; color: var(--text-primary); margin: 0 0 5px; }
@@ -726,27 +744,6 @@
   .pcard-footer { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
   .pcard-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
   .pcard-footer a:hover { text-decoration: underline; }
-
-  /* --- Card 2: How the Bill Adds Up --- */
-  .pcard-step { margin: 0 0 20px; }
-  .pcard-step-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 6px; }
-  .pcard-step-copy { font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 10px; line-height: 1.5; }
-  .pcard-formula {
-    font-family: var(--mono); font-size: 0.82rem; font-weight: 700; color: var(--accent);
-    background: var(--accent-soft); border-radius: 6px; padding: 10px 14px; margin: 0 0 8px; display: inline-block;
-  }
-  .pcard-legend { font-size: 0.76rem; color: var(--text-muted); margin: 0 0 4px; line-height: 1.5; }
-  .pcard-note { font-size: 0.78rem; color: var(--text-secondary); font-style: italic; margin: 0; }
-  .pcard-worked {
-    font-family: var(--mono); font-size: 0.78rem; color: var(--text-secondary);
-    background: var(--bg); border: 1px dashed var(--border); border-radius: 6px;
-    padding: 8px 12px; margin: 0; display: inline-block;
-  }
-  .pcard-closer {
-    background: var(--bg); border: 1px dashed var(--border); border-radius: var(--radius);
-    padding: 14px 18px; font-size: 0.86rem; font-weight: 600; color: var(--text-primary);
-    text-align: center; margin: 6px 0 22px;
-  }
 
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
@@ -1282,42 +1279,37 @@
                   <p class="pflow-emoji">&#128483;&#65039;</p>
                   <p class="pflow-term">Ask</p>
                   <p class="pflow-sub">Input</p>
-                  <p class="pflow-plain">what you send in &middot; 10M tokens</p>
+                  <p class="pflow-formula">8M repeated + 2M new = 10M tokens</p>
                 </div>
                 <div class="pflow-arrow pflow-cell-arrow1">&#8594;</div>
                 <div class="pflow-node pflow-cell-cached">
                   <p class="pflow-emoji">&#128257;</p>
                   <p class="pflow-term">Cached Input</p>
-                  <p class="pflow-plain">8M tokens &middot; 50% off</p>
-                  <p class="pflow-amount" id="pflow-amt-cached"></p>
+                  <p class="pflow-formula" id="pflow-amt-cached"></p>
                 </div>
                 <div class="pflow-node pflow-cell-fresh">
                   <p class="pflow-emoji">&#127381;</p>
                   <p class="pflow-term">Fresh Input</p>
-                  <p class="pflow-plain">2M tokens &middot; full price</p>
-                  <p class="pflow-amount" id="pflow-amt-fresh"></p>
+                  <p class="pflow-formula" id="pflow-amt-fresh"></p>
                 </div>
                 <div class="pflow-arrow pflow-cell-arrow2">&#8594;</div>
                 <div class="pflow-node pflow-cell-answer">
                   <p class="pflow-emoji">&#128172;</p>
                   <p class="pflow-term">Answer</p>
                   <p class="pflow-sub">Output</p>
-                  <p class="pflow-plain">what the model writes back &middot; 1M tokens</p>
-                  <p class="pflow-amount" id="pflow-amt-output"></p>
+                  <p class="pflow-formula" id="pflow-amt-output"></p>
                   <p class="pflow-callout" id="pflow-output-multiple"></p>
                 </div>
                 <div class="pflow-arrow pflow-cell-arrow3">&#8594;</div>
                 <div class="pflow-node pflow-cell-realtime">
                   <p class="pflow-emoji">&#9889;</p>
                   <p class="pflow-term">Real-time</p>
-                  <p class="pflow-plain">answer now &middot; full price</p>
-                  <p class="pflow-amount" id="pflow-amt-realtime"></p>
+                  <p class="pflow-formula" id="pflow-amt-realtime"></p>
                 </div>
                 <div class="pflow-node pflow-cell-batch">
                   <p class="pflow-emoji">&#128230;</p>
                   <p class="pflow-term">Batch</p>
-                  <p class="pflow-plain">wait up to 24h &middot; 50% off</p>
-                  <p class="pflow-amount" id="pflow-amt-batch"></p>
+                  <p class="pflow-formula" id="pflow-amt-batch"></p>
                 </div>
                 <div class="pflow-arrow pflow-cell-arrow4">&#8594;</div>
                 <div class="pflow-node pflow-bill pflow-cell-bill">
@@ -1325,17 +1317,26 @@
                   <p class="pflow-term">Bill</p>
                   <div class="pflow-bill-bars">
                     <div class="pflow-bill-row">
+                      <p class="pflow-bill-formula" id="pflow-formula-none"></p>
                       <div class="pflow-bill-track"><div class="pflow-bill-fill pflow-bill-fill-1" id="pflow-bar-none"></div></div>
                       <p class="pflow-bill-label">No levers <b id="pflow-bill-none"></b></p>
                     </div>
                     <div class="pflow-bill-row">
+                      <p class="pflow-bill-formula" id="pflow-formula-cache"></p>
                       <div class="pflow-bill-track"><div class="pflow-bill-fill pflow-bill-fill-2" id="pflow-bar-cache"></div></div>
                       <p class="pflow-bill-label">With cache <b id="pflow-bill-cache"></b></p>
                     </div>
                     <div class="pflow-bill-row">
+                      <p class="pflow-bill-formula" id="pflow-formula-both"></p>
                       <div class="pflow-bill-track"><div class="pflow-bill-fill pflow-bill-fill-3" id="pflow-bar-both"></div></div>
                       <p class="pflow-bill-label-final">Cache + batch <b id="pflow-bill-both"></b></p>
                     </div>
+                  </div>
+                  <div class="pflow-blended">
+                    <p class="pflow-blended-title">Blended Cost per 1M tokens</p>
+                    <p class="pflow-blended-formula">Blended = Bill &divide; Total Tokens</p>
+                    <p class="pflow-blended-values" id="pflow-blended-values"></p>
+                    <p class="pflow-blended-ref" id="pflow-blended-ref"></p>
                   </div>
                 </div>
                 <div class="pflow-note pflow-cell-note-cache">
@@ -1356,46 +1357,6 @@
 
             <p class="pcard-assumption">Illustrative token mix. Cache and batch discounts assumed to stack.</p>
 
-            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
-
-            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">&#129518; How the Bill Adds Up</h3>
-
-            <div class="pcard-step">
-              <p class="pcard-step-label">Step 1 &middot; The real bill</p>
-              <p class="pcard-step-copy">Every call reads, then writes. Two prices, one bill.</p>
-              <p class="pcard-formula">Cost = Input Tokens &times; Input Price + Output Tokens &times; Output Price</p>
-            </div>
-
-            <div class="pcard-step">
-              <p class="pcard-step-label">Step 2 &middot; The budgeting shortcut</p>
-              <p class="pcard-step-copy">Before you know the mix, assume one. Industry default: 3 parts read, 1 part write.</p>
-              <p class="pcard-formula">Blended Price = (3 &times; Input + Output) &divide; 4</p>
-              <p class="pcard-worked" id="pcard-worked-blend"></p>
-            </div>
-
-            <div class="pcard-step">
-              <p class="pcard-step-label">Step 3 &middot; Your own mix</p>
-              <p class="pcard-step-copy">Different tasks, different mix.</p>
-              <p class="pcard-formula">Effective Price = (r &times; Input + m &times; Output) &divide; (r + 1)</p>
-              <p class="pcard-legend">r = input : output ratio; m = thinking multiplier (1 = no reasoning)</p>
-              <p class="pcard-note">r = 3, m = 1 brings you back to Blended.</p>
-            </div>
-
-            <div class="pcard-step">
-              <p class="pcard-step-label">Step 4 &middot; The thinking surcharge</p>
-              <p class="pcard-step-copy">Same price tag, bigger bill. Reasoning modes think in output tokens.</p>
-              <p class="pcard-worked" id="pcard-worked-reasoning"></p>
-            </div>
-
-            <div class="pcard-step">
-              <p class="pcard-step-label">Step 5 &middot; Monthly cost</p>
-              <p class="pcard-formula">Monthly Cost = AI Users &times; Tokens per User per Day &times; Days &times; Effective Price</p>
-              <p class="pcard-step-copy">Three dials: how much you use, how you use it, what you pay per token.</p>
-            </div>
-
-            <p class="pcard-closer">Full price by default. Cached for repeats. Batch for the backlog. Extra output for thinking.</p>
-
-            <p class="pcard-footer" id="pcard2-footer"></p>
             <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
 
           </div>
@@ -3003,11 +2964,15 @@
     var calc = pcardCalc(stats);
     if (!calc) return;
 
-    byId("pflow-amt-cached").textContent = pcardMoney2(calc.cached);
-    byId("pflow-amt-fresh").textContent = pcardMoney2(calc.fresh);
-    byId("pflow-amt-output").textContent = pcardMoney2(calc.output);
-    byId("pflow-amt-realtime").textContent = pcardMoney2(calc.withCache);
-    byId("pflow-amt-batch").textContent = pcardMoney2(calc.cacheBatch);
+    var pIn = pcardMoneyTrim(calc.pIn), pOut = pcardMoneyTrim(calc.pOut);
+    var cachedT = pcardMoneyTrim(calc.cached), freshT = pcardMoneyTrim(calc.fresh), outputT = pcardMoneyTrim(calc.output);
+    var withCacheT = pcardMoneyTrim(calc.withCache);
+
+    byId("pflow-amt-cached").textContent = "8M \u00d7 (" + pIn + " \u00d7 50%) = " + pcardMoney2(calc.cached);
+    byId("pflow-amt-fresh").textContent = "2M \u00d7 " + pIn + " = " + pcardMoney2(calc.fresh);
+    byId("pflow-amt-output").textContent = "1M \u00d7 " + pOut + " = " + pcardMoney2(calc.output);
+    byId("pflow-amt-realtime").textContent = cachedT + " + " + freshT + " + " + outputT + " = " + pcardMoney2(calc.withCache);
+    byId("pflow-amt-batch").textContent = withCacheT + " \u00d7 50% = " + pcardMoney2(calc.cacheBatch);
 
     byId("pflow-output-multiple").textContent = "Output = " + pcardMultLabel(calc.pIn, calc.pOut) + "x input price";
 
@@ -3015,10 +2980,24 @@
     byId("pflow-bill-cache").textContent = pcardMoney2(calc.withCache);
     byId("pflow-bill-both").textContent = pcardMoney2(calc.cacheBatch);
 
+    byId("pflow-formula-none").textContent = "10M \u00d7 " + pIn + " + 1M \u00d7 " + pOut + " = " + pcardMoney2(calc.noLevers);
+    byId("pflow-formula-cache").textContent = cachedT + " + " + freshT + " + " + outputT + " = " + pcardMoney2(calc.withCache);
+    byId("pflow-formula-both").textContent = withCacheT + " \u00d7 50% = " + pcardMoney2(calc.cacheBatch);
+
     var maxVal = calc.noLevers || 1;
     byId("pflow-bar-none").style.width = "100%";
     byId("pflow-bar-cache").style.width = (calc.withCache / maxVal * 100) + "%";
     byId("pflow-bar-both").style.width = (calc.cacheBatch / maxVal * 100) + "%";
+
+    // Blended Cost per 1M tokens: each bar's own total / 11M tokens (10M in + 1M out).
+    var totalTokensM = 10 + 1;
+    byId("pflow-blended-values").textContent = pcardMoney2(calc.noLevers / totalTokensM) + " / " +
+      pcardMoney2(calc.withCache / totalTokensM) + " / " + pcardMoney2(calc.cacheBatch / totalTokensM);
+
+    // Small reference line: the standard 3:1 list-price blend, independent of
+    // this scenario's actual mix and any cache/batch discount.
+    var listBlend = (3 * calc.pIn + calc.pOut) / 4;
+    byId("pflow-blended-ref").textContent = "Price tag blended at the 3:1 default: (3 \u00d7 " + pIn + " + " + pOut + ") \u00f7 4 = " + pcardMoney2(listBlend);
   }
 
   function renderTierSwitch() {
@@ -3031,57 +3010,12 @@
     });
   }
 
-  // ============ Card 2: How the Bill Adds Up ============
-  // All computed from AA_TRACKER directly (same CSV already loaded for
-  // Card 1) -- no new fetch(), no model ranking, no judgment calls.
-
-  function pcardMoneyExact(v) {
-    var rounded = Math.round(v * 10000) / 10000;
-    return "$" + rounded;
-  }
-
-  function pcardBlendedCheck() {
-    var rows = AA_TRACKER.filter(function (r) {
-      return r.input_cost_usd_per_1m != null && r.input_cost_usd_per_1m !== "" &&
-        r.output_cost_usd_per_1m != null && r.output_cost_usd_per_1m !== "" &&
-        r.blended_cost_usd_per_1m != null && r.blended_cost_usd_per_1m !== "";
-    });
-    var matches = 0;
-    rows.forEach(function (r) {
-      var calc = (3 * r.input_cost_usd_per_1m + r.output_cost_usd_per_1m) / 4;
-      if (Math.abs(calc - r.blended_cost_usd_per_1m) <= 0.001) matches++;
-    });
-    return { matches: matches, total: rows.length };
-  }
-
-  function renderBillAdds() {
-    var gpt54 = AA_TRACKER.filter(function (r) { return r.model_name === "GPT-5.4 (xhigh)"; })[0];
-    if (gpt54) {
-      var calc54 = (3 * gpt54.input_cost_usd_per_1m + gpt54.output_cost_usd_per_1m) / 4;
-      byId("pcard-worked-blend").textContent = "GPT-5.4 \u2192 (3 \u00d7 " + pcardMoney2(gpt54.input_cost_usd_per_1m) +
-        " + " + pcardMoney2(gpt54.output_cost_usd_per_1m) + ") \u00f7 4 = " + pcardMoneyExact(calc54) + " per 1M tokens";
-    }
-
-    var reasoning = AA_TRACKER.filter(function (r) { return r.model_name === "Claude Opus 4.6 (Adaptive Reasoning, Max Effort)"; })[0];
-    var nonReasoning = AA_TRACKER.filter(function (r) { return r.model_name === "Claude Opus 4.6 (Non-reasoning, High Effort)"; })[0];
-    if (reasoning && nonReasoning) {
-      byId("pcard-worked-reasoning").textContent = "Claude Opus 4.6 (Max Effort) and Claude Opus 4.6 (Non-reasoning) both blend to " +
-        pcardMoney2(reasoning.blended_cost_usd_per_1m) + " per 1M tokens";
-    }
-
-    var check = pcardBlendedCheck();
-    var pct = Math.round(check.matches / check.total * 100);
-    byId("pcard2-footer").innerHTML = "Blended uses the Artificial Analysis 3:1 convention. Image, audio and formatting overhead also bill as input; excluded here for simplicity. Holds for " +
-      pct + "% of priced models (" + check.matches + " of " + check.total + "); the rest carry provider-specific blended rates.";
-  }
-
   function renderPriceCost() {
     renderTiers();
     renderDistribution();
     renderTierSwitch();
     renderPriceFlow();
     pcardInitTierAnimation();
-    renderBillAdds();
   }
 
   function renderSection1() {
