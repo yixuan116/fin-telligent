@@ -503,6 +503,10 @@
   .mini-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
   .mini-card-title { font-size: 0.92rem; font-weight: 700; margin-bottom: 2px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
   .badge { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 10px; }
+  .raw-download-link { color: inherit; font-weight: 700; text-decoration: none; }
+  .raw-download-link:hover { text-decoration: underline; color: var(--accent); }
+  .raw-download-icon { font-size: 0.78em; }
+  .raw-size-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); }
 
   table.data-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
   table.data-table th, table.data-table td {
@@ -2457,10 +2461,13 @@
     ];
     var counts = { "models.csv": RAW.models.length, "pricing_history.csv": RAW.pricing.length, "performance_benchmarks.csv": 358200, "cost_efficiency.csv": RAW.costEff.length };
     var colCounts = { "models.csv": 8, "pricing_history.csv": 7, "performance_benchmarks.csv": 9, "cost_efficiency.csv": 8 };
+    var sizeLabels = { "models.csv": "35 KB", "pricing_history.csv": "5.2 MB", "performance_benchmarks.csv": "27.9 MB", "cost_efficiency.csv": "3.4 MB" };
 
     var cardHtml = specs.map(function (s, i) {
-      return '<div class="mini-card"><p class="mini-card-title">' + s.file +
-        '<span class="badge">' + counts[s.file].toLocaleString() + " rows × " + colCounts[s.file] + " cols</span></p>" +
+      return '<div class="mini-card"><p class="mini-card-title">' +
+        '<a class="raw-download-link" href="' + s.file + '" download>' + s.file + ' <span class="raw-download-icon">&#8681;</span></a>' +
+        '<span class="badge">' + counts[s.file].toLocaleString() + " rows × " + colCounts[s.file] + " cols</span>" +
+        '<span class="raw-size-label">&middot; ' + sizeLabels[s.file] + '</span></p>' +
         '<div id="raw-table-' + i + '" style="margin-top:10px;"></div></div>';
     });
 
