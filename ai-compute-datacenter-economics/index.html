@@ -908,6 +908,40 @@
   .pcart-model-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; }
   .pcart-model-served { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; margin: 0; }
 
+  /* ============ Receipt ============ */
+
+  .rcpt-slip {
+    max-width: 430px; margin: 0 auto 28px; background: var(--card-bg);
+    border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    padding: 26px 22px; font-family: var(--mono);
+  }
+  .rcpt-slip-eyebrow { text-align: center; font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 3px; }
+  .rcpt-slip-sub { text-align: center; font-size: 0.66rem; color: var(--text-muted); margin: 0 0 16px; }
+  .rcpt-divider { border: none; border-top: 1px dashed var(--border); margin: 12px 0; }
+
+  .rcpt-cols-head, .rcpt-row {
+    display: grid; grid-template-columns: 1fr 84px 64px 84px; gap: 6px; align-items: baseline;
+  }
+  .rcpt-cols-head { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding-bottom: 6px; }
+  .rcpt-cols-head span:not(:first-child), .rcpt-row span:not(.rcpt-label) { text-align: right; }
+  .rcpt-row { font-size: 0.76rem; padding: 5px 0; }
+  .rcpt-row .rcpt-label { color: var(--text-primary); font-weight: 600; }
+  .rcpt-row-sub .rcpt-label { font-weight: 400; color: var(--text-secondary); padding-left: 10px; }
+  .rcpt-row-strong .rcpt-label, .rcpt-row-strong .rcpt-col-total { font-weight: 800; }
+  .rcpt-col-classic { color: var(--text-muted); }
+  .rcpt-col-tokens { color: var(--accent); font-weight: 700; }
+  .rcpt-col-total { color: var(--text-primary); font-weight: 700; }
+
+  .rcpt-footer-line { text-align: center; font-size: 0.72rem; color: var(--text-secondary); margin: 20px 0 0; }
+
+  .rcpt-metrics { display: flex; gap: 14px; flex-wrap: wrap; }
+  .rcpt-metric {
+    flex: 1 1 180px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 16px 18px; text-align: center;
+  }
+  .rcpt-metric-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+  .rcpt-metric-formula { font-size: 0.66rem; color: var(--text-muted); font-family: var(--mono); margin-top: 6px; line-height: 1.4; }
+
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
   .benchmark-story { background: var(--card-bg); }
@@ -1075,6 +1109,10 @@
     .section-card, .collapsible-toggle { padding: 18px 18px; }
     .kpi-row, .model-picker { flex-direction: column; }
     .model-chips { width: 100%; }
+    .rcpt-slip { padding: 20px 12px; max-width: 100%; }
+    .rcpt-cols-head, .rcpt-row { grid-template-columns: 1fr 68px 50px 68px; gap: 4px; }
+    .rcpt-cols-head { font-size: 0.56rem; }
+    .rcpt-row { font-size: 0.64rem; }
   }
 </style>
 </head>
@@ -1744,6 +1782,70 @@
               <button type="button" class="export-btn" id="btn-export">&#8681; Export to Excel</button>
             </div>
             <div id="audit-table"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RECEIPT (collapsible) ============ -->
+    <section class="section" id="sec-receipt">
+      <button type="button" class="collapsible-toggle" id="toggle-receipt" aria-expanded="false" aria-controls="body-receipt">
+        <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="ct-title">&#129534; Receipt</span>
+        <span class="ct-sub">The Cart's bill, booked as a P&amp;L</span>
+      </button>
+      <div class="collapsible-body" id="body-receipt">
+        <div class="collapsible-body-inner">
+          <div class="section-card">
+
+            <div class="rcpt-slip">
+              <p class="rcpt-slip-eyebrow">Model Supermarket &middot; Monthly Receipt</p>
+              <p class="rcpt-slip-sub">Illustrative company, monthly</p>
+
+              <div class="rcpt-cols-head"><span>&nbsp;</span><span>Classic</span><span>Tokens</span><span>Total</span></div>
+              <hr class="rcpt-divider">
+
+              <div class="rcpt-row" id="rcpt-row-revenue">
+                <span class="rcpt-label">Revenue</span>
+                <span class="rcpt-col-classic"></span><span class="rcpt-col-tokens"></span><span class="rcpt-col-total"></span>
+              </div>
+              <div class="rcpt-row" id="rcpt-row-cogs">
+                <span class="rcpt-label">COGS</span>
+                <span class="rcpt-col-classic"></span><span class="rcpt-col-tokens"></span><span class="rcpt-col-total"></span>
+              </div>
+              <hr class="rcpt-divider">
+              <div class="rcpt-row rcpt-row-strong" id="rcpt-row-gross">
+                <span class="rcpt-label">Gross Profit</span>
+                <span class="rcpt-col-classic"></span><span class="rcpt-col-tokens"></span><span class="rcpt-col-total"></span>
+              </div>
+              <div class="rcpt-row" id="rcpt-row-opex">
+                <span class="rcpt-label">Opex</span>
+                <span class="rcpt-col-classic"></span><span class="rcpt-col-tokens"></span><span class="rcpt-col-total"></span>
+              </div>
+              <hr class="rcpt-divider">
+              <div class="rcpt-row rcpt-row-strong" id="rcpt-row-operating">
+                <span class="rcpt-label">Operating Income</span>
+                <span class="rcpt-col-classic"></span><span class="rcpt-col-tokens"></span><span class="rcpt-col-total"></span>
+              </div>
+
+              <p class="rcpt-footer-line">Thank you for shopping.<br>Tokens are a line item now.</p>
+            </div>
+
+            <div class="rcpt-metrics">
+              <div class="rcpt-metric">
+                <p class="rcpt-metric-value" id="rcpt-metric-arr">$0</p>
+                <p class="rcpt-metric-formula">Annual Run Rate = Monthly Token Spend &times; 12</p>
+              </div>
+              <div class="rcpt-metric">
+                <p class="rcpt-metric-value" id="rcpt-metric-bps">0 bps</p>
+                <p class="rcpt-metric-formula">Gross Margin Impact = COGS Tokens &divide; Revenue &times; 10,000</p>
+              </div>
+              <div class="rcpt-metric">
+                <p class="rcpt-metric-value" id="rcpt-metric-unit">$0.00</p>
+                <p class="rcpt-metric-formula">Portfolio Unit Budget = Total Token Spend &divide; Total Tokens, per 1M</p>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -3724,7 +3826,7 @@
     var taskDef = PCARD_TASK_PRESETS[task];
     var modelName = PCART_TASK_MODEL[dept][task].model;
     var priceRow = pcardCartFindModel(modelName);
-    if (!taskDef || !priceRow || !share) return { cost: 0, baseCost: 0, reasoning: false };
+    if (!taskDef || !priceRow || !share) return { cost: 0, baseCost: 0, reasoning: false, tokens: 0 };
 
     var pIn = priceRow.input_cost_usd_per_1m, pOut = priceRow.output_cost_usd_per_1m;
     var mult = pcardIsReasoningModel(modelName) ? 2 : 1;
@@ -3739,7 +3841,7 @@
     var baseCost = totalTokens * unitBudget(false) / 1e6;
     var cost = totalTokens * unitBudget(PCARD_CART_STATE.cacheOn) / 1e6;
     if (PCARD_CART_STATE.batchOn) cost *= 0.5;
-    return { cost: cost, baseCost: baseCost, reasoning: mult === 2 };
+    return { cost: cost, baseCost: baseCost, reasoning: mult === 2, tokens: totalTokens };
   }
 
   function pcartRescaleTeamsFromCompanySize() {
@@ -3824,6 +3926,7 @@
     byId("cart-receipt-selected").textContent = "Selected: " + selectedPeople + " of " + companySize + " people";
 
     renderCartReceiptLines(deptTotals, modelTotals, total);
+    renderReceipt();
   }
 
   function renderCartViewToggle() {
@@ -3870,6 +3973,65 @@
     pcardInitHeroAnimation();
     pcardInitTierStickyObserver();
     renderCartCard();
+  }
+
+  // ============ Receipt (Cart's bill, booked as a P&L) ============
+  // Reads PCART_POOL / PCART_SHARES / PCART_TASK_MODEL / PCART_TEAM and
+  // pcartLineCalc() straight from Card 3 -- no separate state, so any Cart
+  // edit is reflected here the next time renderCartAll() runs.
+
+  var PRCPT_REVENUE_CLASSIC = 1600000;
+  var PRCPT_COGS_CLASSIC = 640000;
+  var PRCPT_OPEX_CLASSIC = 800000;
+  var PRCPT_COGS_DEPTS = { customer: true };
+
+  function rcptMoney(v) {
+    var sign = v < 0 ? "-" : "";
+    return sign + fmtUSD(Math.abs(v), 2);
+  }
+
+  function rcptSetRow(id, classicVal, tokensVal, totalVal) {
+    var row = byId(id);
+    row.querySelector(".rcpt-col-classic").textContent = classicVal;
+    row.querySelector(".rcpt-col-tokens").textContent = tokensVal;
+    row.querySelector(".rcpt-col-total").textContent = totalVal;
+  }
+
+  function renderReceipt() {
+    var cogsTokens = 0, opexTokens = 0, totalTokens = 0;
+    PCART_POOL.forEach(function (dept) {
+      var bucket = PRCPT_COGS_DEPTS[dept] ? "cogs" : "opex";
+      Object.keys(PCART_SHARES[dept]).forEach(function (task) {
+        var calc = pcartLineCalc(dept, task);
+        if (bucket === "cogs") cogsTokens += calc.cost; else opexTokens += calc.cost;
+        totalTokens += calc.tokens;
+      });
+    });
+    var tokenSpend = cogsTokens + opexTokens;
+
+    var revenueTotal = PRCPT_REVENUE_CLASSIC;
+    var cogsTotal = PRCPT_COGS_CLASSIC + cogsTokens;
+    var grossClassic = PRCPT_REVENUE_CLASSIC - PRCPT_COGS_CLASSIC;
+    var grossTokens = -cogsTokens;
+    var grossTotal = revenueTotal - cogsTotal;
+    var opexTotal = PRCPT_OPEX_CLASSIC + opexTokens;
+    var opClassic = grossClassic - PRCPT_OPEX_CLASSIC;
+    var opTokens = grossTokens - opexTokens;
+    var opTotal = grossTotal - opexTotal;
+
+    rcptSetRow("rcpt-row-revenue", rcptMoney(PRCPT_REVENUE_CLASSIC), "—", rcptMoney(revenueTotal));
+    rcptSetRow("rcpt-row-cogs", rcptMoney(PRCPT_COGS_CLASSIC), rcptMoney(cogsTokens), rcptMoney(cogsTotal));
+    rcptSetRow("rcpt-row-gross", rcptMoney(grossClassic), rcptMoney(grossTokens), rcptMoney(grossTotal));
+    rcptSetRow("rcpt-row-opex", rcptMoney(PRCPT_OPEX_CLASSIC), rcptMoney(opexTokens), rcptMoney(opexTotal));
+    rcptSetRow("rcpt-row-operating", rcptMoney(opClassic), rcptMoney(opTokens), rcptMoney(opTotal));
+
+    byId("rcpt-metric-arr").textContent = fmtUSD(tokenSpend * 12, 0);
+
+    var bps = PRCPT_REVENUE_CLASSIC > 0 ? (cogsTokens / PRCPT_REVENUE_CLASSIC * 10000) : 0;
+    byId("rcpt-metric-bps").textContent = bps < 0.05 ? "0.0 bps" : "-" + bps.toFixed(1) + " bps";
+
+    var unitBudget = totalTokens > 0 ? (tokenSpend / totalTokens) * 1e6 : 0;
+    byId("rcpt-metric-unit").textContent = fmtUSD(unitBudget, 2);
   }
 
   function renderSection1() {
@@ -4545,6 +4707,7 @@
     initCollapsible("toggle-audit", "body-audit");
     initCollapsible("toggle-perf-benchmark", "body-perf-benchmark");
     initCollapsible("toggle-price-cost", "body-price-cost");
+    initCollapsible("toggle-receipt", "body-receipt");
     renderSection1();
     renderPerfBenchmark();
     renderMatrixTags();
