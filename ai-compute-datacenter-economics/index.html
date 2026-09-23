@@ -727,6 +727,27 @@
   .pcard-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
   .pcard-footer a:hover { text-decoration: underline; }
 
+  /* --- Card 2: How the Bill Adds Up --- */
+  .pcard-step { margin: 0 0 20px; }
+  .pcard-step-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 6px; }
+  .pcard-step-copy { font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 10px; line-height: 1.5; }
+  .pcard-formula {
+    font-family: var(--mono); font-size: 0.82rem; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border-radius: 6px; padding: 10px 14px; margin: 0 0 8px; display: inline-block;
+  }
+  .pcard-legend { font-size: 0.76rem; color: var(--text-muted); margin: 0 0 4px; line-height: 1.5; }
+  .pcard-note { font-size: 0.78rem; color: var(--text-secondary); font-style: italic; margin: 0; }
+  .pcard-worked {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--text-secondary);
+    background: var(--bg); border: 1px dashed var(--border); border-radius: 6px;
+    padding: 8px 12px; margin: 0; display: inline-block;
+  }
+  .pcard-closer {
+    background: var(--bg); border: 1px dashed var(--border); border-radius: var(--radius);
+    padding: 14px 18px; font-size: 0.86rem; font-weight: 600; color: var(--text-primary);
+    text-align: center; margin: 6px 0 22px;
+  }
+
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
   .benchmark-story { background: var(--card-bg); }
@@ -1335,6 +1356,46 @@
 
             <p class="pcard-assumption">Illustrative token mix. Cache and batch discounts assumed to stack.</p>
 
+            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
+
+            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 6px;">&#129518; How the Bill Adds Up</h3>
+
+            <div class="pcard-step">
+              <p class="pcard-step-label">Step 1 &middot; The real bill</p>
+              <p class="pcard-step-copy">Every call reads, then writes. Two prices, one bill.</p>
+              <p class="pcard-formula">Cost = Input Tokens &times; Input Price + Output Tokens &times; Output Price</p>
+            </div>
+
+            <div class="pcard-step">
+              <p class="pcard-step-label">Step 2 &middot; The budgeting shortcut</p>
+              <p class="pcard-step-copy">Before you know the mix, assume one. Industry default: 3 parts read, 1 part write.</p>
+              <p class="pcard-formula">Blended Price = (3 &times; Input + Output) &divide; 4</p>
+              <p class="pcard-worked" id="pcard-worked-blend"></p>
+            </div>
+
+            <div class="pcard-step">
+              <p class="pcard-step-label">Step 3 &middot; Your own mix</p>
+              <p class="pcard-step-copy">Different tasks, different mix.</p>
+              <p class="pcard-formula">Effective Price = (r &times; Input + m &times; Output) &divide; (r + 1)</p>
+              <p class="pcard-legend">r = input : output ratio; m = thinking multiplier (1 = no reasoning)</p>
+              <p class="pcard-note">r = 3, m = 1 brings you back to Blended.</p>
+            </div>
+
+            <div class="pcard-step">
+              <p class="pcard-step-label">Step 4 &middot; The thinking surcharge</p>
+              <p class="pcard-step-copy">Same price tag, bigger bill. Reasoning modes think in output tokens.</p>
+              <p class="pcard-worked" id="pcard-worked-reasoning"></p>
+            </div>
+
+            <div class="pcard-step">
+              <p class="pcard-step-label">Step 5 &middot; Monthly cost</p>
+              <p class="pcard-formula">Monthly Cost = AI Users &times; Tokens per User per Day &times; Days &times; Effective Price</p>
+              <p class="pcard-step-copy">Three dials: how much you use, how you use it, what you pay per token.</p>
+            </div>
+
+            <p class="pcard-closer">Full price by default. Cached for repeats. Batch for the backlog. Extra output for thinking.</p>
+
+            <p class="pcard-footer" id="pcard2-footer"></p>
             <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
 
           </div>
@@ -2970,12 +3031,57 @@
     });
   }
 
+  // ============ Card 2: How the Bill Adds Up ============
+  // All computed from AA_TRACKER directly (same CSV already loaded for
+  // Card 1) -- no new fetch(), no model ranking, no judgment calls.
+
+  function pcardMoneyExact(v) {
+    var rounded = Math.round(v * 10000) / 10000;
+    return "$" + rounded;
+  }
+
+  function pcardBlendedCheck() {
+    var rows = AA_TRACKER.filter(function (r) {
+      return r.input_cost_usd_per_1m != null && r.input_cost_usd_per_1m !== "" &&
+        r.output_cost_usd_per_1m != null && r.output_cost_usd_per_1m !== "" &&
+        r.blended_cost_usd_per_1m != null && r.blended_cost_usd_per_1m !== "";
+    });
+    var matches = 0;
+    rows.forEach(function (r) {
+      var calc = (3 * r.input_cost_usd_per_1m + r.output_cost_usd_per_1m) / 4;
+      if (Math.abs(calc - r.blended_cost_usd_per_1m) <= 0.001) matches++;
+    });
+    return { matches: matches, total: rows.length };
+  }
+
+  function renderBillAdds() {
+    var gpt54 = AA_TRACKER.filter(function (r) { return r.model_name === "GPT-5.4 (xhigh)"; })[0];
+    if (gpt54) {
+      var calc54 = (3 * gpt54.input_cost_usd_per_1m + gpt54.output_cost_usd_per_1m) / 4;
+      byId("pcard-worked-blend").textContent = "GPT-5.4 \u2192 (3 \u00d7 " + pcardMoney2(gpt54.input_cost_usd_per_1m) +
+        " + " + pcardMoney2(gpt54.output_cost_usd_per_1m) + ") \u00f7 4 = " + pcardMoneyExact(calc54) + " per 1M tokens";
+    }
+
+    var reasoning = AA_TRACKER.filter(function (r) { return r.model_name === "Claude Opus 4.6 (Adaptive Reasoning, Max Effort)"; })[0];
+    var nonReasoning = AA_TRACKER.filter(function (r) { return r.model_name === "Claude Opus 4.6 (Non-reasoning, High Effort)"; })[0];
+    if (reasoning && nonReasoning) {
+      byId("pcard-worked-reasoning").textContent = "Claude Opus 4.6 (Max Effort) and Claude Opus 4.6 (Non-reasoning) both blend to " +
+        pcardMoney2(reasoning.blended_cost_usd_per_1m) + " per 1M tokens";
+    }
+
+    var check = pcardBlendedCheck();
+    var pct = Math.round(check.matches / check.total * 100);
+    byId("pcard2-footer").innerHTML = "Blended uses the Artificial Analysis 3:1 convention. Image, audio and formatting overhead also bill as input; excluded here for simplicity. Holds for " +
+      pct + "% of priced models (" + check.matches + " of " + check.total + "); the rest carry provider-specific blended rates.";
+  }
+
   function renderPriceCost() {
     renderTiers();
     renderDistribution();
     renderTierSwitch();
     renderPriceFlow();
     pcardInitTierAnimation();
+    renderBillAdds();
   }
 
   function renderSection1() {
