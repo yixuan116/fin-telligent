@@ -835,50 +835,63 @@
 
   /* tier-mix bar segments, shared by sticky bar + collapsed department cards */
   .pcart-tiermix-seg { position: relative; min-width: 0; }
-  .pcart-tiermix-seg[data-tier="1"] { background: rgba(79, 91, 213, 0.2); }
-  .pcart-tiermix-seg[data-tier="2"] { background: rgba(79, 91, 213, 0.4); }
-  .pcart-tiermix-seg[data-tier="3"] { background: rgba(79, 91, 213, 0.66); }
-  .pcart-tiermix-seg[data-tier="4"] { background: rgba(79, 91, 213, 0.92); }
+  .pcart-tiermix-seg[data-tier="1"] { background: rgba(79, 91, 213, 0.16); }
+  .pcart-tiermix-seg[data-tier="2"] { background: rgba(79, 91, 213, 0.42); }
+  .pcart-tiermix-seg[data-tier="3"] { background: rgba(79, 91, 213, 0.7); }
+  .pcart-tiermix-seg[data-tier="4"] { background: var(--accent); }
   .pcart-tiermix-seg[data-tip]:hover::after {
     content: attr(data-tip); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
     background: var(--text-primary); color: #fff; font-size: 0.64rem; font-weight: 600; white-space: nowrap;
     padding: 4px 8px; border-radius: 4px; z-index: 60; pointer-events: none;
   }
 
-  .pcart-pool { display: flex; flex-direction: column; gap: 10px; margin: 0 0 22px; min-height: 20px; }
   .pcart-pool-empty { font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 24px 0; text-align: center; }
 
-  .pcart-card {
-    background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden;
-  }
+  .pcart-tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 0 0 4px; }
+  @media (max-width: 760px) { .pcart-tiles { grid-template-columns: repeat(2, 1fr); } }
+
   @keyframes pcartDrop {
     0% { opacity: 0; transform: translateY(-18px); }
     60% { opacity: 1; transform: translateY(4px); }
     100% { opacity: 1; transform: translateY(0); }
   }
-  .pcart-card-enter { animation: pcartDrop 0.4s ease-out; }
-  @media (prefers-reduced-motion: reduce) { .pcart-card-enter { animation: none; } }
+  .pcart-tile-enter { animation: pcartDrop 0.4s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .pcart-tile-enter { animation: none; } }
 
-  .pcart-card-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; flex-wrap: wrap; }
-  .pcart-card-chevron { color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s ease; }
-  .pcart-card.pcart-card-expanded .pcart-card-chevron { transform: rotate(90deg); }
-  .pcart-card-title-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; min-width: 160px; }
-  .pcart-card-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
-  .pcart-card-team { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--text-secondary); }
-  .pcart-card-team-input {
-    width: 64px; font-family: inherit; font-size: 0.8rem; font-weight: 600; color: var(--text-primary);
-    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px;
+  .pcart-tile {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center;
+    background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 10px 12px; cursor: pointer;
   }
-  .pcart-card-actions { display: flex; align-items: center; gap: 12px; }
-  .pcart-card-subtotal { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
-  .pcart-card-remove { background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; line-height: 1; padding: 0 4px; }
-  .pcart-card-remove:hover { color: var(--red); }
+  .pcart-tile:hover { border-color: var(--accent); }
+  .pcart-tile.pcart-tile-active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 
-  .pcart-card-mix { display: flex; height: 6px; margin: 0 16px 14px; border-radius: 4px; overflow: hidden; }
+  .pcart-tile-remove {
+    position: absolute; top: 6px; right: 6px; background: none; border: none; color: var(--text-muted);
+    font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 2px;
+  }
+  .pcart-tile-remove:hover { color: var(--red); }
 
-  .pcart-card-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 16px; }
-  .pcart-card.pcart-card-expanded .pcart-card-body { padding-bottom: 16px; }
+  .pcart-tile-name {
+    font-size: 0.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.25; margin: 2px 0 0;
+    min-height: 2em; display: flex; align-items: center; justify-content: center;
+  }
+  .pcart-tile-team { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.66rem; color: var(--text-secondary); }
+  .pcart-tile-team-input {
+    width: 56px; text-align: center; font-family: inherit; font-size: 0.78rem; font-weight: 600; color: var(--text-primary);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px;
+  }
+  .pcart-tile-amount { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 2px 0 0; }
+  .pcart-tile-mix { display: flex; width: 100%; height: 6px; border-radius: 4px; overflow: hidden; margin-top: 2px; }
+
+  .pcart-detail { margin: 0 0 22px; }
+  .pcart-detail-inner {
+    background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--accent); border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .pcart-detail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 0 12px; }
+  .pcart-detail-name { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+  .pcart-detail-amount { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
 
   .pcart-share-bar { display: flex; width: 100%; height: 26px; border-radius: 8px; overflow: hidden; margin: 0 0 4px; }
   .pcart-share-seg { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; }
@@ -926,15 +939,15 @@
   .pcart-tier-tag {
     font-size: 0.6rem; font-weight: 700; color: #fff; border-radius: 4px; padding: 2px 6px; white-space: nowrap;
   }
-  .pcart-tier-tag[data-tier="1"] { background: rgba(79, 91, 213, 0.24); color: var(--text-primary); }
-  .pcart-tier-tag[data-tier="2"] { background: rgba(79, 91, 213, 0.42); }
-  .pcart-tier-tag[data-tier="3"] { background: rgba(79, 91, 213, 0.66); }
-  .pcart-tier-tag[data-tier="4"] { background: rgba(79, 91, 213, 0.92); }
+  .pcart-tier-tag[data-tier="1"] { background: rgba(79, 91, 213, 0.16); color: var(--text-primary); }
+  .pcart-tier-tag[data-tier="2"] { background: rgba(79, 91, 213, 0.42); color: var(--text-primary); }
+  .pcart-tier-tag[data-tier="3"] { background: rgba(79, 91, 213, 0.7); }
+  .pcart-tier-tag[data-tier="4"] { background: var(--accent); }
 
   .pcart-task-subtotal { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 
-  .pcart-card-tokens {
-    font-size: 0.68rem; color: var(--text-muted); margin: 4px 16px 14px; padding-top: 10px; border-top: 1px dashed var(--border);
+  .pcart-detail-tokens {
+    font-size: 0.68rem; color: var(--text-muted); margin: 4px 0 0; padding-top: 10px; border-top: 1px dashed var(--border);
   }
 
   /* model-swap popover */
@@ -3661,7 +3674,7 @@
   var PCART_TEAM = {};              // dept -> team size
   var PCART_SHARES = {};            // dept -> { task: percent }
   var PCART_TASK_MODEL = {};        // dept -> { task: { model, tier, custom } }
-  var PCART_EXPANDED = {};          // dept -> bool, collapsed by default
+  var PCART_EXPANDED_DEPT = null;   // dept key, or null -- only one tile expands at a time
   var PCART_ACTIVE_PACK = "Balanced";
   var PCART_JUST_ADDED = null;
   var PCART_VIEW = "dept";
@@ -3945,7 +3958,7 @@
   }
 
   function pcartToggleExpand(dept) {
-    PCART_EXPANDED[dept] = !PCART_EXPANDED[dept];
+    PCART_EXPANDED_DEPT = PCART_EXPANDED_DEPT === dept ? null : dept;
     renderCartPool();
   }
 
@@ -4008,98 +4021,103 @@
     pcartClosePopover();
   });
 
+  function pcartTileHtml(dept) {
+    var d = PBENCH_DEPARTMENTS[dept];
+    var teamSize = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : d.people;
+    var enterClass = dept === PCART_JUST_ADDED ? " pcart-tile-enter" : "";
+    var activeClass = dept === PCART_EXPANDED_DEPT ? " pcart-tile-active" : "";
+    var mixHtml = pcartTierMixHtml(pcartDeptTierTotals(dept));
+    return '<div class="pcart-tile' + enterClass + activeClass + '" data-dept="' + dept + '">' +
+      '<button type="button" class="pcart-tile-remove" title="Remove">&times;</button>' +
+      '<p class="pcart-tile-name">' + d.label + '</p>' +
+      '<label class="pcart-tile-team">Team Size <input type="number" class="pcart-tile-team-input" min="0" value="' + teamSize + '"></label>' +
+      '<p class="pcart-tile-amount"></p>' +
+      '<div class="pcart-tile-mix">' + mixHtml + '</div>' +
+      '</div>';
+  }
+
+  function pcartDetailHtml(dept) {
+    var d = PBENCH_DEPARTMENTS[dept];
+    var shares = PCART_SHARES[dept];
+    var tasks = Object.keys(shares);
+
+    var barHtml = tasks.map(function (task, i) {
+      var handle = i < tasks.length - 1 ? '<div class="pcart-share-handle" data-boundary="' + i + '"></div>' : "";
+      return '<div class="pcart-share-seg" data-task="' + pcardEscapeXml(task) + '" style="flex:' + shares[task] + ' 0 0;">' + handle + '</div>';
+    }).join("");
+
+    var labelsHtml = tasks.map(function (task) {
+      return '<div class="pcart-share-label" style="flex:' + shares[task] + ' 0 0;">' + pcardEscapeXml(task) + '<b>' + Math.round(shares[task]) + '%</b></div>';
+    }).join("");
+
+    var taskLinesHtml = tasks.map(function (task) {
+      var tm = PCART_TASK_MODEL[dept][task];
+      var base = pbenchBaseName(tm.model);
+      var canUp = tm.tier < 4, canDown = tm.tier > 1;
+      return '<div class="pcart-task-line" data-dept="' + dept + '" data-task="' + pcardEscapeXml(task) + '">' +
+        '<span class="pcart-task-name">' + pcardEscapeXml(task) + '</span>' +
+        '<div class="pcart-task-mid">' +
+        '<div class="pcart-tier-arrows">' +
+        '<button type="button" class="pcart-tier-arrow" data-dir="1"' + (canUp ? "" : " disabled") + ' title="Move up a tier (pricier)">&#9650;</button>' +
+        '<button type="button" class="pcart-tier-arrow" data-dir="-1"' + (canDown ? "" : " disabled") + ' title="Move down a tier (leaner)">&#9660;</button>' +
+        '</div>' +
+        '<button type="button" class="pcart-chip" title="' + pcardEscapeXml(tm.model) + '">' + pcardEscapeXml(base) + '</button>' +
+        '<span class="pcart-tier-tag" data-tier="' + tm.tier + '">Tier ' + tm.tier + (tm.custom ? " ✓" : "") + '</span>' +
+        '</div>' +
+        '<span class="pcart-task-subtotal"></span>' +
+        '</div>';
+    }).join("");
+
+    return '<div class="pcart-detail-inner" data-dept="' + dept + '">' +
+      '<div class="pcart-detail-head"><span class="pcart-detail-name">' + d.label + '</span><span class="pcart-detail-amount"></span></div>' +
+      '<div class="pcart-share-bar">' + barHtml + '</div>' +
+      '<div class="pcart-share-labels">' + labelsHtml + '</div>' +
+      '<div class="pcart-task-lines">' + taskLinesHtml + '</div>' +
+      '<p class="pcart-detail-tokens"></p>' +
+      '</div>';
+  }
+
   function renderCartPool() {
     var poolEl = byId("cart-pool");
     if (!PCART_POOL.length) {
+      PCART_EXPANDED_DEPT = null;
       poolEl.innerHTML = '<p class="pcart-pool-empty">Cart&rsquo;s empty. Tap a department above to start shopping.</p>';
       renderCartAll();
       return;
     }
+    if (PCART_EXPANDED_DEPT && PCART_POOL.indexOf(PCART_EXPANDED_DEPT) === -1) PCART_EXPANDED_DEPT = null;
 
-    poolEl.innerHTML = PCART_POOL.map(function (dept) {
-      var d = PBENCH_DEPARTMENTS[dept];
-      var shares = PCART_SHARES[dept];
-      var tasks = Object.keys(shares);
-      var enterClass = dept === PCART_JUST_ADDED ? " pcart-card-enter" : "";
-      var expandedClass = PCART_EXPANDED[dept] ? " pcart-card-expanded" : "";
-      var teamSize = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : d.people;
-
-      var barHtml = tasks.map(function (task, i) {
-        var handle = i < tasks.length - 1 ? '<div class="pcart-share-handle" data-boundary="' + i + '"></div>' : "";
-        return '<div class="pcart-share-seg" data-task="' + pcardEscapeXml(task) + '" style="flex:' + shares[task] + ' 0 0;">' + handle + '</div>';
-      }).join("");
-
-      var labelsHtml = tasks.map(function (task) {
-        return '<div class="pcart-share-label" style="flex:' + shares[task] + ' 0 0;">' + pcardEscapeXml(task) + '<b>' + Math.round(shares[task]) + '%</b></div>';
-      }).join("");
-
-      var taskLinesHtml = tasks.map(function (task) {
-        var tm = PCART_TASK_MODEL[dept][task];
-        var base = pbenchBaseName(tm.model);
-        var canUp = tm.tier < 4, canDown = tm.tier > 1;
-        return '<div class="pcart-task-line" data-dept="' + dept + '" data-task="' + pcardEscapeXml(task) + '">' +
-          '<span class="pcart-task-name">' + pcardEscapeXml(task) + '</span>' +
-          '<div class="pcart-task-mid">' +
-          '<div class="pcart-tier-arrows">' +
-          '<button type="button" class="pcart-tier-arrow" data-dir="1"' + (canUp ? "" : " disabled") + ' title="Move up a tier (pricier)">&#9650;</button>' +
-          '<button type="button" class="pcart-tier-arrow" data-dir="-1"' + (canDown ? "" : " disabled") + ' title="Move down a tier (leaner)">&#9660;</button>' +
-          '</div>' +
-          '<button type="button" class="pcart-chip" title="' + pcardEscapeXml(tm.model) + '">' + pcardEscapeXml(base) + '</button>' +
-          '<span class="pcart-tier-tag" data-tier="' + tm.tier + '">Tier ' + tm.tier + (tm.custom ? " ✓" : "") + '</span>' +
-          '</div>' +
-          '<span class="pcart-task-subtotal"></span>' +
-          '</div>';
-      }).join("");
-
-      var mixHtml = pcartTierMixHtml(pcartDeptTierTotals(dept));
-
-      return '<div class="pcart-card' + enterClass + expandedClass + '" data-dept="' + dept + '">' +
-        '<div class="pcart-card-head">' +
-        '<svg class="pcart-card-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-        '<div class="pcart-card-title-wrap">' +
-        '<span class="pcart-card-name">' + d.label + '</span>' +
-        '<span class="pcart-card-team">Team Size <input type="number" class="pcart-card-team-input" min="0" value="' + teamSize + '"></span>' +
-        '</div>' +
-        '<div class="pcart-card-actions">' +
-        '<span class="pcart-card-subtotal"></span>' +
-        '<button type="button" class="pcart-card-remove" title="Remove">&times;</button>' +
-        '</div>' +
-        '</div>' +
-        '<div class="pcart-card-mix">' + mixHtml + '</div>' +
-        '<div class="pcart-card-body">' +
-        '<div class="pcart-share-bar">' + barHtml + '</div>' +
-        '<div class="pcart-share-labels">' + labelsHtml + '</div>' +
-        '<div class="pcart-task-lines">' + taskLinesHtml + '</div>' +
-        '<p class="pcart-card-tokens" id="pcart-card-tokens-' + dept + '"></p>' +
-        '</div>' +
-        '</div>';
-    }).join("");
+    var tilesHtml = PCART_POOL.map(pcartTileHtml).join("");
+    var detailHtml = PCART_EXPANDED_DEPT ? pcartDetailHtml(PCART_EXPANDED_DEPT) : "";
+    poolEl.innerHTML =
+      '<div class="pcart-tiles" id="cart-tiles">' + tilesHtml + '</div>' +
+      '<div class="pcart-detail" id="cart-detail">' + detailHtml + '</div>';
 
     PCART_JUST_ADDED = null;
 
-    Array.prototype.forEach.call(document.querySelectorAll(".pcart-card"), function (cardEl) {
-      var dept = cardEl.getAttribute("data-dept");
-
-      cardEl.querySelector(".pcart-card-head").addEventListener("click", function (e) {
-        if (e.target.closest(".pcart-card-team-input") || e.target.closest(".pcart-card-remove")) return;
+    Array.prototype.forEach.call(document.querySelectorAll(".pcart-tile"), function (tileEl) {
+      var dept = tileEl.getAttribute("data-dept");
+      tileEl.addEventListener("click", function (e) {
+        if (e.target.closest(".pcart-tile-team-input") || e.target.closest(".pcart-tile-remove")) return;
         pcartToggleExpand(dept);
       });
-      cardEl.querySelector(".pcart-card-remove").addEventListener("click", function (e) {
+      tileEl.querySelector(".pcart-tile-remove").addEventListener("click", function (e) {
         e.stopPropagation();
         pcartToggleDept(dept);
       });
-      cardEl.querySelector(".pcart-card-team-input").addEventListener("input", function (e) {
+      tileEl.querySelector(".pcart-tile-team-input").addEventListener("input", function (e) {
         PCART_TEAM[dept] = parseFloat(e.target.value) || 0;
         renderCartAll();
       });
-      cardEl.querySelector(".pcart-card-team-input").addEventListener("click", function (e) { e.stopPropagation(); });
+      tileEl.querySelector(".pcart-tile-team-input").addEventListener("click", function (e) { e.stopPropagation(); });
+    });
 
-      var bodyEl = cardEl.querySelector(".pcart-card-body");
-      bodyEl.style.maxHeight = cardEl.classList.contains("pcart-card-expanded") ? bodyEl.scrollHeight + "px" : "0px";
+    var detailEl = byId("cart-detail").querySelector(".pcart-detail-inner");
+    if (detailEl) {
+      var dept = detailEl.getAttribute("data-dept");
+      pcartInitShareDrag(detailEl, dept);
 
-      pcartInitShareDrag(cardEl, dept);
-
-      Array.prototype.forEach.call(cardEl.querySelectorAll(".pcart-task-line"), function (lineEl) {
+      Array.prototype.forEach.call(detailEl.querySelectorAll(".pcart-task-line"), function (lineEl) {
         var task = lineEl.getAttribute("data-task");
 
         lineEl.querySelector(".pcart-chip").addEventListener("click", function (e) {
@@ -4114,7 +4132,7 @@
           });
         });
       });
-    });
+    }
 
     renderCartAll();
   }
@@ -4216,11 +4234,14 @@
         if (lineEl) pcardAnimateBillAmount(lineEl.querySelector(".pcart-task-subtotal"), calc.cost);
       });
       deptTotals[dept] = { cost: deptCost, tokens: deptTokens };
-      var cardEl = document.querySelector('.pcart-card[data-dept="' + dept + '"]');
-      if (cardEl) {
-        pcardAnimateBillAmount(cardEl.querySelector(".pcart-card-subtotal"), deptCost);
-        var tokensEl = byId("pcart-card-tokens-" + dept);
-        if (tokensEl) tokensEl.textContent = pcartFmtTokensBig(deptTokens) + " tokens this period";
+      var tileEl = document.querySelector('.pcart-tile[data-dept="' + dept + '"]');
+      if (tileEl) pcardAnimateBillAmount(tileEl.querySelector(".pcart-tile-amount"), deptCost);
+      if (dept === PCART_EXPANDED_DEPT) {
+        var detailEl = document.querySelector('.pcart-detail-inner[data-dept="' + dept + '"]');
+        if (detailEl) {
+          pcardAnimateBillAmount(detailEl.querySelector(".pcart-detail-amount"), deptCost);
+          detailEl.querySelector(".pcart-detail-tokens").textContent = pcartFmtTokensBig(deptTokens) + " tokens this period";
+        }
       }
     });
 
