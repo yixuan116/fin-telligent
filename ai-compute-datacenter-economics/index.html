@@ -582,6 +582,7 @@
 
   .pbench-bridge { text-align: center; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 28px 0 4px; }
 
+  .pbench-matrix-intro { font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 10px; line-height: 1.5; }
   .pbench-matrix-legend { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 14px; }
 
   .pbench-matrix-scroll { overflow-x: auto; margin: 0 0 4px; }
@@ -599,8 +600,10 @@
   .pbench-matrix-rowhead {
     position: sticky; left: 0; background: var(--card-bg); z-index: 1;
     font-size: 0.76rem; font-weight: 600; color: var(--text-primary);
-    display: flex; align-items: center; padding: 8px 10px; border-radius: var(--radius);
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+    padding: 8px 10px; border-radius: var(--radius);
   }
+  .pbench-matrix-tag { display: block; font-size: 0.62rem; font-weight: 400; color: var(--text-muted); margin-top: 2px; }
   .pbench-matrix-cell {
     background: var(--bg); border-radius: var(--radius);
     display: flex; align-items: center; justify-content: center;
@@ -1199,6 +1202,7 @@
 
             <p class="pbench-bridge">&#129513; No all round champion. Each department picks what it needs.</p>
 
+            <p class="pbench-matrix-intro" id="pbench-matrix-intro">&#127970; Meet our 100-person company. The cart will use these numbers later.</p>
             <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 4px;">&#127970; Every department needs a different mix.</h3>
             <p class="pbench-matrix-legend">&#9733;&#9733;&#9733; core &#9733;&#9733;&#9734; important &#9733;&#9734;&#9734; helpful</p>
 
@@ -1211,42 +1215,42 @@
                 <div class="pbench-matrix-colhead">&#128172; Dialogue</div>
                 <div class="pbench-matrix-colhead">&#129513; Reasoning</div>
 
-    <div class="pbench-matrix-rowhead">&#129518; Finance / FP&amp;A</div>
+    <div class="pbench-matrix-rowhead">&#129518; Finance / FP&amp;A<span class="pbench-matrix-tag" data-dept="finance"></span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
 
-    <div class="pbench-matrix-rowhead">&#128736;&#65039; Engineering</div>
+    <div class="pbench-matrix-rowhead">&#128736;&#65039; Engineering<span class="pbench-matrix-tag" data-dept="engineering"></span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
 
-    <div class="pbench-matrix-rowhead">&#128202; Data &amp; Analytics</div>
+    <div class="pbench-matrix-rowhead">&#128202; Data &amp; Analytics<span class="pbench-matrix-tag" data-dept="rd"></span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
 
-    <div class="pbench-matrix-rowhead">&#9878;&#65039; Legal &amp; Compliance</div>
+    <div class="pbench-matrix-rowhead">&#9878;&#65039; Legal &amp; Compliance<span class="pbench-matrix-tag" data-dept="legal"></span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
 
-    <div class="pbench-matrix-rowhead">&#127911; Customer Support</div>
+    <div class="pbench-matrix-rowhead">&#127911; Customer Support<span class="pbench-matrix-tag" data-dept="customer"></span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
     <div class="pbench-matrix-cell"></div>
 
-    <div class="pbench-matrix-rowhead">&#128227; Marketing &amp; Sales</div>
+    <div class="pbench-matrix-rowhead">&#128227; Marketing &amp; Sales<span class="pbench-matrix-tag" data-dept="customer"></span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
@@ -2653,6 +2657,30 @@
     return names;
   }
 
+  // Shared across the department matrix (below) and the future Card 3
+  // Cart -- one source of truth for team size and default task per
+  // department, so both places always agree.
+  var PBENCH_DEPARTMENTS = {
+    finance: { label: "Finance", people: 15, task: "Hybrid" },
+    engineering: { label: "Engineering / IT", people: 35, task: "Coding" },
+    rd: { label: "R&D / Strategy", people: 15, task: "Document Analysis" },
+    legal: { label: "Legal / Compliance / HR", people: 10, task: "Document Analysis" },
+    customer: { label: "Customer Service / Sales", people: 25, task: "Q&A" }
+  };
+
+  function renderMatrixTags() {
+    var total = 0;
+    Object.keys(PBENCH_DEPARTMENTS).forEach(function (key) { total += PBENCH_DEPARTMENTS[key].people; });
+    var introEl = byId("pbench-matrix-intro");
+    if (introEl) introEl.innerHTML = "&#127970; Meet our " + total + "-person company. The cart will use these numbers later.";
+
+    Array.prototype.forEach.call(document.querySelectorAll(".pbench-matrix-tag"), function (el) {
+      var dept = PBENCH_DEPARTMENTS[el.getAttribute("data-dept")];
+      if (!dept) return;
+      el.textContent = dept.label + " \u00b7 " + dept.people + " people \u00b7 " + dept.task;
+    });
+  }
+
   function renderPerfBenchmark() {
     var laneResults = {};
     PBENCH_LANES.forEach(function (lane) {
@@ -3782,6 +3810,7 @@
     initCollapsible("toggle-price-cost", "body-price-cost");
     renderSection1();
     renderPerfBenchmark();
+    renderMatrixTags();
     renderPriceCost();
     initCharts();
     bindControls();
