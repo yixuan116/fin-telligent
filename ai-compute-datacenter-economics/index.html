@@ -504,6 +504,17 @@
   .expand-all-row { display: flex; justify-content: flex-end; margin: 0 0 12px; }
   .raw-preview-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
   .raw-toggle-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.92rem; font-weight: 700; }
+
+  /* deep-dive blocks between the pricing_history and performance_benchmarks rows */
+  .deepdive-toggle {
+    display: block; width: 100%; text-align: left; font-family: inherit;
+    font-size: 0.78rem; font-weight: 600; color: var(--accent);
+    background: none; border: none; padding: 10px 2px; cursor: pointer;
+  }
+  .deepdive-toggle:hover { text-decoration: underline; }
+  /* minmax(0, 1fr) mirrors .card-grid.cols-1 -- an auto column would refuse to
+     shrink below its content and let the wide tables overflow on mobile */
+  .deepdive-inner { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 14px; }
   .expand-all-btn {
     font-family: inherit; font-size: 0.78rem; font-weight: 700; color: var(--accent);
     background: var(--accent-soft); border: 1px solid transparent; border-radius: 999px; padding: 8px 16px; cursor: pointer;
@@ -3130,8 +3141,33 @@
         '<div id="raw-table-' + i + '" style="margin-top:10px;"></div></div>';
     });
 
-    // benchmark story goes directly above the performance_benchmarks.csv card (index 2)
-    grid.innerHTML = cardHtml[0] + cardHtml[1] + benchmarkStoryHtml() + priceStoryHtml() + cardHtml[2] + cardHtml[3];
+    // The two deep-dive blocks sitting between the pricing_history row and the
+    // performance_benchmarks row collapse together behind one thin toggle.
+    // Wrapped in a single element so the grid treats them as one item -- as
+    // separate items the 20px grid gap would still show while collapsed.
+    var deepDiveHtml = '<div class="deepdive-wrap">' +
+      '<button type="button" class="deepdive-toggle" id="toggle-deepdive" aria-expanded="false" aria-controls="deepdive-body">' +
+      'Show benchmark &amp; price deep dives &#9656;</button>' +
+      '<div class="collapsible-body" id="deepdive-body">' +
+      '<div class="deepdive-inner">' + benchmarkStoryHtml() + priceStoryHtml() + '</div>' +
+      '</div></div>';
+
+    grid.innerHTML = cardHtml[0] + cardHtml[1] + deepDiveHtml + cardHtml[2] + cardHtml[3];
+
+    initCollapsible("toggle-deepdive", "deepdive-body");
+    var deepDiveToggle = byId("toggle-deepdive");
+    deepDiveToggle.addEventListener("click", function () {
+      var open = deepDiveToggle.getAttribute("aria-expanded") === "true";
+      deepDiveToggle.innerHTML = open
+        ? "Hide benchmark &amp; price deep dives &#9662;"
+        : "Show benchmark &amp; price deep dives &#9656;";
+      if (!open) return;
+      setTimeout(function () {
+        [modelGrowthChart, priceScatterChart, ratioBarChart, ratioTrendChart].forEach(function (c) {
+          if (c && c.resize) c.resize();
+        });
+      }, 360);
+    });
 
     [1, 2].forEach(function (i) {
       var toggle = byId("toggle-raw-" + i);
