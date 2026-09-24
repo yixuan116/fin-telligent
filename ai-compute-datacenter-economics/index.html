@@ -569,14 +569,6 @@
   .sql-cmt { color: #6b7089; font-style: italic; }
   .sql-str { color: #9ece6a; }
 
-  .file-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-  .file-links a {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none;
-    background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; color: var(--text-primary);
-  }
-  .file-links a:hover { border-color: var(--accent); color: var(--accent); }
-  .file-links .kaggle-note { font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; padding: 7px 4px; }
-
   /* ============ Performance Benchmark (5-lane leaderboard) ============ */
 
   .pbench-subline { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 8px; }
@@ -1531,13 +1523,7 @@
             <p class="section-sub" style="margin-bottom:12px;">520 rows &times; 22 columns. Every interactive section below is powered by this table.</p>
             <div id="golden-preview-table"></div>
 
-            <h3 class="section-title" style="font-size:1.05rem; margin:30px 0 8px;">Source Files</h3>
-            <div class="file-links">
-              <a href="models.csv" download>&#128193; models.csv</a>
-              <a href="pricing_history.csv" download>&#128193; pricing_history.csv</a>
-              <a href="performance_benchmarks.csv" download>&#128193; performance_benchmarks.csv</a>
-              <span class="kaggle-note">Source dataset: LLM API Pricing and Performance Benchmark Tracker (Kaggle)</span>
-            </div>
+            <p class="table-note" style="margin-top:22px;">Source: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a>, via <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">Kaggle</a> (LLM API Pricing and Performance Benchmark Tracker)</p>
 
           </div>
         </div>
