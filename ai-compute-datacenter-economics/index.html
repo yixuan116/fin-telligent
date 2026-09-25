@@ -1648,42 +1648,37 @@
                 <div class="pbench-matrix-colhead">&#128172; Dialogue</div>
                 <div class="pbench-matrix-colhead">&#129513; Reasoning</div>
 
-    <div class="pbench-matrix-rowhead">&#129518; Finance / FP&amp;A<span class="pbench-matrix-tag" data-dept="finance"></span></div>
+    <!-- Row heads are filled by renderMatrixRows() from PBENCH_DEPARTMENTS;
+         only the star ratings live in the markup. -->
+    <div class="pbench-matrix-rowhead" data-dept="finance"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
 
-    <div class="pbench-matrix-rowhead">&#128736;&#65039; Engineering<span class="pbench-matrix-tag" data-dept="engineering"></span></div>
+    <div class="pbench-matrix-rowhead" data-dept="engineering"></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
 
-    <div class="pbench-matrix-rowhead">&#128202; Data &amp; Analytics<span class="pbench-matrix-tag" data-dept="rd"></span></div>
+    <div class="pbench-matrix-rowhead" data-dept="rd"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
 
-    <div class="pbench-matrix-rowhead">&#9878;&#65039; Legal &amp; Compliance<span class="pbench-matrix-tag" data-dept="legal"></span></div>
+    <div class="pbench-matrix-rowhead" data-dept="legal"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
 
-    <div class="pbench-matrix-rowhead">&#127911; Customer Support<span class="pbench-matrix-tag" data-dept="customer"></span></div>
-    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;</span><span class="pbench-star-empty">&#9734;&#9734;</span></div>
-    <div class="pbench-matrix-cell"></div>
-    <div class="pbench-matrix-cell"></div>
-    <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;&#9733;</span></div>
-    <div class="pbench-matrix-cell"></div>
-
-    <div class="pbench-matrix-rowhead">&#128227; Marketing &amp; Sales<span class="pbench-matrix-tag" data-dept="customer"></span></div>
+    <div class="pbench-matrix-rowhead" data-dept="customer"></div>
     <div class="pbench-matrix-cell"><span class="pbench-star-fill">&#9733;&#9733;</span><span class="pbench-star-empty">&#9734;</span></div>
     <div class="pbench-matrix-cell"></div>
     <div class="pbench-matrix-cell"></div>
@@ -3396,27 +3391,37 @@
     return names;
   }
 
-  // Shared across the department matrix (below) and the future Card 3
-  // Cart -- one source of truth for team size and default task per
-  // department, so both places always agree.
+  // THE department definition for the whole page. Name, emoji, team size
+  // and default task all live here; the matrix, the Cart bubbles, the Cart
+  // tiles, the sticky bar and the Receipt all read from it, so a rename or
+  // a resize happens in exactly one place.
   var PBENCH_DEPARTMENTS = {
-    finance: { label: "Finance", people: 15, task: "Hybrid" },
-    engineering: { label: "Engineering / IT", people: 35, task: "Coding" },
-    rd: { label: "R&D / Strategy", people: 15, task: "Document Analysis" },
-    legal: { label: "Legal / Compliance / HR", people: 10, task: "Document Analysis" },
-    customer: { label: "Customer Service / Sales", people: 25, task: "Q&A" }
+    finance: { emoji: "\ud83e\uddee", label: "Finance", people: 15, task: "Hybrid" },
+    engineering: { emoji: "\ud83d\udee0\ufe0f", label: "Engineering / IT", people: 35, task: "Coding" },
+    rd: { emoji: "\ud83d\udcca", label: "R&D / Strategy", people: 15, task: "Document Analysis" },
+    legal: { emoji: "\u2696\ufe0f", label: "Legal / Compliance / HR", people: 10, task: "Document Analysis" },
+    customer: { emoji: "\ud83c\udfa7", label: "Customer Service / Sales", people: 25, task: "Q&A" }
   };
 
-  function renderMatrixTags() {
+  // Canonical order, used everywhere a department list is rendered.
+  var PBENCH_DEPT_ORDER = ["finance", "engineering", "rd", "legal", "customer"];
+
+  function renderMatrixRows() {
     var total = 0;
-    Object.keys(PBENCH_DEPARTMENTS).forEach(function (key) { total += PBENCH_DEPARTMENTS[key].people; });
+    PBENCH_DEPT_ORDER.forEach(function (key) { total += PBENCH_DEPARTMENTS[key].people; });
     var introEl = byId("pbench-matrix-intro");
     if (introEl) introEl.innerHTML = "&#127970; Meet our " + total + "-person company. The cart will use these numbers later.";
 
-    Array.prototype.forEach.call(document.querySelectorAll(".pbench-matrix-tag"), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll(".pbench-matrix-rowhead"), function (el) {
       var dept = PBENCH_DEPARTMENTS[el.getAttribute("data-dept")];
       if (!dept) return;
-      el.textContent = dept.label + " \u00b7 " + dept.people + " people \u00b7 " + dept.task;
+      // The row head carries the name; the tag underneath carries only the
+      // headcount and default task, so the name is never written twice.
+      el.textContent = dept.emoji + " " + dept.label;
+      var tag = document.createElement("span");
+      tag.className = "pbench-matrix-tag";
+      tag.textContent = dept.people + " people \u00b7 " + dept.task;
+      el.appendChild(tag);
     });
   }
 
@@ -4116,6 +4121,11 @@
     var idx = PCART_POOL.indexOf(dept);
     if (idx === -1) {
       PCART_POOL.push(dept);
+      // Keep the cart in canonical department order rather than click order,
+      // so tiles and receipt lines match the matrix and the bubbles.
+      PCART_POOL.sort(function (a, b) {
+        return PBENCH_DEPT_ORDER.indexOf(a) - PBENCH_DEPT_ORDER.indexOf(b);
+      });
       PCART_JUST_ADDED = dept;
       if (!PCART_SHARES[dept]) PCART_SHARES[dept] = pcartCopyObj(PCART_DEFAULT_SHARES[dept]);
       pcartAssignRoutedModels(dept, PCART_ACTIVE_PACK);
@@ -4128,7 +4138,7 @@
   }
 
   function renderCartBubbles() {
-    byId("cart-bubbles").innerHTML = Object.keys(PBENCH_DEPARTMENTS).map(function (dept) {
+    byId("cart-bubbles").innerHTML = PBENCH_DEPT_ORDER.map(function (dept) {
       var active = PCART_POOL.indexOf(dept) !== -1 ? " pcart-bubble-active" : "";
       return '<button type="button" class="pcart-bubble' + active + '" data-dept="' + dept + '">' +
         PBENCH_DEPARTMENTS[dept].label + '</button>';
@@ -4462,7 +4472,7 @@
 
   function pcartRescaleTeamsFromCompanySize() {
     var companySize = +byId("cart-company-size").value || 100;
-    Object.keys(PBENCH_DEPARTMENTS).forEach(function (dept) {
+    PBENCH_DEPT_ORDER.forEach(function (dept) {
       PCART_TEAM[dept] = Math.round(PBENCH_DEPARTMENTS[dept].people / 100 * companySize);
     });
   }
@@ -5554,7 +5564,7 @@
     renderSection1();
     initExpandAllGroup("expand-all-raw", ["toggle-raw-1", "toggle-raw-2"]);
     renderPerfBenchmark();
-    renderMatrixTags();
+    renderMatrixRows();
     renderPriceCost();
     initCharts();
     bindControls();
