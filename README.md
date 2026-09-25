@@ -15,6 +15,7 @@ fin-telligent = finance + intelligent. A series on bringing AI into financial an
 
 - ai-compute-datacenter-economics:
   - link: https://yixuan116.github.io/fin-telligent/ai-compute-datacenter-economics/
+  - Demo video: https://www.youtube.com/watch?v=stwmqfuhAsA
 
 - retail-expansion-analytics:
   - link: https://yixuan116.github.io/fin-telligent/retail-expansion-analytics/

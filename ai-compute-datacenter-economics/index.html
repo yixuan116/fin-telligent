@@ -23,7 +23,8 @@
      ============================================================ */
   window.CLOSING_LINKS = {
     github: "https://github.com/yixuan116/fin-telligent",
-    linkedin: "https://www.linkedin.com/in/yixuan-jing-0b770b30?fromQR=1"
+    linkedin: "https://www.linkedin.com/in/yixuan-jing-0b770b30?fromQR=1",
+    demo: "https://www.youtube.com/watch?v=stwmqfuhAsA"
   };
 </script>
 <style>
@@ -1375,6 +1376,8 @@
     gap: 10px; text-align: center;
   }
   .footer-social .gh-link { flex: none; }
+  /* the two links sit side by side, and drop to a column on a narrow screen */
+  .closing-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; flex: none; }
 
   .gh-link {
     display: inline-flex;
@@ -2316,10 +2319,16 @@
   </footer>
 
   <div class="footer-social">
-    <a class="gh-link" id="closing-gh-link" href="#" target="_blank" rel="noopener noreferrer">
-      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-      <span id="closing-gh-label">github.com/yixuan116/fin-telligent</span>
-    </a>
+    <div class="closing-links">
+      <a class="gh-link" id="closing-gh-link" href="#" target="_blank" rel="noopener noreferrer">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        <span id="closing-gh-label">github.com/yixuan116/fin-telligent</span>
+      </a>
+      <a class="gh-link" id="closing-demo-link" href="#" target="_blank" rel="noopener noreferrer">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 14.5A6.5 6.5 0 118 1.5a6.5 6.5 0 010 13zM6.4 4.6v6.8L11.8 8 6.4 4.6z"></path></svg>
+        <span>Demo video</span>
+      </a>
+    </div>
     <img src="../price-volume-mix-waterfall/Pictures/Linkedin.JPG" alt="Yixuan Jing's LinkedIn card with QR code -- click to enlarge for scanning" class="qr-image" id="qr-thumb" role="button" tabindex="0">
     <p class="qr-open-hint">Click to enlarge</p>
   </div>
@@ -6355,6 +6364,13 @@
 
     byId("closing-gh-link").href = ghUrl;
     byId("closing-gh-label").textContent = strip(ghUrl);
+
+    // Link only -- no player, no QR. A demo belongs on YouTube, not embedded
+    // into a page that already runs its own interactive version.
+    var demoUrl = links.demo;
+    var demoEl = byId("closing-demo-link");
+    if (demoUrl) demoEl.href = demoUrl;
+    else demoEl.style.display = "none";
 
     var overlay = byId("qr-overlay");
     byId("qr-overlay-short").textContent = strip(liUrl);
