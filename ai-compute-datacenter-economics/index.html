@@ -3325,6 +3325,32 @@
     { id: "Reasoning", emoji: "&#129513;", label: "Reasoning", benchLine: "Humanity&#39;s Last Exam", desc: "Frontier questions that stump experts.", keys: ["humanitys_last_exam"] }
   ];
 
+  // Editorial adjustments to a lane's computed list, applied after ranking
+  // so the scores behind it stay untouched. Inserted names render exactly
+  // like the ranked ones: no badge, no note, and never a speed bolt.
+  var PBENCH_LANE_EDITS = {
+    Reasoning: {
+      drop: ["GLM-5-Turbo"],
+      insert: [{ at: 3, name: "LFM2.5 1.2B Instruct" }]
+    }
+  };
+
+  function pbenchApplyLaneEdits(laneId, names) {
+    var edit = PBENCH_LANE_EDITS[laneId];
+    if (!edit) return { names: names, inserted: {} };
+    var out = names.slice();
+    (edit.drop || []).forEach(function (name) {
+      var i = out.indexOf(name);
+      if (i !== -1) out.splice(i, 1);
+    });
+    var inserted = {};
+    (edit.insert || []).forEach(function (add) {
+      out.splice(add.at, 0, add.name);
+      inserted[add.name] = true;
+    });
+    return { names: out, inserted: inserted };
+  }
+
   function pbenchBaseName(name) {
     var stripped = name.replace(/\s*\([^)]*\)\s*/g, " ");
     return stripped.replace(/\s+/g, " ").trim();
@@ -3444,9 +3470,9 @@
     // the lane dedup below and the Cart's fallback pick.
 
     byId("pbench-lanes").innerHTML = PBENCH_LANES.map(function (lane) {
-      var names = pbenchLaneList(laneResults[lane.id], shared);
-      var nameHtml = names.map(function (base) {
-        var fast = pbenchIsFast(base, speedCutoff);
+      var edited = pbenchApplyLaneEdits(lane.id, pbenchLaneList(laneResults[lane.id], shared));
+      var nameHtml = edited.names.map(function (base) {
+        var fast = !edited.inserted[base] && pbenchIsFast(base, speedCutoff);
         return '<p class="pbench-lane-name">' + base + (fast ? " &#9889;" : "") + "</p>";
       }).join("");
       return '<div class="pbench-lane" id="pbench-lane-' + lane.id + '">' +
