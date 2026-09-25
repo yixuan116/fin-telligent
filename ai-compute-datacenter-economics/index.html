@@ -509,6 +509,37 @@
   }
   .collapsible-body-inner { padding-top: 20px; }
 
+  /* ============ token usage (above the Cart) ============ */
+  .ptok-block { margin: 30px 0 0; }
+  .ptok-formula {
+    font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.3;
+    text-align: center; color: var(--text-primary); margin: 0 0 18px;
+  }
+  .ptok-em { color: var(--accent); }
+  /* the table scrolls inside its own box rather than widening the page */
+  .ptok-table-scroll { overflow-x: auto; }
+  .ptok-table {
+    width: 100%; min-width: 520px; border-collapse: collapse;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .ptok-table th, .ptok-table td {
+    text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.86rem; color: var(--text-secondary);
+  }
+  .ptok-table th {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--text-muted); white-space: nowrap;
+  }
+  .ptok-table tr:last-child td { border-bottom: none; }
+  .ptok-table td:first-child { font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+  .ptok-table td:nth-child(2) { font-family: var(--mono); font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .ptok-note { font-size: 0.76rem; color: var(--text-muted); margin: 10px 0 0; }
+
+  @media (max-width: 760px) {
+    .ptok-formula { font-size: 1.15rem; }
+    .ptok-table th, .ptok-table td { padding: 8px 10px; font-size: 0.78rem; }
+  }
+
   /* appendix wrapper -- deliberately lighter than a section card: one line
      tall, smaller type, grey, no shadow, so it reads as secondary */
   .appendix-toggle {
@@ -1811,6 +1842,28 @@
             <p class="pcard-footer" id="pcard2-footer"></p>
             <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
 
+            </div>
+
+            <div class="ptok-block">
+              <p class="ptok-formula">Total Model Cost = <span class="ptok-em">Price</span> &times; <span class="ptok-em">Tokens</span></p>
+              <button type="button" class="collapsible-toggle" id="toggle-token-usage" aria-expanded="false" aria-controls="body-token-usage">
+                <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="ct-title">How many tokens we spend?</span>
+              </button>
+              <div class="collapsible-body" id="body-token-usage">
+                <div class="collapsible-body-inner">
+                  <div class="ptok-table-scroll">
+                    <table class="ptok-table">
+                      <thead>
+                        <tr><th>Task</th><th>Tokens per Person per Day</th><th>How It Adds Up</th></tr>
+                      </thead>
+                      <!-- filled by renderTokenUsage() from PCARD_TASK_PRESETS -->
+                      <tbody id="ptok-table-body"></tbody>
+                    </table>
+                  </div>
+                  <p class="ptok-note">Daily usage is an assumption by task type, adjustable.</p>
+                </div>
+              </div>
             </div>
 
             <h3 class="section-title" id="cart-anchor" style="font-size:1.05rem; margin:30px 0 6px;">&#128722; Cart</h3>
@@ -3946,6 +3999,39 @@
     "Hybrid": { dailyTokens: 100000, ioRatio: 3 }
   };
 
+  // The table above the Cart, in the order the Cart lists its tasks. Each
+  // row's count is divided out of PCARD_TASK_PRESETS at render time rather
+  // than written down, so the arithmetic can't drift from the constant that
+  // actually drives the bill. A row with no `unit` just states its shape.
+  var PCARD_TASK_BREAKDOWN = [
+    { task: "Q&A", unit: 1000, noun: "questions" },
+    { task: "Document Analysis", unit: 30000, noun: "documents" },
+    { task: "Modeling / Analytics", unit: 25000, noun: "rounds" },
+    { task: "Coding", text: "Agent loops re-reading the codebase" },
+    { task: "Hybrid", text: "A mix of the above" }
+  ];
+
+  function pcardTokensShort(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1e3) return Math.round(n / 1e3) + "K";
+    return String(n);
+  }
+
+  function renderTokenUsage() {
+    var body = byId("ptok-table-body");
+    if (!body) return;
+    body.innerHTML = PCARD_TASK_BREAKDOWN.map(function (row) {
+      var daily = PCARD_TASK_PRESETS[row.task].dailyTokens;
+      var how = row.text;
+      if (!how) {
+        how = "~" + Math.round(daily / row.unit) + " " + row.noun +
+          " × ~" + pcardTokensShort(row.unit) + " each";
+      }
+      return "<tr><td>" + pcardEscapeXml(row.task) + "</td><td>" + pcardTokensShort(daily) +
+        "</td><td>" + pcardEscapeXml(how) + "</td></tr>";
+    }).join("");
+  }
+
   var PCARD_CART_TASK_LANES = {
     "Coding": ["Coding"],
     "Document Analysis": ["Knowledge", "Reasoning"],
@@ -4626,6 +4712,7 @@
   }
 
   function renderCartCard() {
+    renderTokenUsage();
     renderCartBubbles();
     renderCartPacks();
     renderCartViewToggle();
@@ -5574,6 +5661,7 @@
     initCollapsible("toggle-audit", "body-audit");
     initCollapsible("toggle-perf-benchmark", "body-perf-benchmark");
     initCollapsible("toggle-price-cost", "body-price-cost");
+    initCollapsible("toggle-token-usage", "body-token-usage");
     initCollapsible("toggle-receipt", "body-receipt");
     initCollapsible("toggle-appendix", "body-appendix");
     // Charts inside were sized while the appendix was shut; re-measure on open
