@@ -547,6 +547,8 @@
     background: var(--accent); color: #fff; border: none; border-radius: 999px;
     padding: 9px 22px; font-size: 0.84rem; font-weight: 700; font-family: var(--font); cursor: pointer;
   }
+  .ncart-refresh-row { display: flex; align-items: center; gap: 10px; }
+  .ncart-option { font-size: 0.74rem; font-weight: 700; color: var(--text-muted); }
   .ncart-refresh:hover { background: var(--accent-hover); }
   .ncart-refresh[disabled] { opacity: 0.55; cursor: default; }
 
@@ -1997,7 +1999,10 @@
 
               <div class="ncart-stage" id="ncart-stage">
                 <!-- shelf.png / shelf.mp4 are injected above the button only if both files exist -->
-                <button type="button" class="ncart-refresh" id="ncart-refresh">Refresh</button>
+                <div class="ncart-refresh-row">
+                  <button type="button" class="ncart-refresh" id="ncart-refresh">Refresh</button>
+                  <span class="ncart-option" id="ncart-option"></span>
+                </div>
               </div>
 
               <div class="ncart-tags" id="ncart-tags"></div>
@@ -2017,7 +2022,7 @@
 
               <p class="ncart-nimble">&#128269; Checked by Nimble: Search finds the latest models, Extract reads today&#39;s prices.</p>
               <p class="pcard-footer ncart-foot">Data: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener noreferrer">Artificial Analysis leaderboard</a> &middot; scraped by <a href="https://github.com/yixuan116/fin-telligent/blob/main/scripts/nimble-price-check.ts" target="_blank" rel="noopener noreferrer">scripts/nimble-price-check.ts</a> &middot; <a href="https://github.com/yixuan116/fin-telligent/blob/main/data/nimble_latest_2026-09-25.csv" target="_blank" rel="noopener noreferrer">nimble_latest_2026-09-25.csv</a></p>
-              <p class="pcard-footer ncart-foot">New picks ranked by Artificial Analysis Intelligence Index.</p>
+              <p class="pcard-footer ncart-foot">New picks ranked by Artificial Analysis Intelligence Index; Q&amp;A ranked by response speed.</p>
             </div>
 
           </div>
@@ -5012,7 +5017,8 @@
   // in the pull is reference data, never a replacement.
   var NEWCART_MAINSTREAM = {
     "OpenAI": true, "Anthropic": true, "Google": true, "Meta": true,
-    "Mistral": true, "DeepSeek": true, "Alibaba": true, "SpaceXAI": true
+    "Mistral": true, "DeepSeek": true, "Alibaba": true, "SpaceXAI": true,
+    "Liquid AI": true
   };
 
   var NEWCART_MODELS = NEWCART_RAW.map(function (r) {
@@ -5098,17 +5104,24 @@
    * this pull -- an old score from the tracker is never compared against a new
    * one, because the two were measured on different runs.
    */
-  function newcartBestInTier(tier, priceCeiling, minIntel) {
-    var best = null;
-    NEWCART_MODELS.forEach(function (m) {
-      if (m.tier !== tier) return;
-      if (!NEWCART_MAINSTREAM[m.provider]) return;
-      if (m.ttft == null || m.ttft > CART_TTFT_THRESHOLD_S) return;
-      if (priceCeiling != null && m.blended > priceCeiling) return;
-      if (minIntel != null && !(m.intel > minIntel)) return;
-      if (!best || m.intel > best.intel) best = m;
+  function newcartRank(task, tier, priceCeiling, minIntel) {
+    var list = NEWCART_MODELS.filter(function (m) {
+      if (m.tier !== tier) return false;
+      if (!NEWCART_MAINSTREAM[m.provider]) return false;
+      if (m.ttft == null || m.ttft > CART_TTFT_THRESHOLD_S) return false;
+      if (priceCeiling != null && m.blended > priceCeiling) return false;
+      if (minIntel != null && !(m.intel > minIntel)) return false;
+      return true;
     });
-    return best;
+    // Q&A is answered while someone waits, so it shops on response speed.
+    // Every other position shops on the intelligence index. The conditions a
+    // candidate has to meet are the same either way -- only the order differs.
+    if (task === "Q&A") {
+      list.sort(function (x, y) { return x.ttft - y.ttft || y.intel - x.intel; });
+    } else {
+      list.sort(function (x, y) { return y.intel - x.intel || x.ttft - y.ttft; });
+    }
+    return list;
   }
 
   /** The blended price the Cart is paying for a model today, from the tracker. */
@@ -5140,27 +5153,27 @@
   }
 
   /**
-   * What this position holds once the new pull is applied. Three cases:
+   * Every candidate this position could hold, best first. Three cases:
    *
    *   Kept    - the model is still listed and nothing in its tier is both
    *             smarter and no dearer, so it stays and only its price moves.
-   *   Better  - a mainstream model in the same tier scores higher at a price
-   *             no higher than the incumbent's.
-   *   Retired - the model is gone from the pull, so it has to be replaced by
-   *             the highest-scoring mainstream model in its tier that costs no
-   *             more than it did.
+   *   Better  - mainstream models in the same tier score higher at a price no
+   *             higher than the incumbent's.
+   *   Retired - the model is gone from the pull, so it has to be replaced from
+   *             its tier at no more than it used to cost.
    */
-  function newcartPickFor(dept, task) {
+  function newcartCandidatesFor(dept, task) {
     var oldName = PCART_TASK_MODEL[dept][task].model;
     // Still listed is judged on the base name, so GPT-5.4 (Non-reasoning) and
     // GPT-5.4 (xhigh) count as the same model still being sold.
     var incumbent = newcartClosestVariant(oldName);
 
     if (incumbent) {
-      var better = newcartBestInTier(incumbent.tier, incumbent.blended, incumbent.intel);
-      return better
-        ? { model: better, reason: "better", oldName: oldName, wasPrice: incumbent.blended }
-        : { model: incumbent, reason: "kept", oldName: oldName, wasPrice: newcartOldBlended(oldName) };
+      var better = newcartRank(task, incumbent.tier, incumbent.blended, incumbent.intel);
+      if (better.length) {
+        return { list: better, reason: "better", oldName: oldName, wasPrice: incumbent.blended };
+      }
+      return { list: [incumbent], reason: "kept", oldName: oldName, wasPrice: newcartOldBlended(oldName) };
     }
 
     // Retired: price it against what the Cart is paying for it today. Tier 4
@@ -5171,10 +5184,25 @@
     var tier = PCART_TASK_MODEL[dept][task].tier || newcartTierOf(ceiling == null ? 0 : ceiling);
     var order = pcartTierSearchOrder(tier);
     for (var i = 0; i < order.length; i++) {
-      var pick = newcartBestInTier(order[i], ceiling, null);
-      if (pick) return { model: pick, reason: "retired", oldName: oldName, wasPrice: ceiling };
+      var list = newcartRank(task, order[i], ceiling, null);
+      if (list.length) return { list: list, reason: "retired", oldName: oldName, wasPrice: ceiling };
     }
     return null;
+  }
+
+  // Which rung of the rotation every position is showing. Advanced by Refresh.
+  var NEWCART_OPTION = 0;
+  var NEWCART_REVEALED = false;
+
+  /**
+   * The candidate this position shows right now. Positions advance together,
+   * and one that runs out of candidates wraps back to its own best.
+   */
+  function newcartPickFor(dept, task) {
+    var c = newcartCandidatesFor(dept, task);
+    if (!c || !c.list.length) return null;
+    var m = c.list[NEWCART_OPTION % c.list.length];
+    return { model: m, reason: c.reason, oldName: c.oldName, wasPrice: c.wasPrice, count: c.list.length };
   }
 
   // One line of the new cart's bill, for the receipt to book.
@@ -5242,7 +5270,7 @@
       }
     }
     var badge = t.reason === "retired"
-      ? '<span class="ncart-tag-badge ncart-tag-badge-retired">Retired \u2192 New</span>'
+      ? '<span class="ncart-tag-badge ncart-tag-badge-retired">Upgraded</span>'
       : (t.reason === "better" ? '<span class="ncart-tag-badge">New</span>' : "");
     return '<div class="ncart-tag">' + badge +
       '<p class="ncart-tag-lane">' + pcardEscapeXml(t.task) + "</p>" +
@@ -5267,6 +5295,7 @@
       byId("ncart-total-new").textContent = "\u2013";
       byId("ncart-delta").textContent = "";
       byId("ncart-retired").textContent = "";
+      byId("ncart-option").textContent = "";
       return;
     }
 
@@ -5288,7 +5317,8 @@
       (pct == null ? "" : " (" + sign + Math.abs(pct).toFixed(1) + "%)") + " vs Your Cart";
 
     byId("ncart-retired").textContent =
-      r.retired + " of " + r.tags.length + " models in your cart have been retired.";
+      r.retired + " of " + r.tags.length + " models in your cart have newer versions.";
+    byId("ncart-option").textContent = "Option " + (NEWCART_OPTION + 1);
   }
 
   /**
@@ -5326,16 +5356,26 @@
         video.controls = false;
         // Plays once, holds on its last frame, then the tags start updating.
         video.addEventListener("ended", function () {
-          renderNewCart(true);
+          newcartAdvance();
           btn.disabled = false;
         });
         if (poster) stage.replaceChild(video, poster);
         video.play();
         return;
       }
-      renderNewCart(true);
+      newcartAdvance();
       btn.disabled = false;
     });
+  }
+
+  /**
+   * First click reveals the best option; every click after it steps all the
+   * positions to their next candidate at once.
+   */
+  function newcartAdvance() {
+    if (NEWCART_REVEALED) NEWCART_OPTION++;
+    else NEWCART_REVEALED = true;
+    renderNewCart(true);
   }
 
   function renderCartCard() {
