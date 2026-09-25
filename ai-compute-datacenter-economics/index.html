@@ -1066,7 +1066,8 @@
     padding: 30px 32px; font-family: var(--mono);
   }
   .rcpt-slip-eyebrow { text-align: center; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 4px; }
-  .rcpt-slip-sub { text-align: center; font-size: 0.76rem; color: var(--text-muted); margin: 0 0 20px; }
+  .rcpt-slip-sub { text-align: center; font-size: 0.76rem; color: var(--text-muted); margin: 0 0 4px; }
+  .rcpt-assumption { text-align: center; font-size: 0.68rem; color: var(--text-muted); margin: 0 0 20px; line-height: 1.5; }
   .rcpt-divider { border: none; border-top: 1px dashed var(--border); margin: 12px 0; }
 
   /* wider number columns than the old 430px slip needed -- the abbreviated
@@ -1900,6 +1901,7 @@
             <div class="rcpt-slip">
               <p class="rcpt-slip-eyebrow">Model Supermarket &middot; Monthly Receipt</p>
               <p class="rcpt-slip-sub">Illustrative company, monthly</p>
+              <p class="rcpt-assumption" id="rcpt-assumption"></p>
 
               <div class="rcpt-cols-head"><span>&nbsp;</span><span>$</span><span>MTok</span></div>
               <p class="rcpt-cols-note">MTok = million tokens</p>
@@ -4604,9 +4606,22 @@
   // pcartLineCalc() straight from Card 3 -- no separate state, so any Cart
   // edit is reflected here the next time renderCartAll() runs.
 
-  var PRCPT_REVENUE_CLASSIC = 1600000;
-  var PRCPT_COGS_CLASSIC = 640000;
-  var PRCPT_OPEX_CLASSIC = 800000;
+  /* ------------------------------------------------------------------
+     The classic side of the P&L: fixed, never touched by the Cart. Only
+     the token spend layered on top of it moves. Edit these four numbers
+     and the table, and the assumption line under the header, follow.
+     80 x $240K / 12  = $1.6M revenue    COGS 40% = $640K
+     gross profit      = $960K           Opex 50% = $800K
+     operating income  = $160K
+     ------------------------------------------------------------------ */
+  var PRCPT_HEADCOUNT = 80;
+  var PRCPT_REVENUE_PER_HEAD = 240000;   // annual, per person
+  var PRCPT_COGS_PCT = 0.40;
+  var PRCPT_OPEX_PCT = 0.50;
+
+  var PRCPT_REVENUE_CLASSIC = PRCPT_HEADCOUNT * PRCPT_REVENUE_PER_HEAD / 12;
+  var PRCPT_COGS_CLASSIC = PRCPT_REVENUE_CLASSIC * PRCPT_COGS_PCT;
+  var PRCPT_OPEX_CLASSIC = PRCPT_REVENUE_CLASSIC * PRCPT_OPEX_PCT;
   var PRCPT_COGS_DEPTS = { customer: true };
 
   var PRCPT_OUTCOMES = {
@@ -4665,9 +4680,20 @@
     }).join("");
   }
 
+  // Written from the same constants that drive the table, so the stated
+  // assumption can't drift away from the numbers underneath it.
+  function renderReceiptAssumption() {
+    byId("rcpt-assumption").textContent =
+      "Assumes " + PRCPT_HEADCOUNT + " employees × $" + (PRCPT_REVENUE_PER_HEAD / 1000) +
+      "K annual revenue per employee. COGS " + Math.round(PRCPT_COGS_PCT * 100) +
+      "%, Opex " + Math.round(PRCPT_OPEX_PCT * 100) + "% of revenue.";
+  }
+
   function renderReceipt() {
     // cogsTokens / opexTokens are dollar spend; cogsQty / opexQty are the token
     // counts behind that spend, which is what the MTok column shows.
+    renderReceiptAssumption();
+
     var cogsTokens = 0, opexTokens = 0;
     var cogsQty = 0, opexQty = 0;
     var deptCosts = {};
