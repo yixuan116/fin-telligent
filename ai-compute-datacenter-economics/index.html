@@ -505,6 +505,20 @@
   }
   .collapsible-body-inner { padding-top: 20px; }
 
+  /* appendix wrapper -- deliberately lighter than a section card: one line
+     tall, smaller type, grey, no shadow, so it reads as secondary */
+  .appendix-toggle {
+    width: 100%; display: flex; align-items: center; gap: 9px;
+    background: none; border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: none; padding: 9px 18px; text-align: left; cursor: pointer;
+  }
+  .appendix-toggle:hover { border-color: var(--accent); }
+  .appendix-chevron { color: var(--text-muted); }
+  .appendix-toggle[aria-expanded="true"] .appendix-chevron { transform: rotate(90deg); }
+  .appendix-title { font-size: 0.86rem; font-weight: 600; color: var(--text-secondary); }
+  .appendix-sub { font-size: 0.72rem; color: var(--text-muted); margin-left: auto; }
+  @media (max-width: 760px) { .appendix-sub { display: none; } }
+
   /* full section-head as the toggle, for Step 2/3/4 -- eyebrow/title/sub stay
      visible in the button at all times, only the body below collapses */
   .step-collapse-toggle {
@@ -1864,6 +1878,18 @@
       </div>
     </section>
 
+    <!-- ============ APPENDIX: everything from the cost model through the
+         audit trail, folded away behind one light secondary-level row.
+         Receipt deliberately stays outside this. ============ -->
+    <section class="section" id="sec-appendix">
+      <button type="button" class="appendix-toggle" id="toggle-appendix" aria-expanded="false" aria-controls="body-appendix">
+        <svg class="chevron appendix-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="appendix-title">Behind the Numbers</span>
+        <span class="appendix-sub">Appendix &middot; full model, breakeven, raw data</span>
+      </button>
+      <div class="collapsible-body" id="body-appendix">
+        <div class="collapsible-body-inner">
+
     <!-- ============ SECTION 2: COST MODEL ============ -->
     <div class="expand-all-row">
       <button type="button" class="expand-all-btn" id="expand-all-steps">Expand all</button>
@@ -2048,6 +2074,11 @@
         </div>
       </div>
     </section>
+
+        </div>
+      </div>
+    </section>
+    <!-- ============ end appendix ============ -->
 
     <!-- ============ RECEIPT (collapsible) ============ -->
     <section class="section" id="sec-receipt">
@@ -5450,6 +5481,12 @@
     initCollapsible("toggle-perf-benchmark", "body-perf-benchmark");
     initCollapsible("toggle-price-cost", "body-price-cost");
     initCollapsible("toggle-receipt", "body-receipt");
+    initCollapsible("toggle-appendix", "body-appendix");
+    // Charts inside were sized while the appendix was shut; re-measure on open
+    // in case any of them was already expanded when it closed.
+    initStepChartResize("toggle-appendix", function () {
+      return [radarChart, budgetBarChart, breakevenChart, costExplosionChart, latencyChart];
+    });
     initCollapsible("toggle-cost-model", "body-cost-model");
     initCollapsible("toggle-breakeven", "body-breakeven");
     initCollapsible("toggle-stress", "body-stress");
