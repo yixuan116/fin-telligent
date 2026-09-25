@@ -3630,10 +3630,11 @@
     return x0 + (Math.log10(v) - lo) / (hi - lo) * w;
   }
 
-  // 10 named anchor points: labeled with a short name + CSV-read price and
+  // 11 named anchor points: labeled with a short name + CSV-read price and
   // a thin leader line to the actual point, staggered across two label
   // lanes (alternating near/far) so adjacent-by-price labels don't collide.
   var PCARD_ANCHORS = [
+    { name: "LFM2 24B A2B", short: "LFM2 24B A2B" },
     { name: "GPT-5 nano (high)", short: "GPT-5 nano" },
     { name: "DeepSeek V3.2 (Reasoning)", short: "DeepSeek V3.2" },
     { name: "Llama 4 Maverick", short: "Llama 4 Maverick" },
@@ -3692,13 +3693,19 @@
       svg += '<text x="' + x + '" y="' + (plotBottom + 18) + '" text-anchor="middle" class="pcard-dist-tick-label">' + PCARD_TICK_LABELS[t] + '</text>';
     });
 
+    var anchorNames = {};
+    PCARD_ANCHORS.forEach(function (a) { anchorNames[a.name] = true; });
+
     var pointPos = {};
     rows.forEach(function (r, i) {
       var x = pcardLogX(r.blended, x0, plotW);
       var jitter = ((i * 53 + 17) % 97) / 97;
       var y = jitterTop + jitter * (jitterBottom - jitterTop);
       pointPos[r.modelName] = { x: x, y: y };
-      var highlighted = PBENCH_SHARED_BASES.indexOf(r.base) !== -1;
+      // A labelled model always draws as a highlighted point, whether or not
+      // it made the shared set -- otherwise its leader line lands on a grey
+      // dot while every other label lands on a blue one.
+      var highlighted = PBENCH_SHARED_BASES.indexOf(r.base) !== -1 || anchorNames[r.modelName] === true;
       var cls = highlighted ? "pcard-dist-pt pcard-dist-pt-hl" : "pcard-dist-pt";
       var radius = highlighted ? 3.6 : 2.6;
       svg += '<circle cx="' + x + '" cy="' + y + '" r="' + radius + '" class="' + cls + '" data-tier="' + r.tier + '"><title>' + pcardEscapeXml(r.base) + ' &#183; ' + pcardMoneyTrim(r.blended) + '</title></circle>';
