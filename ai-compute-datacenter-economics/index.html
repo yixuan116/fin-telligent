@@ -8,18 +8,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
 <script>
   /* ============================================================
      CLOSING LINKS -- edit these two URLs, everything else follows.
      Drives the GitHub link and the LinkedIn QR in the closing block
-     (thumbnail + full-screen overlay). The QR is generated from
-     `linkedin` at error-correction level H.
+     (full-height card + full-screen overlay). The overlay QR is
+     re-generated as SVG at error-correction level H rather than
+     enlarged from the card: the code inside the card artwork is only
+     458px square, so blowing it up to 90% of the viewport (972px at
+     1080p, 1944px on a 2x display) would visibly soften the edges.
+     The linkedin URL below was decoded from that card image.
      ============================================================ */
   window.CLOSING_LINKS = {
     github: "https://github.com/yixuan116/fin-telligent",
-    linkedin: "https://www.linkedin.com/in/REPLACE-ME"
+    linkedin: "https://www.linkedin.com/in/yixuan-jing-0b770b30?fromQR=1"
   };
 </script>
 <style>
@@ -1264,8 +1268,17 @@
   footer#site-footer a:hover { color: var(--accent); }
 
   /* ============ LinkedIn / GitHub block (reused from retail-expansion-analytics) ============ */
-  .footer-social { max-width: 1280px; margin: 0 auto; padding: 0 24px 40px; text-align: center; }
-  .footer-social .gh-link { margin-bottom: 14px; }
+  /* closing block owns a full screen: GitHub on one line, then the card
+     scaled up to fill whatever height is left, uncropped.
+     padding-top clears the 63px sticky progress nav -- without it, this being
+     exactly 100vh means scrolling to the bottom parks the GitHub line
+     underneath the nav. */
+  .footer-social {
+    height: 100vh; max-width: 1280px; margin: 0 auto; padding: 79px 24px 24px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; text-align: center;
+  }
+  .footer-social .gh-link { flex: none; }
 
   .gh-link {
     display: inline-flex;
@@ -1280,19 +1293,21 @@
   .gh-link:hover { color: var(--accent); background: var(--accent-soft); }
   .gh-link svg { fill: currentColor; flex-shrink: 0; }
 
+  /* flex:1 + min-height:0 lets it take the leftover height; object-fit keeps
+     the card's own aspect ratio rather than cropping or stretching it */
   .qr-image {
     display: block;
-    width: 200px;
+    flex: 1;
+    min-height: 0;
+    width: auto;
     max-width: 100%;
-    height: auto;
+    object-fit: contain;
     border-radius: 0;
     border: 1px solid var(--border);
-    margin: 0 auto 8px;
+    margin: 0;
+    cursor: zoom-in;
   }
-
-  .qr-caption { font-family: var(--mono); font-size: 0.7rem; color: var(--text-muted); margin: 0; }
-  .qr-image { cursor: zoom-in; }
-  .qr-open-hint { font-size: 0.68rem; color: var(--text-muted); margin: 6px 0 0; }
+  .qr-open-hint { flex: none; font-size: 0.68rem; color: var(--text-muted); margin: 0; }
 
   /* ---- full-screen QR overlay (projection mode) ----
      Every colour here is hard-coded rather than tokenised: this has to stay
@@ -1304,18 +1319,9 @@
     gap: 1.4vh; padding: 2vh 3vw; cursor: zoom-out;
   }
   .qr-overlay[hidden] { display: none; }
-  .qr-overlay-gh {
-    font-size: clamp(1rem, 2.1vw, 1.6rem); font-weight: 700; color: #16181c;
-    text-decoration: none; border-bottom: 2px solid #16181c; padding-bottom: 2px; cursor: pointer;
-  }
-  .qr-overlay-gh:hover { color: #4f5bd5; border-bottom-color: #4f5bd5; }
-  /* white padding around the code is the quiet zone scanners need */
-  .qr-overlay-code { background: #ffffff; padding: clamp(10px, 1.4vh, 20px); line-height: 0; }
-  /* sized off whichever axis is tighter so it fills the screen on any aspect
-     ratio without ever overflowing */
-  .qr-overlay-code img, .qr-overlay-code canvas {
-    height: min(76vh, 76vw); width: auto; display: block;
-  }
+  /* 90% of the short edge, as an SVG so it stays sharp at any size */
+  .qr-overlay-code { background: #ffffff; line-height: 0; width: min(90vw, 90vh); height: min(90vw, 90vh); }
+  .qr-overlay-code svg { width: 100%; height: 100%; display: block; }
   .qr-overlay-short {
     font-family: var(--mono); font-size: clamp(0.95rem, 2vw, 1.5rem); font-weight: 700;
     color: #16181c; margin: 0; word-break: break-all; text-align: center;
@@ -1323,7 +1329,7 @@
   .qr-overlay-esc { font-size: 0.72rem; color: #8b8ba0; margin: 0; }
 
   @media (max-width: 760px) {
-    .qr-overlay-code img, .qr-overlay-code canvas { height: min(62vh, 88vw); }
+    .qr-overlay-code { width: min(90vw, 72vh); height: min(90vw, 72vh); }
   }
 
   @media (max-width: 760px) {
@@ -2170,12 +2176,10 @@
       <span id="closing-gh-label">github.com/yixuan116/fin-telligent</span>
     </a>
     <img src="../price-volume-mix-waterfall/Pictures/Linkedin.JPG" alt="Yixuan Jing's LinkedIn card with QR code -- click to enlarge for scanning" class="qr-image" id="qr-thumb" role="button" tabindex="0">
-    <p class="qr-caption">LinkedIn &amp; GitHub</p>
-    <p class="qr-open-hint">Click the card for a full-screen, scannable version</p>
+    <p class="qr-open-hint">Click to enlarge</p>
   </div>
 
-  <div class="qr-overlay" id="qr-overlay" role="dialog" aria-modal="true" aria-label="LinkedIn and GitHub, full screen" hidden>
-    <a class="qr-overlay-gh" id="qr-overlay-gh" href="#" target="_blank" rel="noopener noreferrer"></a>
+  <div class="qr-overlay" id="qr-overlay" role="dialog" aria-modal="true" aria-label="LinkedIn QR code, full screen" hidden>
     <div class="qr-overlay-code" id="qr-overlay-code"></div>
     <p class="qr-overlay-short" id="qr-overlay-short"></p>
     <p class="qr-overlay-esc">Click anywhere or press Esc to close</p>
@@ -5425,26 +5429,20 @@
     byId("closing-gh-label").textContent = strip(ghUrl);
 
     var overlay = byId("qr-overlay");
-    var overlayGh = byId("qr-overlay-gh");
-    overlayGh.href = ghUrl;
-    overlayGh.textContent = strip(ghUrl);
     byId("qr-overlay-short").textContent = strip(liUrl);
 
     // Generated once, on first open: the overlay is hidden at load and a
     // hidden container would give the library nothing to measure against.
     var qrDrawn = false;
     function drawQr() {
-      if (qrDrawn || typeof QRCode === "undefined") return;
-      // Rendered well above any display size, then scaled down by CSS, so it
-      // stays crisp even at 76vh on a 4K projector.
-      new QRCode(byId("qr-overlay-code"), {
-        text: liUrl,
-        width: 2000,
-        height: 2000,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
+      if (qrDrawn || typeof qrcode === "undefined") return;
+      // SVG rather than a bitmap: at 90% of the short edge this is ~970px on a
+      // 1080p screen and ~1950px on a 2x display, where any raster would soften.
+      // Vector has no resolution to outgrow. Level H, version auto.
+      var qr = qrcode(0, "H");
+      qr.addData(liUrl);
+      qr.make();
+      byId("qr-overlay-code").innerHTML = qr.createSvgTag({ cellSize: 10, margin: 4, scalable: true });
       qrDrawn = true;
     }
 
@@ -5465,8 +5463,6 @@
     });
 
     overlay.addEventListener("click", closeOverlay);
-    // let the GitHub link work without the click closing the overlay under it
-    overlayGh.addEventListener("click", function (e) { e.stopPropagation(); });
 
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && !overlay.hidden) closeOverlay();
