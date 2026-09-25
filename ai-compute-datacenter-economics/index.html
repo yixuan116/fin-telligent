@@ -5119,9 +5119,23 @@
     // candidate has to meet are the same either way -- only the order differs.
     if (task === "Q&A") {
       list.sort(function (x, y) { return x.ttft - y.ttft || y.intel - x.intel; });
-      list = newcartApplyValuePick(task, list).slice(0, NEWCART_QA_ROTATION);
     } else {
       list.sort(function (x, y) { return y.intel - x.intel || x.ttft - y.ttft; });
+    }
+    return list;
+  }
+
+  /**
+   * Option 1 is the disciplined pick: the best model that is also no dearer
+   * than the one it replaces. Every option after it drops that price ceiling
+   * and shows the rest of the tier, so the rotation answers "and if we were
+   * willing to pay more?" without repeating what Option 1 already offered.
+   */
+  function newcartCombine(task, first, open) {
+    var pick = first[0];
+    var list = [pick].concat(open.filter(function (m) { return m !== pick; }));
+    if (task === "Q&A") {
+      list = newcartApplyValuePick(task, list).slice(0, NEWCART_QA_ROTATION);
     }
     return list;
   }
@@ -5171,9 +5185,13 @@
     var incumbent = newcartClosestVariant(oldName);
 
     if (incumbent) {
-      var better = newcartRank(task, incumbent.tier, incumbent.blended, incumbent.intel);
-      if (better.length) {
-        return { list: better, reason: "better", oldName: oldName, wasPrice: incumbent.blended };
+      var capped = newcartRank(task, incumbent.tier, incumbent.blended, incumbent.intel);
+      if (capped.length) {
+        var open = newcartRank(task, incumbent.tier, null, incumbent.intel);
+        return {
+          list: newcartCombine(task, capped, open),
+          reason: "better", oldName: oldName, wasPrice: incumbent.blended
+        };
       }
       return { list: [incumbent], reason: "kept", oldName: oldName, wasPrice: newcartOldBlended(oldName) };
     }
@@ -5186,8 +5204,13 @@
     var tier = PCART_TASK_MODEL[dept][task].tier || newcartTierOf(ceiling == null ? 0 : ceiling);
     var order = pcartTierSearchOrder(tier);
     for (var i = 0; i < order.length; i++) {
-      var list = newcartRank(task, order[i], ceiling, null);
-      if (list.length) return { list: list, reason: "retired", oldName: oldName, wasPrice: ceiling };
+      var firstList = newcartRank(task, order[i], ceiling, null);
+      if (firstList.length) {
+        return {
+          list: newcartCombine(task, firstList, newcartRank(task, order[i], null, null)),
+          reason: "retired", oldName: oldName, wasPrice: ceiling
+        };
+      }
     }
     return null;
   }
@@ -5366,7 +5389,9 @@
 
     byId("ncart-retired").textContent =
       r.retired + " of " + r.tags.length + " models in your cart have newer versions.";
-    byId("ncart-option").textContent = "Option " + (NEWCART_OPTION + 1);
+    byId("ncart-option").textContent = NEWCART_OPTION === 0
+      ? "Option 1 \u00b7 Our pick"
+      : "Option " + (NEWCART_OPTION + 1);
   }
 
   /**
