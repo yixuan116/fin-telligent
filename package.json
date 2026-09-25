@@ -1,0 +1,16 @@
+{
+  "name": "fin-telligent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "nimble:price-check": "tsx scripts/nimble-price-check.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@nimble-way/nimble-js": "^1.5.0"
+  }
+}

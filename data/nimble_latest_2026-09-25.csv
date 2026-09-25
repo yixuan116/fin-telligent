@@ -1,0 +1,266 @@
+model_name,provider,aa_intelligence_index,aa_coding_index,aa_math_index,input_cost_usd_per_1m,output_cost_usd_per_1m,blended_cost_usd_per_1m,time_to_first_token_s,source_url,pricing_page_checked,as_of,not_found
+MiMo-V2.5-Pro,Xiaomi,25.9868888896511,,,0.435,0.87,0.54375,6.241893733,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+JT-35B-Flash,China Mobile,18.6626376411117,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pandaily.com/china-mobile-national-unified-token-plan-operator-ai-pricing-aug2026,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GPT-6 Sol (low),OpenAI,33.9008505585733,,,2,10,4,1.9807843909999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.5 Omni Plus,Alibaba,20.3839890713777,,,0.4,4.8,1.5,2.06874006999999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Omni (medium),Amazon,13.6465213725579,,,0.3,2.5,0.85,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Qwen3.5 122B A10B (Non-reasoning),Alibaba,17.7480154665397,,,0.4,3.2,1.1,2.40979640100011,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemma 4 12B (Non-reasoning),Google,9.37989472421056,,,0.1,0.3,0.15000000000000002,2.41670139450003,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemma 3 270M,Google,5.11705960692171,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://benchlm.ai/google/api-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+"Claude Fable 5.1 (Adaptive Reasoning, Low Effort, Default Fallback)",Anthropic,46.8163422014862,,,10,50,20,7.33941390950003,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Apodex 1.1,Apodex,26.4103686249117,,,0.3,3,0.975,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Gemini 3.5 Flash-Lite,Google,22.1685424839812,,,0.3,2.5,0.85,8.77493346149999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Step 5 Preview,StepFun,43.7343049141614,,,1,2.7,1.425,2.795423583,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.5 2B (Non-reasoning),Alibaba,6.18559190112645,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://www.alibabacloud.com/help/en/model-studio/model-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3 Omni 30B A3B Instruct,Alibaba,6.00611816793457,,,0.25,0.97,0.43,1.84284632449998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Granite 4.2 3B,IBM,9.05588232376756,,,0.03,0.12,0.0525,0.498445961000016,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Pro Preview (medium),Amazon,14.1554948903666,,,1.25,10,3.4375,16.0793562165,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Inkling (xhigh),Thinking Machines,24.9847810999384,,,1,4.05,1.7625,1.87041126250005,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.5 397B A17B (Reasoning),Alibaba,18.4204249294815,,,0.6,3.6,1.35,2.21844226550002,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Granite 4.2 30B,IBM,14.8312405050789,,,0.16,0.65,0.2825,0.841435107999984,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K2 Horizon 7B,Institute of Foundation Models,20.5958819421354,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Mistral Small 4 (Non-reasoning),Mistral,8.99008610259603,,,0.15,0.6,0.26249999999999996,0.765753114000006,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Sonnet 5 (Adaptive Reasoning, Low Effort)",Anthropic,24.2638393579597,,,2,10,4,1.71477239849986,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiMo-V2-Flash (Feb 2026),Xiaomi,22.4406462861731,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://costgoat.com/pricing/mimo-api,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+gpt-oss-20b (low),OpenAI,9.95295342568922,,,0.07,0.215,0.10625000000000001,0.992688118499985,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+o3,OpenAI,20.200754789201,,,2,8,3.5,6.9030605065,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K-EXAONE 2.0 0803,LG AI Research,19.6904943371003,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://cloudprice.net/models/providers/lgresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GLM 5.3 Flash,Z AI,41.807466113455,,,0.15,0.5,0.2375,3.41973108799993,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Luna (xhigh),OpenAI,33.8845820217785,,,0.1,0.5,0.2,19.1990709595,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Solar Pro 4,Upstage,28.1541333537469,,,0.3,1.2,0.5249999999999999,1.91222927449996,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+North Mini Code,Cohere,9.91462776590372,,,0,0,0,0.385627780999982,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Astra (xhigh),OpenAI,52.3863277108782,,,10,50,20,145.476267062,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Omni (Non-reasoning),Amazon,8.15087501101863,,,0.3,2.5,0.85,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Granite 4.0 Micro,IBM,5.10657830942846,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/ibm,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.5 9B (Non-reasoning),Alibaba,13.2659955355465,,,0.17,0.25,0.19,0.747877180999978,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.5 122B A10B (Reasoning),Alibaba,15.5694009312969,,,0.4,3.2,1.1,2.3368802055,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiMo-V2.5,Xiaomi,25.1743063555572,,,0.14,0.28,0.17500000000000002,3.59497024999993,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Hermes 4 - Llama-3.1 70B (Non-reasoning),Nous Research,6.65822068462287,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://aipricing.org/brands/nousresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+NVIDIA Nemotron 3 Nano 30B A3B (Non-reasoning),NVIDIA,6.8478519055181,,,0.05,0.2,0.08750000000000001,0.701789345000066,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Sonnet 5 (Adaptive Reasoning, Max Effort)",Anthropic,38.1638712882576,,,2,10,4,121.339719892,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiMo-V2.6-Pro,Xiaomi,46.3242065310383,,,0.435,0.87,0.54375,3.30924989999994,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Grok 4.6 (medium),SpaceXAI,42.836322654063,,,2,6,3,22.230307184,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3 Next 80B A3B Instruct,Alibaba,9.64335007559183,,,0.15,1.2,0.4125,2.16214265999999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-5.6 Terra (medium),OpenAI,30.0938023419377,,,2,12,4.5,2.13608825350001,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Grok 4.7 (high),SpaceXAI,46.3321770885625,,,2,6,3,0.961988303500021,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiniMax-M3,MiniMax,29.2202932236316,,,0.3,1.2,0.5249999999999999,1.07198919049999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nemotron 3.5 Lightning,NVIDIA,12.8572306217144,,,0.07,0.22,0.10750000000000001,0.604802163499983,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Phi-4 Multimodal Instruct,Microsoft,5.80520041934726,,,0,0,0,0.825293743999964,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.5 9B (Reasoning),Alibaba,13.6541001649716,,,0.135,0.2,0.15125,1.47275666549996,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+NVIDIA Nemotron Nano 9B V2 (Non-reasoning),NVIDIA,6.84412514839364,,,0.05,0.195,0.08625000000000001,3.26518200399993,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Command A+,Cohere,13.1335002685349,,,0,0,0,0.414712585500012,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Astra (max),OpenAI,52.673669395513,,,10,50,20,361.315284321,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Opus 5.5 (Adaptive Reasoning, Max Effort, Default Fallback)",Anthropic,57.6223698102963,,,4,20,8,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+EXAONE 4.0 32B (Non-reasoning),LG AI Research,6.32621718534092,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://cloudprice.net/models/providers/lgresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+G9v3-3B,AI9Stars,10.841600440564,,,0,0,0,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Qwen3.5 4B (Non-reasoning),Alibaba,10.812307683746,,,0.03,0.15,0.06,0.880901843000004,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.5 397B A17B (Non-reasoning),Alibaba,21.4366547759392,,,0.6,3.6,1.35,2.19591910199999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K2 Horizon 3.7B,Institute of Foundation Models,15.6103951330976,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Olmo 3 7B Think,Allen Institute for AI,5.61691854830355,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+HyperCLOVA X SEED Think (32B),Naver,11.3648115832519,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+"HyperNova 60B 2605 (high, based on gpt-oss-120b)",Multiverse Computing,11.7380211033452,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Nova Micro,Amazon,5.8765232381273,,,0.035,0.14,0.061250000000000006,0.826391458000018,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.8 27B (Non-reasoning),Alibaba,20.1502427055595,,,0.5,3,1.125,3.8754707455,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Luna (medium),OpenAI,29.4619523515762,,,0.1,0.5,0.2,5.27582728,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+INTELLECT-3 (based on GLM-4.5-Air),Prime Intellect,10.6061102858178,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://docs.primeintellect.ai/hosted-training/models-and-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+gpt-oss-20b (high),OpenAI,8.9675171856126,,,0.07,0.18,0.0975,0.794226698999864,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Olmo 3.1 32B Think,Allen Institute for AI,7.12364412279906,,,0,0,0,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Nex-N2-Pro (based on Qwen3.5-397B-A17B),Nex AGI,28.1990972887912,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://llmapipricing.com/models/nex-agi-nex-n2-pro/,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+"Claude Fable 5.1 (Adaptive Reasoning, Medium Effort, Default Fallback)",Anthropic,48.9206162609523,,,10,50,20,7.95609383300007,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Command A,Cohere,6.9581988704518,,,2.5,10,4.375,2.03538407649998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+LFM2.5-VL-1.6B,Liquid AI,4.83423948,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/liquid,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+JT-MINI,China Mobile,12.2117782837313,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pandaily.com/china-mobile-national-unified-token-plan-operator-ai-pricing-aug2026,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+"Claude Fable 5.1 (Adaptive Reasoning, Max Effort, Default Fallback)",Anthropic,53.3549259623252,,,10,50,20,260.1103910645,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Molmo2-8B,Allen Institute for AI,5.00251209304105,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Mistral Small 4 (Reasoning),Mistral,11.2675794141469,,,0.15,0.6,0.26249999999999996,0.767222932999942,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.5 0.8B (Non-reasoning),Alibaba,5.40008099703412,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://www.alibabacloud.com/help/en/model-studio/model-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Ling-3.0-flash-VL,InclusionAI,24.5693054077875,,,0.075,0.22,0.11124999999999999,1.90742906000014,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiniCPM-V 4.6 1.3B,OpenBMB,5.69026588282761,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+"Claude Opus 5.5 (Adaptive Reasoning, Low Effort, Default Fallback)",Anthropic,42.3077781466168,,,4,20,8,6.01458015899993,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+EXAONE 4.0 32B (Reasoning),LG AI Research,8.17836973273723,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://cloudprice.net/models/providers/lgresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Sarvam 105B (high),Sarvam,8.7905508357489,,,0.042,0.17,0.07400000000000001,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Llama 3.1 Instruct 405B,Meta,7.2893092121128,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://ai.developer.meta.com/docs/pricing-rate-limits,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+MiMo-V2.5-Pro (Non-reasoning),Xiaomi,18.2900328799708,,,0.435,0.87,0.54375,3.41651069700004,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Ring-flash-2.0,InclusionAI,7.15340447175535,,,0.14,0.57,0.2475,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+LFM2.5-1.2B-Instruct,Liquid AI,5.20951181661378,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/liquid,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Mistral Large 3,Mistral,9.26608812860467,,,0.5,1.5,0.75,1.12496386000001,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Apertus 70B Instruct,Swiss AI Initiative,5.11462775284761,,,0.82,2.92,1.345,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Doubao Seed Code,ByteDance Seed,16.9467715940932,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/bytedance-seed,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+EXAONE 4.5 33B,LG AI Research,13.2058394009382,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://cloudprice.net/models/providers/lgresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Kimi K3 (low),Kimi,34.4555282989717,,,3,15,6,3.96774983950004,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Sol (high),OpenAI,42.8215513642985,,,2,10,4,9.61691151950004,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemma 4 E4B (Non-reasoning),Google,7.45765296912625,,,0.02,0.1,0.04,0.799386451500027,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K2 Horizon MoVA 36B A4B,Institute of Foundation Models,25.3037790731435,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Granite 4.0 350M,IBM,4.83423948,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/ibm,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Muse Glimmer (high),Meta,17.4754176089465,,,0.32499999999999996,1.35,0.58125,1.13081220699996,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Grok 4.7 (xhigh),SpaceXAI,46.4465506302286,,,2,6,3,1.41789652450002,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Kimi Linear 48B A3B Instruct,Kimi,7.30037362771236,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://www.kimi.ai/help/kimi-api/api-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Solar Open 100B (Reasoning),Upstage,10.3644352600556,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://www.upstage.ai/pricing/api,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GPT-5.3 Codex (xhigh),OpenAI,32.5028174368983,,,1.75,14,4.8125,67.3966911725001,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+LFM2.5-1.2B-Thinking,Liquid AI,5.22188553175398,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/liquid,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+K2 Think V2,Institute of Foundation Models,11.4956908518183,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Nemotron 3 Ultra 550B A55B (Reasoning),NVIDIA,22.9279123422858,,,0.6,2.5,1.075,2.207314873,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+LongCat 2.0,LongCat,19.1123256610623,,,0.3,1.2,0.5249999999999999,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Qwen3.5 2B (Reasoning),Alibaba,6.94413664133259,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://www.alibabacloud.com/help/en/model-studio/model-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Tri-21B-Think,Trillion Labs,8.98704047108094,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Granite 4.0 H Small,IBM,6.04930220974964,,,0.06,0.25,0.1075,37.8158745874999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Llama 3.2 Instruct 11B (Vision),Meta,5.40802026647316,,,0.345,0.345,0.345,1.980510224,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+LongCat Flash Lite,LongCat,11.4709079965186,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://longcat.ai/platform/docs/Pricing/LongCat-2.0.html,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Nova 2.0 Lite (high),Amazon,13.3740793005281,,,0.3,2.5,0.85,12.6242162984999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nemotron 3 Super 120B A12B (Reasoning),NVIDIA,12.8287575290979,,,0.3,0.9,0.44999999999999996,1.45471023100009,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Luna (Non-reasoning),OpenAI,18.2617465935701,,,0.1,0.5,0.2,0.817320370999937,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiniCPM5-2B,OpenBMB,12.463354831996,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.5 4B (Reasoning),Alibaba,13.1248174602542,,,0.03,0.15,0.06,0.709377680999978,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.8 27B (medium),Alibaba,27.5508228231586,,,0.5,3,1.125,3.80624004400011,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Motif-2-12.7B-Reasoning,Motif Technologies,9.18748556817538,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.6 35B A3B (Non-reasoning),Alibaba,15.2320772647744,,,0.375,2.25,0.84375,2.10726175049999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Ministral 3 3B,Mistral,4.83760020546443,,,0.1,0.1,0.1,0.702283199000022,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Hermes 4 - Llama-3.1 70B (Reasoning),Nous Research,7.90579275030455,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://aipricing.org/brands/nousresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Step 3.7 Flash,StepFun,19.4812572685302,,,0.2,1.15,0.4375,2.51271719350001,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Ling-3.0-flash-Fin,InclusionAI,22.5965828940594,,,0.075,0.22,0.11124999999999999,1.70694157299999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemma 4 26B A4B (Reasoning),Google,16.671930040086,,,0.1,0.37,0.1675,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+NVIDIA Nemotron Nano 12B v2 VL (Reasoning),NVIDIA,7.47796854824097,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/nvidia,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.5 Omni Flash,Alibaba,12.4740069826994,,,0.1,0.8,0.275,1.91396525749997,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Luna (max),OpenAI,37.2559686869738,,,0.1,0.5,0.2,138.945694011,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Lite (low),Amazon,11.8041280807831,,,0.3,2.5,0.85,8.96576276599998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Magistral Small 1.2,Mistral,8.59366235978288,,,0.5,1.5,0.75,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Gemma 4 26B A4B (Non-reasoning),Google,13.1303772801787,,,0.13,0.4,0.1975,1.13738506149997,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Ministral 3 14B,Mistral,6.04436817215002,,,0.2,0.2,0.2,0.929071203000035,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Inkling Small,Thinking Machines,27.7806153423596,,,0.3,1.2,0.5249999999999999,2.5781037315,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+DeepSeek V4.1 Flash (Non-Reasoning),DeepSeek,24.6733593924318,,,0.3,1.2,0.5249999999999999,1.18622852999999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemini 3.8 Flash (medium),Google,39.7740187061926,,,0.75,3.75,1.5,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Gemma 4 E2B (Non-reasoning),Google,6.47543520107148,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://benchlm.ai/google/api-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Sarvam 30B (high),Sarvam,6.55971145066503,,,0.026,0.11,0.047,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Mercury 2.5,Inception,12.3408453757638,,,0.25,0.75,0.375,3.05567766699999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Lite (Non-reasoning),Amazon,8.73661367769335,,,0.3,2.5,0.85,1.06670212899996,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+NVIDIA Nemotron 3 Nano 30B A3B (Reasoning),NVIDIA,8.8961440122188,,,0.05,0.2,0.08750000000000001,1.11796422100008,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"DeepSeek V4 Flash Vision (Reasoning, Max Effort)",DeepSeek,34.8390628035969,,,0.44,1.32,0.66,0.892361813500002,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiniCPM5-1B (Reasoning),OpenBMB,8.79664321370212,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GPT-6 Sol (medium),OpenAI,39.7820971749522,,,2,10,4,1.964101809,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Jamba 1.7 Large,AI21 Labs,6.0710365237197,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/ai21,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GPT-6 Luna (high),OpenAI,32.1482304150837,,,0.1,0.5,0.2,7.44980072100009,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nanbeige4.1-3B,Nanbeige,8.4012282586083,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.8 27B (low),Alibaba,26.2047978189896,,,0.5,3,1.125,3.84649573149989,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Solar Open2 250B,Upstage,24.7365297627523,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://www.upstage.ai/pricing/api,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Ling 3.0 Tiny,InclusionAI,15.2883181924025,,,0,0,0,2.82867086400006,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Celeris-1,Celeris,6.3469533538601,,,0.2,0.7,0.325,0.573668451999964,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Tiny Aya Global,Cohere,4.83423948,,,0,0,0,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+GPT-5.6 Terra (high),OpenAI,34.2376558067555,,,2,12,4.5,3.57326919749999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+A.X-K2,SK Telecom,22.7039007610661,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Exaone 4.0 1.2B (Non-reasoning),LG AI Research,5.22938457197929,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://cloudprice.net/models/providers/lgresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Hermes 4 - Llama-3.1 405B (Reasoning),Nous Research,7.49497809925135,,,1,3,1.5,2.357314793,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"DeepSeek V4 Pro 0813 (Reasoning, Max Effort)",DeepSeek,35.9967791278402,,,1.32,3.96,1.98,1.648861506,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Magistral Medium 1.2,Mistral,11.8254509953707,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://benchlm.ai/mistral/api-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.6 35B A3B (Reasoning),Alibaba,18.2289900189843,,,0.375,2.25,0.84375,2.09396783,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Apertus 8B Instruct,Swiss AI Initiative,4.83423948,,,0.1,0.2,0.125,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Gemini 3.8 Flash (high),Google,40.9262321765904,,,0.75,3.75,1.5,22.5697042625,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nemotron 3 Nano Omni 30B A3B Reasoning,NVIDIA,10.2506761710987,,,0.195,1.095,0.42,0.469350072999987,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Kimi K2.7 Code,Kimi,25.8121062401836,,,0.95,4,1.7125,2.88052441799993,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.8 2.4T A95B,Alibaba,39.8861723105325,,,2,6,3,2.66527638800001,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Olmo 3 7B Instruct,Allen Institute for AI,5.24099718758815,,,0.1,0.2,0.125,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+JT-4.1 Flash 236B A21B,China Mobile,27.2926268381758,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pandaily.com/china-mobile-national-unified-token-plan-operator-ai-pricing-aug2026,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Llama 4 Maverick,Meta,9.9905959756501,,,0.26,0.9099999999999999,0.4225,0.915972119000003,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Olmo 3.1 32B Instruct,Allen Institute for AI,6.49671923993574,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Ministral 3 8B,Mistral,5.47767370454416,,,0.15,0.15,0.15,0.772058717999869,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Llama 3.3 Instruct 70B,Meta,7.66380859299009,,,0.71,0.72,0.7124999999999999,1.67423030349997,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nemotron Cascade 2 30B A3B,NVIDIA,11.6708359406601,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/nvidia,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+R1 1776,Perplexity,6.43857605749744,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://docs.perplexity.ai/docs/getting-started/pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Muse Spark 1.3 (max),Meta,48.0923107719685,,,1.25,4.25,2,25.3713200765,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Sonnet 5 (Adaptive Reasoning, Xhigh Effort)",Anthropic,34.384211557212,,,2,10,4,16.9049134965,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Qwen3.8-Flash-Next,Alibaba,39.8223021864741,,,0.15,0.47,0.22999999999999998,2.85976742000003,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Fable 5.1 (Adaptive Reasoning, Xhigh Effort, Default Fallback)",Anthropic,53.2032587538944,,,10,50,20,111.264713548,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-5.6 Terra (Non-reasoning),OpenAI,20.7797013584503,,,2,12,4.5,0.956478478000036,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Llama 3.2 Instruct 90B (Vision),Meta,6.4088295766243,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://ai.developer.meta.com/docs/pricing-rate-limits,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+"Claude Fable 5.1 (Adaptive Reasoning, High Effort, Default Fallback)",Anthropic,51.1515708852237,,,10,50,20,20.5550605865,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-5.6 Terra (xhigh),OpenAI,37.9513370742927,,,2,12,4.5,28.300056166,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K2 Horizon 0.9B,Institute of Foundation Models,3.04760621054014,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+NVIDIA Nemotron 3 Nano 4B,NVIDIA,7.38161312356127,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/nvidia,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Phi-4 Mini Instruct,Microsoft,6.32860508899613,,,0,0,0,0.830338045000047,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Pro Preview (Non-reasoning),Amazon,9.95904965562327,,,1.25,10,3.4375,1.01705641149999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Motif 3 (Beta),Motif Technologies,32.3147020976362,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+K2-V2 (high),Institute of Foundation Models,9.87390600007694,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GPT-6 Astra (low),OpenAI,45.7819243120341,,,10,50,20,3.14526034499997,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+ERNIE 5.0 Thinking Preview,Baidu,14.2551784975475,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/baidu,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Claude 4.5 Haiku (Reasoning),Anthropic,16.8822352291856,,,1,5,2,19.5399986305,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Granite 4.0 H 350M,IBM,4.83423948,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/ibm,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.5 0.8B (Reasoning),Alibaba,6.12847840160203,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://www.alibabacloud.com/help/en/model-studio/model-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Apriel-v1.6-15B-Thinker,ServiceNow,13.401396407375,,,0,0,0,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Qwen3.7 Plus,Alibaba,25.1622215821984,,,0.4,1.6,0.7000000000000001,2.23429971550003,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+DeepHermes 3 - Mistral 24B Preview (Non-reasoning),Nous Research,6.07426212371414,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://aipricing.org/brands/nousresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+NVIDIA Nemotron Nano 12B v2 VL (Non-reasoning),NVIDIA,5.82045753777258,,,0.2,0.6,0.30000000000000004,1.17787914349997,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Step3 VL 10B,StepFun,7.69391371030502,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://platform.stepfun.ai/docs/en/guides/pricing/details,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Llama 4 Scout,Meta,8.07503439053102,,,0.19,0.6799999999999999,0.3125,0.846260479500074,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Granite 4.2 8B,IBM,11.0812712267815,,,0.06,0.25,0.1075,0.743109656999991,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+ERNIE 4.5 300B A47B,Baidu,7.50448042633837,,,0.28,1.1,0.48500000000000004,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Molmo 7B-D,Allen Institute for AI,5.56262049746202,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.8 27B (xhigh),Alibaba,33.6962858057476,,,0.5,3,1.125,3.95520539199998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Motif 3,Motif Technologies,33.566562209723,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Gemma 4 E2B (Reasoning),Google,7.77445525187484,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://benchlm.ai/google/api-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3.8 Max (0902),Alibaba,45.4152084980521,,,2,6,3,3.04042082699993,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Hy3,Tencent,25.2972775731571,,,0.14,0.58,0.25,2.96784657199998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Omni (low),Amazon,11.1140626232787,,,0.3,2.5,0.85,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Jamba 1.7 Mini,AI21 Labs,5.21767706986744,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/ai21,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Trinity Large Thinking,Arcee AI,10.8242425924218,,,0.25,0.8,0.3875,1.34862873150007,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+DeepHermes 3 - Llama-3.1 8B Preview (Non-reasoning),Nous Research,5.08032603461277,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://aipricing.org/brands/nousresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3 Omni 30B A3B (Reasoning),Alibaba,7.76082961984319,,,0.25,0.97,0.43,1.90050619150003,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Sonnet 5 (Adaptive Reasoning, High Effort)",Anthropic,31.6623246664651,,,2,10,4,8.627719066,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K2 Horizon 375B A23B,Institute of Foundation Models,30.5015302696723,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Gemini 3.1 Pro Preview,Google,29.7185656132261,,,2,12,4.5,30.3416366034999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-5.6 Terra (max),OpenAI,42.0829248239494,,,2,12,4.5,167.790330807,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Luna (low),OpenAI,20.9225480080866,,,0.1,0.5,0.2,2.34068611549993,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Grok 4.6 (low),SpaceXAI,35.1246953482174,,,2,6,3,7.135582231,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+G9v3-39A5B,AI9Stars,21.8316172646825,,,0,0,0,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Claude 4.5 Haiku (Non-reasoning),Anthropic,15.410949885381,,,1,5,2,0.657634108000025,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+DiffusionGemma 26B A4B,Google,9.51014305662543,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://benchlm.ai/google/api-pricing,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GPT-5.5 Instant (June 2026),OpenAI,26.0135173401368,,,5,30,11.25,1.05161013999998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Sol (max),OpenAI,47.5276426437724,,,2,10,4,165.067242574,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Falcon-H1R-7B,TII UAE,7.82776928077145,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Qwen3 Next 80B A3B (Reasoning),Alibaba,11.1973684395653,,,0.15,1.2,0.4125,2.31134789049997,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Grok 4.6 (high),SpaceXAI,44.3113073012592,,,2,6,3,40.813186967,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+gpt-oss-120b (low),OpenAI,10.2105650347196,,,0.15,0.5449999999999999,0.24874999999999997,0.847634725000148,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GLM-5.3 (low),Z AI,34.2990078159643,,,1.4,4.4,2.15,2.90992898700006,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-5.6 Terra (low),OpenAI,27.496203401716,,,2,12,4.5,1.76106143949994,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemma 4 31B (Reasoning),Google,18.9787846720676,,,0,0,0,1.0211050150001,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GLM-5.3 (max),Z AI,44.777392385614,,,1.4,4.4,2.15,3.23032860999995,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Llama 3.1 Nemotron Ultra 253B v1 (Reasoning),NVIDIA,7.52746905624501,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/nvidia,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Gemma 4 31B (Non-reasoning),Google,13.9198819005287,,,0.14,0.4,0.20500000000000002,1.98884675499994,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+MiniCPM5-1B (Non-reasoning),OpenBMB,8.69473818567247,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Hermes 4 - Llama-3.1 405B (Non-reasoning),Nous Research,7.41221110231024,,,1,3,1.5,2.347324222,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Sol (Non-reasoning),OpenAI,28.0921663410513,,,2,10,4,1.08530910599998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Muse Spark 1.3 (xhigh),Meta,45.0732966922226,,,1.25,4.25,2,21.522713288,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Sonnet 5 (Non-reasoning, High Effort)",Anthropic,23.2,,,2,10,4,1.68652561749996,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Grok 4.6 (xhigh),SpaceXAI,44.199810436996,,,2,6,3,41.686333456,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Exaone 4.0 1.2B (Reasoning),LG AI Research,5.27138994054015,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://cloudprice.net/models/providers/lgresearch,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Gemma 4 E4B (Reasoning),Google,8.91477392266452,,,0.02,0.1,0.04,0.847869842500032,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Sol (xhigh),OpenAI,44.1009705516407,,,2,10,4,36.953065746,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K2-V2 (low),Institute of Foundation Models,7.31130007284626,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Granite 4.0 H 1B,IBM,5.1945517329943,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/ibm,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Reka Flash 3,Reka AI,5.64602230491152,,,0.2,0.8,0.35000000000000003,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+"DeepSeek V4.1 Flash (Reasoning, Max Effort)",DeepSeek,39.456167472527,,,0.3,1.2,0.5249999999999999,0.971381198000017,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Mistral Medium 3.5,Mistral,14.1889227802691,,,1.5,7.5,3,2.33525447899996,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+K2-V2 (medium),Institute of Foundation Models,9.01595166538807,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Mi:dm K 2.5 Pro,Korea Telecom,11.0361387091137,,,,,,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+"Claude Opus 5.5 (Adaptive Reasoning, Xhigh Effort, Default Fallback)",Anthropic,55.9873505840139,,,4,20,8,148.23072381,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+GPT-6 Astra (high),OpenAI,50.9191471636152,,,10,50,20,42.7553922585,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+LFM2.5-2.6B,Liquid AI,8.38708534765242,,,0,0,0,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+LFM2.5-8B-A1B,Liquid AI,7.21643567343487,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/liquid,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Ling 3.0 Flash,InclusionAI,24.9392319530441,,,0.075,0.22,0.11124999999999999,2.4948557065,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova Premier,Amazon,9.15908119897819,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://modelpricewatch.com/providers/amazon/,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+GPT-6 Astra (medium),OpenAI,49.5704363034369,,,10,50,20,5.83567818900002,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Opus 5.5 (Adaptive Reasoning, Medium Effort, Default Fallback)",Anthropic,51.2434931792768,,,4,20,8,18.7047852339999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Ring-2.6-1T,InclusionAI,16.6172363768618,,,0.3,2.5,0.85,3.98109416699998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Phi-4,Microsoft,5.92257028113751,,,0.125,0.5,0.21875,2.52617017400008,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Sonnet 5 (Adaptive Reasoning, Medium Effort)",Anthropic,28.0531468379456,,,2,10,4,2.90341221149998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+gpt-oss-120b (high),OpenAI,11.6028431512592,,,0.15,0.595,0.26125,0.834583853000005,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+NVIDIA Nemotron Nano 9B V2 (Reasoning),NVIDIA,7.42882284148722,,,0.04,0.16,0.07,6.49211833099998,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Claude Opus 5.5 (Adaptive Reasoning, High Effort, Default Fallback)",Anthropic,53.5831959822067,,,4,20,8,34.8826356119999,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Nova 2.0 Pro Preview (low),Amazon,12.7754507441167,,,1.25,10,3.4375,9.75091040150016,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemini 3.8 Flash (low),Google,33.4548106699132,,,0.75,3.75,1.5,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Jamba Reasoning 3B,AI21 Labs,5.66829948484426,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/ai21,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Kimi K3 (max),Kimi,43.5938229518782,,,3,15,6,3.83511378100002,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+"Quasar 438B (max, based on GLM-5.2)",Multiverse Computing,26.7372536607816,,,0.6,1.8,0.8999999999999999,1.11920176199994,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+LFM2 24B A2B,Liquid AI,5.94753271655266,,,,,,,https://artificialanalysis.ai/leaderboards/models,https://pricepertoken.com/pricing-page/provider/liquid,2026-09-25,aa_coding_index aa_math_index input_cost_usd_per_1m output_cost_usd_per_1m time_to_first_token_s
+Nova 2.0 Lite (medium),Amazon,12.4823794919822,,,0.3,2.5,0.85,14.5635918565,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+KAT Coder Pro V2,KwaiKAT,21.7045082420985,,,0.3,1.2,0.5249999999999999,,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index time_to_first_token_s
+Qwen3 Coder Next,Alibaba,9.23682203219174,,,0.35,1.2,0.5625,1.34427213400022,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index
+Gemma 4 12B (Reasoning),Google,14.1847516647736,,,0.1,0.3,0.15000000000000002,2.40037838450008,https://artificialanalysis.ai/leaderboards/models,,2026-09-25,aa_coding_index aa_math_index

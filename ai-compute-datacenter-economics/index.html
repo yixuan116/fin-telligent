@@ -535,6 +535,66 @@
   .ptok-table td:nth-child(2) { font-family: var(--mono); font-weight: 700; color: var(--accent); white-space: nowrap; }
   .ptok-note { font-size: 0.76rem; color: var(--text-muted); margin: 10px 0 0; }
 
+  /* ============ New Shopping Cart ============ */
+  .ncart-block { margin: 34px 0 0; padding-top: 26px; border-top: 1px solid var(--border); }
+  .ncart-title {
+    font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em;
+    color: var(--text-primary); margin: 0 0 14px;
+  }
+  .ncart-stage { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin: 0 0 18px; }
+  .ncart-shelf { width: 100%; max-width: 520px; border-radius: var(--radius); display: block; }
+  .ncart-refresh {
+    background: var(--accent); color: #fff; border: none; border-radius: 999px;
+    padding: 9px 22px; font-size: 0.84rem; font-weight: 700; font-family: var(--font); cursor: pointer;
+  }
+  .ncart-refresh:hover { background: var(--accent-hover); }
+  .ncart-refresh[disabled] { opacity: 0.55; cursor: default; }
+
+  /* supermarket price tags -- a wall of them, never a table */
+  .ncart-tags { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 22px; }
+  .ncart-tag {
+    position: relative; flex: 0 0 auto; width: 168px;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 12px 12px 10px;
+    /* the notch a shelf tag hangs from */
+    border-top: 3px solid var(--accent-soft);
+    opacity: 0.45; transition: opacity 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    transform: translateY(3px);
+  }
+  .ncart-tag-in { opacity: 1; transform: translateY(0); }
+  .ncart-tag-lane { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 3px; }
+  .ncart-tag-name { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; line-height: 1.25; min-height: 2.5em; }
+  .ncart-tag-price { font-family: var(--mono); font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+  .ncart-tag-unit { font-size: 0.58rem; color: var(--text-muted); font-weight: 400; margin-left: 3px; }
+  .ncart-tag-was { font-size: 0.62rem; color: var(--text-muted); margin: 3px 0 0; text-decoration: line-through; }
+  .ncart-tag-badge {
+    position: absolute; top: -9px; right: 8px; background: var(--accent); color: #fff;
+    font-size: 0.55rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    border-radius: 999px; padding: 2px 8px;
+  }
+  .ncart-arrow { font-size: 0.72rem; font-weight: 800; margin-left: 6px; }
+  .ncart-down { color: var(--green); }
+  .ncart-up { color: var(--red); }
+  .ncart-tags-empty { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+
+  .ncart-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .ncart-total { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .ncart-total-new { border-color: var(--accent); background: var(--accent-soft); }
+  .ncart-total-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 6px; }
+  .ncart-total-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+  .ncart-total-new .ncart-total-value { color: var(--accent); }
+  .ncart-delta { font-size: 0.86rem; font-weight: 700; margin: 10px 0 0; color: var(--text-secondary); }
+  .ncart-nimble { font-size: 0.78rem; color: var(--text-secondary); margin: 16px 0 0; }
+  .ncart-foot { margin-top: 6px; }
+
+  @media (max-width: 760px) {
+    .ncart-title { font-size: 0.98rem; }
+    .ncart-tags { gap: 8px; }
+    .ncart-tag { width: calc(50% - 4px); }
+    .ncart-totals { grid-template-columns: minmax(0, 1fr); }
+    .ncart-total-value { font-size: 1.2rem; }
+  }
+
   @media (max-width: 760px) {
     .ptok-formula { font-size: 1.15rem; }
     .ptok-table th, .ptok-table td { padding: 8px 10px; font-size: 0.78rem; }
@@ -1639,14 +1699,14 @@
       <button type="button" class="collapsible-toggle" id="toggle-perf-benchmark" aria-expanded="false" aria-controls="body-perf-benchmark">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="ct-title">Performance Benchmark</span>
-        <span class="ct-sub">8 exams &middot; 5 lanes &middot; Artificial Analysis snapshot, 2026-03-31</span>
+        <span class="ct-sub">8 exams &middot; 5 lanes &middot; Artificial Analysis snapshot</span>
       </button>
       <div class="collapsible-body" id="body-perf-benchmark">
         <div class="collapsible-body-inner">
           <div class="section-card">
 
             <h3 class="section-title" style="font-size:1.05rem; margin:0 0 6px;">&#127891; Models take exams too. 8 exams, 5 skills.</h3>
-            <p class="pbench-subline">&#128225; Source: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a>, snapshot as of 2026-03-31, via <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">Kaggle</a>.</p>
+            <p class="pbench-subline">&#128225; Source: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a>, via <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">Kaggle</a>.</p>
             <p class="pbench-rule">Judged on two dimensions: exam score and time to first token (TTFT). &#9889; = fastest third on TTFT.</p>
 
 
@@ -1716,7 +1776,7 @@
       <button type="button" class="collapsible-toggle" id="toggle-price-cost" aria-expanded="false" aria-controls="body-price-cost">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="ct-title">Price &amp; Cost</span>
-        <span class="ct-sub">4 price types &middot; Artificial Analysis snapshot, 2026-03-31</span>
+        <span class="ct-sub">4 price types &middot; Artificial Analysis snapshot</span>
       </button>
       <div class="collapsible-body" id="body-price-cost">
         <div class="collapsible-body-inner">
@@ -1726,7 +1786,7 @@
 
             <h3 class="section-title" style="font-size:1.05rem; margin:0 0 6px;">&#128178; Price Tag: what models cost and how 1,000 requests get billed</h3>
             <p class="pcard-subtitle">Three levers set the bill: which tier you pick, whether you cache, whether you batch.</p>
-            <p class="pcard-source">Prices: <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker: (March 2026)</a> &middot; live API rates collected March 31, 2026</p>
+            <p class="pcard-source">Prices: <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker</a> &middot; live API rates as collected at snapshot</p>
 
             <p class="pcard-tier-intro">Tiers are cut on blended price, weighted 3 input tokens to 1 output token. Each tier starts roughly 6 to 10x above the last.</p>
             <div class="pcard-tiers" id="pcard-tiers"></div>
@@ -1840,7 +1900,7 @@
             <p class="pcard-assumption">Illustrative token mix. Cache and batch discounts assumed to stack.</p>
 
             <p class="pcard-footer" id="pcard2-footer"></p>
-            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
+            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker</a></p>
 
             </div>
 
@@ -1926,7 +1986,34 @@
 
             <p class="pcard-assumption">Task presets are illustrative usage assumptions. 1 token &asymp; 0.75 words; 1 page &asymp; 500 words.</p>
 
-            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">llm_price_performance_tracker_2026-03-31.csv</a></p>
+            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker</a></p>
+
+            <!-- ============ New Shopping Cart (part of the Cart step) ============ -->
+            <div class="ncart-block" id="ncart-block">
+              <h3 class="ncart-title">Latest Models &amp; Prices, as of Sep 25, 2026</h3>
+
+              <div class="ncart-stage" id="ncart-stage">
+                <!-- shelf.png / shelf.mp4 are injected above the button only if both files exist -->
+                <button type="button" class="ncart-refresh" id="ncart-refresh">Refresh</button>
+              </div>
+
+              <div class="ncart-tags" id="ncart-tags"></div>
+
+              <div class="ncart-totals">
+                <div class="ncart-total">
+                  <p class="ncart-total-label">Your Cart</p>
+                  <p class="ncart-total-value" id="ncart-total-old">&ndash;</p>
+                </div>
+                <div class="ncart-total ncart-total-new">
+                  <p class="ncart-total-label">New Shopping Cart, as of Sep 25, 2026</p>
+                  <p class="ncart-total-value" id="ncart-total-new">&ndash;</p>
+                </div>
+              </div>
+              <p class="ncart-delta" id="ncart-delta"></p>
+
+              <p class="ncart-nimble">&#128269; Checked by Nimble: Search finds the latest models, Extract reads today&#39;s prices.</p>
+              <p class="pcard-footer ncart-foot">Data: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener noreferrer">Artificial Analysis leaderboard</a> &middot; scraped by <a href="https://github.com/yixuan116/fin-telligent/blob/main/scripts/nimble-price-check.ts" target="_blank" rel="noopener noreferrer">scripts/nimble-price-check.ts</a> &middot; <a href="https://github.com/yixuan116/fin-telligent/blob/main/data/nimble_latest_2026-09-25.csv" target="_blank" rel="noopener noreferrer">nimble_latest_2026-09-25.csv</a></p>
+            </div>
 
           </div>
         </div>
@@ -4679,6 +4766,9 @@
 
     renderCartReceiptLines(deptTotals, modelTotals, total);
     pcartUpdateBreakdownHeight();
+    // The new cart is recomputed before the receipt, because the receipt's
+    // token spend is booked off the new cart's result, not this one's.
+    renderNewCart(false);
     renderReceipt();
   }
 
@@ -4711,8 +4801,446 @@
     });
   }
 
+  // ============ New Shopping Cart ============
+  // Scraped at build time by scripts/nimble-price-check.ts and frozen here --
+  // the page never calls Nimble. Columns mirror the tracker CSV:
+  // [model_name, provider, intelligence index, $ in /1M, $ out /1M, TTFT s].
+  // Source: https://artificialanalysis.ai/leaderboards/models, 2026-09-25.
+  var NEWCART_AS_OF = "Sep 25, 2026";
+  var NEWCART_SHELF_MEDIA = false;   // true once assets/shelf.png + shelf.mp4 are committed
+  var NEWCART_RAW = [
+    ["MiMo-V2.5-Pro","Xiaomi",25.987,0.435,0.87,6.242],
+    ["GPT-6 Sol (low)","OpenAI",33.901,2,10,1.981],
+    ["Qwen3.5 Omni Plus","Alibaba",20.384,0.4,4.8,2.069],
+    ["Nova 2.0 Omni (medium)","Amazon",13.647,0.3,2.5,null],
+    ["Qwen3.5 122B A10B (Non-reasoning)","Alibaba",17.748,0.4,3.2,2.41],
+    ["Gemma 4 12B (Non-reasoning)","Google",9.38,0.1,0.3,2.417],
+    ["Claude Fable 5.1 (Adaptive Reasoning, Low Effort, Default Fallback)","Anthropic",46.816,10,50,7.339],
+    ["Apodex 1.1","Apodex",26.41,0.3,3,null],
+    ["Gemini 3.5 Flash-Lite","Google",22.169,0.3,2.5,8.775],
+    ["Step 5 Preview","StepFun",43.734,1,2.7,2.795],
+    ["Qwen3 Omni 30B A3B Instruct","Alibaba",6.006,0.25,0.97,1.843],
+    ["Granite 4.2 3B","IBM",9.056,0.03,0.12,0.498],
+    ["Nova 2.0 Pro Preview (medium)","Amazon",14.155,1.25,10,16.079],
+    ["Inkling (xhigh)","Thinking Machines",24.985,1,4.05,1.87],
+    ["Qwen3.5 397B A17B (Reasoning)","Alibaba",18.42,0.6,3.6,2.218],
+    ["Granite 4.2 30B","IBM",14.831,0.16,0.65,0.841],
+    ["Mistral Small 4 (Non-reasoning)","Mistral",8.99,0.15,0.6,0.766],
+    ["Claude Sonnet 5 (Adaptive Reasoning, Low Effort)","Anthropic",24.264,2,10,1.715],
+    ["gpt-oss-20b (low)","OpenAI",9.953,0.07,0.215,0.993],
+    ["o3","OpenAI",20.201,2,8,6.903],
+    ["GLM 5.3 Flash","Z AI",41.807,0.15,0.5,3.42],
+    ["GPT-6 Luna (xhigh)","OpenAI",33.885,0.1,0.5,19.199],
+    ["Solar Pro 4","Upstage",28.154,0.3,1.2,1.912],
+    ["North Mini Code","Cohere",9.915,0,0,0.386],
+    ["GPT-6 Astra (xhigh)","OpenAI",52.386,10,50,145.476],
+    ["Nova 2.0 Omni (Non-reasoning)","Amazon",8.151,0.3,2.5,null],
+    ["Qwen3.5 9B (Non-reasoning)","Alibaba",13.266,0.17,0.25,0.748],
+    ["Qwen3.5 122B A10B (Reasoning)","Alibaba",15.569,0.4,3.2,2.337],
+    ["MiMo-V2.5","Xiaomi",25.174,0.14,0.28,3.595],
+    ["NVIDIA Nemotron 3 Nano 30B A3B (Non-reasoning)","NVIDIA",6.848,0.05,0.2,0.702],
+    ["Claude Sonnet 5 (Adaptive Reasoning, Max Effort)","Anthropic",38.164,2,10,121.34],
+    ["MiMo-V2.6-Pro","Xiaomi",46.324,0.435,0.87,3.309],
+    ["Grok 4.6 (medium)","SpaceXAI",42.836,2,6,22.23],
+    ["Qwen3 Next 80B A3B Instruct","Alibaba",9.643,0.15,1.2,2.162],
+    ["GPT-5.6 Terra (medium)","OpenAI",30.094,2,12,2.136],
+    ["Grok 4.7 (high)","SpaceXAI",46.332,2,6,0.962],
+    ["MiniMax-M3","MiniMax",29.22,0.3,1.2,1.072],
+    ["Nemotron 3.5 Lightning","NVIDIA",12.857,0.07,0.22,0.605],
+    ["Phi-4 Multimodal Instruct","Microsoft",5.805,0,0,0.825],
+    ["Qwen3.5 9B (Reasoning)","Alibaba",13.654,0.135,0.2,1.473],
+    ["NVIDIA Nemotron Nano 9B V2 (Non-reasoning)","NVIDIA",6.844,0.05,0.195,3.265],
+    ["Command A+","Cohere",13.134,0,0,0.415],
+    ["GPT-6 Astra (max)","OpenAI",52.674,10,50,361.315],
+    ["Claude Opus 5.5 (Adaptive Reasoning, Max Effort, Default Fallback)","Anthropic",57.622,4,20,null],
+    ["G9v3-3B","AI9Stars",10.842,0,0,null],
+    ["Qwen3.5 4B (Non-reasoning)","Alibaba",10.812,0.03,0.15,0.881],
+    ["Qwen3.5 397B A17B (Non-reasoning)","Alibaba",21.437,0.6,3.6,2.196],
+    ["Nova Micro","Amazon",5.877,0.035,0.14,0.826],
+    ["Qwen3.8 27B (Non-reasoning)","Alibaba",20.15,0.5,3,3.875],
+    ["GPT-6 Luna (medium)","OpenAI",29.462,0.1,0.5,5.276],
+    ["gpt-oss-20b (high)","OpenAI",8.968,0.07,0.18,0.794],
+    ["Olmo 3.1 32B Think","Allen Institute for AI",7.124,0,0,null],
+    ["Claude Fable 5.1 (Adaptive Reasoning, Medium Effort, Default Fallback)","Anthropic",48.921,10,50,7.956],
+    ["Command A","Cohere",6.958,2.5,10,2.035],
+    ["Claude Fable 5.1 (Adaptive Reasoning, Max Effort, Default Fallback)","Anthropic",53.355,10,50,260.11],
+    ["Mistral Small 4 (Reasoning)","Mistral",11.268,0.15,0.6,0.767],
+    ["Ling-3.0-flash-VL","InclusionAI",24.569,0.075,0.22,1.907],
+    ["Claude Opus 5.5 (Adaptive Reasoning, Low Effort, Default Fallback)","Anthropic",42.308,4,20,6.015],
+    ["Sarvam 105B (high)","Sarvam",8.791,0.042,0.17,null],
+    ["MiMo-V2.5-Pro (Non-reasoning)","Xiaomi",18.29,0.435,0.87,3.417],
+    ["Ring-flash-2.0","InclusionAI",7.153,0.14,0.57,null],
+    ["Mistral Large 3","Mistral",9.266,0.5,1.5,1.125],
+    ["Apertus 70B Instruct","Swiss AI Initiative",5.115,0.82,2.92,null],
+    ["Kimi K3 (low)","Kimi",34.456,3,15,3.968],
+    ["GPT-6 Sol (high)","OpenAI",42.822,2,10,9.617],
+    ["Gemma 4 E4B (Non-reasoning)","Google",7.458,0.02,0.1,0.799],
+    ["Muse Glimmer (high)","Meta",17.475,0.325,1.35,1.131],
+    ["Grok 4.7 (xhigh)","SpaceXAI",46.447,2,6,1.418],
+    ["GPT-5.3 Codex (xhigh)","OpenAI",32.503,1.75,14,67.397],
+    ["Nemotron 3 Ultra 550B A55B (Reasoning)","NVIDIA",22.928,0.6,2.5,2.207],
+    ["LongCat 2.0","LongCat",19.112,0.3,1.2,null],
+    ["Granite 4.0 H Small","IBM",6.049,0.06,0.25,37.816],
+    ["Llama 3.2 Instruct 11B (Vision)","Meta",5.408,0.345,0.345,1.981],
+    ["Nova 2.0 Lite (high)","Amazon",13.374,0.3,2.5,12.624],
+    ["Nemotron 3 Super 120B A12B (Reasoning)","NVIDIA",12.829,0.3,0.9,1.455],
+    ["GPT-6 Luna (Non-reasoning)","OpenAI",18.262,0.1,0.5,0.817],
+    ["Qwen3.5 4B (Reasoning)","Alibaba",13.125,0.03,0.15,0.709],
+    ["Qwen3.8 27B (medium)","Alibaba",27.551,0.5,3,3.806],
+    ["Qwen3.6 35B A3B (Non-reasoning)","Alibaba",15.232,0.375,2.25,2.107],
+    ["Ministral 3 3B","Mistral",4.838,0.1,0.1,0.702],
+    ["Step 3.7 Flash","StepFun",19.481,0.2,1.15,2.513],
+    ["Ling-3.0-flash-Fin","InclusionAI",22.597,0.075,0.22,1.707],
+    ["Gemma 4 26B A4B (Reasoning)","Google",16.672,0.1,0.37,null],
+    ["Qwen3.5 Omni Flash","Alibaba",12.474,0.1,0.8,1.914],
+    ["GPT-6 Luna (max)","OpenAI",37.256,0.1,0.5,138.946],
+    ["Nova 2.0 Lite (low)","Amazon",11.804,0.3,2.5,8.966],
+    ["Magistral Small 1.2","Mistral",8.594,0.5,1.5,null],
+    ["Gemma 4 26B A4B (Non-reasoning)","Google",13.13,0.13,0.4,1.137],
+    ["Ministral 3 14B","Mistral",6.044,0.2,0.2,0.929],
+    ["Inkling Small","Thinking Machines",27.781,0.3,1.2,2.578],
+    ["DeepSeek V4.1 Flash (Non-Reasoning)","DeepSeek",24.673,0.3,1.2,1.186],
+    ["Gemini 3.8 Flash (medium)","Google",39.774,0.75,3.75,null],
+    ["Sarvam 30B (high)","Sarvam",6.56,0.026,0.11,null],
+    ["Mercury 2.5","Inception",12.341,0.25,0.75,3.056],
+    ["Nova 2.0 Lite (Non-reasoning)","Amazon",8.737,0.3,2.5,1.067],
+    ["NVIDIA Nemotron 3 Nano 30B A3B (Reasoning)","NVIDIA",8.896,0.05,0.2,1.118],
+    ["DeepSeek V4 Flash Vision (Reasoning, Max Effort)","DeepSeek",34.839,0.44,1.32,0.892],
+    ["GPT-6 Sol (medium)","OpenAI",39.782,2,10,1.964],
+    ["GPT-6 Luna (high)","OpenAI",32.148,0.1,0.5,7.45],
+    ["Qwen3.8 27B (low)","Alibaba",26.205,0.5,3,3.846],
+    ["Ling 3.0 Tiny","InclusionAI",15.288,0,0,2.829],
+    ["Celeris-1","Celeris",6.347,0.2,0.7,0.574],
+    ["Tiny Aya Global","Cohere",4.834,0,0,null],
+    ["GPT-5.6 Terra (high)","OpenAI",34.238,2,12,3.573],
+    ["Hermes 4 - Llama-3.1 405B (Reasoning)","Nous Research",7.495,1,3,2.357],
+    ["DeepSeek V4 Pro 0813 (Reasoning, Max Effort)","DeepSeek",35.997,1.32,3.96,1.649],
+    ["Qwen3.6 35B A3B (Reasoning)","Alibaba",18.229,0.375,2.25,2.094],
+    ["Apertus 8B Instruct","Swiss AI Initiative",4.834,0.1,0.2,null],
+    ["Gemini 3.8 Flash (high)","Google",40.926,0.75,3.75,22.57],
+    ["Nemotron 3 Nano Omni 30B A3B Reasoning","NVIDIA",10.251,0.195,1.095,0.469],
+    ["Kimi K2.7 Code","Kimi",25.812,0.95,4,2.881],
+    ["Qwen3.8 2.4T A95B","Alibaba",39.886,2,6,2.665],
+    ["Olmo 3 7B Instruct","Allen Institute for AI",5.241,0.1,0.2,null],
+    ["Llama 4 Maverick","Meta",9.991,0.26,0.91,0.916],
+    ["Ministral 3 8B","Mistral",5.478,0.15,0.15,0.772],
+    ["Llama 3.3 Instruct 70B","Meta",7.664,0.71,0.72,1.674],
+    ["Muse Spark 1.3 (max)","Meta",48.092,1.25,4.25,25.371],
+    ["Claude Sonnet 5 (Adaptive Reasoning, Xhigh Effort)","Anthropic",34.384,2,10,16.905],
+    ["Qwen3.8-Flash-Next","Alibaba",39.822,0.15,0.47,2.86],
+    ["Claude Fable 5.1 (Adaptive Reasoning, Xhigh Effort, Default Fallback)","Anthropic",53.203,10,50,111.265],
+    ["GPT-5.6 Terra (Non-reasoning)","OpenAI",20.78,2,12,0.956],
+    ["Claude Fable 5.1 (Adaptive Reasoning, High Effort, Default Fallback)","Anthropic",51.152,10,50,20.555],
+    ["GPT-5.6 Terra (xhigh)","OpenAI",37.951,2,12,28.3],
+    ["Phi-4 Mini Instruct","Microsoft",6.329,0,0,0.83],
+    ["Nova 2.0 Pro Preview (Non-reasoning)","Amazon",9.959,1.25,10,1.017],
+    ["GPT-6 Astra (low)","OpenAI",45.782,10,50,3.145],
+    ["Claude 4.5 Haiku (Reasoning)","Anthropic",16.882,1,5,19.54],
+    ["Apriel-v1.6-15B-Thinker","ServiceNow",13.401,0,0,null],
+    ["Qwen3.7 Plus","Alibaba",25.162,0.4,1.6,2.234],
+    ["NVIDIA Nemotron Nano 12B v2 VL (Non-reasoning)","NVIDIA",5.82,0.2,0.6,1.178],
+    ["Llama 4 Scout","Meta",8.075,0.19,0.68,0.846],
+    ["Granite 4.2 8B","IBM",11.081,0.06,0.25,0.743],
+    ["ERNIE 4.5 300B A47B","Baidu",7.504,0.28,1.1,null],
+    ["Qwen3.8 27B (xhigh)","Alibaba",33.696,0.5,3,3.955],
+    ["Qwen3.8 Max (0902)","Alibaba",45.415,2,6,3.04],
+    ["Hy3","Tencent",25.297,0.14,0.58,2.968],
+    ["Nova 2.0 Omni (low)","Amazon",11.114,0.3,2.5,null],
+    ["Trinity Large Thinking","Arcee AI",10.824,0.25,0.8,1.349],
+    ["Qwen3 Omni 30B A3B (Reasoning)","Alibaba",7.761,0.25,0.97,1.901],
+    ["Claude Sonnet 5 (Adaptive Reasoning, High Effort)","Anthropic",31.662,2,10,8.628],
+    ["Gemini 3.1 Pro Preview","Google",29.719,2,12,30.342],
+    ["GPT-5.6 Terra (max)","OpenAI",42.083,2,12,167.79],
+    ["GPT-6 Luna (low)","OpenAI",20.923,0.1,0.5,2.341],
+    ["Grok 4.6 (low)","SpaceXAI",35.125,2,6,7.136],
+    ["G9v3-39A5B","AI9Stars",21.832,0,0,null],
+    ["Claude 4.5 Haiku (Non-reasoning)","Anthropic",15.411,1,5,0.658],
+    ["GPT-5.5 Instant (June 2026)","OpenAI",26.014,5,30,1.052],
+    ["GPT-6 Sol (max)","OpenAI",47.528,2,10,165.067],
+    ["Qwen3 Next 80B A3B (Reasoning)","Alibaba",11.197,0.15,1.2,2.311],
+    ["Grok 4.6 (high)","SpaceXAI",44.311,2,6,40.813],
+    ["gpt-oss-120b (low)","OpenAI",10.211,0.15,0.545,0.848],
+    ["GLM-5.3 (low)","Z AI",34.299,1.4,4.4,2.91],
+    ["GPT-5.6 Terra (low)","OpenAI",27.496,2,12,1.761],
+    ["Gemma 4 31B (Reasoning)","Google",18.979,0,0,1.021],
+    ["GLM-5.3 (max)","Z AI",44.777,1.4,4.4,3.23],
+    ["Gemma 4 31B (Non-reasoning)","Google",13.92,0.14,0.4,1.989],
+    ["Hermes 4 - Llama-3.1 405B (Non-reasoning)","Nous Research",7.412,1,3,2.347],
+    ["GPT-6 Sol (Non-reasoning)","OpenAI",28.092,2,10,1.085],
+    ["Muse Spark 1.3 (xhigh)","Meta",45.073,1.25,4.25,21.523],
+    ["Claude Sonnet 5 (Non-reasoning, High Effort)","Anthropic",23.2,2,10,1.687],
+    ["Grok 4.6 (xhigh)","SpaceXAI",44.2,2,6,41.686],
+    ["Gemma 4 E4B (Reasoning)","Google",8.915,0.02,0.1,0.848],
+    ["GPT-6 Sol (xhigh)","OpenAI",44.101,2,10,36.953],
+    ["Reka Flash 3","Reka AI",5.646,0.2,0.8,null],
+    ["DeepSeek V4.1 Flash (Reasoning, Max Effort)","DeepSeek",39.456,0.3,1.2,0.971],
+    ["Mistral Medium 3.5","Mistral",14.189,1.5,7.5,2.335],
+    ["Claude Opus 5.5 (Adaptive Reasoning, Xhigh Effort, Default Fallback)","Anthropic",55.987,4,20,148.231],
+    ["GPT-6 Astra (high)","OpenAI",50.919,10,50,42.755],
+    ["LFM2.5-2.6B","Liquid AI",8.387,0,0,null],
+    ["Ling 3.0 Flash","InclusionAI",24.939,0.075,0.22,2.495],
+    ["GPT-6 Astra (medium)","OpenAI",49.57,10,50,5.836],
+    ["Claude Opus 5.5 (Adaptive Reasoning, Medium Effort, Default Fallback)","Anthropic",51.243,4,20,18.705],
+    ["Ring-2.6-1T","InclusionAI",16.617,0.3,2.5,3.981],
+    ["Phi-4","Microsoft",5.923,0.125,0.5,2.526],
+    ["Claude Sonnet 5 (Adaptive Reasoning, Medium Effort)","Anthropic",28.053,2,10,2.903],
+    ["gpt-oss-120b (high)","OpenAI",11.603,0.15,0.595,0.835],
+    ["NVIDIA Nemotron Nano 9B V2 (Reasoning)","NVIDIA",7.429,0.04,0.16,6.492],
+    ["Claude Opus 5.5 (Adaptive Reasoning, High Effort, Default Fallback)","Anthropic",53.583,4,20,34.883],
+    ["Nova 2.0 Pro Preview (low)","Amazon",12.775,1.25,10,9.751],
+    ["Gemini 3.8 Flash (low)","Google",33.455,0.75,3.75,null],
+    ["Kimi K3 (max)","Kimi",43.594,3,15,3.835],
+    ["Quasar 438B (max, based on GLM-5.2)","Multiverse Computing",26.737,0.6,1.8,1.119],
+    ["Nova 2.0 Lite (medium)","Amazon",12.482,0.3,2.5,14.564],
+    ["KAT Coder Pro V2","KwaiKAT",21.705,0.3,1.2,null],
+    ["Qwen3 Coder Next","Alibaba",9.237,0.35,1.2,1.344],
+    ["Gemma 4 12B (Reasoning)","Google",14.185,0.1,0.3,2.4]
+  ];
+  // Artificial Analysis no longer publishes per-lane coding and math indices,
+  // so a lane composite cannot be rebuilt from this pull. Within a tier the
+  // new pool ranks on AA's own intelligence index instead. Everything else --
+  // the $0.50 / $5 / $30 tier cuts, the 2s TTFT gate, the pack-to-tier rules,
+  // the cost formula -- is the Cart's, untouched.
+  var NEWCART_MODELS = NEWCART_RAW.map(function (r) {
+    var blended = (3 * r[3] + r[4]) / 4;
+    return {
+      name: r[0], provider: r[1], intel: r[2],
+      input: r[3], output: r[4], ttft: r[5],
+      blended: blended, tier: newcartTierOf(blended)
+    };
+  });
+
+  // Same cuts the Price Tag card draws: $0.50 / $5 / $30 on blended price.
+  function newcartTierOf(blended) {
+    if (blended < 0.5) return 1;
+    if (blended < 5) return 2;
+    if (blended < 30) return 3;
+    return 4;
+  }
+
+  function newcartFindByName(name) {
+    for (var i = 0; i < NEWCART_MODELS.length; i++) {
+      if (NEWCART_MODELS[i].name === name) return NEWCART_MODELS[i];
+    }
+    return null;
+  }
+
+  // Best in tier that clears the same TTFT gate the Cart uses.
+  function newcartBestInTier(tier) {
+    var best = null;
+    NEWCART_MODELS.forEach(function (m) {
+      if (m.tier !== tier) return;
+      if (m.ttft == null || m.ttft > CART_TTFT_THRESHOLD_S) return;
+      if (!best || m.intel > best.intel) best = m;
+    });
+    return best;
+  }
+
+  // Same outward-widening tier search the Cart falls back through.
+  function newcartResolve(requestedTier) {
+    var order = pcartTierSearchOrder(requestedTier);
+    for (var i = 0; i < order.length; i++) {
+      var pick = newcartBestInTier(order[i]);
+      if (pick) return { model: pick, tier: order[i] };
+    }
+    return null;
+  }
+
+  // The Cart's own cost formula, fed the new prices. Kept in step with
+  // pcartLineCalc: same presets, same cache/batch switches, same period.
+  function newcartLineCalc(dept, task, model) {
+    var teamSize = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : PBENCH_DEPARTMENTS[dept].people;
+    var share = (PCART_SHARES[dept][task] || 0) / 100;
+    var taskDef = PCARD_TASK_PRESETS[task];
+    if (!taskDef || !model || !share) return { cost: 0, tokens: 0 };
+
+    var mult = pcardIsReasoningModel(model.name) ? 2 : 1;
+    var days = +byId("cart-period").value || 20;
+    var totalTokens = teamSize * share * taskDef.dailyTokens * days;
+
+    var effIn = PCARD_CART_STATE.cacheOn ? model.input * 0.6 : model.input;
+    var unit = (taskDef.ioRatio * effIn + mult * model.output) / (taskDef.ioRatio + 1);
+    var cost = totalTokens * unit / 1e6;
+    if (PCARD_CART_STATE.batchOn) cost *= 0.5;
+    return { cost: cost, tokens: totalTokens };
+  }
+
+  /**
+   * The model today's pool picks for one department/task, at the tier the
+   * Cart asked for. Falls back to the Cart's own pick when nothing in the new
+   * pool clears that tier.
+   */
+  function newcartPickFor(dept, task) {
+    var rules = CART_PACK_DEFS[PCART_ACTIVE_PACK] || CART_PACK_DEFS.Balanced;
+    var oldName = PCART_TASK_MODEL[dept][task].model;
+    var requested = PCART_TASK_MODEL[dept][task].tier || rules[task];
+    var resolved = newcartResolve(requested);
+    return resolved ? resolved.model : newcartFindByName(oldName);
+  }
+
+  // One line of the new cart's bill, for the receipt to book.
+  function newcartLineFor(dept, task) {
+    var picked = newcartPickFor(dept, task);
+    return picked ? newcartLineCalc(dept, task, picked) : pcartLineCalc(dept, task);
+  }
+
+  /**
+   * Re-shop every line in the cart against the new pool, at the tier the
+   * active pack asks for. Returns both totals plus one entry per distinct
+   * model position, which is what the price tags render from.
+   */
+  function newcartCompute() {
+    var oldTotal = 0, newTotal = 0;
+    var tags = {}, order = [];
+
+    PCART_POOL.forEach(function (dept) {
+      Object.keys(PCART_SHARES[dept]).forEach(function (task) {
+        var oldCalc = pcartLineCalc(dept, task);
+        oldTotal += oldCalc.cost;
+
+        var oldName = PCART_TASK_MODEL[dept][task].model;
+        // Nothing in the new pool clears this tier: keep the model the Cart
+        // already picked and, if the new pull prices it, use that price.
+        var picked = newcartPickFor(dept, task);
+        if (!picked) { newTotal += oldCalc.cost; return; }
+
+        var newCalc = newcartLineCalc(dept, task, picked);
+        newTotal += newCalc.cost;
+
+        var key = task + "|" + picked.name;
+        if (!tags[key]) {
+          var oldRow = pcardCartFindModel(oldName);
+          var oldBlended = oldRow ? (3 * oldRow.input_cost_usd_per_1m + oldRow.output_cost_usd_per_1m) / 4 : null;
+          tags[key] = {
+            task: task,
+            name: picked.name,
+            replaced: picked.name !== oldName,
+            wasName: oldName,
+            price: picked.blended,
+            wasPrice: oldBlended
+          };
+          order.push(key);
+        }
+      });
+    });
+
+    return { oldTotal: oldTotal, newTotal: newTotal, tags: order.map(function (k) { return tags[k]; }) };
+  }
+
+  var NEWCART_LAST = null;
+
+  function newcartMoney(v) {
+    if (v == null) return "\u2013";
+    return "$" + (v >= 100 ? v.toFixed(0) : v >= 1 ? v.toFixed(2) : v.toFixed(3));
+  }
+
+  function newcartTagHtml(t) {
+    var arrow = "";
+    // Only a kept model compares prices; a replacement is a different product.
+    if (!t.replaced && t.wasPrice != null && t.price != null) {
+      var diff = t.price - t.wasPrice;
+      if (Math.abs(diff) > 1e-9) {
+        arrow = '<span class="ncart-arrow ' + (diff < 0 ? "ncart-down" : "ncart-up") + '">' +
+          (diff < 0 ? "\u25bc" : "\u25b2") + "</span>";
+      }
+    }
+    return '<div class="ncart-tag">' +
+      (t.replaced ? '<span class="ncart-tag-badge">New</span>' : "") +
+      '<p class="ncart-tag-lane">' + pcardEscapeXml(t.task) + "</p>" +
+      '<p class="ncart-tag-name">' + pcardEscapeXml(t.name) + "</p>" +
+      '<p class="ncart-tag-price">' + newcartMoney(t.price) +
+        '<span class="ncart-tag-unit">/1M blended</span>' + arrow + "</p>" +
+      (t.replaced && t.wasName
+        ? '<p class="ncart-tag-was">was ' + pcardEscapeXml(t.wasName) + "</p>"
+        : (t.wasPrice != null ? '<p class="ncart-tag-was">was ' + newcartMoney(t.wasPrice) + "</p>" : "")) +
+      "</div>";
+  }
+
+  function renderNewCart(animate) {
+    var wrap = byId("ncart-tags");
+    if (!wrap) return;
+    var r = newcartCompute();
+    NEWCART_LAST = r;
+
+    if (!PCART_POOL.length) {
+      wrap.innerHTML = '<p class="ncart-tags-empty">Add a department to the Cart to see today\u2019s price tags.</p>';
+      byId("ncart-total-old").textContent = "\u2013";
+      byId("ncart-total-new").textContent = "\u2013";
+      byId("ncart-delta").textContent = "";
+      return;
+    }
+
+    wrap.innerHTML = r.tags.map(newcartTagHtml).join("");
+    var tagEls = wrap.querySelectorAll(".ncart-tag");
+    Array.prototype.forEach.call(tagEls, function (el, i) {
+      // Tags land one after another, like a clerk walking the shelf.
+      if (animate) window.setTimeout(function () { el.classList.add("ncart-tag-in"); }, i * 90);
+      else el.classList.add("ncart-tag-in");
+    });
+
+    byId("ncart-total-old").textContent = fmtUSD(r.oldTotal, 2);
+    byId("ncart-total-new").textContent = fmtUSD(r.newTotal, 2);
+
+    var diff = r.newTotal - r.oldTotal;
+    var pct = r.oldTotal > 0 ? (diff / r.oldTotal) * 100 : null;
+    var sign = diff < 0 ? "\u2212" : "+";
+    byId("ncart-delta").innerHTML = '<span class="' + (diff < 0 ? "ncart-down" : "ncart-up") + '">' +
+      sign + fmtUSD(Math.abs(diff), 2) +
+      (pct == null ? "" : " (" + sign + Math.abs(pct).toFixed(1) + "%)") + "</span>" +
+      (diff < 0 ? " cheaper on today\u2019s prices" : " dearer on today\u2019s prices");
+  }
+
+  /**
+   * The shelf clip is optional. Both files have to be there or the stage shows
+   * nothing at all -- no broken image, no empty frame.
+   */
+  function newcartInitStage() {
+    var stage = byId("ncart-stage");
+    var btn = byId("ncart-refresh");
+    if (!stage || !btn) return;
+
+    // The clip is opt-in rather than probed for: requesting a file that isn't
+    // there logs a 404 whatever the JS does with the result. Commit
+    // assets/shelf.png and assets/shelf.mp4, flip this to true, and the
+    // poster appears above the button and plays once before the tags update.
+    var have = NEWCART_SHELF_MEDIA;
+    if (have) {
+      var poster = document.createElement("img");
+      poster.className = "ncart-shelf";
+      poster.src = "assets/shelf.png";
+      poster.alt = "Supermarket shelf of model price tags";
+      stage.insertBefore(poster, btn);
+      stage.setAttribute("data-shelf", "ready");
+    }
+
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      if (stage.getAttribute("data-shelf") === "ready" && have) {
+        var poster = stage.querySelector("img.ncart-shelf");
+        var video = document.createElement("video");
+        video.className = "ncart-shelf";
+        video.src = "assets/shelf.mp4";
+        video.muted = true;
+        video.playsInline = true;
+        video.controls = false;
+        // Plays once, holds on its last frame, then the tags start updating.
+        video.addEventListener("ended", function () {
+          renderNewCart(true);
+          btn.disabled = false;
+        });
+        if (poster) stage.replaceChild(video, poster);
+        video.play();
+        return;
+      }
+      renderNewCart(true);
+      btn.disabled = false;
+    });
+  }
+
   function renderCartCard() {
     renderTokenUsage();
+    newcartInitStage();
+
     renderCartBubbles();
     renderCartPacks();
     renderCartViewToggle();
@@ -4854,7 +5382,9 @@
       var bucket = PRCPT_COGS_DEPTS[dept] ? "cogs" : "opex";
       var deptCost = 0;
       Object.keys(PCART_SHARES[dept]).forEach(function (task) {
-        var calc = pcartLineCalc(dept, task);
+        // Booked off the New Shopping Cart, so the P&L reflects what the same
+        // basket costs at today's prices rather than the older snapshot.
+        var calc = newcartLineFor(dept, task);
         if (bucket === "cogs") { cogsTokens += calc.cost; cogsQty += calc.tokens; }
         else { opexTokens += calc.cost; opexQty += calc.tokens; }
         deptCost += calc.cost;
