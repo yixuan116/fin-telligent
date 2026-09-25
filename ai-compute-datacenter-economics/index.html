@@ -646,7 +646,8 @@
     display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
     padding: 8px 10px; border-radius: var(--radius);
   }
-  .pbench-matrix-tag { display: block; font-size: 0.62rem; font-weight: 400; color: var(--text-muted); margin-top: 2px; }
+  /* headcount only, sized to sit level with the department name */
+  .pbench-matrix-tag { display: block; font-size: 0.76rem; font-weight: 400; color: var(--text-primary); margin-top: 2px; }
   .pbench-matrix-cell {
     background: var(--bg); border-radius: var(--radius);
     display: flex; align-items: center; justify-content: center;
@@ -3409,13 +3410,13 @@
     Array.prototype.forEach.call(document.querySelectorAll(".pbench-matrix-rowhead"), function (el) {
       var dept = PBENCH_DEPARTMENTS[el.getAttribute("data-dept")];
       if (!dept) return;
-      // The row head carries the name; the tag underneath carries only the
-      // headcount. The default task stays in the data because it drives each
-      // Pack's tier assignment, but it is not shown here.
+      // The row head carries the name; the tag underneath carries the
+      // headcount as a bare number. The default task stays in the data
+      // because it drives each Pack's tier assignment, but it is not shown.
       el.textContent = dept.emoji + " " + dept.label;
       var tag = document.createElement("span");
       tag.className = "pbench-matrix-tag";
-      tag.textContent = dept.people + " people";
+      tag.textContent = String(dept.people);
       el.appendChild(tag);
     });
   }
