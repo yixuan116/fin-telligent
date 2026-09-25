@@ -4,6 +4,10 @@
  * Run once at build time, never from the page:
  *   NIMBLE_API_KEY=... npm run nimble:price-check
  *
+ * Add --pricing-search to also hunt each unpriced model's provider for an
+ * official pricing page. That is slow and has never recovered a price, so it
+ * is off by default and the scheduled job never runs it.
+ *
  * Writes data/nimble_latest_<as_of>.csv. Every row carries the source_url it
  * came from. A field the scrape could not establish is left empty and named in
  * the row's not_found column -- nothing here is inferred or filled in by hand.
@@ -20,6 +24,8 @@ const AS_OF = process.env.NIMBLE_AS_OF ?? new Date().toISOString().slice(0, 10);
 const OUT = resolve(process.cwd(), `data/nimble_latest_${AS_OF}.csv`);
 
 const AA_LEADERBOARD = 'https://artificialanalysis.ai/leaderboards/models';
+
+const PRICING_SEARCH = process.argv.includes('--pricing-search') || process.env.NIMBLE_PRICING_SEARCH === '1';
 
 const apiKey = process.env.NIMBLE_API_KEY;
 if (!apiKey) {
@@ -174,15 +180,26 @@ async function main(): Promise<void> {
   // column of its own. source_url stays the leaderboard, because that is where
   // every value in the row actually came from -- no price was read off these
   // pages, and labelling one as the row's source would imply otherwise.
-  const unpricedProviders = [...new Set(rows.filter((r) => r.input_cost_usd_per_1m == null).map((r) => r.provider))];
-  console.log(`  ${unpricedProviders.length} providers have unpriced models; searching for official pricing pages`);
+  //
+  // Off by default. It is a search plus an extract for every provider with an
+  // unpriced model, which runs for minutes and, on every run so far, has not
+  // recovered a single price -- so the scheduled job skips it and those fields
+  // stay marked not_found. Pass --pricing-search (or NIMBLE_PRICING_SEARCH=1)
+  // to run it by hand.
   const pricingPage = new Map<string, string>();
-  for (const provider of unpricedProviders) {
-    const url = await providerPricingPage(provider);
-    if (url) {
-      pricingPage.set(provider, url);
-      console.log(`    ${provider} -> ${url}`);
+  if (PRICING_SEARCH) {
+    const unpricedProviders = [...new Set(rows.filter((r) => r.input_cost_usd_per_1m == null).map((r) => r.provider))];
+    console.log(`  ${unpricedProviders.length} providers have unpriced models; searching for official pricing pages`);
+    for (const provider of unpricedProviders) {
+      const url = await providerPricingPage(provider);
+      if (url) {
+        pricingPage.set(provider, url);
+        console.log(`    ${provider} -> ${url}`);
+      }
     }
+  } else {
+    const unpriced = rows.filter((r) => r.input_cost_usd_per_1m == null).length;
+    console.log(`  ${unpriced} models are unpriced; provider pricing search skipped (pass --pricing-search to run it)`);
   }
   for (const r of rows) {
     if (r.input_cost_usd_per_1m == null && pricingPage.has(r.provider)) {
