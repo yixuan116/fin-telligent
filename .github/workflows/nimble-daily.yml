@@ -1,0 +1,58 @@
+# Re-shops the New Shopping Cart against today's listings.
+#
+# Runs the Nimble scrape, folds the result into the page, and commits only if
+# something actually moved. Needs a NIMBLE_API_KEY repository secret; without
+# it the job fails loudly rather than committing a half-built table.
+name: Nimble daily price check
+
+on:
+  schedule:
+    # 06:20 UTC daily -- after Artificial Analysis's own overnight refresh,
+    # and off the hour, where scheduled runs queue up worst.
+    - cron: '20 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nimble-daily
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Scrape Artificial Analysis through Nimble
+        env:
+          NIMBLE_API_KEY: ${{ secrets.NIMBLE_API_KEY }}
+        run: |
+          if [ -z "$NIMBLE_API_KEY" ]; then
+            echo "NIMBLE_API_KEY secret is not set; refusing to run." >&2
+            exit 1
+          fi
+          npx tsx scripts/nimble-price-check.ts
+
+      - name: Fold the new pull into the page
+        run: npx tsx scripts/embed-latest.ts
+
+      - name: Commit if anything moved
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data ai-compute-datacenter-economics/index.html
+          if git diff --cached --quiet; then
+            echo "Prices unchanged today; nothing to commit."
+            exit 0
+          fi
+          git commit -m "Refresh model prices from today's Nimble pull"
+          git push

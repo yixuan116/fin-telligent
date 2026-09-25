@@ -575,6 +575,7 @@
     border-radius: 999px; padding: 2px 8px;
   }
   .ncart-tag-badge-retired { background: var(--text-primary); letter-spacing: 0.03em; }
+  .ncart-tag-badge-value { background: var(--green); letter-spacing: 0.03em; }
   .ncart-arrow { font-size: 0.72rem; font-weight: 800; margin-left: 6px; }
   .ncart-down { color: var(--green); }
   .ncart-up { color: var(--red); }
@@ -1995,7 +1996,7 @@
 
             <!-- ============ New Shopping Cart (part of the Cart step) ============ -->
             <div class="ncart-block" id="ncart-block">
-              <h3 class="ncart-title">Latest Models &amp; Prices, as of Sep 25, 2026</h3>
+              <h3 class="ncart-title" id="ncart-title">Latest Models &amp; Prices</h3>
 
               <div class="ncart-stage" id="ncart-stage">
                 <!-- shelf.png / shelf.mp4 are injected above the button only if both files exist -->
@@ -2013,7 +2014,7 @@
                   <p class="ncart-total-value" id="ncart-total-old">&ndash;</p>
                 </div>
                 <div class="ncart-total ncart-total-new">
-                  <p class="ncart-total-label">New Shopping Cart, as of Sep 25, 2026</p>
+                  <p class="ncart-total-label" id="ncart-new-label">New Shopping Cart</p>
                   <p class="ncart-total-value" id="ncart-total-new">&ndash;</p>
                 </div>
               </div>
@@ -5118,6 +5119,7 @@
     // candidate has to meet are the same either way -- only the order differs.
     if (task === "Q&A") {
       list.sort(function (x, y) { return x.ttft - y.ttft || y.intel - x.intel; });
+      list = newcartApplyValuePick(task, list).slice(0, NEWCART_QA_ROTATION);
     } else {
       list.sort(function (x, y) { return y.intel - x.intel || x.ttft - y.ttft; });
     }
@@ -5190,6 +5192,38 @@
     return null;
   }
 
+  // Q&A is a queue someone is waiting in, so its rotation is held to the three
+  // fastest qualifying models rather than the whole shortlist.
+  var NEWCART_QA_ROTATION = 3;
+
+  /**
+   * Reserve the third Q&A slot for a value provider, so a cheap-but-capable
+   * house always gets a look even when it misses the speed podium.
+   *
+   * Off by default: Liquid AI publishes no per-token price at all -- its own
+   * pricing page licenses the models free under $10M revenue and by contract
+   * above it, Artificial Analysis lists it unpriced, and OpenRouter serves one
+   * free endpoint with no latency. With nothing to promote, switching this on
+   * would only invent a candidate. Name a provider here once it has a priced,
+   * timed model and the slot fills itself.
+   */
+  var NEWCART_VALUE_PICK = null;
+
+  function newcartApplyValuePick(task, list) {
+    if (!NEWCART_VALUE_PICK || task !== "Q&A" || list.length < NEWCART_QA_ROTATION) return list;
+    var podium = list.slice(0, NEWCART_QA_ROTATION);
+    // Already on the podium on its own speed: leave the order alone.
+    if (podium.some(function (m) { return m.provider === NEWCART_VALUE_PICK; })) return list;
+    var fastest = null;
+    list.forEach(function (m) {
+      if (m.provider !== NEWCART_VALUE_PICK) return;
+      if (!fastest || m.ttft < fastest.ttft) fastest = m;
+    });
+    if (!fastest) return list;
+    fastest.valuePick = true;
+    return podium.slice(0, NEWCART_QA_ROTATION - 1).concat([fastest]);
+  }
+
   // Which rung of the rotation every position is showing. Advanced by Refresh.
   var NEWCART_OPTION = 0;
   var NEWCART_REVEALED = false;
@@ -5238,6 +5272,7 @@
             task: task,
             name: pick.model.name,
             reason: pick.reason,
+            valuePick: pick.model.valuePick === true,
             wasName: oldName,
             price: pick.model.blended,
             wasPrice: pick.wasPrice
@@ -5269,6 +5304,15 @@
           (diff < 0 ? "\u25bc" : "\u25b2") + "</span>";
       }
     }
+    if (t.valuePick) {
+      return '<div class="ncart-tag"><span class="ncart-tag-badge ncart-tag-badge-value">Value pick</span>' +
+        '<p class="ncart-tag-lane">' + pcardEscapeXml(t.task) + "</p>" +
+        '<p class="ncart-tag-name">' + pcardEscapeXml(t.name) + "</p>" +
+        '<p class="ncart-tag-price">' + newcartMoney(t.price) +
+          '<span class="ncart-tag-unit">/1M blended</span></p>' +
+        (t.wasName ? '<p class="ncart-tag-was">was ' + pcardEscapeXml(t.wasName) + "</p>" : "") +
+        "</div>";
+    }
     var badge = t.reason === "retired"
       ? '<span class="ncart-tag-badge ncart-tag-badge-retired">Upgraded</span>'
       : (t.reason === "better" ? '<span class="ncart-tag-badge">New</span>' : "");
@@ -5286,6 +5330,10 @@
   function renderNewCart(animate) {
     var wrap = byId("ncart-tags");
     if (!wrap) return;
+    // Both dates come off NEWCART_AS_OF, which the embed step rewrites, so a
+    // refreshed pull never leaves a stale date behind in the markup.
+    byId("ncart-title").textContent = "Latest Models & Prices, as of " + NEWCART_AS_OF;
+    byId("ncart-new-label").textContent = "New Shopping Cart, as of " + NEWCART_AS_OF;
     var r = newcartCompute();
     NEWCART_LAST = r;
 

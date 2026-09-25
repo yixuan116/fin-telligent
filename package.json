@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "nimble:price-check": "tsx scripts/nimble-price-check.ts"
+    "nimble:price-check": "tsx scripts/nimble-price-check.ts",
+    "nimble:embed": "tsx scripts/embed-latest.ts",
+    "nimble:refresh": "npm run nimble:price-check && npm run nimble:embed"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
