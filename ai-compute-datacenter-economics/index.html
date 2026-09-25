@@ -1070,23 +1070,28 @@
   .rcpt-assumption { text-align: center; font-size: 0.68rem; color: var(--text-muted); margin: 0 0 20px; line-height: 1.5; }
   .rcpt-divider { border: none; border-top: 1px dashed var(--border); margin: 12px 0; }
 
-  /* wider number columns than the old 430px slip needed -- the abbreviated
-     amounts are short, so the space goes to keeping the two columns apart */
-  .rcpt-cols-head, .rcpt-row {
-    display: grid; grid-template-columns: 1fr 200px 150px; gap: 16px; align-items: baseline;
+  /* three equal money columns after the label */
+  .rcpt-cols-head, .rcpt-cols-sub, .rcpt-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 190px); gap: 16px; align-items: baseline;
   }
   .rcpt-cols-head { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding-bottom: 2px; }
-  .rcpt-cols-head span:not(:first-child), .rcpt-row span:not(.rcpt-label) { text-align: right; }
-  .rcpt-cols-note { font-size: 0.64rem; color: var(--text-muted); text-align: right; margin: 0 0 4px; }
+  .rcpt-cols-sub { font-size: 0.62rem; color: var(--text-muted); padding-bottom: 4px; }
+  .rcpt-cols-head span:not(:first-child), .rcpt-cols-sub span:not(:first-child),
+  .rcpt-row span:not(.rcpt-label) { text-align: right; }
   .rcpt-row { font-size: 0.92rem; padding: 7px 0; }
   .rcpt-row .rcpt-label { color: var(--text-primary); font-weight: 600; }
   .rcpt-row-sub .rcpt-label { font-weight: 400; color: var(--text-secondary); padding-left: 10px; }
-  .rcpt-row-strong .rcpt-label, .rcpt-row-strong .rcpt-col-usd { font-weight: 800; }
+  .rcpt-row-strong .rcpt-label, .rcpt-row-strong .rcpt-col-total { font-weight: 800; }
   /* the line the whole receipt is building towards */
-  .rcpt-row-final { font-size: 1.3rem; padding: 10px 0 2px; }
-  .rcpt-row-final .rcpt-label, .rcpt-row-final .rcpt-col-usd { font-weight: 800; color: var(--text-primary); }
-  .rcpt-col-usd { color: var(--text-primary); font-weight: 700; }
-  .rcpt-col-mtok { color: var(--accent); font-weight: 700; }
+  .rcpt-row-final { font-size: 1.05rem; padding: 10px 0 2px; }
+  .rcpt-row-final .rcpt-label { font-weight: 800; color: var(--text-primary); }
+  .rcpt-row-final .rcpt-col-total { font-size: 1.45rem; }
+
+  .rcpt-col-classic { color: var(--text-secondary); }
+  /* two stacked lines: the dollar figure, then the usage underneath it */
+  .rcpt-col-tokens { display: flex; flex-direction: column; align-items: flex-end; color: var(--accent); font-weight: 700; }
+  .rcpt-tok-sub { font-size: 0.64rem; font-weight: 400; color: var(--text-muted); line-height: 1.3; }
+  .rcpt-col-total { color: var(--text-primary); font-weight: 800; }
 
   .rcpt-empty-hint { text-align: center; font-size: 0.74rem; color: var(--text-muted); margin: 26px 0 0; }
   .rcpt-footer-line { text-align: center; font-size: 0.82rem; color: var(--text-secondary); margin: 26px 0 0; }
@@ -1342,11 +1347,16 @@
     .model-chips { width: 100%; }
     .pcart-sticky-total { font-size: 1rem; }
     #pcart-stickybar { gap: 10px; padding: 10px 14px; }
-    .rcpt-slip { padding: 20px 14px; }
-    .rcpt-cols-head, .rcpt-row { grid-template-columns: 1fr 88px 62px; gap: 8px; }
-    .rcpt-cols-head { font-size: 0.6rem; }
-    .rcpt-row { font-size: 0.78rem; }
-    .rcpt-row-final { font-size: 1rem; }
+    .rcpt-slip { padding: 20px 12px; }
+    .rcpt-cols-head, .rcpt-cols-sub, .rcpt-row {
+      grid-template-columns: minmax(0, 1fr) repeat(3, 62px); gap: 6px;
+    }
+    .rcpt-cols-head { font-size: 0.54rem; }
+    .rcpt-cols-sub { font-size: 0.46rem; }
+    .rcpt-row { font-size: 0.68rem; }
+    .rcpt-tok-sub { font-size: 0.52rem; }
+    .rcpt-row-final { font-size: 0.78rem; }
+    .rcpt-row-final .rcpt-col-total { font-size: 0.95rem; }
   }
 </style>
 </head>
@@ -1903,31 +1913,45 @@
               <p class="rcpt-slip-sub">Illustrative company, monthly</p>
               <p class="rcpt-assumption" id="rcpt-assumption"></p>
 
-              <div class="rcpt-cols-head"><span>&nbsp;</span><span>$</span><span>MTok</span></div>
-              <p class="rcpt-cols-note">MTok = million tokens</p>
+              <div class="rcpt-cols-head">
+                <span>&nbsp;</span><span>Classic</span><span>Tokens</span><span>Total</span>
+              </div>
+              <div class="rcpt-cols-sub">
+                <span>&nbsp;</span><span>Before tokens</span><span>Tracked separately</span><span>As reported</span>
+              </div>
               <hr class="rcpt-divider">
 
               <div class="rcpt-row" id="rcpt-row-revenue">
                 <span class="rcpt-label">Revenue</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+                <span class="rcpt-col-classic"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
+                <span class="rcpt-col-total"></span>
               </div>
               <div class="rcpt-row" id="rcpt-row-cogs">
                 <span class="rcpt-label">COGS</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+                <span class="rcpt-col-classic"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
+                <span class="rcpt-col-total"></span>
               </div>
               <hr class="rcpt-divider">
               <div class="rcpt-row rcpt-row-strong" id="rcpt-row-gross">
                 <span class="rcpt-label">Gross Profit</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+                <span class="rcpt-col-classic"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
+                <span class="rcpt-col-total"></span>
               </div>
               <div class="rcpt-row" id="rcpt-row-opex">
                 <span class="rcpt-label">Opex</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+                <span class="rcpt-col-classic"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
+                <span class="rcpt-col-total"></span>
               </div>
               <hr class="rcpt-divider">
               <div class="rcpt-row rcpt-row-strong rcpt-row-final" id="rcpt-row-operating">
                 <span class="rcpt-label">Operating Income</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+                <span class="rcpt-col-classic"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
+                <span class="rcpt-col-total"></span>
               </div>
 
               <p class="rcpt-empty-hint" id="rcpt-empty-hint">Fill the Cart to see tokens land here.</p>
@@ -4654,15 +4678,20 @@
     return sign + "$" + Math.round(a);
   }
 
-  function rcptSetRow(id, usdVal, mtokVal) {
+  function rcptSetRow(id, classicVal, tokensVal, tokensSub, totalVal) {
     var row = byId(id);
-    row.querySelector(".rcpt-col-usd").textContent = usdVal;
-    row.querySelector(".rcpt-col-mtok").textContent = mtokVal;
+    row.querySelector(".rcpt-col-classic").textContent = classicVal;
+    row.querySelector(".rcpt-tok-main").textContent = tokensVal;
+    row.querySelector(".rcpt-tok-sub").textContent = tokensSub;
+    row.querySelector(".rcpt-col-total").textContent = totalVal;
   }
 
   // Always plain decimals so the column never mixes K and M units.
+  // usage label under the Tokens figures, e.g. "850 MTok" / "2.5 MTok"
   function rcptMTok(tokens) {
-    return (tokens / 1e6).toFixed(2);
+    var m = tokens / 1e6;
+    var n = m >= 10 ? Math.round(m) : (m >= 1 ? m.toFixed(1) : m.toFixed(2));
+    return n + " MTok";
   }
 
   function renderReceiptBusiness(deptCosts) {
@@ -4710,25 +4739,37 @@
     });
     renderReceiptBusiness(deptCosts);
 
+    // Classic column: the constants alone, never touched by the Cart.
+    var grossClassic = PRCPT_REVENUE_CLASSIC - PRCPT_COGS_CLASSIC;
+    var opClassic = grossClassic - PRCPT_OPEX_CLASSIC;
+
+    // Total column: Classic + whatever the Cart is spending this month.
     var revenueTotal = PRCPT_REVENUE_CLASSIC;
     var cogsTotal = PRCPT_COGS_CLASSIC + cogsTokens;
     var grossTotal = revenueTotal - cogsTotal;
     var opexTotal = PRCPT_OPEX_CLASSIC + opexTokens;
     var opTotal = grossTotal - opexTotal;
 
-    // With an empty Cart the whole MTok column stays blank rather than showing
-    // a column of zeroes; the hint below the table explains why.
+    // With an empty Cart the whole Tokens column stays blank rather than
+    // showing a column of zeroes; the hint below the table explains why.
     var cartEmpty = !PCART_POOL.length;
-    var mtok = function (qty) { return cartEmpty ? "" : rcptMTok(qty); };
-    // MTok only applies to the two rows that actually consume tokens; revenue
-    // and the two profit subtotals are financial-only, so they stay blank.
-    var dash = cartEmpty ? "" : "–";
+    var spend = function (v, qty) { return cartEmpty ? ["", ""] : [rcptMoneyShort(v), rcptMTok(qty)]; };
+    // Profit lines carry the token spend as a drag, shown in brackets.
+    var drag = function (v) { return cartEmpty ? "" : "(" + rcptMoneyShort(v) + ")"; };
 
-    rcptSetRow("rcpt-row-revenue", rcptMoneyShort(revenueTotal), dash);
-    rcptSetRow("rcpt-row-cogs", rcptMoneyShort(cogsTotal), mtok(cogsQty));
-    rcptSetRow("rcpt-row-gross", rcptMoneyShort(grossTotal), dash);
-    rcptSetRow("rcpt-row-opex", rcptMoneyShort(opexTotal), mtok(opexQty));
-    rcptSetRow("rcpt-row-operating", rcptMoneyShort(opTotal), dash);
+    var cogsCell = spend(cogsTokens, cogsQty);
+    var opexCell = spend(opexTokens, opexQty);
+
+    rcptSetRow("rcpt-row-revenue",
+      rcptMoneyShort(PRCPT_REVENUE_CLASSIC), "", "", rcptMoneyShort(revenueTotal));
+    rcptSetRow("rcpt-row-cogs",
+      rcptMoneyShort(PRCPT_COGS_CLASSIC), cogsCell[0], cogsCell[1], rcptMoneyShort(cogsTotal));
+    rcptSetRow("rcpt-row-gross",
+      rcptMoneyShort(grossClassic), drag(cogsTokens), "", rcptMoneyShort(grossTotal));
+    rcptSetRow("rcpt-row-opex",
+      rcptMoneyShort(PRCPT_OPEX_CLASSIC), opexCell[0], opexCell[1], rcptMoneyShort(opexTotal));
+    rcptSetRow("rcpt-row-operating",
+      rcptMoneyShort(opClassic), drag(cogsTokens + opexTokens), "", rcptMoneyShort(opTotal));
 
     byId("rcpt-empty-hint").style.display = cartEmpty ? "" : "none";
   }
