@@ -1878,6 +1878,81 @@
       </div>
     </section>
 
+    <!-- ============ RECEIPT (collapsible) ============ -->
+    <section class="section" id="sec-receipt">
+      <button type="button" class="collapsible-toggle" id="toggle-receipt" aria-expanded="false" aria-controls="body-receipt">
+        <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="ct-title">&#129534; Receipt</span>
+        <span class="ct-sub">The Cart's bill, booked as a P&amp;L</span>
+      </button>
+      <div class="collapsible-body" id="body-receipt">
+        <div class="collapsible-body-inner">
+          <div class="section-card">
+
+            <div class="rcpt-slip">
+              <p class="rcpt-slip-eyebrow">Model Supermarket &middot; Monthly Receipt</p>
+              <p class="rcpt-slip-sub">Illustrative company, monthly</p>
+
+              <div class="rcpt-cols-head"><span>&nbsp;</span><span>$</span><span>MTok</span></div>
+              <p class="rcpt-cols-note">MTok = million tokens</p>
+              <hr class="rcpt-divider">
+
+              <div class="rcpt-row" id="rcpt-row-revenue">
+                <span class="rcpt-label">Revenue</span>
+                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+              </div>
+              <div class="rcpt-row" id="rcpt-row-cogs">
+                <span class="rcpt-label">COGS</span>
+                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+              </div>
+              <hr class="rcpt-divider">
+              <div class="rcpt-row rcpt-row-strong" id="rcpt-row-gross">
+                <span class="rcpt-label">Gross Profit</span>
+                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+              </div>
+              <div class="rcpt-row" id="rcpt-row-opex">
+                <span class="rcpt-label">Opex</span>
+                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+              </div>
+              <hr class="rcpt-divider">
+              <div class="rcpt-row rcpt-row-strong" id="rcpt-row-operating">
+                <span class="rcpt-label">Operating Income</span>
+                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
+              </div>
+
+              <p class="rcpt-footer-line">Thank you for shopping.<br>Tokens are a line item now.</p>
+            </div>
+
+            <div class="rcpt-group">
+              <p class="rcpt-group-title">&#128181; Financial</p>
+              <div class="rcpt-metrics">
+                <div class="rcpt-metric">
+                  <p class="rcpt-metric-value" id="rcpt-metric-arr">$0</p>
+                  <p class="rcpt-metric-formula">Annual Run Rate = Monthly Token Spend &times; 12</p>
+                </div>
+                <div class="rcpt-metric">
+                  <p class="rcpt-metric-value" id="rcpt-metric-bps">0 bps</p>
+                  <p class="rcpt-metric-formula">Gross Margin Impact = COGS Tokens &divide; Revenue &times; 10,000</p>
+                </div>
+                <div class="rcpt-metric">
+                  <p class="rcpt-metric-value" id="rcpt-metric-unit">$0.00</p>
+                  <p class="rcpt-metric-formula">Portfolio Unit Budget = Total Token Spend &divide; Total Tokens, per 1M</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rcpt-group">
+              <p class="rcpt-group-title">&#128230; Business</p>
+              <p class="rcpt-group-sub">Every token lands on a business outcome.</p>
+              <div class="rcpt-business-lines" id="rcpt-business-lines"></div>
+              <p class="rcpt-group-note">Placeholder volumes. Swap in your own.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ APPENDIX: everything from the cost model through the
          audit trail, folded away behind one light secondary-level row.
          Receipt deliberately stays outside this. ============ -->
@@ -2080,80 +2155,6 @@
     </section>
     <!-- ============ end appendix ============ -->
 
-    <!-- ============ RECEIPT (collapsible) ============ -->
-    <section class="section" id="sec-receipt">
-      <button type="button" class="collapsible-toggle" id="toggle-receipt" aria-expanded="false" aria-controls="body-receipt">
-        <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="ct-title">&#129534; Receipt</span>
-        <span class="ct-sub">The Cart's bill, booked as a P&amp;L</span>
-      </button>
-      <div class="collapsible-body" id="body-receipt">
-        <div class="collapsible-body-inner">
-          <div class="section-card">
-
-            <div class="rcpt-slip">
-              <p class="rcpt-slip-eyebrow">Model Supermarket &middot; Monthly Receipt</p>
-              <p class="rcpt-slip-sub">Illustrative company, monthly</p>
-
-              <div class="rcpt-cols-head"><span>&nbsp;</span><span>$</span><span>MTok</span></div>
-              <p class="rcpt-cols-note">MTok = million tokens</p>
-              <hr class="rcpt-divider">
-
-              <div class="rcpt-row" id="rcpt-row-revenue">
-                <span class="rcpt-label">Revenue</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
-              </div>
-              <div class="rcpt-row" id="rcpt-row-cogs">
-                <span class="rcpt-label">COGS</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
-              </div>
-              <hr class="rcpt-divider">
-              <div class="rcpt-row rcpt-row-strong" id="rcpt-row-gross">
-                <span class="rcpt-label">Gross Profit</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
-              </div>
-              <div class="rcpt-row" id="rcpt-row-opex">
-                <span class="rcpt-label">Opex</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
-              </div>
-              <hr class="rcpt-divider">
-              <div class="rcpt-row rcpt-row-strong" id="rcpt-row-operating">
-                <span class="rcpt-label">Operating Income</span>
-                <span class="rcpt-col-usd"></span><span class="rcpt-col-mtok"></span>
-              </div>
-
-              <p class="rcpt-footer-line">Thank you for shopping.<br>Tokens are a line item now.</p>
-            </div>
-
-            <div class="rcpt-group">
-              <p class="rcpt-group-title">&#128181; Financial</p>
-              <div class="rcpt-metrics">
-                <div class="rcpt-metric">
-                  <p class="rcpt-metric-value" id="rcpt-metric-arr">$0</p>
-                  <p class="rcpt-metric-formula">Annual Run Rate = Monthly Token Spend &times; 12</p>
-                </div>
-                <div class="rcpt-metric">
-                  <p class="rcpt-metric-value" id="rcpt-metric-bps">0 bps</p>
-                  <p class="rcpt-metric-formula">Gross Margin Impact = COGS Tokens &divide; Revenue &times; 10,000</p>
-                </div>
-                <div class="rcpt-metric">
-                  <p class="rcpt-metric-value" id="rcpt-metric-unit">$0.00</p>
-                  <p class="rcpt-metric-formula">Portfolio Unit Budget = Total Token Spend &divide; Total Tokens, per 1M</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="rcpt-group">
-              <p class="rcpt-group-title">&#128230; Business</p>
-              <p class="rcpt-group-sub">Every token lands on a business outcome.</p>
-              <div class="rcpt-business-lines" id="rcpt-business-lines"></div>
-              <p class="rcpt-group-note">Placeholder volumes. Swap in your own.</p>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </section>
 
   </div>
 
