@@ -608,17 +608,6 @@
   .pbench-subline a:hover { text-decoration: underline; }
   .pbench-rule { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 18px; }
 
-  .pbench-shared-band {
-    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 16px; margin: 0 0 18px;
-  }
-  .pbench-shared-label { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; }
-  .pbench-shared-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .pbench-chip {
-    display: inline-block; background: var(--accent-soft); color: var(--accent);
-    border-radius: 999px; padding: 4px 12px; font-size: 0.72rem; font-weight: 600;
-  }
-
   .pbench-lanes { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
   @media (max-width: 900px) { .pbench-lanes { grid-template-columns: minmax(0, 1fr); } }
 
@@ -928,7 +917,9 @@
 
   .pcart-tile-name {
     font-size: 0.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.25; margin: 2px 0 0;
-    min-height: 2em; display: flex; align-items: center; justify-content: center;
+    /* two lines' worth, so a name that wraps doesn't push its tile's
+       Team Size and amount out of line with the tiles beside it */
+    min-height: 2.5em; display: flex; align-items: center; justify-content: center;
   }
   .pcart-tile-team { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.66rem; color: var(--text-secondary); }
   .pcart-tile-team-input {
@@ -1626,10 +1617,6 @@
             <p class="pbench-subline">&#128225; Source: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a>, snapshot as of 2026-03-31, via <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">Kaggle</a>.</p>
             <p class="pbench-rule">Judged on two dimensions: exam score and time to first token (TTFT). &#9889; = fastest third on TTFT.</p>
 
-            <div class="pbench-shared-band">
-              <p class="pbench-shared-label">&#11088; Strong across lanes</p>
-              <div class="pbench-shared-chips" id="pbench-shared-chips"></div>
-            </div>
 
             <div class="pbench-lanes" id="pbench-lanes"></div>
 
@@ -1735,7 +1722,7 @@
               </div>
             </div>
 
-            <p class="pcard-scenario">Example: Finance asks to summarize a policy doc &middot; 10K tokens in (8K repeated doc + 2K new question) &middot; 1K tokens out &middot; &times; 1,000 requests</p>
+            <p class="pcard-scenario">Example: <span data-dept-label="finance">Finance / Tax</span> asks to summarize a policy doc &middot; 10K tokens in (8K repeated doc + 2K new question) &middot; 1K tokens out &middot; &times; 1,000 requests</p>
 
             <div class="pflow-scroll">
               <div class="pflow-grid">
@@ -3396,11 +3383,11 @@
   // tiles, the sticky bar and the Receipt all read from it, so a rename or
   // a resize happens in exactly one place.
   var PBENCH_DEPARTMENTS = {
-    finance: { emoji: "\ud83e\uddee", label: "Finance", people: 15, task: "Hybrid" },
-    engineering: { emoji: "\ud83d\udee0\ufe0f", label: "Engineering / IT", people: 35, task: "Coding" },
-    rd: { emoji: "\ud83d\udcca", label: "R&D / Strategy", people: 15, task: "Document Analysis" },
+    finance: { emoji: "\ud83e\uddee", label: "Finance / Tax", people: 15, task: "Hybrid" },
+    engineering: { emoji: "\ud83d\udee0\ufe0f", label: "Engineering / R&D", people: 35, task: "Coding" },
+    rd: { emoji: "\u2699\ufe0f", label: "Operations", people: 15, task: "Document Analysis" },
     legal: { emoji: "\u2696\ufe0f", label: "Legal / Compliance / HR", people: 10, task: "Document Analysis" },
-    customer: { emoji: "\ud83c\udfa7", label: "Customer Service / Sales", people: 25, task: "Q&A" }
+    customer: { emoji: "\ud83c\udfa7", label: "Customer Service / Sales / Marketing", people: 25, task: "Q&A" }
   };
 
   // Canonical order, used everywhere a department list is rendered.
@@ -3412,15 +3399,23 @@
     var introEl = byId("pbench-matrix-intro");
     if (introEl) introEl.innerHTML = "&#127970; Meet our " + total + "-person company. The cart will use these numbers later.";
 
+    // Prose elsewhere on the page that names a department reads it from here
+    // too, so a rename never leaves a stale mention behind.
+    Array.prototype.forEach.call(document.querySelectorAll("[data-dept-label]"), function (el) {
+      var d = PBENCH_DEPARTMENTS[el.getAttribute("data-dept-label")];
+      if (d) el.textContent = d.label;
+    });
+
     Array.prototype.forEach.call(document.querySelectorAll(".pbench-matrix-rowhead"), function (el) {
       var dept = PBENCH_DEPARTMENTS[el.getAttribute("data-dept")];
       if (!dept) return;
       // The row head carries the name; the tag underneath carries only the
-      // headcount and default task, so the name is never written twice.
+      // headcount. The default task stays in the data because it drives each
+      // Pack's tier assignment, but it is not shown here.
       el.textContent = dept.emoji + " " + dept.label;
       var tag = document.createElement("span");
       tag.className = "pbench-matrix-tag";
-      tag.textContent = dept.people + " people \u00b7 " + dept.task;
+      tag.textContent = dept.people + " people";
       el.appendChild(tag);
     });
   }
@@ -3444,10 +3439,8 @@
 
     var speedCutoff = pbenchSpeedCutoff();
 
-    byId("pbench-shared-chips").innerHTML = shared.map(function (base) {
-      var fast = pbenchIsFast(base, speedCutoff);
-      return '<span class="pbench-chip">' + base + (fast ? " &#9889;" : "") + "</span>";
-    }).join("");
+    // The shared set is no longer shown as a chip band, but it still drives
+    // the lane dedup below and the Cart's fallback pick.
 
     byId("pbench-lanes").innerHTML = PBENCH_LANES.map(function (lane) {
       var names = pbenchLaneList(laneResults[lane.id], shared);
