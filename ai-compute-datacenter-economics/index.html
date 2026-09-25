@@ -1287,7 +1287,7 @@
     position: fixed; inset: 0; z-index: 400;
     background: #ffffff;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2vh; padding: 3vh 4vw; cursor: zoom-out;
+    gap: 1.4vh; padding: 2vh 3vw; cursor: zoom-out;
   }
   .qr-overlay[hidden] { display: none; }
   .qr-overlay-gh {
@@ -1295,13 +1295,12 @@
     text-decoration: none; border-bottom: 2px solid #16181c; padding-bottom: 2px; cursor: pointer;
   }
   .qr-overlay-gh:hover { color: #4f5bd5; border-bottom-color: #4f5bd5; }
-  /* the card is context; the plain QR is the thing people actually scan, so it
-     gets the height and the card gives way */
-  .qr-overlay-card { height: 19vh; width: auto; max-width: 90vw; display: block; }
   /* white padding around the code is the quiet zone scanners need */
-  .qr-overlay-code { background: #ffffff; padding: clamp(10px, 1.6vh, 22px); line-height: 0; }
+  .qr-overlay-code { background: #ffffff; padding: clamp(10px, 1.4vh, 20px); line-height: 0; }
+  /* sized off whichever axis is tighter so it fills the screen on any aspect
+     ratio without ever overflowing */
   .qr-overlay-code img, .qr-overlay-code canvas {
-    height: 47vh; width: auto; max-width: 86vw; display: block;
+    height: min(76vh, 76vw); width: auto; display: block;
   }
   .qr-overlay-short {
     font-family: var(--mono); font-size: clamp(0.95rem, 2vw, 1.5rem); font-weight: 700;
@@ -1310,8 +1309,7 @@
   .qr-overlay-esc { font-size: 0.72rem; color: #8b8ba0; margin: 0; }
 
   @media (max-width: 760px) {
-    .qr-overlay-card { height: 18vh; }
-    .qr-overlay-code img, .qr-overlay-code canvas { height: 34vh; max-width: 82vw; }
+    .qr-overlay-code img, .qr-overlay-code canvas { height: min(62vh, 88vw); }
   }
 
   @media (max-width: 760px) {
@@ -2146,7 +2144,6 @@
 
   <div class="qr-overlay" id="qr-overlay" role="dialog" aria-modal="true" aria-label="LinkedIn and GitHub, full screen" hidden>
     <a class="qr-overlay-gh" id="qr-overlay-gh" href="#" target="_blank" rel="noopener noreferrer"></a>
-    <img class="qr-overlay-card" src="../price-volume-mix-waterfall/Pictures/Linkedin.JPG" alt="Yixuan Jing's LinkedIn card">
     <div class="qr-overlay-code" id="qr-overlay-code"></div>
     <p class="qr-overlay-short" id="qr-overlay-short"></p>
     <p class="qr-overlay-esc">Click anywhere or press Esc to close</p>
@@ -5406,11 +5403,12 @@
     var qrDrawn = false;
     function drawQr() {
       if (qrDrawn || typeof QRCode === "undefined") return;
-      // Rendered large, then scaled down by CSS, so it stays crisp on a projector.
+      // Rendered well above any display size, then scaled down by CSS, so it
+      // stays crisp even at 76vh on a 4K projector.
       new QRCode(byId("qr-overlay-code"), {
         text: liUrl,
-        width: 1000,
-        height: 1000,
+        width: 2000,
+        height: 2000,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
