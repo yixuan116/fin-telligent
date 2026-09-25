@@ -5018,10 +5018,14 @@
   var NEWCART_MODELS = NEWCART_RAW.map(function (r) {
     var blended = (3 * r[3] + r[4]) / 4;
     return {
-      name: r[0], provider: r[1], intel: r[2],
+      name: r[0], base: pbenchBaseName(r[0]), provider: r[1], intel: r[2],
       input: r[3], output: r[4], ttft: r[5],
       blended: blended, tier: newcartTierOf(blended)
     };
+  }).filter(function (m) {
+    // A blended cost of zero is a model with no published price, not a free
+    // one -- treated exactly like the rows the scrape left empty.
+    return m.blended > 0;
   });
 
   // Same cuts the Price Tag card draws: $0.50 / $5 / $30 on blended price.
@@ -5030,6 +5034,55 @@
     if (blended < 5) return 2;
     if (blended < 30) return 3;
     return 4;
+  }
+
+  /**
+   * Whether a new-pool model is running extended thinking, which the Cart
+   * charges a 2x Thinking Multiplier for. Artificial Analysis now spells that
+   * out as an effort level in the variant suffix -- (xhigh), (Max Effort),
+   * (medium) -- as well as the older (Reasoning). Only the parenthetical is
+   * inspected, so a model whose own name happens to contain one of these words
+   * is not caught by mistake.
+   *
+   * Your Cart keeps its own pcardIsReasoningModel() untouched.
+   */
+  function newcartIsReasoning(name) {
+    var suffixes = name.match(/\(([^)]*)\)/g) || [];
+    for (var i = 0; i < suffixes.length; i++) {
+      var inner = suffixes[i].slice(1, -1);
+      if (/non-?reasoning/i.test(inner)) return false;
+      if (/reasoning|thinking|effort|xhigh|high|medium|low|minimal/i.test(inner)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * The variant of a base model closest to the one the Cart holds: an exact
+   * name match first, then the variant sharing the most words with the old
+   * suffix, and failing that the fastest one -- the same tie-break the Cart's
+   * own variant search uses.
+   */
+  function newcartClosestVariant(oldName) {
+    var base = pbenchBaseName(oldName);
+    var family = NEWCART_MODELS.filter(function (m) { return m.base === base; });
+    if (!family.length) return null;
+
+    var exact = family.filter(function (m) { return m.name === oldName; })[0];
+    if (exact) return exact;
+
+    var oldWords = (oldName.match(/\(([^)]*)\)/g) || []).join(" ")
+      .toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    var best = null, bestScore = -1;
+    family.forEach(function (m) {
+      var words = (m.name.match(/\(([^)]*)\)/g) || []).join(" ")
+        .toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+      var shared = words.filter(function (w) { return oldWords.indexOf(w) !== -1; }).length;
+      var ttft = m.ttft == null ? Infinity : m.ttft;
+      if (shared > bestScore || (shared === bestScore && best && ttft < (best.ttft == null ? Infinity : best.ttft))) {
+        best = m; bestScore = shared;
+      }
+    });
+    return best;
   }
 
   function newcartFindByName(name) {
@@ -5073,7 +5126,9 @@
     var taskDef = PCARD_TASK_PRESETS[task];
     if (!taskDef || !model || !share) return { cost: 0, tokens: 0 };
 
-    var mult = pcardIsReasoningModel(model.name) ? 2 : 1;
+    // Same Thinking Multiplier the Cart applies, over the wider set of
+    // reasoning markers the new listings use.
+    var mult = newcartIsReasoning(model.name) ? 2 : 1;
     var days = +byId("cart-period").value || 20;
     var totalTokens = teamSize * share * taskDef.dailyTokens * days;
 
@@ -5097,7 +5152,9 @@
    */
   function newcartPickFor(dept, task) {
     var oldName = PCART_TASK_MODEL[dept][task].model;
-    var incumbent = newcartFindByName(oldName);
+    // Still listed is judged on the base name, so GPT-5.4 (Non-reasoning) and
+    // GPT-5.4 (xhigh) count as the same model still being sold.
+    var incumbent = newcartClosestVariant(oldName);
 
     if (incumbent) {
       var better = newcartBestInTier(incumbent.tier, incumbent.blended, incumbent.intel);
