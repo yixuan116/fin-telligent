@@ -1060,13 +1060,6 @@
   .chart-wrap { position: relative; }
 
   /* ============ KPI row ============ */
-  .kpi-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
-  .kpi-box { flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border); border-left: 4px solid var(--chip-color, var(--accent)); border-radius: var(--radius); padding: 16px 18px; }
-  .kpi-box .kpi-model { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
-  .kpi-box .kpi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px; }
-  .kpi-box .kpi-value { font-size: 1.35rem; font-weight: 800; }
-  .kpi-box .kpi-value.positive { color: var(--green); }
-  .kpi-box .kpi-value.negative { color: var(--red); }
 
   /* ============ warning banner ============ */
 
@@ -1156,7 +1149,7 @@
     .hero h1 { font-size: 1.55rem; }
     .section-title { font-size: 1.2rem; }
     .section-card, .collapsible-toggle { padding: 18px 18px; }
-    .kpi-row, .model-picker { flex-direction: column; }
+    .model-picker { flex-direction: column; }
     .model-chips { width: 100%; }
     .pcart-sticky-total { font-size: 1rem; }
     #pcart-stickybar { gap: 10px; padding: 10px 14px; }
@@ -1639,7 +1632,7 @@
       <button type="button" class="appendix-toggle" id="toggle-appendix" aria-expanded="false" aria-controls="body-appendix">
         <svg class="chevron appendix-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="appendix-title">Behind the Numbers</span>
-        <span class="appendix-sub">Appendix &middot; full model, breakeven, raw data</span>
+        <span class="appendix-sub">Appendix &middot; full model, raw data</span>
       </button>
       <div class="collapsible-body" id="body-appendix">
         <div class="collapsible-body-inner">
@@ -1720,44 +1713,6 @@
       </div>
     </section>
 
-    <!-- ============ SECTION 3: BREAKEVEN ============ -->
-    <section class="section" id="sec-breakeven">
-      <div class="section-card">
-        <button type="button" class="step-collapse-toggle" id="toggle-breakeven" aria-expanded="false" aria-controls="body-breakeven">
-          <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <div class="section-head">
-            <h2 class="section-title">Breakeven: When Does AI Pay for Itself?</h2>
-            <p class="section-sub">Every AI interaction is worth something &mdash; labor saved, errors avoided, revenue captured. Compare that value against the running cost to find the payback month.</p>
-          </div>
-        </button>
-
-        <div class="collapsible-body" id="body-breakeven">
-        <div class="collapsible-body-inner">
-
-        <div class="controls-row">
-          <label class="control-field grow">
-            <span>Business value per AI interaction: <b id="val-interaction-value">$0.050</b></span>
-            <input type="range" id="ctl-interaction-value" min="0" max="1000" value="500">
-          </label>
-          <label class="control-field grow">
-            <span>One-time setup &amp; integration cost: <b id="val-setup-cost">$5,000</b></span>
-            <input type="range" id="ctl-setup-cost" min="0" max="100" value="50">
-          </label>
-        </div>
-        <p class="assumption-note">Modeling note: the cost and gain formulas in the brief are both pure rate &times; months (no fixed cost), so a crossing point only exists if there's an upfront cost to amortize. We added this one editable "setup &amp; integration cost" input so breakeven has somewhere to move &mdash; set it to $0 to see the pure rate comparison instead.</p>
-
-        <div class="chart-card" style="margin-top:22px;">
-          <p class="chart-card-title">Cumulative Cost vs. Cumulative Value</p>
-          <p class="chart-card-sub">24-month horizon. One cost line per selected model; a single shared value line (it doesn't depend on model choice).</p>
-          <div class="chart-wrap" style="height:360px;"><canvas id="chart-breakeven"></canvas></div>
-        </div>
-
-        <div class="kpi-row" id="breakeven-kpis"></div>
-
-        </div>
-        </div>
-      </div>
-    </section>
 
 
     <!-- ============ AUDIT TRAIL (collapsible) ============ -->
@@ -1863,8 +1818,6 @@
     inputTok: 2000,
     outputTok: 500,
     budget: 10000,
-    interactionValue: 0.05,
-    setupCost: 5000,
     modelSearch: ""
   };
 
@@ -4889,7 +4842,8 @@
   }
 
 
-  var radarChart, budgetBarChart, breakevenChart, modelGrowthChart;
+
+  var radarChart, budgetBarChart, modelGrowthChart;
 
   function initCharts() {
     var radarCtx = byId("chart-radar").getContext("2d");
@@ -4934,19 +4888,6 @@
       }]
     });
 
-    var breakevenCtx = byId("chart-breakeven").getContext("2d");
-    breakevenChart = new Chart(breakevenCtx, {
-      type: "line",
-      data: { labels: [], datasets: [] },
-      options: {
-        responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-        scales: {
-          x: { title: { display: true, text: "Month" } },
-          y: { title: { display: true, text: "Cumulative USD" }, ticks: { callback: function (v) { return "$" + (v / 1000) + "k"; } } }
-        },
-        plugins: { legend: { position: "bottom", labels: { font: { size: 10 }, boxWidth: 10 } } }
-      }
-    });
 
 
   }
@@ -4997,54 +4938,10 @@
     budgetBarChart.update("none");
   }
 
-  function recalcBreakeven() {
-    var rows = selectedRows();
-    var months = [];
-    for (var m = 0; m <= 24; m++) months.push(m);
-
-    var gainRate = state.volume * state.interactionValue;
-    var gainData = months.map(function (m) { return gainRate * m; });
-
-    var datasets = [{
-      label: "Cumulative Value / Gain", data: gainData, borderColor: "#0f9d68", borderDash: [6, 4],
-      borderWidth: 2, pointRadius: 0, fill: false
-    }];
-
-    var kpiHtml = "";
-    rows.forEach(function (row, i) {
-      var monthlyCost = (state.volume * state.inputTok / 1000000) * row.input_price_per_mtok + (state.volume * state.outputTok / 1000000) * row.output_price_per_mtok;
-      var costData = months.map(function (m) { return state.setupCost + monthlyCost * m; });
-      datasets.push({
-        label: row.model_id + " — Cumulative Cost", data: costData, borderColor: MODEL_COLORS[i],
-        borderWidth: 2.5, pointRadius: 0, fill: false
-      });
-
-      var breakevenMonth = null;
-      if (gainRate > monthlyCost) {
-        breakevenMonth = state.setupCost / (gainRate - monthlyCost);
-      }
-      var roi12 = (gainRate * 12 - (state.setupCost + monthlyCost * 12)) / (state.setupCost + monthlyCost * 12) * 100;
-
-      kpiHtml += '<div class="kpi-box" style="--chip-color:' + MODEL_COLORS[i] + '">' +
-        '<p class="kpi-model">' + row.model_id + "</p>" +
-        '<p class="kpi-label">Months to Breakeven</p>' +
-        '<p class="kpi-value">' + (breakevenMonth == null ? "Beyond 24 mo" : breakevenMonth.toFixed(1)) + "</p>" +
-        '<p class="kpi-label" style="margin-top:10px;">12-Month Net ROI</p>' +
-        '<p class="kpi-value ' + (roi12 >= 0 ? "positive" : "negative") + '">' + (roi12 >= 0 ? "+" : "") + roi12.toFixed(0) + "%</p>" +
-        "</div>";
-    });
-
-    byId("breakeven-kpis").innerHTML = kpiHtml || '<p style="color:var(--text-muted); font-size:0.85rem;">Select a model above to see breakeven.</p>';
-
-    breakevenChart.data.labels = months;
-    breakevenChart.data.datasets = datasets;
-    breakevenChart.update("none");
-  }
 
 
   function recalcAll() {
     recalcCostModel();
-    recalcBreakeven();
   }
 
   // ============ Audit Trail ============
@@ -5077,17 +4974,12 @@
       ["Avg Input Tokens / Request", state.inputTok],
       ["Avg Output Tokens / Request", state.outputTok],
       ["Budget Ceiling ($/mo)", state.budget],
-      ["Business Value per Interaction ($)", state.interactionValue],
-      ["One-Time Setup Cost ($)", state.setupCost],
       [],
-      ["Model", "Monthly Cost ($)", "Months to Breakeven", "12-Month Net ROI (%)"]
+      ["Model", "Monthly Cost ($)"]
     ];
     rows.forEach(function (row) {
       var monthlyCost = (state.volume * state.inputTok / 1000000) * row.input_price_per_mtok + (state.volume * state.outputTok / 1000000) * row.output_price_per_mtok;
-      var gainRate = state.volume * state.interactionValue;
-      var breakevenMonth = gainRate > monthlyCost ? state.setupCost / (gainRate - monthlyCost) : null;
-      var roi12 = (gainRate * 12 - (state.setupCost + monthlyCost * 12)) / (state.setupCost + monthlyCost * 12) * 100;
-      params.push([row.model_id, Math.round(monthlyCost * 100) / 100, breakevenMonth == null ? "beyond 24 mo" : Math.round(breakevenMonth * 10) / 10, Math.round(roi12 * 10) / 10]);
+      params.push([row.model_id, Math.round(monthlyCost * 100) / 100]);
     });
     var ws2 = XLSX.utils.aoa_to_sheet(params);
     XLSX.utils.book_append_sheet(wb, ws2, "Parameters_Snapshot");
@@ -5127,19 +5019,7 @@
       recalcAll();
     });
 
-    byId("ctl-interaction-value").addEventListener("input", function (e) {
-      var t = +e.target.value / 1000;
-      state.interactionValue = 0.001 + t * (1.0 - 0.001);
-      byId("val-interaction-value").textContent = "$" + state.interactionValue.toFixed(3);
-      recalcAll();
-    });
 
-    byId("ctl-setup-cost").addEventListener("input", function (e) {
-      var t = +e.target.value / 100;
-      state.setupCost = Math.round(t * 100000 / 100) * 100;
-      byId("val-setup-cost").textContent = fmtUSD(state.setupCost, 0);
-      recalcAll();
-    });
 
     byId("model-search").addEventListener("input", function (e) {
       state.modelSearch = e.target.value;
@@ -5312,14 +5192,13 @@
     // Charts inside were sized while the appendix was shut; re-measure on open
     // in case any of them was already expanded when it closed.
     initStepChartResize("toggle-appendix", function () {
-      return [radarChart, budgetBarChart, breakevenChart];
+      return [radarChart, budgetBarChart];
+
 
     });
     initCollapsible("toggle-cost-model", "body-cost-model");
-    initCollapsible("toggle-breakeven", "body-breakeven");
     initStepChartResize("toggle-cost-model", function () { return [radarChart, budgetBarChart]; });
-    initStepChartResize("toggle-breakeven", function () { return [breakevenChart]; });
-    initExpandAllGroup("expand-all-steps", ["toggle-cost-model", "toggle-breakeven", "toggle-audit"]);
+    initExpandAllGroup("expand-all-steps", ["toggle-cost-model", "toggle-audit"]);
     renderSection1();
     initExpandAllGroup("expand-all-raw", ["toggle-raw-1", "toggle-raw-2"]);
     renderPerfBenchmark();
