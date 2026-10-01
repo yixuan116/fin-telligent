@@ -1069,11 +1069,6 @@
   .kpi-box .kpi-value.negative { color: var(--red); }
 
   /* ============ warning banner ============ */
-  .warning-banner {
-    display: none; align-items: center; gap: 10px; background: var(--red-soft); color: var(--red);
-    border: 1px solid rgba(192, 57, 43, 0.3); border-radius: var(--radius); padding: 14px 18px; font-weight: 700; font-size: 0.9rem; margin-top: 18px;
-  }
-  .warning-banner.show { display: flex; }
 
   .assumption-note { font-size: 0.76rem; color: var(--text-muted); background: var(--bg); border: 1px dashed var(--border); border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
 
@@ -1766,53 +1761,6 @@
       </div>
     </section>
 
-    <!-- ============ SECTION 4: STRESS TEST ============ -->
-    <section class="section" id="sec-stress">
-      <div class="section-card">
-        <button type="button" class="step-collapse-toggle" id="toggle-stress" aria-expanded="false" aria-controls="body-stress">
-          <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <div class="section-head">
-            <p class="section-eyebrow">Step 4</p>
-            <h2 class="section-title">Stress Test: What Happens at Scale?</h2>
-            <p class="section-sub">Push context length and concurrency to see where cost blows through budget and latency blows through your SLA.</p>
-          </div>
-        </button>
-
-        <div class="collapsible-body" id="body-stress">
-        <div class="collapsible-body-inner">
-
-        <div class="controls-row">
-          <label class="control-field grow">
-            <span>Concurrent Sessions: <b id="val-concurrency">50</b></span>
-            <input type="range" id="ctl-concurrency" min="1" max="1000" value="50">
-          </label>
-          <label class="control-field grow">
-            <span>Context Length: <b id="val-context">4,096</b> tokens</span>
-            <input type="range" id="ctl-context" min="1000" max="2000000" value="4096">
-          </label>
-        </div>
-
-        <div id="warning-banner" class="warning-banner">
-          &#9888;&#65039; Budget ceiling AND SLA threshold breached at this configuration.
-        </div>
-
-        <div class="card-grid cols-2" style="margin-top:22px;">
-          <div class="chart-card">
-            <p class="chart-card-title">Cost Explosion</p>
-            <p class="chart-card-sub">Cost per request-batch (context tokens &times; concurrent sessions) as context grows.</p>
-            <div class="chart-wrap" style="height:320px;"><canvas id="chart-cost-explosion"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <p class="chart-card-title">Latency Degradation</p>
-            <p class="chart-card-sub">Estimated time-to-first-token as context grows. SLA threshold: 2s.</p>
-            <div class="chart-wrap" style="height:320px;"><canvas id="chart-latency"></canvas></div>
-          </div>
-        </div>
-
-        </div>
-        </div>
-      </div>
-    </section>
 
     <!-- ============ AUDIT TRAIL (collapsible) ============ -->
     <section class="section" id="sec-audit">
@@ -1909,7 +1857,6 @@
   var PCARD_SELECTED_TIER = 3;
   var BENCH_RANGE = {};
   var MAX_PRICING_DATE = null;
-  var MAX_CONTEXT_WINDOW = 128000;
 
   var state = {
     taskType: "general",
@@ -1920,8 +1867,6 @@
     budget: 10000,
     interactionValue: 0.05,
     setupCost: 5000,
-    concurrency: 50,
-    context: 4096,
     modelSearch: ""
   };
 
@@ -1951,7 +1896,6 @@
       RAW.models = modelsParsed;
       RAW.pricing = pricingParsed;
       RAW.costEff = costEffParsed;
-      MAX_CONTEXT_WINDOW = modelsParsed.reduce(function (m, r) { return Math.max(m, r.context_window || 0); }, 128000);
 
       // latest pricing per model
       var latestPrice = {};
@@ -4946,7 +4890,8 @@
     return state.selectedModels.map(function (id) { return GOLDEN_BY_ID[id]; }).filter(Boolean);
   }
 
-  var radarChart, budgetBarChart, breakevenChart, costExplosionChart, latencyChart, modelGrowthChart;
+
+  var radarChart, budgetBarChart, breakevenChart, modelGrowthChart;
 
   function initCharts() {
     var radarCtx = byId("chart-radar").getContext("2d");
@@ -5005,65 +4950,7 @@
       }
     });
 
-    var costExpCtx = byId("chart-cost-explosion").getContext("2d");
-    costExplosionChart = new Chart(costExpCtx, {
-      type: "line",
-      data: { labels: [], datasets: [] },
-      options: {
-        responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-        scales: {
-          x: { title: { display: true, text: "Context Length (tokens)" }, ticks: { callback: function (v, i, ticks) { return fmtCompactTok(this.getLabelForValue(v)); } } },
-          y: { title: { display: true, text: "Cost per Request-Batch (USD)" } }
-        },
-        plugins: { legend: { position: "bottom", labels: { font: { size: 10 }, boxWidth: 10 } } }
-      },
-      plugins: [{
-        id: "ceilingLine",
-        afterDatasetsDraw: function (chart) {
-          var yScale = chart.scales.y;
-          var y = yScale.getPixelForValue(state.budget);
-          if (y < yScale.top || y > yScale.bottom) return;
-          var ctx = chart.ctx, xScale = chart.scales.x;
-          ctx.save();
-          ctx.strokeStyle = "#c0392b"; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
-          ctx.beginPath(); ctx.moveTo(xScale.left, y); ctx.lineTo(xScale.right, y); ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = "#c0392b"; ctx.font = "700 10px system-ui, sans-serif"; ctx.textAlign = "right";
-          ctx.fillText("Budget ceiling (ref): $" + state.budget.toLocaleString(), xScale.right, y - 6);
-          ctx.restore();
-        }
-      }]
-    });
 
-    var latencyCtx = byId("chart-latency").getContext("2d");
-    latencyChart = new Chart(latencyCtx, {
-      type: "line",
-      data: { labels: [], datasets: [] },
-      options: {
-        responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-        scales: {
-          x: { title: { display: true, text: "Context Length (tokens)" }, ticks: { callback: function (v, i, ticks) { return fmtCompactTok(this.getLabelForValue(v)); } } },
-          y: { title: { display: true, text: "Estimated TTFT (ms)" } }
-        },
-        plugins: { legend: { position: "bottom", labels: { font: { size: 10 }, boxWidth: 10 } } }
-      },
-      plugins: [{
-        id: "slaLine",
-        afterDatasetsDraw: function (chart) {
-          var yScale = chart.scales.y;
-          var y = yScale.getPixelForValue(2000);
-          if (y < yScale.top || y > yScale.bottom) return;
-          var ctx = chart.ctx, xScale = chart.scales.x;
-          ctx.save();
-          ctx.strokeStyle = "#c0392b"; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
-          ctx.beginPath(); ctx.moveTo(xScale.left, y); ctx.lineTo(xScale.right, y); ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = "#c0392b"; ctx.font = "700 10px system-ui, sans-serif"; ctx.textAlign = "right";
-          ctx.fillText("SLA threshold: 2s", xScale.right, y - 6);
-          ctx.restore();
-        }
-      }]
-    });
   }
 
   function recalcCostModel() {
@@ -5156,48 +5043,10 @@
     breakevenChart.update("none");
   }
 
-  function recalcStress() {
-    var rows = selectedRows();
-    var steps = 24;
-    var ctxMin = 1000, ctxMax = MAX_CONTEXT_WINDOW;
-    var contextPoints = [];
-    for (var i = 0; i <= steps; i++) contextPoints.push(Math.round(ctxMin + (ctxMax - ctxMin) * (i / steps)));
-
-    var costDatasets = rows.map(function (row, i) {
-      var data = contextPoints.map(function (ctx) {
-        var perRequest = (ctx / 1000000) * row.input_price_per_mtok + (state.outputTok / 1000000) * row.output_price_per_mtok;
-        return perRequest * state.concurrency;
-      });
-      return { label: row.model_id, data: data, borderColor: MODEL_COLORS[i], borderWidth: 2.5, pointRadius: 0, fill: false };
-    });
-    costExplosionChart.data.labels = contextPoints;
-    costExplosionChart.data.datasets = costDatasets;
-    costExplosionChart.update("none");
-
-    var latencyDatasets = rows.map(function (row, i) {
-      var baseTtft = row.latency_ttft_ms || 300;
-      var data = contextPoints.map(function (ctx) { return baseTtft * (ctx / 4096); });
-      return { label: row.model_id, data: data, borderColor: MODEL_COLORS[i], borderWidth: 2.5, pointRadius: 0, fill: false };
-    });
-    latencyChart.data.labels = contextPoints;
-    latencyChart.data.datasets = latencyDatasets;
-    latencyChart.update("none");
-
-    // warning banner: at the CURRENT context slider value, any selected model over both lines?
-    var breach = rows.some(function (row) {
-      var perRequest = (state.context / 1000000) * row.input_price_per_mtok + (state.outputTok / 1000000) * row.output_price_per_mtok;
-      var totalCost = perRequest * state.concurrency;
-      var baseTtft = row.latency_ttft_ms || 300;
-      var estTtft = baseTtft * (state.context / 4096);
-      return totalCost > state.budget && estTtft > 2000;
-    });
-    byId("warning-banner").classList.toggle("show", breach);
-  }
 
   function recalcAll() {
     recalcCostModel();
     recalcBreakeven();
-    recalcStress();
   }
 
   // ============ Audit Trail ============
@@ -5232,8 +5081,6 @@
       ["Budget Ceiling ($/mo)", state.budget],
       ["Business Value per Interaction ($)", state.interactionValue],
       ["One-Time Setup Cost ($)", state.setupCost],
-      ["Concurrent Sessions", state.concurrency],
-      ["Context Length (tokens)", state.context],
       [],
       ["Model", "Monthly Cost ($)", "Months to Breakeven", "12-Month Net ROI (%)"]
     ];
@@ -5295,19 +5142,6 @@
       byId("val-setup-cost").textContent = fmtUSD(state.setupCost, 0);
       recalcAll();
     });
-
-    byId("ctl-concurrency").addEventListener("input", function (e) {
-      state.concurrency = +e.target.value;
-      byId("val-concurrency").textContent = fmtInt(state.concurrency);
-      recalcAll();
-    });
-
-    byId("ctl-context").addEventListener("input", function (e) {
-      state.context = +e.target.value;
-      byId("val-context").textContent = fmtInt(state.context) + "";
-      recalcAll();
-    });
-    byId("ctl-context").max = MAX_CONTEXT_WINDOW;
 
     byId("model-search").addEventListener("input", function (e) {
       state.modelSearch = e.target.value;
@@ -5480,15 +5314,14 @@
     // Charts inside were sized while the appendix was shut; re-measure on open
     // in case any of them was already expanded when it closed.
     initStepChartResize("toggle-appendix", function () {
-      return [radarChart, budgetBarChart, breakevenChart, costExplosionChart, latencyChart];
+      return [radarChart, budgetBarChart, breakevenChart];
+
     });
     initCollapsible("toggle-cost-model", "body-cost-model");
     initCollapsible("toggle-breakeven", "body-breakeven");
-    initCollapsible("toggle-stress", "body-stress");
     initStepChartResize("toggle-cost-model", function () { return [radarChart, budgetBarChart]; });
     initStepChartResize("toggle-breakeven", function () { return [breakevenChart]; });
-    initStepChartResize("toggle-stress", function () { return [costExplosionChart, latencyChart]; });
-    initExpandAllGroup("expand-all-steps", ["toggle-cost-model", "toggle-breakeven", "toggle-stress", "toggle-audit"]);
+    initExpandAllGroup("expand-all-steps", ["toggle-cost-model", "toggle-breakeven", "toggle-audit"]);
     renderSection1();
     initExpandAllGroup("expand-all-raw", ["toggle-raw-1", "toggle-raw-2"]);
     renderPerfBenchmark();
