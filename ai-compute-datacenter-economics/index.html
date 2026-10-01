@@ -202,7 +202,6 @@
   }
 
   .section-head { margin-bottom: 22px; }
-  .section-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
   .section-title { font-size: 1.45rem; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.01em; }
   .section-sub { font-size: 0.92rem; color: var(--text-secondary); max-width: 720px; line-height: 1.5; }
 
@@ -354,7 +353,8 @@
     width: 100%; display: flex; align-items: flex-start; gap: 14px; cursor: pointer;
     background: none; border: none; padding: 0; margin: 0 0 22px; text-align: left; font: inherit; color: inherit;
   }
-  .step-collapse-toggle .chevron { margin-top: 9px; }
+  /* centred on the title, which is now the first line in the head */
+  .step-collapse-toggle .chevron { margin-top: 6px; }
   .step-collapse-toggle[aria-expanded="true"] .chevron { transform: rotate(90deg); }
   .step-collapse-toggle .section-head { margin-bottom: 0; }
 
@@ -1654,7 +1654,6 @@
         <button type="button" class="step-collapse-toggle" id="toggle-cost-model" aria-expanded="false" aria-controls="body-cost-model">
           <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="section-head">
-            <p class="section-eyebrow">Step 2</p>
             <h2 class="section-title">AI Budget Cost Model</h2>
             <p class="section-sub">Pick a task type, choose up to three models, and set your expected volume. See exactly what it costs per month &mdash; and why output tokens dominate the bill.</p>
           </div>
@@ -1727,7 +1726,6 @@
         <button type="button" class="step-collapse-toggle" id="toggle-breakeven" aria-expanded="false" aria-controls="body-breakeven">
           <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="section-head">
-            <p class="section-eyebrow">Step 3</p>
             <h2 class="section-title">Breakeven: When Does AI Pay for Itself?</h2>
             <p class="section-sub">Every AI interaction is worth something &mdash; labor saved, errors avoided, revenue captured. Compare that value against the running cost to find the payback month.</p>
           </div>
