@@ -245,20 +245,6 @@
   .ptok-table td:nth-child(2) { font-family: var(--mono); font-weight: 700; color: var(--accent); white-space: nowrap; }
   .ptok-note { font-size: 0.76rem; color: var(--text-muted); margin: 10px 0 0; }
 
-  /* the Cart's cache/batch switches are built in JS, so these live on */
-  .m3-toggle { position: relative; display: inline-block; width: 34px; height: 18px; vertical-align: middle; }
-  .m3-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-  .m3-toggle-track {
-    position: absolute; inset: 0; background: var(--border); border-radius: 999px;
-    transition: background 0.2s ease; display: block;
-  }
-  .m3-toggle-thumb {
-    position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
-    background: #fff; border-radius: 50%; transition: transform 0.2s ease; display: block;
-  }
-  .m3-toggle input:checked + .m3-toggle-track { background: var(--accent); }
-  .m3-toggle input:checked + .m3-toggle-track .m3-toggle-thumb { transform: translateX(16px); }
-
   /* ============ New Shopping Cart ============ */
   .ncart-block { margin: 34px 0 0; padding-top: 26px; border-top: 1px solid var(--border); }
   .ncart-title {
@@ -2005,7 +1991,7 @@
   function priceStoryHtml() {
     return '<div class="mini-card price-story" id="price-story">' +
       '<p class="mini-card-title">Price Change <span class="badge">pricing_history.csv \u00b7 44,775 rows</span></p>' +
-      '<p class="bstory-intro">How has pricing actually moved for the market\u2019s best-known models, and what would caching or batch pricing really save?</p>' +
+      '<p class="bstory-intro">Where do the market\u2019s best-known models sit on price, and how wide is the spread across providers?</p>' +
 
       '<h4 style="font-size:0.92rem; font-weight:700; margin:4px 0 10px;">Pricing Landscape by Provider</h4>' +
       '<p class="bstory-card-desc" style="margin-bottom:10px;">All 520 models, plotted by release date and output price. Colored by the 10 providers with the most tracked models; the other 47 providers are grouped into "Other."</p>' +
