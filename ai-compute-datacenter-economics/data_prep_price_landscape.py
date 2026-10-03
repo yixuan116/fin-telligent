@@ -1,6 +1,6 @@
 """
 Pre-processing for the "Pricing Landscape" redesign of the first two layers
-of the Price Change module (release_date vs. output price scatter, and a
+of the Price Spread module (release_date vs. output price scatter, and a
 same-provider generational comparison table). Reads pricing_history.csv +
 models.csv from "LLM API Pricing & Performance Benchmark Tracker/".
 """

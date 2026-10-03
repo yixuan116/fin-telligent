@@ -1,5 +1,5 @@
 """
-Pre-processing for the "Price Change" module added to the Budget Sandbox
+Pre-processing for the "Price Spread" module added to the Budget Sandbox
 part of ai-compute-datacenter-economics/index.html. Reads pricing_history.csv
 from "LLM API Pricing & Performance Benchmark Tracker/" and writes a compact
 JSON embedded inline in the HTML.
