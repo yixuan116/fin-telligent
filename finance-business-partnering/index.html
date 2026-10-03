@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Business Partnering &middot; fin-telligent</title>
+<meta name="description" content="A story bank that maps career stories to the business finance needs they solve, across the spend lifecycle and the earn side.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+<style>
+  :root {
+    color-scheme: light;
+
+    /* neutral grayscale shell, one accent reserved for the lit state */
+    --bg: #fbfaf7;
+    --surface: #ffffff;
+    --stripe: #f3f1ec;
+    --ink: #16181c;
+    --ink-soft: #5a5e66;
+    --ink-faint: #8b8e94;
+    --border: #e4e1da;
+    --border-strong: #c9c5ba;
+
+    --accent: #33506c;
+    --accent-soft: #eef2f6;
+    --accent-glow: rgba(51, 80, 108, 0.16);
+
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+
+    --dim: 0.3;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  /* class level display rules outrank the UA [hidden] rule, and this page
+     toggles `hidden` on a flex drawer, a block card and a grid */
+  [hidden] { display: none !important; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 32px 16px 60px; }
+
+  button { font-family: inherit; cursor: pointer; }
+
+  .app { max-width: 1040px; margin: 0 auto; }
+
+  /* ---------- hero ---------- */
+
+  header.hero { text-align: center; margin-bottom: 30px; padding-bottom: 24px; border-bottom: 1px solid var(--border-strong); }
+
+  header.hero h1 {
+    font-family: var(--serif);
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  header.hero .tagline {
+    margin: 0 auto 14px;
+    max-width: 680px;
+    color: var(--ink-soft);
+    font-size: 0.96rem;
+    line-height: 1.5;
+  }
+
+  header.hero .byline {
+    margin: 0;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- sections ---------- */
+
+  .section {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: 22px 24px 20px;
+    margin-bottom: 20px;
+  }
+
+  .section h2 {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .section .section-sub {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    max-width: 620px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* ---------- counterparty toggle ---------- */
+
+  .cp-toggle { display: flex; flex-shrink: 0; border: 1px solid var(--border-strong); }
+
+  .cp-btn {
+    background: var(--surface);
+    border: none;
+    border-right: 1px solid var(--border);
+    padding: 7px 12px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    transition: color 0.16s var(--ease), background 0.16s var(--ease);
+    white-space: nowrap;
+  }
+
+  .cp-btn:last-child { border-right: none; }
+  .cp-btn:hover { color: var(--ink); background: var(--stripe); }
+
+  .cp-btn.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* ---------- needs band ---------- */
+
+  .track { display: flex; align-items: stretch; gap: 18px; }
+
+  .track + .track { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+  .track-label {
+    flex: 0 0 56px;
+    margin: 0;
+    padding-top: 2px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  /* the stages read left to right as a lifecycle, so the row must not wrap.
+     Each stage is sized by its own chips and shrinks under pressure, which
+     wraps chips inside a column rather than dropping a whole stage down. */
+  .stages { display: flex; flex: 1 1 auto; min-width: 0; gap: 0; flex-wrap: nowrap; }
+
+  /* min-content, not 0: chips do not wrap mid label, so a stage squeezed
+     below its widest chip would clip it against the next divider */
+  .stage { flex: 0 1 auto; min-width: min-content; padding: 0 14px; border-left: 1px solid var(--border); }
+  .stage:first-child { padding-left: 0; border-left: none; }
+
+  .stage-label {
+    margin: 0 0 8px;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .stage.no-label .stage-label { visibility: hidden; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 5px 9px;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    transition: opacity 0.2s var(--ease), color 0.18s var(--ease),
+                background 0.18s var(--ease), border-color 0.18s var(--ease),
+                box-shadow 0.22s var(--ease);
+  }
+
+  .chip:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+  .chip.lit-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .chip.lit-secondary {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(51, 80, 108, 0.07);
+  }
+
+  .chip.dim { opacity: var(--dim); }
+  .chip.dim:hover { opacity: 0.6; }
+
+  .band-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 18px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-faint);
+  }
+
+  .legend-key {
+    display: inline-block;
+    width: 18px;
+    height: 9px;
+    margin-right: 7px;
+    vertical-align: -1px;
+  }
+
+  .legend-key.solid { background: var(--accent); }
+  .legend-key.outline { background: var(--accent-soft); border: 1px solid var(--accent); }
+
+  /* ---------- story wall ---------- */
+
+  .company-group + .company-group { margin-top: 22px; }
+
+  .company-label {
+    margin: 0 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .company-label .company-count { color: var(--ink-faint); letter-spacing: 0.04em; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+    gap: 12px;
+  }
+
+  .story-card {
+    position: relative;
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 15px 16px 13px 18px;
+    transition: opacity 0.2s var(--ease), border-color 0.18s var(--ease),
+                box-shadow 0.22s var(--ease), transform 0.18s var(--ease);
+  }
+
+  .story-card::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    left: -1px;
+    width: 3px;
+    background: transparent;
+    transition: background 0.18s var(--ease);
+  }
+
+  .story-card:hover { border-color: var(--ink-faint); transform: translateY(-1px); }
+
+  .story-card.lit-primary {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .story-card.lit-primary::before { background: var(--accent); }
+
+  .story-card.lit-secondary { border-color: var(--accent); }
+
+  .story-card.lit-secondary::before {
+    background: repeating-linear-gradient(180deg, var(--accent) 0 4px, transparent 4px 8px);
+  }
+
+  .story-card.dim { opacity: var(--dim); }
+  .story-card.dim:hover { opacity: 0.65; }
+
+  .card-title {
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 7px;
+    color: var(--ink);
+  }
+
+  .card-hook {
+    margin: 0 0 12px;
+    font-size: 0.83rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .card-cp {
+    padding: 2px 7px;
+    background: var(--stripe);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+
+  .is-todo { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--ink-faint); }
+
+  .wall-empty {
+    margin: 0;
+    padding: 22px 0;
+    font-size: 0.86rem;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  /* ---------- detail drawer ---------- */
+
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(22, 24, 28, 0.26);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.26s var(--ease);
+    z-index: 40;
+  }
+
+  .scrim.open { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 460px;
+    max-width: 92vw;
+    background: var(--surface);
+    border-left: 1px solid var(--border-strong);
+    box-shadow: -18px 0 46px rgba(22, 24, 28, 0.09);
+    transform: translateX(101%);
+    transition: transform 0.3s var(--ease);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-head {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 26px 56px 18px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .drawer-eyebrow {
+    margin: 0 0 8px;
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .drawer-head h3 {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .drawer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: 1px solid transparent;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--ink-faint);
+    transition: color 0.16s var(--ease), border-color 0.16s var(--ease);
+  }
+
+  .drawer-close:hover { color: var(--ink); border-color: var(--border-strong); }
+
+  .drawer-body { flex: 1 1 auto; overflow-y: auto; padding: 22px 28px 34px; }
+
+  .drawer-section + .drawer-section { margin-top: 20px; }
+
+  .drawer-section h4 {
+    margin: 0 0 7px;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .drawer-section p {
+    margin: 0 0 9px;
+    font-size: 0.9rem;
+    line-height: 1.62;
+    color: var(--ink);
+  }
+
+  .drawer-section p:last-child { margin-bottom: 0; }
+
+  .drawer-section a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); word-break: break-all; }
+  .drawer-section a:hover { border-bottom-color: var(--accent); }
+
+  .drawer-private {
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .private-flag {
+    display: inline-block;
+    margin: 0 0 16px;
+    padding: 3px 9px;
+    background: var(--stripe);
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- load notice ---------- */
+
+  .load-notice {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  .load-notice code {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: var(--stripe);
+    padding: 1px 5px;
+    color: var(--ink);
+  }
+
+  /* ---------- footer ---------- */
+
+  .page-footer { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--border-strong); text-align: center; }
+
+  .footnote { margin: 0 auto 18px; max-width: 760px; font-size: 0.78rem; line-height: 1.6; color: var(--ink-faint); }
+
+  .footer-links { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 6px; }
+
+  .gh-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 0.86rem;
+    padding: 6px 10px;
+  }
+
+  .gh-link:hover { color: var(--accent); background: var(--stripe); }
+  .gh-link svg { fill: currentColor; flex-shrink: 0; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 768px) {
+    .section-head { flex-direction: column; gap: 14px; }
+    .cp-toggle { align-self: flex-start; }
+    .track { flex-direction: column; gap: 10px; }
+    .track-label { flex: 0 0 auto; padding-top: 0; }
+    .stages { flex-direction: column; }
+    .stage { padding: 0; border-left: none; }
+    .stage + .stage { margin-top: 12px; }
+    .stage.no-label .stage-label { display: none; }
+    .drawer { width: 100%; max-width: 100%; }
+  }
+
+  @media (max-width: 480px) {
+    header.hero h1 { font-size: 1.4rem; }
+    .section { padding: 18px 16px 16px; }
+    .card-grid { grid-template-columns: minmax(0, 1fr); }
+    .drawer-head { padding: 22px 50px 16px 20px; }
+    .drawer-body { padding: 18px 20px 28px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+
+    <header class="hero">
+      <h1>Finance Business Partnering</h1>
+      <p class="tagline" id="methodology">Loading.</p>
+      <p class="byline">Yixuan Jing | fin-telligent series</p>
+    </header>
+
+    <div id="load-notice" hidden></div>
+
+    <main id="main" hidden>
+
+      <section class="section" aria-labelledby="needs-heading">
+        <div class="section-head">
+          <div>
+            <h2 id="needs-heading">Business Finance Needs</h2>
+            <p class="section-sub">Pick a need to see which stories answer it, or pick a story to see the needs it covers. Click a lit chip again to clear.</p>
+          </div>
+          <div class="cp-toggle" id="cp-toggle" role="group" aria-label="Filter stories by counterparty"></div>
+        </div>
+
+        <div id="tracks"></div>
+
+        <p class="band-legend">
+          <span><span class="legend-key solid"></span>Primary coverage</span>
+          <span><span class="legend-key outline"></span>Secondary coverage</span>
+        </p>
+      </section>
+
+      <section class="section" aria-labelledby="wall-heading">
+        <div class="section-head">
+          <div>
+            <h2 id="wall-heading">Story Bank</h2>
+            <p class="section-sub">One card per story, grouped by company. Click a card for the full write up.</p>
+          </div>
+        </div>
+        <div id="wall"></div>
+      </section>
+
+    </main>
+
+    <footer class="page-footer">
+      <p class="footnote">Story bank for business finance partnering conversations. Company names are used only to place each story in context; all figures, counterparties, and commercial terms are either genericized or withheld. Framework demonstration only.</p>
+      <div class="footer-links">
+        <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+          <span>github.com/yixuan116/fin-telligent</span>
+        </a>
+        <a class="gh-link" href="../">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9"></path><path d="M10 19V5"></path><path d="M16 19v-9"></path></svg>
+          <span>More fin-telligent demos</span>
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true" hidden>
+    <div class="drawer-head">
+      <p class="drawer-eyebrow" id="drawer-eyebrow"></p>
+      <h3 id="drawer-title"></h3>
+      <button class="drawer-close" id="drawer-close" type="button" aria-label="Close detail">&times;</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </aside>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     Data loading.
+
+     public.yaml is committed and served online. private.yaml is
+     gitignored and exists only on the local machine; when it is
+     there it overlays public stories by id, and when it is not
+     (every published visit) the page runs on public data alone
+     with nothing said about it.
+
+     Both reads go through fetch, which means the page has to be
+     served over HTTP. Opened straight off the filesystem it shows
+     the notice below instead of a blank shell.
+     ============================================================ */
+
+  var PUBLIC_URL = "data/public.yaml";
+  var PRIVATE_URL = "data/private.yaml";
+
+  var DATA = null;
+  var PRIVATE_LABELS = null;
+  var STORY_BY_ID = {};
+  var NEED_BY_ID = {};
+  var CP_BY_ID = {};
+
+  /* selection is single track: a story or a need, never both */
+  var selectedStory = null;
+  var selectedNeed = null;
+  var cpFilter = "all";
+
+  var el = {
+    methodology: document.getElementById("methodology"),
+    notice: document.getElementById("load-notice"),
+    main: document.getElementById("main"),
+    cpToggle: document.getElementById("cp-toggle"),
+    tracks: document.getElementById("tracks"),
+    wall: document.getElementById("wall"),
+    scrim: document.getElementById("scrim"),
+    drawer: document.getElementById("drawer"),
+    drawerEyebrow: document.getElementById("drawer-eyebrow"),
+    drawerTitle: document.getElementById("drawer-title"),
+    drawerBody: document.getElementById("drawer-body"),
+    drawerClose: document.getElementById("drawer-close")
+  };
+
+  function fetchYaml(url) {
+    return fetch(url, { cache: "no-store" }).then(function (res) {
+      if (!res.ok) { throw new Error(url + " returned " + res.status); }
+      return res.text();
+    }).then(function (text) {
+      return jsyaml.load(text);
+    });
+  }
+
+  function showNotice(html) {
+    el.notice.innerHTML = html;
+    el.notice.hidden = false;
+  }
+
+  function start() {
+    fetchYaml(PUBLIC_URL).then(function (pub) {
+      DATA = pub;
+      /* a missing or broken private.yaml is the normal published case */
+      return fetchYaml(PRIVATE_URL).catch(function () { return null; });
+    }).then(function (priv) {
+      overlayPrivate(priv);
+      build();
+    }).catch(function (err) {
+      el.methodology.textContent = "";
+      showNotice(
+        "<p style=\"margin:0 0 8px;\">The story data could not be loaded.</p>" +
+        "<p style=\"margin:0;\">This page reads <code>data/public.yaml</code> with fetch, which browsers block on " +
+        "<code>file://</code>. Serve the folder over HTTP instead: <code>python3 -m http.server 8000</code>, " +
+        "then open <code>localhost:8000/finance-business-partnering/</code>.</p>"
+      );
+      if (window.console) { console.error(err); }
+    });
+  }
+
+  /* Private fields land on the matching public story. Only `id` is
+     required in the overlay; anything else present wins, so a public
+     field left as TODO can be filled locally instead. */
+  function overlayPrivate(priv) {
+    if (!priv || !DATA) { return; }
+
+    /* `labels` is the Chinese wording for the fixed taxonomy, keyed by need
+       or counterparty id. It is carried onto the data so private.yaml is not
+       half read, and it is never rendered. */
+    if (priv.labels) {
+      PRIVATE_LABELS = priv.labels;
+    }
+
+    if (!Array.isArray(priv.stories) || !Array.isArray(DATA.stories)) { return; }
+    var byId = {};
+    DATA.stories.forEach(function (s) { byId[s.id] = s; });
+    priv.stories.forEach(function (patch) {
+      if (!patch || !patch.id) { return; }
+      var target = byId[patch.id];
+      if (!target) { return; }
+      Object.keys(patch).forEach(function (k) {
+        if (k === "id") { return; }
+        if (patch[k] === null || patch[k] === undefined || patch[k] === "") { return; }
+        target[k] = patch[k];
+      });
+    });
+  }
+
+  /* ============================================================
+     Index building
+     ============================================================ */
+
+  function build() {
+    (DATA.tracks || []).forEach(function (track) {
+      (track.stages || []).forEach(function (stage) {
+        (stage.needs || []).forEach(function (need) {
+          NEED_BY_ID[need.id] = need;
+        });
+      });
+    });
+
+    (DATA.counterparties || []).forEach(function (cp) { CP_BY_ID[cp.id] = cp; });
+
+    (DATA.stories || []).forEach(function (s) { STORY_BY_ID[s.id] = s; });
+
+    /* reference data only, parked on the objects it belongs to */
+    if (PRIVATE_LABELS) {
+      Object.keys(PRIVATE_LABELS).forEach(function (id) {
+        var target = NEED_BY_ID[id] || CP_BY_ID[id];
+        if (target) { target.label_zh = PRIVATE_LABELS[id]; }
+      });
+    }
+
+    el.methodology.textContent = (DATA.meta && DATA.meta.methodology) || "";
+
+    renderCpToggle();
+    renderTracks();
+    renderWall();
+    paint();
+
+    el.main.hidden = false;
+    wireGlobal();
+  }
+
+  function needLabel(id) {
+    return (NEED_BY_ID[id] && NEED_BY_ID[id].label) || id;
+  }
+
+  function cpLabel(id) {
+    return (CP_BY_ID[id] && CP_BY_ID[id].label) || id;
+  }
+
+  /* ============================================================
+     Render: counterparty toggle
+     ============================================================ */
+
+  function renderCpToggle() {
+    /* All, then the filterable counterparties. `none` is a valid value
+       on a story but is not a filter: it would read as an empty bucket. */
+    var options = [{ id: "all", label: "All" }];
+    (DATA.counterparties || []).forEach(function (cp) {
+      if (cp.id === "none") { return; }
+      options.push({ id: cp.id, label: cp.label });
+    });
+
+    el.cpToggle.innerHTML = "";
+    options.forEach(function (opt) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cp-btn" + (opt.id === cpFilter ? " active" : "");
+      btn.textContent = opt.label;
+      btn.setAttribute("data-cp", opt.id);
+      btn.setAttribute("aria-pressed", opt.id === cpFilter ? "true" : "false");
+      btn.addEventListener("click", function () { setCpFilter(opt.id); });
+      el.cpToggle.appendChild(btn);
+    });
+  }
+
+  /* ============================================================
+     Render: needs band
+     ============================================================ */
+
+  function renderTracks() {
+    el.tracks.innerHTML = "";
+
+    (DATA.tracks || []).forEach(function (track) {
+      var row = document.createElement("div");
+      row.className = "track";
+
+      var label = document.createElement("p");
+      label.className = "track-label";
+      label.textContent = track.label || "";
+      row.appendChild(label);
+
+      var stages = document.createElement("div");
+      stages.className = "stages";
+
+      (track.stages || []).forEach(function (stage) {
+        var hasLabel = !!stage.label;
+        var box = document.createElement("div");
+        box.className = "stage" + (hasLabel ? "" : " no-label");
+
+        /* the label stays in the flow when empty so the earn chips
+           line up with the spend chips above them */
+        var sl = document.createElement("p");
+        sl.className = "stage-label";
+        sl.textContent = hasLabel ? stage.label : "x";
+        sl.setAttribute("aria-hidden", hasLabel ? "false" : "true");
+        box.appendChild(sl);
+
+        var chips = document.createElement("div");
+        chips.className = "chips";
+
+        (stage.needs || []).forEach(function (need) {
+          var chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "chip";
+          chip.textContent = need.label;
+          chip.setAttribute("data-need", need.id);
+          chip.setAttribute("aria-pressed", "false");
+          chip.addEventListener("click", function () { toggleNeed(need.id); });
+          chips.appendChild(chip);
+        });
+
+        box.appendChild(chips);
+        stages.appendChild(box);
+      });
+
+      row.appendChild(stages);
+      el.tracks.appendChild(row);
+    });
+  }
+
+  /* ============================================================
+     Render: story wall
+     ============================================================ */
+
+  function isTodo(value) {
+    return typeof value === "string" && value.trim().toUpperCase() === "TODO";
+  }
+
+  function renderWall() {
+    el.wall.innerHTML = "";
+
+    var order = DATA.companies || [];
+    var stories = DATA.stories || [];
+
+    /* any company that shows up on a story but not in `companies`
+       still gets a group, appended after the declared order */
+    var extras = [];
+    stories.forEach(function (s) {
+      if (order.indexOf(s.company) === -1 && extras.indexOf(s.company) === -1) {
+        extras.push(s.company);
+      }
+    });
+
+    order.concat(extras).forEach(function (company) {
+      var own = stories.filter(function (s) { return s.company === company; });
+      if (!own.length) { return; }
+
+      var group = document.createElement("div");
+      group.className = "company-group";
+      group.setAttribute("data-company", company);
+
+      var label = document.createElement("p");
+      label.className = "company-label";
+      label.innerHTML = escapeHtml(company) +
+        ' <span class="company-count">' + own.length + (own.length === 1 ? " story" : " stories") + "</span>";
+      group.appendChild(label);
+
+      var grid = document.createElement("div");
+      grid.className = "card-grid";
+
+      own.forEach(function (s) { grid.appendChild(buildCard(s)); });
+
+      group.appendChild(grid);
+
+      var empty = document.createElement("p");
+      empty.className = "wall-empty";
+      empty.textContent = "No stories under this filter.";
+      empty.hidden = true;
+      group.appendChild(empty);
+
+      el.wall.appendChild(group);
+    });
+  }
+
+  function buildCard(s) {
+    var card = document.createElement("button");
+    card.type = "button";
+    card.className = "story-card";
+    card.setAttribute("data-story", s.id);
+
+    var title = document.createElement("p");
+    title.className = "card-title";
+    title.textContent = s.title_en || s.id;
+    card.appendChild(title);
+
+    var hook = document.createElement("p");
+    hook.className = "card-hook" + (isTodo(s.hook) ? " is-todo" : "");
+    hook.textContent = s.hook || "";
+    card.appendChild(hook);
+
+    var meta = document.createElement("p");
+    meta.className = "card-meta";
+
+    var company = document.createElement("span");
+    company.className = "card-company";
+    company.textContent = s.company || "";
+    meta.appendChild(company);
+
+    if (s.counterparty && s.counterparty !== "none") {
+      var cp = document.createElement("span");
+      cp.className = "card-cp";
+      cp.textContent = cpLabel(s.counterparty);
+      meta.appendChild(cp);
+    }
+
+    card.appendChild(meta);
+
+    card.addEventListener("click", function () { selectStory(s.id); });
+    return card;
+  }
+
+  /* ============================================================
+     Selection state
+     ============================================================ */
+
+  function visibleStory(s) {
+    return cpFilter === "all" || s.counterparty === cpFilter;
+  }
+
+  function setCpFilter(id) {
+    cpFilter = id;
+    /* a selection the filter just hid would leave the band lit for a
+       card nobody can see */
+    if (selectedStory && !visibleStory(STORY_BY_ID[selectedStory])) {
+      selectedStory = null;
+      closeDrawer();
+    }
+    Array.prototype.forEach.call(el.cpToggle.querySelectorAll(".cp-btn"), function (btn) {
+      var on = btn.getAttribute("data-cp") === cpFilter;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    paint();
+  }
+
+  function selectStory(id) {
+    if (selectedStory === id) {
+      clearSelection();
+      return;
+    }
+    selectedStory = id;
+    selectedNeed = null;
+    paint();
+    openDrawer(id);
+  }
+
+  function toggleNeed(id) {
+    if (selectedNeed === id) {
+      clearSelection();
+      return;
+    }
+    selectedNeed = id;
+    selectedStory = null;
+    closeDrawer();
+    paint();
+  }
+
+  function clearSelection() {
+    selectedStory = null;
+    selectedNeed = null;
+    closeDrawer();
+    paint();
+  }
+
+  /* ============================================================
+     Paint: one pass over chips and cards for the current state
+     ============================================================ */
+
+  function coverage(story, needId) {
+    if (!story) { return null; }
+    if ((story.needs_primary || []).indexOf(needId) !== -1) { return "primary"; }
+    if ((story.needs_secondary || []).indexOf(needId) !== -1) { return "secondary"; }
+    return null;
+  }
+
+  function paint() {
+    var story = selectedStory ? STORY_BY_ID[selectedStory] : null;
+    var active = !!(story || selectedNeed);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (chip) {
+      var id = chip.getAttribute("data-need");
+      var state = null;
+
+      if (story) {
+        state = coverage(story, id);
+      } else if (selectedNeed) {
+        state = id === selectedNeed ? "primary" : null;
+      }
+
+      chip.classList.toggle("lit-primary", state === "primary");
+      chip.classList.toggle("lit-secondary", state === "secondary");
+      chip.classList.toggle("dim", active && state === null);
+      chip.setAttribute("aria-pressed", id === selectedNeed ? "true" : "false");
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".story-card"), function (card) {
+      var id = card.getAttribute("data-story");
+      var s = STORY_BY_ID[id];
+      var shown = visibleStory(s);
+
+      card.hidden = !shown;
+
+      var state = null;
+      if (story) {
+        state = id === selectedStory ? "primary" : null;
+      } else if (selectedNeed) {
+        state = coverage(s, selectedNeed);
+      }
+
+      card.classList.toggle("lit-primary", state === "primary");
+      card.classList.toggle("lit-secondary", state === "secondary");
+      card.classList.toggle("dim", active && state === null);
+      card.setAttribute("aria-expanded", id === selectedStory ? "true" : "false");
+    });
+
+    /* a company whose every card is filtered out says so rather than
+       leaving a heading over blank space */
+    Array.prototype.forEach.call(document.querySelectorAll(".company-group"), function (group) {
+      var cards = group.querySelectorAll(".story-card");
+      var anyShown = Array.prototype.some.call(cards, function (c) { return !c.hidden; });
+      var grid = group.querySelector(".card-grid");
+      var empty = group.querySelector(".wall-empty");
+      if (grid) { grid.hidden = !anyShown; }
+      if (empty) { empty.hidden = anyShown; }
+    });
+  }
+
+  /* ============================================================
+     Drawer
+     ============================================================ */
+
+  function escapeHtml(str) {
+    return String(str === null || str === undefined ? "" : str)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  /* YAML block scalars arrive with newlines; blank lines split paragraphs */
+  function paragraphs(value) {
+    var text = String(value === null || value === undefined ? "" : value).trim();
+    if (!text) { return ""; }
+    var cls = isTodo(text) ? ' class="is-todo"' : "";
+    return text.split(/\n\s*\n/).map(function (block) {
+      return "<p" + cls + ">" + escapeHtml(block.trim()).replace(/\n/g, "<br>") + "</p>";
+    }).join("");
+  }
+
+  function section(heading, bodyHtml) {
+    if (!bodyHtml) { return ""; }
+    return '<div class="drawer-section"><h4>' + escapeHtml(heading) + "</h4>" + bodyHtml + "</div>";
+  }
+
+  function openDrawer(id) {
+    var s = STORY_BY_ID[id];
+    if (!s) { return; }
+
+    var eyebrow = [s.company];
+    if (s.counterparty && s.counterparty !== "none") { eyebrow.push(cpLabel(s.counterparty)); }
+    el.drawerEyebrow.textContent = eyebrow.join(" · ");
+    el.drawerTitle.textContent = s.title_en || s.id;
+
+    var html = section("Goal and Need", paragraphs(s.goal_and_need)) +
+               section("Model and Analysis", paragraphs(s.model_and_analysis)) +
+               section("Result", paragraphs(s.result));
+
+    /* private.yaml fields, present only when the local overlay loaded.
+       Figures leads so it reads as the section straight after Result, while
+       staying under the marker that says the rest of this is not public. */
+    var privateHtml = section("Figures", paragraphs(s.absolute_figures));
+    if (s.chat_url) {
+      privateHtml += section("Chat",
+        '<p><a href="' + escapeHtml(s.chat_url) + '" target="_blank" rel="noopener noreferrer">' +
+        escapeHtml(s.chat_url) + "</a></p>");
+    }
+    privateHtml += section("Interviewer Slot", paragraphs(s.interviewer_slot));
+    privateHtml += section("Notes", paragraphs(s.notes));
+
+    if (privateHtml) {
+      html += '<div class="drawer-private"><p class="private-flag">Private overlay</p>' + privateHtml + "</div>";
+    }
+
+    el.drawerBody.innerHTML = html;
+    el.drawerBody.scrollTop = 0;
+
+    /* a hide still pending from a close under 320ms ago would otherwise
+       fire on top of the drawer being opened right now */
+    clearTimeout(hideTimer);
+
+    lastTrigger = document.querySelector('.story-card[data-story="' + id + '"]');
+
+    el.drawer.hidden = false;
+    el.scrim.hidden = false;
+    /* read a layout property so the off screen transform is committed as the
+       start of the transition. requestAnimationFrame would do it too, but it
+       stalls whenever the page is not producing frames. */
+    void el.drawer.offsetWidth;
+    el.drawer.classList.add("open");
+    el.scrim.classList.add("open");
+    el.drawer.setAttribute("aria-hidden", "false");
+    el.drawerClose.focus();
+  }
+
+  var hideTimer = null;
+  var lastTrigger = null;
+
+  function closeDrawer() {
+    /* guard on `hidden`, the settled state, so a half open drawer can still
+       be cleaned up */
+    if (el.drawer.hidden) { return; }
+
+    el.drawer.classList.remove("open");
+    el.scrim.classList.remove("open");
+    el.drawer.setAttribute("aria-hidden", "true");
+
+    /* focus sits inside the drawer, so hand it back before it goes away */
+    if (lastTrigger && el.drawer.contains(document.activeElement)) { lastTrigger.focus(); }
+    lastTrigger = null;
+
+    /* keep it in the layout until the slide out finishes */
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function () {
+      el.drawer.hidden = true;
+      el.scrim.hidden = true;
+    }, 320);
+  }
+
+  function wireGlobal() {
+    el.drawerClose.addEventListener("click", clearSelection);
+    el.scrim.addEventListener("click", clearSelection);
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { clearSelection(); }
+    });
+
+    /* a click on neither a chip, a card, nor the drawer reads as
+       "done looking" and resets both the band and the wall */
+    document.addEventListener("click", function (e) {
+      if (!selectedStory && !selectedNeed) { return; }
+      if (e.target.closest(".chip, .story-card, .drawer, .cp-toggle")) { return; }
+      clearSelection();
+    });
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

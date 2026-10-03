@@ -1,0 +1,139 @@
+# Finance Business Partnering :: story bank (public data)
+#
+# This file is committed and served online, so it holds nothing confidential.
+# data/private.yaml is gitignored, lives only on the local machine, and
+# overlays this file story by story on matching `id`.
+#
+# Nothing here is Chinese. The Chinese wording for need labels, counterparty
+# labels and story titles lives in data/private.yaml, which is local only.
+# The page is English only and never renders those fields either way.
+
+meta:
+  # One line methodology statement, shown under the page title.
+  methodology: "TODO: one line methodology statement."
+
+# ---------------------------------------------------------------------------
+# Needs taxonomy. Render order is the order written here: tracks top to
+# bottom, stages left to right, needs left to right inside a stage.
+# A stage with no label renders its needs without a stage heading.
+# ---------------------------------------------------------------------------
+tracks:
+  - id: spend
+    label: Spend
+    stages:
+      - id: plan
+        label: Plan
+        needs:
+          - id: budget_setting
+            label: Budget Setting
+          - id: incremental_ask
+            label: Incremental Ask
+      - id: execute
+        label: Execute
+        needs:
+          - id: contract_structuring
+            label: Contract Structuring
+          - id: annual_cost_down
+            label: Annual Cost-Down
+          - id: peak_ad_hoc
+            label: Peak Ad Hoc Approval
+      - id: control
+        label: Control
+        needs:
+          - id: overrun_control
+            label: Overrun Control
+      - id: impact
+        label: Impact
+        needs:
+          - id: spend_impact
+            label: Spend Impact Visibility
+          - id: roi
+            label: ROI
+
+  - id: earn
+    label: Earn
+    stages:
+      - id: earn
+        label: null
+        needs:
+          - id: dynamic_pricing
+            label: Dynamic Pricing
+          - id: revenue_sharing
+            label: Revenue Sharing
+
+# ---------------------------------------------------------------------------
+# Counterparty enum. `none` is selectable on a story but is not offered as a
+# filter; the filter row is All / Related Party / External.
+# ---------------------------------------------------------------------------
+counterparties:
+  - id: related_party
+    label: Related Party
+  - id: external
+    label: External
+  - id: none
+    label: None
+
+# ---------------------------------------------------------------------------
+# Companies, in wall order.
+# ---------------------------------------------------------------------------
+companies:
+  - Alibaba
+  - NIO
+  - Ford
+  - XTransfer
+
+# ---------------------------------------------------------------------------
+# Stories. Public fields only.
+#   id                 stable key, also the overlay key for private.yaml
+#   company            one of `companies` above
+#   title_en           rendered on the card and in the drawer
+#   hook               one line, rendered on the card
+#   goal_and_need      drawer section 1
+#   model_and_analysis drawer section 2
+#   result             drawer section 3
+#   needs_primary      need ids this story squarely answers
+#   needs_secondary    need ids it touches
+#   counterparty       one counterparty id
+# ---------------------------------------------------------------------------
+stories:
+  - id: cainiao_tiered_pricing
+    company: Alibaba
+    title_en: Cainiao Tiered Pricing
+    hook: TODO
+    goal_and_need: TODO
+    model_and_analysis: TODO
+    result: TODO
+    needs_primary:
+      - contract_structuring
+      - dynamic_pricing
+    needs_secondary:
+      - annual_cost_down
+    counterparty: related_party
+
+  - id: nio_training_data
+    company: NIO
+    title_en: Training Data Prioritization
+    hook: TODO
+    goal_and_need: TODO
+    model_and_analysis: TODO
+    result: TODO
+    needs_primary:
+      - overrun_control
+      - roi
+    needs_secondary:
+      - spend_impact
+    counterparty: external
+
+  - id: ford_hf45_investment
+    company: Ford
+    title_en: HF45 Localization Investment
+    hook: TODO
+    goal_and_need: TODO
+    model_and_analysis: TODO
+    result: TODO
+    needs_primary:
+      - budget_setting
+      - revenue_sharing
+    needs_secondary:
+      - roi
+    counterparty: related_party
