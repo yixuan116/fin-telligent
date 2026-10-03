@@ -1,0 +1,31 @@
+# Template for data/private.yaml.
+#
+# Copy to data/private.yaml and fill in. private.yaml is gitignored: it stays
+# on the local machine and is never committed or published. The page fetches
+# it, and if the fetch 404s or the parse fails it falls back to public data
+# with no error shown.
+#
+# Only `id` is required per entry, and it has to match an id in public.yaml.
+# Every other key is optional; whatever is present overlays the public story,
+# so public fields left as TODO can be filled here instead.
+
+stories:
+  - id: cainiao_tiered_pricing
+
+    # Link to the working chat or thread behind the story. Rendered in the
+    # drawer as a link.
+    chat_url: https://example.com/chat/cainiao-tiered-pricing
+
+    # Which interview slot this story is held for.
+    interviewer_slot: Round 2, business finance lead
+
+    # Free text, kept out of the public file. Rendered in the drawer.
+    notes: |
+      Lead with the step function in the rate card, not the volume forecast.
+      Expect a push on how the floor was set.
+
+    # Real numbers, kept out of the public file. Carried in the overlay and
+    # available to the page, but not rendered in the drawer.
+    absolute_figures: |
+      Annual contract value, realized rate per parcel, and the cost-down
+      percentage actually signed.

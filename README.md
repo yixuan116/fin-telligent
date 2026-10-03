@@ -20,3 +20,6 @@ fin-telligent = finance + intelligent. A series on bringing AI into financial an
 - retail-expansion-analytics:
   - link: https://yixuan116.github.io/fin-telligent/retail-expansion-analytics/
 
+- finance-business-partnering:
+  - link: https://yixuan116.github.io/fin-telligent/finance-business-partnering/
+  - Full README: [finance-business-partnering/README.md](finance-business-partnering/README.md)
