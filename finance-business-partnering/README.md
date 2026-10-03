@@ -60,17 +60,18 @@ Public, in `public.yaml`: `id`, `company`, `title_en`, `hook`,
 `goal_and_need`, `model_and_analysis`, `result`, `needs_primary[]`,
 `needs_secondary[]`, `counterparty`.
 
-Private, in `private.yaml`: `title_zh`, `chat_url`, `interviewer_slot`,
-`notes`, `absolute_figures`.
+Private, in `private.yaml`: `chat_url`, `interviewer_slot`, `notes`,
+`absolute_figures`, and the optional `title_zh`.
 
-`private.yaml` also carries a top level `labels:` map, the Chinese wording for
-the fixed taxonomy keyed by need id and counterparty id.
+`private.yaml` can also carry a top level `labels:` map, alternative wording
+for the fixed taxonomy keyed by need id and counterparty id.
 
 Two notes on what reaches the screen:
 
-- The page is English only. `title_zh` and the `labels:` map are read onto the
-  data but are never rendered, which is why they sit in the local file rather
-  than the published one.
+- The page is English, and so is everything committed here. `title_zh` and the
+  `labels:` map are read onto the data but never rendered; they are reference
+  fields for your local file, which is why the template leaves them commented
+  out.
 - With the overlay loaded the drawer runs Goal and Need, Model and Analysis,
   Result, then Figures (`absolute_figures`), Chat (`chat_url`), Interviewer
   Slot and Notes. Figures onward sits under a Private overlay marker, so

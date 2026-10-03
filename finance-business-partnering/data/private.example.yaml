@@ -4,26 +4,21 @@
 # on the local machine and is never committed or published. The page fetches
 # it, and if the fetch 404s or the parse fails it falls back to public data
 # with no error shown.
+#
+# Everything in this repo is English, including this template. Your own
+# private.yaml is local only, so it is the one place you can keep notes in
+# another language if you want to. Nothing below is ever rendered in another
+# language anyway: the page renders English and only the fields marked as
+# rendered reach the screen.
 
 # ---------------------------------------------------------------------------
-# Chinese wording for the fixed taxonomy, keyed by need id and counterparty id.
-# Held here rather than in public.yaml so the published file stays English
-# only. The page reads these onto the taxonomy as `label_zh` but never renders
-# them; nothing on screen is Chinese.
+# Optional. Alternative wording for the fixed taxonomy, keyed by need id and
+# counterparty id. Read onto the taxonomy as `label_zh` and never rendered, so
+# it is reference data for you rather than page content. Uncomment to use.
 # ---------------------------------------------------------------------------
-labels:
-  budget_setting: 制定预算
-  incremental_ask: 追加预算
-  contract_structuring: 合作合同
-  annual_cost_down: 年降
-  peak_ad_hoc: 旺季临时批预算
-  overrun_control: 超支管控
-  spend_impact: 花得听得见响
-  roi: 投资回报
-  dynamic_pricing: 动态定价
-  revenue_sharing: 分润
-  related_party: 关联方
-  external: 外部
+# labels:
+#   budget_setting: your own wording for this need
+#   roi: your own wording for this need
 
 # ---------------------------------------------------------------------------
 # Per story overlay. Only `id` is required, and it has to match an id in
@@ -33,8 +28,8 @@ labels:
 stories:
   - id: cainiao_tiered_pricing
 
-    # Chinese title. Carried as reference only and never rendered.
-    title_zh: 菜鸟阶梯定价
+    # Optional alternative title. Carried onto the story and never rendered.
+    # title_zh: your own title for this story
 
     # Link to the working chat or thread behind the story. Rendered in the
     # drawer as a link.
@@ -51,6 +46,6 @@ stories:
     # Real numbers, kept out of the public file. Rendered in the drawer as
     # "Figures", directly after Result.
     absolute_figures: |
-      Annual contract value 142M RMB across 11 lanes.
+      Annual contract value 142M across 11 lanes.
       Realized rate 3.86 per parcel against a 4.20 list.
       Cost-down signed at 6.5 percent, against an 8 percent ask.

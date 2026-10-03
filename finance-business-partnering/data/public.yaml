@@ -4,9 +4,9 @@
 # data/private.yaml is gitignored, lives only on the local machine, and
 # overlays this file story by story on matching `id`.
 #
-# Nothing here is Chinese. The Chinese wording for need labels, counterparty
-# labels and story titles lives in data/private.yaml, which is local only.
-# The page is English only and never renders those fields either way.
+# Everything in this repo is English, page and data alike. The optional
+# `label_zh` and `title_zh` fields exist only in data/private.yaml, which is
+# local only, and the page never renders them.
 
 meta:
   # One line methodology statement, shown under the page title.
