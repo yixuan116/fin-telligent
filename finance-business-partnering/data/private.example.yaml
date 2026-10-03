@@ -4,19 +4,43 @@
 # on the local machine and is never committed or published. The page fetches
 # it, and if the fetch 404s or the parse fails it falls back to public data
 # with no error shown.
-#
-# Only `id` is required per entry, and it has to match an id in public.yaml.
-# Every other key is optional; whatever is present overlays the public story,
-# so public fields left as TODO can be filled here instead.
 
+# ---------------------------------------------------------------------------
+# Chinese wording for the fixed taxonomy, keyed by need id and counterparty id.
+# Held here rather than in public.yaml so the published file stays English
+# only. The page reads these onto the taxonomy as `label_zh` but never renders
+# them; nothing on screen is Chinese.
+# ---------------------------------------------------------------------------
+labels:
+  budget_setting: 制定预算
+  incremental_ask: 追加预算
+  contract_structuring: 合作合同
+  annual_cost_down: 年降
+  peak_ad_hoc: 旺季临时批预算
+  overrun_control: 超支管控
+  spend_impact: 花得听得见响
+  roi: 投资回报
+  dynamic_pricing: 动态定价
+  revenue_sharing: 分润
+  related_party: 关联方
+  external: 外部
+
+# ---------------------------------------------------------------------------
+# Per story overlay. Only `id` is required, and it has to match an id in
+# public.yaml. Every other key is optional; whatever is present overlays the
+# public story, so public fields left as TODO can be filled here instead.
+# ---------------------------------------------------------------------------
 stories:
   - id: cainiao_tiered_pricing
+
+    # Chinese title. Carried as reference only and never rendered.
+    title_zh: 菜鸟阶梯定价
 
     # Link to the working chat or thread behind the story. Rendered in the
     # drawer as a link.
     chat_url: https://example.com/chat/cainiao-tiered-pricing
 
-    # Which interview slot this story is held for.
+    # Which interview slot this story is held for. Rendered in the drawer.
     interviewer_slot: Round 2, business finance lead
 
     # Free text, kept out of the public file. Rendered in the drawer.
@@ -24,8 +48,9 @@ stories:
       Lead with the step function in the rate card, not the volume forecast.
       Expect a push on how the floor was set.
 
-    # Real numbers, kept out of the public file. Carried in the overlay and
-    # available to the page, but not rendered in the drawer.
+    # Real numbers, kept out of the public file. Rendered in the drawer as
+    # "Figures", directly after Result.
     absolute_figures: |
-      Annual contract value, realized rate per parcel, and the cost-down
-      percentage actually signed.
+      Annual contract value 142M RMB across 11 lanes.
+      Realized rate 3.86 per parcel against a 4.20 list.
+      Cost-down signed at 6.5 percent, against an 8 percent ask.

@@ -627,6 +627,7 @@
   var PRIVATE_URL = "data/private.yaml";
 
   var DATA = null;
+  var PRIVATE_LABELS = null;
   var STORY_BY_ID = {};
   var NEED_BY_ID = {};
   var CP_BY_ID = {};
@@ -689,7 +690,16 @@
      required in the overlay; anything else present wins, so a public
      field left as TODO can be filled locally instead. */
   function overlayPrivate(priv) {
-    if (!priv || !Array.isArray(priv.stories) || !DATA || !Array.isArray(DATA.stories)) { return; }
+    if (!priv || !DATA) { return; }
+
+    /* `labels` is the Chinese wording for the fixed taxonomy, keyed by need
+       or counterparty id. It is carried onto the data so private.yaml is not
+       half read, and it is never rendered. */
+    if (priv.labels) {
+      PRIVATE_LABELS = priv.labels;
+    }
+
+    if (!Array.isArray(priv.stories) || !Array.isArray(DATA.stories)) { return; }
     var byId = {};
     DATA.stories.forEach(function (s) { byId[s.id] = s; });
     priv.stories.forEach(function (patch) {
@@ -720,6 +730,14 @@
     (DATA.counterparties || []).forEach(function (cp) { CP_BY_ID[cp.id] = cp; });
 
     (DATA.stories || []).forEach(function (s) { STORY_BY_ID[s.id] = s; });
+
+    /* reference data only, parked on the objects it belongs to */
+    if (PRIVATE_LABELS) {
+      Object.keys(PRIVATE_LABELS).forEach(function (id) {
+        var target = NEED_BY_ID[id] || CP_BY_ID[id];
+        if (target) { target.label_zh = PRIVATE_LABELS[id]; }
+      });
+    }
 
     el.methodology.textContent = (DATA.meta && DATA.meta.methodology) || "";
 
@@ -1066,8 +1084,10 @@
                section("Model and Analysis", paragraphs(s.model_and_analysis)) +
                section("Result", paragraphs(s.result));
 
-    /* private.yaml fields, present only when the local overlay loaded */
-    var privateHtml = "";
+    /* private.yaml fields, present only when the local overlay loaded.
+       Figures leads so it reads as the section straight after Result, while
+       staying under the marker that says the rest of this is not public. */
+    var privateHtml = section("Figures", paragraphs(s.absolute_figures));
     if (s.chat_url) {
       privateHtml += section("Chat",
         '<p><a href="' + escapeHtml(s.chat_url) + '" target="_blank" rel="noopener noreferrer">' +

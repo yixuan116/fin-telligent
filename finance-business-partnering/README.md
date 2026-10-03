@@ -56,19 +56,25 @@ the order written in `public.yaml`.
 
 ### Story fields
 
-Public, in `public.yaml`: `id`, `company`, `title_en`, `title_zh`, `hook`,
+Public, in `public.yaml`: `id`, `company`, `title_en`, `hook`,
 `goal_and_need`, `model_and_analysis`, `result`, `needs_primary[]`,
 `needs_secondary[]`, `counterparty`.
 
-Private, in `private.yaml`: `chat_url`, `interviewer_slot`, `notes`,
-`absolute_figures`.
+Private, in `private.yaml`: `title_zh`, `chat_url`, `interviewer_slot`,
+`notes`, `absolute_figures`.
+
+`private.yaml` also carries a top level `labels:` map, the Chinese wording for
+the fixed taxonomy keyed by need id and counterparty id.
 
 Two notes on what reaches the screen:
 
-- `title_zh` and the `label_zh` keys in the taxonomy are carried as reference
-  data and are never rendered. The page is English only.
-- `absolute_figures` is carried in the overlay but is not rendered in the
-  drawer, which shows `chat_url`, `interviewer_slot` and `notes`.
+- The page is English only. `title_zh` and the `labels:` map are read onto the
+  data but are never rendered, which is why they sit in the local file rather
+  than the published one.
+- With the overlay loaded the drawer runs Goal and Need, Model and Analysis,
+  Result, then Figures (`absolute_figures`), Chat (`chat_url`), Interviewer
+  Slot and Notes. Figures onward sits under a Private overlay marker, so
+  nothing private reads as part of the public write up.
 
 Adding a story means appending an entry to `stories:` in `public.yaml`. Adding a
 company means adding it to `companies:`, which is also the wall order; a story
