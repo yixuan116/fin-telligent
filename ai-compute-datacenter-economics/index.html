@@ -47,6 +47,13 @@
     --red: #c0392b;
     --red-soft: rgba(192, 57, 43, 0.12);
     --radius: 12px;
+    /* One page frame for every full-width container: the nav row, the hero,
+       the stepper, the section cards and the footer all resolve their width
+       and left edge from these two. --page-gutter drops to 16px on mobile. */
+    --page-max: 1440px;
+    --page-gutter: 32px;
+    /* Cards are wide now, so prose inside them is capped separately. */
+    --prose-max: 75ch;
     --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
@@ -150,7 +157,7 @@
     border-bottom: 1px solid var(--border);
   }
   .progress-inner {
-    max-width: 1280px; margin: 0 auto; padding: 14px 24px;
+    max-width: var(--page-max); margin: 0 auto; padding: 14px var(--page-gutter);
     display: flex; align-items: center; justify-content: center; gap: 0;
   }
   .progress-step {
@@ -178,9 +185,13 @@
 
   /* ============ series nav ============
      Top-level nav across the three demos in the AI / Compute / Data Center
-     series. It sits directly above the hero and shares the hero's navy, so
-     the two read as one header block; the sticky 4-step stepper above it is
-     untouched.
+     series. It is the first thing in <body>, above the navy hero, and the
+     sticky 4-step stepper below the hero is untouched.
+
+     Left edge: .series-nav-inner carries the same --page-gutter as the hero
+     and the section cards, then the first tab is pulled back by its own
+     inline padding so the tab TEXT -- not its hit area -- starts on that
+     shared edge.
 
      To reuse this block on ai-compute-datacenter-economics/compute/index.html
      or .../datacenter/index.html, three edits and nothing else:
@@ -190,79 +201,84 @@
           turn the page you came from back into an <a> (drop its is-soon)
      ============================================ */
   .series-nav {
-    /* The nav sits outside #budget-sandbox, where --navy is scoped, so the
-       fallback is what actually paints; it matches the hero gradient's top. */
-    background: var(--navy, #1a1a2e);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    --series-tab-pad-x: 14px;
+    background: #ffffff;
+    border-bottom: 1px solid #e4e5ea;
+    box-shadow: none;
     overflow-x: hidden;            /* tabs never scroll sideways on mobile */
   }
   .series-nav-inner {
-    max-width: 1280px; margin: 0 auto; padding: 0 24px;
+    max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-gutter);
     display: flex; align-items: stretch; gap: 4px;
     flex-wrap: nowrap;             /* always one row */
   }
   .series-tab {
     display: flex; align-items: center; gap: 8px;   /* flag inline: all tabs share one baseline */
     flex: 0 1 auto; min-width: 0;  /* min-width:0 lets labels ellipsis, not overflow */
-    padding: 14px 14px 12px;
+    padding: 18px var(--series-tab-pad-x) 15px;
     border-bottom: 3px solid transparent;
-    font-size: 0.82rem; font-weight: 600; line-height: 1.25;
-    color: rgba(245, 245, 250, 0.62);
+    font-size: 0.86rem; font-weight: 500; line-height: 1.25;
+    color: var(--text-muted);
     text-decoration: none;
     transition: color 0.15s ease, border-color 0.15s ease;
   }
+  /* Pulls the whole row left by one tab's padding, landing the first tab's
+     text on --page-gutter alongside the hero copy and the cards. */
+  .series-tab:first-child { margin-left: calc(-1 * var(--series-tab-pad-x)); }
   .series-tab-label {
     display: block; min-width: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  a.series-tab:hover { color: #f5f5fa; }
+  a.series-tab:hover { color: var(--text-primary); }
 
   /* Active tab is driven by data-current, so a sub-page only flips one
      attribute rather than hand-editing classes on three elements. */
   .series-nav[data-current="cart"]       .series-tab[data-tab="cart"],
   .series-nav[data-current="compute"]    .series-tab[data-tab="compute"],
   .series-nav[data-current="datacenter"] .series-tab[data-tab="datacenter"] {
-    color: #fff;
-    border-bottom-color: #9aa4f0;
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom-color: var(--accent);
   }
 
   .series-tab.is-soon {
-    color: rgba(245, 245, 250, 0.34);
+    color: #8e8e9c;
     cursor: default;
   }
   .series-tab-flag {
     flex-shrink: 0;
     font-size: 0.58rem; font-weight: 700; letter-spacing: 0.06em;
     text-transform: uppercase; white-space: nowrap;
-    color: rgba(245, 245, 250, 0.5);
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 999px; padding: 2px 7px;
+    color: #7c7c8a;
+    background: #eeeef3;
+    border-radius: 999px; padding: 3px 8px;
   }
   .series-tab-short { display: none; }
 
   @media (max-width: 620px) {
-    .series-nav-inner { padding: 0 10px; gap: 0; }
+    .series-nav { --series-tab-pad-x: 7px; }
+    .series-nav-inner { gap: 0; }
     /* Stack the flag under the name so three tabs still fit one row. */
-    .series-tab { flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 7px 7px; font-size: 0.74rem; }
+    .series-tab { flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px var(--series-tab-pad-x) 10px; font-size: 0.76rem; }
     /* Short labels keep all three tabs on one row at phone widths. */
     .series-tab-full { display: none; }
     .series-tab-short { display: inline; }
-    .series-tab-flag { font-size: 0.52rem; padding: 1px 5px; letter-spacing: 0.04em; }
+    .series-tab-flag { font-size: 0.52rem; padding: 2px 6px; letter-spacing: 0.04em; }
   }
 
   /* ============ hero ============ */
   .hero {
     background: linear-gradient(160deg, var(--navy), var(--navy-light));
     color: #f5f5fa;
-    padding: 56px 24px 48px;
+    padding: 56px var(--page-gutter) 48px;
   }
-  .hero-inner { max-width: 1280px; margin: 0 auto; }
+  .hero-inner { max-width: var(--page-max); margin: 0 auto; }
   .hero-eyebrow { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9aa4f0; margin: 0 0 12px; }
   .hero h1 { font-size: 2.1rem; font-weight: 800; margin: 0 0 14px; letter-spacing: -0.01em; }
-  .hero p { font-size: 1.02rem; color: #c4c6e0; max-width: 720px; line-height: 1.6; margin: 0; }
+  .hero p { font-size: 1.02rem; color: #c4c6e0; max-width: var(--prose-max); line-height: 1.6; margin: 0; }
 
   /* ============ page / sections ============ */
-  #budget-page { max-width: 1280px; margin: 0 auto; padding: 40px 24px 60px; }
+  #budget-page { max-width: var(--page-max); margin: 0 auto; padding: 40px var(--page-gutter) 60px; }
 
   .section { margin-bottom: 40px; }
 
@@ -274,7 +290,7 @@
     padding: 28px 30px;
   }
   .section-title { font-size: 1.45rem; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.01em; }
-  .section-sub { font-size: 0.92rem; color: var(--text-secondary); max-width: 720px; line-height: 1.5; }
+  .section-sub { font-size: 0.92rem; color: var(--text-secondary); max-width: var(--prose-max); line-height: 1.5; }
 
   /* ============ collapsible ============ */
   .collapsible-toggle {
@@ -442,7 +458,7 @@
   }
   .table-pager button:disabled { opacity: 0.4; cursor: not-allowed; }
   .table-pager button:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
-  .table-note { font-size: 0.76rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+  .table-note { font-size: 0.76rem; color: var(--text-muted); margin-top: 8px; font-style: italic; max-width: var(--prose-max); }
 
   pre.sql-block {
     background: #16161f; color: #d8d8ea; border-radius: 8px; padding: 20px 22px;
@@ -577,7 +593,7 @@
     background: var(--accent-soft); border-radius: 6px; padding: 10px 14px; margin: 0 0 8px; display: inline-block;
   }
   .pcard-legend { font-size: 0.76rem; color: var(--text-muted); margin: 0 0 4px; line-height: 1.5; }
-  .pcard-note { font-size: 0.78rem; color: var(--text-secondary); font-style: italic; margin: 0; }
+  .pcard-note { font-size: 0.78rem; color: var(--text-secondary); font-style: italic; margin: 0; max-width: var(--prose-max); }
   .pcard-worked {
     font-family: var(--mono); font-size: 0.78rem; color: var(--text-secondary);
     background: var(--bg); border: 1px dashed var(--border); border-radius: 6px;
@@ -959,7 +975,7 @@
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
   .benchmark-story { background: var(--card-bg); }
-  .bstory-intro { font-size: 0.86rem; color: var(--text-secondary); max-width: 760px; margin: 0 0 20px; line-height: 1.55; }
+  .bstory-intro { font-size: 0.86rem; color: var(--text-secondary); max-width: var(--prose-max); margin: 0 0 20px; line-height: 1.55; }
 
   .bstory-group { margin-bottom: 20px; }
   .bstory-group-label {
@@ -1032,7 +1048,7 @@
   .assumption-note { font-size: 0.76rem; color: var(--text-muted); background: var(--bg); border: 1px dashed var(--border); border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
 
   footer#site-footer {
-    max-width: 1280px; margin: 0 auto; padding: 0 24px 50px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.7;
+    max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-gutter) 50px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.7;
     border-top: 1px solid var(--border); padding-top: 22px;
   }
   footer#site-footer a { color: var(--text-muted); font-weight: 600; }
@@ -1045,7 +1061,7 @@
      exactly 100vh means scrolling to the bottom parks the GitHub line
      underneath the nav. */
   .footer-social {
-    height: 100vh; max-width: 1280px; margin: 0 auto; padding: 79px 24px 24px;
+    height: 100vh; max-width: var(--page-max); margin: 0 auto; padding: 79px var(--page-gutter) 24px;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 10px; text-align: center;
   }
@@ -1106,6 +1122,7 @@
   }
 
   @media (max-width: 760px) {
+    :root { --page-gutter: 16px; }
     .hero h1 { font-size: 1.55rem; }
     .section-title { font-size: 1.2rem; }
     .section-card, .collapsible-toggle { padding: 18px 18px; }
