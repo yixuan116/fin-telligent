@@ -4711,6 +4711,11 @@
 
   function xlCell(ws, addr, value, opts) {
     var c = ws.getCell(addr);
+    // ExcelJS stores the formula body without the leading "=", and writing one
+    // leaves "==" in the file, which Excel reads as a broken comparison.
+    if (value && typeof value === "object" && typeof value.formula === "string") {
+      value = { formula: value.formula.replace(/^=+/, "") };
+    }
     c.value = value;
     var o = opts || {};
     c.font = { name: "Calibri", size: 11, color: { argb: o.color || XL_BLACK }, bold: !!o.bold };
@@ -4719,16 +4724,6 @@
   }
   var XL_MONEY = '#,##0.0000';
   var XL_NUM = '#,##0.######';
-
-  /** Header row, repeated on every sheet so the shape is obvious. */
-  function xlHead(ws, row, labels) {
-    labels.forEach(function (t, i) {
-      var c = ws.getCell(row, i + 1);
-      c.value = t;
-      c.font = { name: "Calibri", size: 11, bold: true, color: { argb: XL_BLACK } };
-      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEDEFFB" } };
-    });
-  }
 
   /**
    * The line in llm_price_performance_tracker_2026-03-31.csv each parsed row
@@ -4796,30 +4791,66 @@
     wb.creator = "fin-telligent";
     wb.created = new Date();
 
-    /* ---------------- Inputs ---------------- */
-    var inp = wb.addWorksheet("Inputs");
-    inp.columns = [{ width: 38 }, { width: 18 }, { width: 34 }, { width: 72 }];
-    xlHead(inp, 1, ["Item", "Value", "Source", "Logic"]);
-    var r = 2;
-    var ref = {};
-    function putInput(key, label, value, source, logic, fmt) {
-      xlCell(inp, "A" + r, label, { color: XL_GREY });
-      xlCell(inp, "B" + r, value, { color: XL_BLUE, numFmt: fmt || XL_NUM });
-      xlCell(inp, "C" + r, source, { color: XL_GREY });
-      xlCell(inp, "D" + r, logic, { color: XL_GREY });
-      ref[key] = "Inputs!$B$" + r;
+    // One sheet, four blocks stacked top to bottom. Every figure in Portfolio
+    // and Check points at a cell in Inputs or Prices on this same sheet, so
+    // Excel's Trace Precedents walks an arrow all the way back to either an
+    // input the reader chose or a copied row of the source price table.
+    var ws = wb.addWorksheet("Model Portfolio");
+    ws.views = [{ state: "frozen", ySplit: 1 }];
+    // Sized so Department through Monthly cost (A:P) fits one screen at 100%.
+    // Logic sits in R for every block, so the notes line up down one column.
+    ws.columns = [
+      { width: 27 }, { width: 15 }, { width: 26 }, { width: 9 }, { width: 9 },
+      { width: 11 }, { width: 6 }, { width: 12 }, { width: 9 }, { width: 9 },
+      { width: 6 }, { width: 7 }, { width: 8 }, { width: 11 }, { width: 7 },
+      { width: 12 }, { width: 6 }, { width: 90 }
+    ];
+
+    var r = 1;
+    function blockTitle(text) {
+      var c = ws.getCell("A" + r);
+      c.value = text;
+      c.font = { name: "Calibri", size: 12, bold: true, color: { argb: XL_BLACK } };
       r++;
     }
-    function putDerived(key, label, formula, source, logic, fmt) {
-      xlCell(inp, "A" + r, label, { color: XL_GREY });
-      xlCell(inp, "B" + r, { formula: formula }, { color: XL_BLACK, numFmt: fmt || XL_NUM });
-      xlCell(inp, "C" + r, source, { color: XL_GREY });
-      xlCell(inp, "D" + r, logic, { color: XL_GREY });
-      ref[key] = "Inputs!$B$" + r;
+    function headRow(labels) {
+      labels.forEach(function (pair) {
+        var c = ws.getCell(pair[0] + r);
+        c.value = pair[1];
+        c.font = { name: "Calibri", size: 11, bold: true, color: { argb: XL_BLACK } };
+        c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEDEFFB" } };
+      });
+      r++;
+    }
+    function put(col, value, opts) { return xlCell(ws, col + r, value, opts); }
+
+    /* ---------------- title ---------------- */
+    xlCell(ws, "A1", "Model Portfolio · Cart snapshot", { bold: true });
+    xlCell(ws, "R1", "Every value below is either an input you chose or a formula pointing at one. " +
+      "Only the Check block's Page value column holds a pasted number.", { color: XL_GREY });
+    r = 3;
+
+    /* ---------------- Inputs ---------------- */
+    blockTitle("Inputs");
+    headRow([["A", "Item"], ["B", "Value"], ["C", "Source"], ["R", "Logic"]]);
+    var ref = {};
+    function putInput(key, label, value, source, logic, fmt) {
+      put("A", label, { color: XL_GREY });
+      put("B", value, { color: XL_BLUE, numFmt: fmt || XL_NUM });
+      put("C", source, { color: XL_GREY });
+      put("R", logic, { color: XL_GREY });
+      if (key) ref[key] = "$B$" + r;
+      r++;
+    }
+    function putDerived(key, label, formula, source, logic) {
+      put("A", label, { color: XL_GREY });
+      put("B", { formula: formula }, { color: XL_BLACK, numFmt: XL_NUM });
+      put("C", source, { color: XL_GREY });
+      put("R", logic, { color: XL_GREY });
+      ref[key] = "$B$" + r;
       r++;
     }
 
-    xlCell(inp, "A" + r, "Cart inputs", { bold: true }); r++;
     putInput("companySize", "Company size (people)", snap.companySize, "Page input · Cart",
       "Scales every department's Team Size from the 100-person default.");
     putInput("days", "Days in period", snap.days, "Page input · Cart period selector",
@@ -4828,11 +4859,6 @@
       "Cache · 80% repeated input, 50% off.");
     putInput("batchOn", "Batch toggle on", snap.batchOn, "Page input · Cart toggle",
       "Batch · whole bill 50% off.");
-
-    r++;
-    xlCell(inp, "A" + r, "Constants", { bold: true }); r++;
-    putInput("tm", "Thinking Multiplier", CART_CONST.thinkingMultiplier, "Page assumption",
-      "Reasoning models are billed at 2× output (Thinking Multiplier = 2).");
     putInput("cacheRate", "Cache factor when on", CART_CONST.cacheFactor, "CART_CONST.cacheFactor",
       "80% of input repeated and that part 50% off: 0.8 × 0.5 + 0.2 = 0.6.");
     putInput("batchRate", "Batch factor when on", CART_CONST.batchFactor, "CART_CONST.batchFactor",
@@ -4841,27 +4867,22 @@
       "Derived", "1 when the Cache toggle is off, otherwise the cache factor.");
     putDerived("batchF", "Batch factor applied", "=IF(" + ref.batchOn + "," + ref.batchRate + ",1)",
       "Derived", "1 when the Batch toggle is off, otherwise the batch factor.");
+    putInput("tm", "Thinking Multiplier", CART_CONST.thinkingMultiplier, "Page assumption",
+      "Reasoning models are billed at 2× output (Thinking Multiplier = 2).");
 
-    r++;
-    xlCell(inp, "A" + r, "Team Size by department", { bold: true }); r++;
     PCART_POOL.forEach(function (dept) {
       var size = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : PBENCH_DEPARTMENTS[dept].people;
-      putInput("team_" + dept, PBENCH_DEPARTMENTS[dept].label, size, "Page input · Cart tile",
-        "People in this department at the chosen company size.");
+      putInput("team_" + dept, PBENCH_DEPARTMENTS[dept].label + " · Team Size", size,
+        "Page input · Cart tile", "People in this department at the chosen company size.");
     });
-
-    r++;
-    xlCell(inp, "A" + r, "Task shares by department (%)", { bold: true }); r++;
     PCART_POOL.forEach(function (dept) {
       Object.keys(PCART_SHARES[dept]).forEach(function (task) {
-        putInput("share_" + dept + "_" + task, PBENCH_DEPARTMENTS[dept].label + " · " + task,
+        putInput("share_" + dept + "_" + task,
+          PBENCH_DEPARTMENTS[dept].label + " · " + task + " share (%)",
           PCART_SHARES[dept][task], "Page input · Cart tile",
           "Share of this department's time spent on " + task + ".");
       });
     });
-
-    r++;
-    xlCell(inp, "A" + r, "Task presets", { bold: true }); r++;
     var tasksUsed = [];
     snap.lines.forEach(function (l) { if (tasksUsed.indexOf(l.task) === -1) tasksUsed.push(l.task); });
     tasksUsed.forEach(function (task) {
@@ -4874,149 +4895,127 @@
     });
 
     /* ---------------- Prices ---------------- */
-    var pr = wb.addWorksheet("Prices");
-    pr.columns = [{ width: 54 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 },
-      { width: 14 }, { width: 13 }, { width: 12 }, { width: 10 }, { width: 62 }];
-    xlHead(pr, 1, ["model_name", "provider", "input_cost_usd_per_1m", "output_cost_usd_per_1m",
-      "blended_cost_usd_per_1m", "pricing_tier", "Source row", "Reasoning", "Cart Tier", "Logic"]);
-    var models = [];
-    var tierOfModel = {};
+    r++;
+    blockTitle("Prices");
+    headRow([["A", "model_name"], ["B", "provider"], ["C", "input_cost_usd_per_1m"],
+      ["D", "output_cost_usd_per_1m"], ["E", "blended_cost_usd_per_1m"], ["F", "pricing_tier"],
+      ["G", "Source row"], ["H", "Reasoning"], ["I", "Cart Tier"], ["R", "Logic"]]);
+    var models = [], tierOfModel = {};
     snap.lines.forEach(function (l) {
       if (models.indexOf(l.model) === -1) { models.push(l.model); tierOfModel[l.model] = l.tier; }
     });
-    var priceRow = {};
-    models.forEach(function (name, i) {
+    var priceFirst = r;
+    models.forEach(function (name) {
       var row = pcardCartFindModel(name);
-      var rr = i + 2;
-      priceRow[name] = rr;
-      xlCell(pr, "A" + rr, name, { color: XL_BLUE });
-      xlCell(pr, "B" + rr, row.provider, { color: XL_BLUE });
-      xlCell(pr, "C" + rr, row.input_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
-      xlCell(pr, "D" + rr, row.output_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
-      xlCell(pr, "E" + rr, row.blended_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
-      xlCell(pr, "F" + rr, row.pricing_tier, { color: XL_BLUE });
-      xlCell(pr, "G" + rr, xlSourceLine(name), { color: XL_GREY });
-      xlCell(pr, "H" + rr, cartIsReasoning(name), { color: XL_BLUE });
-      xlCell(pr, "I" + rr, tierOfModel[name], { color: XL_BLUE });
-      xlCell(pr, "J" + rr,
-        "Row " + xlSourceLine(name) + " of llm_price_performance_tracker_2026-03-31.csv, copied as-is. " +
-        "Reasoning: name carries reasoning, thinking or an effort tier, and not Non-reasoning. " +
-        "Cart Tier from the Cart pack definition.", { color: XL_GREY });
+      var line = xlSourceLine(name);
+      put("A", name, { color: XL_BLUE });
+      put("B", row.provider, { color: XL_BLUE });
+      put("C", row.input_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
+      put("D", row.output_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
+      put("E", row.blended_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
+      put("F", row.pricing_tier, { color: XL_BLUE });
+      put("G", line, { color: XL_GREY });
+      put("H", cartIsReasoning(name), { color: XL_BLUE });
+      put("I", tierOfModel[name], { color: XL_BLUE });
+      put("R", "Row " + line + " of llm_price_performance_tracker_2026-03-31.csv, copied as-is. " +
+        "Reasoning: the name carries reasoning, thinking or an effort tier, and not Non-reasoning. " +
+        "Cart Tier comes from the Cart pack definition.", { color: XL_GREY });
+      r++;
     });
+    var priceLast = r - 1;
+    var pA = "$A$" + priceFirst + ":$A$" + priceLast;
+    function lookup(col, modelCell) {
+      return "INDEX($" + col + "$" + priceFirst + ":$" + col + "$" + priceLast +
+        ",MATCH(" + modelCell + "," + pA + ",0))";
+    }
 
     /* ---------------- Portfolio ---------------- */
-    var pf = wb.addWorksheet("Portfolio");
-    pf.columns = [{ width: 30 }, { width: 20 }, { width: 50 }, { width: 11 }, { width: 11 },
-      { width: 14 }, { width: 8 }, { width: 15 }, { width: 12 }, { width: 12 }, { width: 10 },
-      { width: 11 }, { width: 11 }, { width: 13 }, { width: 11 }, { width: 14 }, { width: 8 }, { width: 76 }];
-    xlHead(pf, 1, ["Department", "Task", "Model", "Team Size", "Task Share", "Daily Tokens",
-      "Days", "Tokens", "Input price", "Output price", "I/O Ratio", "Thinking Mult",
-      "Cache factor", "Unit Budget", "Batch factor", "Monthly cost", "Tier", "Logic"]);
-    var pfFirst = 2;
-    snap.lines.forEach(function (l, i) {
-      var rr = i + 2;
-      var m = '$C$' + rr;
-      var idx = function (col) {
-        return "INDEX(Prices!$" + col + ":$" + col + ",MATCH(" + m + ",Prices!$A:$A,0))";
-      };
-      xlCell(pf, "A" + rr, l.deptLabel, { color: XL_BLUE });
-      xlCell(pf, "B" + rr, l.task, { color: XL_BLUE });
-      xlCell(pf, "C" + rr, l.model, { color: XL_BLUE });
-      xlCell(pf, "D" + rr, { formula: "=" + ref["team_" + l.dept] }, { numFmt: XL_NUM });
-      xlCell(pf, "E" + rr, { formula: "=" + ref["share_" + l.dept + "_" + l.task] + "/100" }, { numFmt: '0.00%' });
-      xlCell(pf, "F" + rr, { formula: "=" + ref["dt_" + l.task] }, { numFmt: XL_NUM });
-      xlCell(pf, "G" + rr, { formula: "=" + ref.days }, { numFmt: XL_NUM });
-      xlCell(pf, "H" + rr, { formula: "=D" + rr + "*E" + rr + "*F" + rr + "*G" + rr }, { numFmt: XL_NUM });
-      xlCell(pf, "I" + rr, { formula: "=" + idx("C") }, { numFmt: XL_MONEY });
-      xlCell(pf, "J" + rr, { formula: "=" + idx("D") }, { numFmt: XL_MONEY });
-      xlCell(pf, "K" + rr, { formula: "=" + ref["io_" + l.task] }, { numFmt: XL_NUM });
-      xlCell(pf, "L" + rr, { formula: "=IF(" + idx("H") + "," + ref.tm + ",1)" }, { numFmt: XL_NUM });
-      xlCell(pf, "M" + rr, { formula: "=" + ref.cacheF }, { numFmt: XL_NUM });
-      xlCell(pf, "N" + rr, { formula: "=(K" + rr + "*I" + rr + "*M" + rr + "+L" + rr + "*J" + rr + ")/(K" + rr + "+1)" }, { numFmt: XL_MONEY });
-      xlCell(pf, "O" + rr, { formula: "=" + ref.batchF }, { numFmt: XL_NUM });
-      xlCell(pf, "P" + rr, { formula: "=H" + rr + "*N" + rr + "/1000000*O" + rr }, { numFmt: XL_MONEY });
-      xlCell(pf, "Q" + rr, { formula: "=" + idx("I") }, { numFmt: XL_NUM });
-      xlCell(pf, "R" + rr,
-        "Tokens = Team Size × Task Share × Daily Tokens per Person × Days. " +
+    r++;
+    blockTitle("Portfolio");
+    headRow([["A", "Department"], ["B", "Task"], ["C", "Model"], ["D", "Team Size"],
+      ["E", "Task Share"], ["F", "Daily Tokens"], ["G", "Days"], ["H", "Tokens"],
+      ["I", "Input price"], ["J", "Output price"], ["K", "I/O Ratio"], ["L", "Thinking Mult"],
+      ["M", "Cache factor"], ["N", "Unit Budget"], ["O", "Batch factor"], ["P", "Monthly cost"],
+      ["Q", "Tier"], ["R", "Logic"]]);
+    var pfFirst = r;
+    snap.lines.forEach(function (l) {
+      var m = "$C$" + r;
+      put("A", l.deptLabel, { color: XL_BLUE });
+      put("B", l.task, { color: XL_BLUE });
+      put("C", l.model, { color: XL_BLUE });
+      put("D", { formula: "=" + ref["team_" + l.dept] }, { numFmt: XL_NUM });
+      put("E", { formula: "=" + ref["share_" + l.dept + "_" + l.task] + "/100" }, { numFmt: "0.00%" });
+      put("F", { formula: "=" + ref["dt_" + l.task] }, { numFmt: XL_NUM });
+      put("G", { formula: "=" + ref.days }, { numFmt: XL_NUM });
+      put("H", { formula: "=D" + r + "*E" + r + "*F" + r + "*G" + r }, { numFmt: XL_NUM });
+      put("I", { formula: "=" + lookup("C", m) }, { numFmt: XL_MONEY });
+      put("J", { formula: "=" + lookup("D", m) }, { numFmt: XL_MONEY });
+      put("K", { formula: "=" + ref["io_" + l.task] }, { numFmt: XL_NUM });
+      put("L", { formula: "=IF(" + lookup("H", m) + "," + ref.tm + ",1)" }, { numFmt: XL_NUM });
+      put("M", { formula: "=" + ref.cacheF }, { numFmt: XL_NUM });
+      put("N", { formula: "=(K" + r + "*I" + r + "*M" + r + "+L" + r + "*J" + r + ")/(K" + r + "+1)" }, { numFmt: XL_MONEY });
+      put("O", { formula: "=" + ref.batchF }, { numFmt: XL_NUM });
+      put("P", { formula: "=H" + r + "*N" + r + "/1000000*O" + r }, { numFmt: XL_MONEY });
+      put("Q", { formula: "=" + lookup("I", m) }, { numFmt: XL_NUM });
+      put("R", "Team Size × Task Share × Daily Tokens per Person × Days = Tokens. " +
         "Unit Budget = (I/O Ratio × Input price × Cache factor + Thinking Multiplier × Output price) ÷ (I/O Ratio + 1). " +
-        "Monthly Cost = Tokens × Unit Budget ÷ 1,000,000 × Batch factor.", { color: XL_GREY });
+        "Monthly Cost = Tokens × Unit Budget ÷ 1,000,000 × Batch factor, because prices are quoted per 1M tokens.",
+        { color: XL_GREY });
+      r++;
     });
-    var pfLast = snap.lines.length + 1;
-    var totRow = pfLast + 2;
-    xlCell(pf, "A" + totRow, "Cart total", { bold: true });
-    xlCell(pf, "P" + totRow, { formula: "=SUM(P" + pfFirst + ":P" + pfLast + ")" }, { bold: true, numFmt: XL_MONEY });
-    xlCell(pf, "R" + totRow, "Sum of every department × task line above.", { color: XL_GREY });
-    var tierRowOf = {};
-    [1, 2, 3, 4].forEach(function (t, k) {
-      var rr = totRow + 1 + k;
-      tierRowOf[t] = rr;
-      xlCell(pf, "A" + rr, "Tier " + t + " total");
-      xlCell(pf, "P" + rr, { formula: "=SUMIF($Q$" + pfFirst + ":$Q$" + pfLast + "," + t + ",$P$" + pfFirst + ":$P$" + pfLast + ")" }, { numFmt: XL_MONEY });
-      xlCell(pf, "R" + rr, "Lines routed to Tier " + t + " by the Cart pack definition.", { color: XL_GREY });
-    });
+    var pfLast = r - 1;
+    var pfQ = "$Q$" + pfFirst + ":$Q$" + pfLast;
+    var pfP = "$P$" + pfFirst + ":$P$" + pfLast;
+    var pfA = "$A$" + pfFirst + ":$A$" + pfLast;
 
-    /* ---------------- Walkthrough ---------------- */
-    var wt = wb.addWorksheet("Walkthrough");
-    wt.columns = [{ width: 6 }, { width: 34 }, { width: 46 }, { width: 18 }, { width: 80 }];
-    xlHead(wt, 1, ["Step", "Quantity", "Formula", "Value", "Logic"]);
-    var f = snap.lines[0];
-    var steps = [
-      ["Team Size", "=Portfolio!D2", "People in " + (f ? f.deptLabel : "") + ", from the Cart tile."],
-      ["Task Share", "=Portfolio!E2", "Share of that team's time on " + (f ? f.task : "") + "."],
-      ["Daily Tokens per Person", "=Portfolio!F2", "Tokens one person runs through this task per working day."],
-      ["Days", "=Portfolio!G2", "Working days in the chosen period."],
-      ["Tokens", "=Portfolio!D2*Portfolio!E2*Portfolio!F2*Portfolio!G2", "Team Size × Task Share × Daily Tokens per Person × Days."],
-      ["Input price (per 1M)", "=Portfolio!I2", "Looked up from the Prices sheet, which copies the source table row."],
-      ["Output price (per 1M)", "=Portfolio!J2", "Looked up from the Prices sheet, which copies the source table row."],
-      ["I/O Ratio", "=Portfolio!K2", "Input tokens per output token for this task."],
-      ["Thinking Multiplier", "=Portfolio!L2", "2 when the model is a reasoning model, otherwise 1."],
-      ["Cache factor", "=Portfolio!M2", "1 when the Cache toggle is off, 0.6 when it is on."],
-      ["Unit Budget", "=(Portfolio!K2*Portfolio!I2*Portfolio!M2+Portfolio!L2*Portfolio!J2)/(Portfolio!K2+1)",
-        "(I/O Ratio × Input price × Cache factor + Thinking Multiplier × Output price) ÷ (I/O Ratio + 1)."],
-      ["Batch factor", "=Portfolio!O2", "1 when the Batch toggle is off, 0.5 when it is on."],
-      ["Monthly Cost", "=Portfolio!H2*Portfolio!N2/1000000*Portfolio!O2",
-        "Tokens × Unit Budget ÷ 1,000,000 × Batch factor. Prices are per 1M tokens."]
-    ];
-    steps.forEach(function (st, i) {
-      var rr = i + 2;
-      xlCell(wt, "A" + rr, i + 1, { color: XL_GREY });
-      xlCell(wt, "B" + rr, st[0], { color: XL_GREY });
-      xlCell(wt, "C" + rr, st[1].slice(1), { color: XL_GREY });
-      xlCell(wt, "D" + rr, { formula: st[1] }, { numFmt: XL_MONEY });
-      xlCell(wt, "E" + rr, st[2], { color: XL_GREY });
+    var deptTotalRow = {};
+    PCART_POOL.forEach(function (dept) {
+      var label = PBENCH_DEPARTMENTS[dept].label;
+      put("A", label + " · subtotal", { bold: true });
+      put("P", { formula: '=SUMIF(' + pfA + ',"' + label.replace(/"/g, '""') + '",' + pfP + ')' },
+        { bold: true, numFmt: XL_MONEY });
+      put("R", "Every Portfolio line belonging to this department.", { color: XL_GREY });
+      deptTotalRow[dept] = r;
+      r++;
     });
-    xlCell(wt, "B" + (steps.length + 3), f ? (f.deptLabel + " · " + f.task + " · " + f.model) : "", { bold: true });
+    put("A", "Cart total", { bold: true });
+    put("P", { formula: "=SUM(" + pfP + ")" }, { bold: true, numFmt: XL_MONEY });
+    put("R", "Every Portfolio line above, summed.", { color: XL_GREY });
+    var cartTotalRow = r; r++;
+    var tierRow = {};
+    [1, 2, 3, 4].forEach(function (t) {
+      put("A", "Tier " + t + " total");
+      put("P", { formula: "=SUMIF(" + pfQ + "," + t + "," + pfP + ")" }, { numFmt: XL_MONEY });
+      put("R", "Portfolio lines routed to Tier " + t + " by the Cart pack definition.", { color: XL_GREY });
+      tierRow[t] = r; r++;
+    });
 
     /* ---------------- Check ---------------- */
-    var ck = wb.addWorksheet("Check");
-    ck.columns = [{ width: 40 }, { width: 18 }, { width: 18 }, { width: 16 }, { width: 10 }, { width: 70 }];
-    xlHead(ck, 1, ["Item", "Excel result", "Page value", "Difference", "Status", "Logic"]);
-    var cr = 2;
-    function checkRow(label, formula, pageValue, logic) {
-      xlCell(ck, "A" + cr, label, { color: XL_GREY });
-      xlCell(ck, "B" + cr, { formula: formula }, { numFmt: XL_MONEY });
-      xlCell(ck, "C" + cr, pageValue, { color: XL_BLUE, numFmt: XL_MONEY });
-      xlCell(ck, "D" + cr, { formula: "=B" + cr + "-C" + cr }, { numFmt: XL_MONEY });
-      xlCell(ck, "E" + cr, { formula: '=IF(ABS(D' + cr + ')<0.005,"✓","MISMATCH")' },
-        { color: XL_BLACK, bold: true });
-      xlCell(ck, "F" + cr, logic, { color: XL_GREY });
-      cr++;
+    r++;
+    blockTitle("Check");
+    headRow([["A", "Item"], ["B", "Excel result"], ["C", "Page value"], ["D", "Difference"],
+      ["E", "Status"], ["R", "Logic"]]);
+    function checkRow(label, srcRow, pageValue, logic) {
+      put("A", label, { color: XL_GREY });
+      put("B", { formula: "=$P$" + srcRow }, { numFmt: XL_MONEY });
+      put("C", pageValue, { color: XL_BLUE, numFmt: XL_MONEY });
+      put("D", { formula: "=B" + r + "-C" + r }, { numFmt: XL_MONEY });
+      put("E", { formula: '=IF(ABS(D' + r + ')<0.005,"✓","MISMATCH")' }, { bold: true });
+      put("R", logic, { color: XL_GREY });
+      r++;
     }
     PCART_POOL.forEach(function (dept) {
-      checkRow(PBENCH_DEPARTMENTS[dept].label + " · monthly cost",
-        '=SUMIF(Portfolio!$A$' + pfFirst + ':$A$' + pfLast + ',"' + PBENCH_DEPARTMENTS[dept].label.replace(/"/g, '""') + '",Portfolio!$P$' + pfFirst + ':$P$' + pfLast + ')',
-        snap.deptCost[dept],
-        "Every line of this department, summed from the Portfolio sheet.");
+      checkRow(PBENCH_DEPARTMENTS[dept].label + " · monthly cost", deptTotalRow[dept],
+        snap.deptCost[dept], "Against the department subtotal in the Portfolio block.");
     });
     [1, 2, 3, 4].forEach(function (t) {
-      checkRow("Tier " + t + " total", "=Portfolio!$P$" + tierRowOf[t], snap.tierCost[t],
-        "Lines routed to Tier " + t + ", summed from the Portfolio sheet.");
+      checkRow("Tier " + t + " total", tierRow[t], snap.tierCost[t],
+        "Against the Tier " + t + " total in the Portfolio block.");
     });
-    checkRow("Cart total", "=Portfolio!$P$" + totRow, snap.total,
-      "Every line in the Portfolio, summed.");
-    xlCell(ck, "A" + (cr + 1),
-      "Page value is the only column holding a pasted number: it is what the page displayed, unrounded, " +
-      "at the moment this file was downloaded. Everything else recomputes from the Inputs and Prices sheets.",
+    checkRow("Cart total", cartTotalRow, snap.total,
+      "Against the Cart total in the Portfolio block.");
+    put("A", "Page value is the only pasted number on this sheet: what the page displayed, unrounded, " +
+      "at the moment of download. Everything else recomputes from Inputs and Prices above.",
       { color: XL_GREY });
 
     return wb;
