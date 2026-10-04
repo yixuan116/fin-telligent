@@ -190,7 +190,9 @@
           turn the page you came from back into an <a> (drop its is-soon)
      ============================================ */
   .series-nav {
-    background: var(--navy);
+    /* The nav sits outside #budget-sandbox, where --navy is scoped, so the
+       fallback is what actually paints; it matches the hero gradient's top. */
+    background: var(--navy, #1a1a2e);
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     overflow-x: hidden;            /* tabs never scroll sideways on mobile */
   }
@@ -1124,17 +1126,6 @@
 </head>
 <body>
 
-  <div id="budget-sandbox">
-
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <p id="loading-text">Loading &amp; joining 403,495 rows across 3 CSVs&hellip;</p>
-  </div>
-
-  <nav id="progress-nav">
-    <div class="progress-inner" id="progress-inner"></div>
-  </nav>
-
   <!-- Series nav. Parts 2 and 3 ship as sibling pages under the same
        published link: .../ai-compute-datacenter-economics/compute/ and
        .../ai-compute-datacenter-economics/datacenter/. Until then their tabs
@@ -1159,10 +1150,7 @@
       </span>
 
       <span class="series-tab is-soon" data-tab="datacenter" aria-disabled="true">
-        <span class="series-tab-label">
-          <span class="series-tab-full">Data Center</span>
-          <span class="series-tab-short">Data Ctr</span>
-        </span>
+        <span class="series-tab-label">Data Center</span>
         <span class="series-tab-flag">
           <span class="series-tab-full">Coming soon</span>
           <span class="series-tab-short">Soon</span>
@@ -1172,6 +1160,13 @@
     </div>
   </nav>
 
+  <div id="budget-sandbox">
+
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p id="loading-text">Loading &amp; joining 403,495 rows across 3 CSVs&hellip;</p>
+  </div>
+
   <header class="hero">
     <div class="hero-inner">
       <p class="hero-eyebrow">fin-telligent series</p>
@@ -1179,6 +1174,10 @@
       <p>A company wants to adopt AI. How much should it spend? Walk the aisles end to end: check the benchmarks, read the price tags, fill the cart, get the receipt. Across 450+ tracked LLMs.</p>
     </div>
   </header>
+
+  <nav id="progress-nav">
+    <div class="progress-inner" id="progress-inner"></div>
+  </nav>
 
   <div id="budget-page">
 
