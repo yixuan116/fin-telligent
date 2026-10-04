@@ -3,21 +3,27 @@
  *
  *   npx tsx scripts/embed-latest.ts
  *
- * Reads the most recent data/nimble_latest_*.csv and rewrites three things in
+ * Reads the most recent data/nimble_latest_*.csv and rewrites four things in
  * ai-compute-datacenter-economics/index.html: the NEWCART_RAW table the New
  * Shopping Cart shops from, NEWCART_AS_OF, which every date on the block is
- * rendered from, and NEWCART_AS_OF_ISO, which also names the pull the footer
- * link points at. Nothing else in the file is touched.
+ * rendered from, NEWCART_AS_OF_ISO, which also names the pull the footer link
+ * points at, and NEWCART_META, the per-model arrival line the cards print.
+ * Nothing else in the file is touched.
+ *
+ * NEWCART_META comes from data/new_models_since_2026-03-31.csv, written by
+ * scripts/new-models-table.ts. Run that first; without it the meta map is
+ * emitted empty and the cards simply fall back to the provider alone.
  *
  * Only priced rows are embedded -- a row without both prices, or with an
  * intelligence index missing, can never be a candidate, so carrying it would
  * only inflate the page.
  */
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
 const DATA_DIR = resolve(process.cwd(), 'data');
 const PAGE = resolve(process.cwd(), 'ai-compute-datacenter-economics/index.html');
+const NEW_MODELS = resolve(DATA_DIR, 'new_models_since_2026-03-31.csv');
 
 /** Minimal RFC-4180 reader: the scrape quotes any cell holding a comma. */
 function parseCsv(text: string): Record<string, string>[] {
@@ -97,8 +103,27 @@ function main(): void {
   if (!asOfIsoRe.test(page)) throw new Error('NEWCART_AS_OF_ISO not found in the page');
   page = page.replace(asOfIsoRe, `  var NEWCART_AS_OF_ISO = "${asOfIso}";`);
 
+  // [launch_date, first_seen_in_pull, strong_in] per model. Every value is
+  // carried across exactly as the table holds it -- empties stay empty.
+  const meta: Record<string, [string, string, string]> = {};
+  if (existsSync(NEW_MODELS)) {
+    for (const r of parseCsv(readFileSync(NEW_MODELS, 'utf8'))) {
+      if (!r.model_name) continue;
+      if (!r.launch_date && !r.first_seen_in_pull && !r.strong_in) continue;
+      meta[r.model_name] = [r.launch_date ?? '', r.first_seen_in_pull ?? '', r.strong_in ?? ''];
+    }
+  } else {
+    console.warn(`  ${NEW_MODELS} not found -- NEWCART_META emitted empty`);
+  }
+  const metaBlock = `  var NEWCART_META = {\n${Object.keys(meta).sort()
+    .map((k) => `    ${JSON.stringify(k)}: ${JSON.stringify(meta[k])}`).join(',\n')}\n  };`;
+  const metaRe = /  var NEWCART_META = \{[\s\S]*?\n  \};/;
+  if (!metaRe.test(page)) throw new Error('NEWCART_META block not found in the page');
+  page = page.replace(metaRe, metaBlock);
+
   writeFileSync(PAGE, page);
   console.log(`Embedded ${table.length} priced models, as of ${asOf} (${asOfIso})`);
+  console.log(`Embedded arrival meta for ${Object.keys(meta).length} models`);
 }
 
 main();
