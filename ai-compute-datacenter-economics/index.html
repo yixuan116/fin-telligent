@@ -176,6 +176,78 @@
     .progress-line { width: 18px; }
   }
 
+  /* ============ series nav ============
+     Top-level nav across the three demos in the AI / Compute / Data Center
+     series. It sits directly above the hero and shares the hero's navy, so
+     the two read as one header block; the sticky 4-step stepper above it is
+     untouched.
+
+     To reuse this block on ai-compute-datacenter-economics/compute/index.html
+     or .../datacenter/index.html, three edits and nothing else:
+       1. set data-current on .series-nav to that page's data-tab value
+       2. prefix every href with "../" (the sub-pages sit one level deeper)
+       3. swap the <span class="series-tab"> for that page with an <a>, and
+          turn the page you came from back into an <a> (drop its is-soon)
+     ============================================ */
+  .series-nav {
+    background: var(--navy);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    overflow-x: hidden;            /* tabs never scroll sideways on mobile */
+  }
+  .series-nav-inner {
+    max-width: 1280px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: stretch; gap: 4px;
+    flex-wrap: nowrap;             /* always one row */
+  }
+  .series-tab {
+    display: flex; align-items: center; gap: 8px;   /* flag inline: all tabs share one baseline */
+    flex: 0 1 auto; min-width: 0;  /* min-width:0 lets labels ellipsis, not overflow */
+    padding: 14px 14px 12px;
+    border-bottom: 3px solid transparent;
+    font-size: 0.82rem; font-weight: 600; line-height: 1.25;
+    color: rgba(245, 245, 250, 0.62);
+    text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .series-tab-label {
+    display: block; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  a.series-tab:hover { color: #f5f5fa; }
+
+  /* Active tab is driven by data-current, so a sub-page only flips one
+     attribute rather than hand-editing classes on three elements. */
+  .series-nav[data-current="cart"]       .series-tab[data-tab="cart"],
+  .series-nav[data-current="compute"]    .series-tab[data-tab="compute"],
+  .series-nav[data-current="datacenter"] .series-tab[data-tab="datacenter"] {
+    color: #fff;
+    border-bottom-color: #9aa4f0;
+  }
+
+  .series-tab.is-soon {
+    color: rgba(245, 245, 250, 0.34);
+    cursor: default;
+  }
+  .series-tab-flag {
+    flex-shrink: 0;
+    font-size: 0.58rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; white-space: nowrap;
+    color: rgba(245, 245, 250, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px; padding: 2px 7px;
+  }
+  .series-tab-short { display: none; }
+
+  @media (max-width: 620px) {
+    .series-nav-inner { padding: 0 10px; gap: 0; }
+    /* Stack the flag under the name so three tabs still fit one row. */
+    .series-tab { flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 7px 7px; font-size: 0.74rem; }
+    /* Short labels keep all three tabs on one row at phone widths. */
+    .series-tab-full { display: none; }
+    .series-tab-short { display: inline; }
+    .series-tab-flag { font-size: 0.52rem; padding: 1px 5px; letter-spacing: 0.04em; }
+  }
+
   /* ============ hero ============ */
   .hero {
     background: linear-gradient(160deg, var(--navy), var(--navy-light));
@@ -1061,6 +1133,43 @@
 
   <nav id="progress-nav">
     <div class="progress-inner" id="progress-inner"></div>
+  </nav>
+
+  <!-- Series nav. Parts 2 and 3 ship as sibling pages under the same
+       published link: .../ai-compute-datacenter-economics/compute/ and
+       .../ai-compute-datacenter-economics/datacenter/. Until then their tabs
+       are plain <span>s with no href, so they are not clickable at all.
+       See the .series-nav CSS block for the three edits a sub-page needs. -->
+  <nav class="series-nav" data-current="cart" aria-label="AI / Compute / Data Center series">
+    <div class="series-nav-inner">
+
+      <a class="series-tab" data-tab="cart" href="./" aria-current="page">
+        <span class="series-tab-label">
+          <span class="series-tab-full">AI Model Shopping Cart</span>
+          <span class="series-tab-short">Shopping Cart</span>
+        </span>
+      </a>
+
+      <span class="series-tab is-soon" data-tab="compute" aria-disabled="true">
+        <span class="series-tab-label">Compute</span>
+        <span class="series-tab-flag">
+          <span class="series-tab-full">Coming soon</span>
+          <span class="series-tab-short">Soon</span>
+        </span>
+      </span>
+
+      <span class="series-tab is-soon" data-tab="datacenter" aria-disabled="true">
+        <span class="series-tab-label">
+          <span class="series-tab-full">Data Center</span>
+          <span class="series-tab-short">Data Ctr</span>
+        </span>
+        <span class="series-tab-flag">
+          <span class="series-tab-full">Coming soon</span>
+          <span class="series-tab-short">Soon</span>
+        </span>
+      </span>
+
+    </div>
   </nav>
 
   <header class="hero">
