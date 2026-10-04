@@ -1,1 +1,0 @@
-This folder is for the Data Center demo, part 3/3 of the AI / Compute / Data Center series. The AI Model Shopping Cart (part 1) lives in `ai-compute-datacenter-economics/` at the repo root; do not modify it from here.
