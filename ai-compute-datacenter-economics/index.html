@@ -844,6 +844,7 @@
   .pcart-export:hover { background: var(--accent-hover); }
   .pcart-export[disabled] { opacity: 0.55; cursor: default; }
   .pcart-export-note { font-size: 0.74rem; color: var(--text-muted); margin: 8px 0 0; }
+  .pcart-recon-verified { margin: 12px 0 0; }
 
   .pcart-share-label { font-size: 0.64rem; color: var(--text-secondary); text-align: center; padding: 0 4px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pcart-share-label b { display: block; color: var(--text-primary); font-size: 0.7rem; }
@@ -1585,12 +1586,12 @@
               <ol class="pcart-recon-list">
                 <li><b>Source-locked prices.</b> Every unit price is looked up from the <a class="pcart-recon-link" href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">source dataset</a>, row by row.</li>
                 <li><b>One set of inputs.</b> The page and the Excel file read the same assumptions; a Check sheet matches them line by line.</li>
-                <!-- Point 3 stays hidden until the independent recompute is published. -->
-                <li class="pcart-recon-hidden" hidden><b>Independent recompute.</b> The portfolio is recalculated from the raw CSV outside the page, and all three agree.</li>
+                <li><b>Independent recompute.</b> The portfolio is recalculated from the raw CSV outside the page, and all three agree.</li>
               </ol>
               <p class="pcart-recon-lead">Every number in the snapshot traces back to its source.</p>
               <button type="button" class="pcart-export" id="cart-export">Download Excel snapshot</button>
               <p class="pcart-export-note" id="cart-export-note"></p>
+              <p class="pcard-footer pcart-recon-verified">Last verified Oct 4, 2026</p>
             </div>
 
             <!-- ============ New Shopping Cart (part of the Cart step) ============ -->
