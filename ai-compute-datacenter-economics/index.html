@@ -222,9 +222,10 @@
     text-decoration: none;
     transition: color 0.15s ease, border-color 0.15s ease;
   }
-  /* Pulls the whole row left by one tab's padding, landing the first tab's
-     text on --page-gutter alongside the hero copy and the cards. */
-  .series-tab:first-child { margin-left: calc(-1 * var(--series-tab-pad-x)); }
+  /* Drops the first tab's own left padding so its text, box and underline all
+     begin on --page-gutter. A negative margin would align the text too, but it
+     would hang the underline outside the gutter the cards sit on. */
+  .series-tab:first-child { padding-left: 0; }
   .series-tab-label {
     display: block; min-width: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -270,9 +271,9 @@
   .hero {
     background: linear-gradient(160deg, var(--navy), var(--navy-light));
     color: #f5f5fa;
-    padding: 56px var(--page-gutter) 48px;
+    padding: 56px 0 48px;
   }
-  .hero-inner { max-width: var(--page-max); margin: 0 auto; }
+  .hero-inner { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-gutter); }
   .hero-eyebrow { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9aa4f0; margin: 0 0 12px; }
   .hero h1 { font-size: 2.1rem; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.01em; }
   /* Sits between the title and the description in both size and weight. */
@@ -1198,7 +1199,7 @@
       <p class="hero-eyebrow">fin-telligent series</p>
       <h1>AI Model Shopping Cart</h1>
       <p class="hero-subtitle">AI Unit Economics: Budgeting Token Spend</p>
-      <p>A company wants to adopt AI. How much should it spend? Walk the aisles end to end: check the benchmarks, read the price tags, fill the cart, get the receipt. A token-level cost model across 450+ LLMs: benchmarks to model mix, unit pricing to budget, budget to P&amp;L.</p>
+      <p>A company wants to adopt AI. How much should it spend? Walk the aisles end to end: check the benchmarks, read the price tags, fill the cart, get the receipt. A token-level cost model across 450+ LLMs: model mix to unit price, unit price to budget, budget to P&amp;L.</p>
     </div>
   </header>
 
