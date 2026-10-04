@@ -831,11 +831,53 @@
   /* Same shape as the Price & Cost callouts: tinted block, no border. */
   .pcart-recon { background: var(--accent-soft); border-radius: var(--radius); padding: 18px 20px; margin: 22px 0 0; }
   .pcart-recon-title { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin: 0 0 10px; }
-  .pcart-recon-list { margin: 0 0 14px; padding-left: 20px; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; }
-  .pcart-recon-list b { color: var(--text-primary); }
+  .pcart-recon-cards { display: flex; gap: 10px; margin: 0 0 14px; align-items: stretch; }
+  .pcart-recon-card {
+    position: relative; flex: 1 1 0; min-width: 0;
+    display: flex; align-items: center; gap: 9px;
+    background: #ffffff; border-radius: 10px; padding: 11px 13px;
+    font-size: 0.82rem; color: var(--text-primary); cursor: default;
+  }
+  .pcart-recon-card:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pcart-recon-num {
+    flex: none; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-size: 0.68rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pcart-recon-name { font-weight: 700; min-width: 0; }
+  .pcart-recon-callout {
+    position: absolute; left: 0; right: 0; bottom: calc(100% + 8px);
+    background: #ffffff; border-radius: 10px; padding: 10px 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.13);
+    font-size: 0.78rem; font-weight: 400; color: var(--text-secondary);
+    line-height: 1.5; text-align: left;
+    opacity: 0; visibility: hidden; transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    z-index: 5;
+  }
+  .pcart-recon-card:hover .pcart-recon-callout,
+  .pcart-recon-card:focus-within .pcart-recon-callout,
+  .pcart-recon-card.is-open .pcart-recon-callout {
+    opacity: 1; visibility: visible; transform: none;
+  }
   /* Reads as body text; the underline only appears on hover. */
   .pcart-recon-link { color: inherit; text-decoration: none; }
   .pcart-recon-link:hover { text-decoration: underline; }
+  @media (max-width: 620px) {
+    /* Stacked, and the note opens inline so nothing is covered. */
+    .pcart-recon-cards { flex-direction: column; gap: 8px; }
+    .pcart-recon-card { flex-wrap: wrap; }
+    .pcart-recon-callout {
+      position: static; width: 100%; box-shadow: none; background: transparent;
+      padding: 7px 0 0; opacity: 1; visibility: visible; transform: none;
+      display: none; transition: none;
+    }
+    .pcart-recon-card:hover .pcart-recon-callout,
+    .pcart-recon-card:focus-within .pcart-recon-callout { display: none; }
+    .pcart-recon-card.is-open .pcart-recon-callout { display: block; }
+  }
+
   .pcart-recon-lead { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 10px; }
   .pcart-export {
     background: var(--accent); color: #fff; border: none; border-radius: 999px;
@@ -844,7 +886,6 @@
   .pcart-export:hover { background: var(--accent-hover); }
   .pcart-export[disabled] { opacity: 0.55; cursor: default; }
   .pcart-export-note { font-size: 0.74rem; color: var(--text-muted); margin: 8px 0 0; }
-  .pcart-recon-verified { margin: 12px 0 0; }
 
   .pcart-share-label { font-size: 0.64rem; color: var(--text-secondary); text-align: center; padding: 0 4px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pcart-share-label b { display: block; color: var(--text-primary); font-size: 0.7rem; }
@@ -1583,15 +1624,29 @@
 
             <div class="pcart-recon">
               <p class="pcart-recon-title">Reconciled three ways</p>
-              <ol class="pcart-recon-list">
-                <li><b>Source-locked prices.</b> Every unit price is looked up from the <a class="pcart-recon-link" href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">source dataset</a>, row by row.</li>
-                <li><b>One set of inputs.</b> The page and the Excel file read the same assumptions; a Check sheet matches them line by line.</li>
-                <li><b>Independent recompute.</b> The portfolio is recalculated from the raw CSV outside the page, and all three agree.</li>
-              </ol>
+              <!-- Each card is the heading; its note opens on hover, and on tap
+                   where there is no hover. The note opens upward on desktop and
+                   inline on phones, so it never sits over the download button. -->
+              <div class="pcart-recon-cards">
+                <div class="pcart-recon-card" tabindex="0" role="button" aria-expanded="false">
+                  <span class="pcart-recon-num">1</span>
+                  <span class="pcart-recon-name">Source-locked prices</span>
+                  <span class="pcart-recon-callout">Every unit price is looked up from the <a class="pcart-recon-link" href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">source dataset</a>, row by row.</span>
+                </div>
+                <div class="pcart-recon-card" tabindex="0" role="button" aria-expanded="false">
+                  <span class="pcart-recon-num">2</span>
+                  <span class="pcart-recon-name">One set of inputs</span>
+                  <span class="pcart-recon-callout">The page and the Excel file read the same assumptions; a Check block on the sheet matches them line by line.</span>
+                </div>
+                <div class="pcart-recon-card" tabindex="0" role="button" aria-expanded="false">
+                  <span class="pcart-recon-num">3</span>
+                  <span class="pcart-recon-name">Independent recompute</span>
+                  <span class="pcart-recon-callout">The portfolio is recalculated outside the page in a separate spreadsheet engine, and all three agree.</span>
+                </div>
+              </div>
               <p class="pcart-recon-lead">Every number in the snapshot traces back to its source.</p>
               <button type="button" class="pcart-export" id="cart-export">Download Excel snapshot</button>
               <p class="pcart-export-note" id="cart-export-note"></p>
-              <p class="pcard-footer pcart-recon-verified">Last verified Oct 4, 2026</p>
             </div>
 
             <!-- ============ New Shopping Cart (part of the Cart step) ============ -->
@@ -5055,6 +5110,43 @@
     }
   }
 
+  /**
+   * Tap-to-open for the reconciliation cards. Hover already covers pointers;
+   * this is what makes them reachable on a phone and from the keyboard. A tap
+   * on the source-dataset link inside a note is left alone.
+   */
+  var RECON_BOUND = false;
+  function initReconCards() {
+    if (RECON_BOUND) return;
+    RECON_BOUND = true;
+    var cards = document.querySelectorAll(".pcart-recon-card");
+    function closeAll(except) {
+      Array.prototype.forEach.call(cards, function (c) {
+        if (c === except) return;
+        c.classList.remove("is-open");
+        c.setAttribute("aria-expanded", "false");
+      });
+    }
+    Array.prototype.forEach.call(cards, function (card) {
+      card.addEventListener("click", function (e) {
+        if (e.target && e.target.closest && e.target.closest("a")) return;
+        var open = card.classList.contains("is-open");
+        closeAll(card);
+        card.classList.toggle("is-open", !open);
+        card.setAttribute("aria-expanded", open ? "false" : "true");
+      });
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          e.preventDefault();
+          card.click();
+        }
+      });
+    });
+    document.addEventListener("click", function (e) {
+      if (e.target && e.target.closest && !e.target.closest(".pcart-recon-card")) closeAll(null);
+    });
+  }
+
   function renderCartPeriodOptions() {
     var sel = byId("cart-period");
     if (!sel) return;
@@ -5065,9 +5157,14 @@
     }).join("");
   }
 
+  var EXPORT_BOUND = false;
   function renderCartCard() {
     renderCartPeriodOptions();
-    byId("cart-export").addEventListener("click", downloadWorkbook);
+    initReconCards();
+    if (!EXPORT_BOUND) {
+      EXPORT_BOUND = true;
+      byId("cart-export").addEventListener("click", downloadWorkbook);
+    }
     renderTokenUsage();
     newcartInitStage();
 
