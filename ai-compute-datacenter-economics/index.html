@@ -3727,85 +3727,163 @@
   // data/new_models_since_2026-03-31.csv via the embed step. launch_date is
   // empty throughout: no source consulted publishes one, and it is never
   // inferred, so the cards fall back to first_seen_in_pull.
+  // A model is a new arrival only when a source confirms it launched after this
+  // date. The date itself is never printed: it only decides what qualifies.
+  var NEWCART_NEW_AFTER = "2026-03-31";
+
+  /** Confirmed launch date, or "" when no source gave one. */
+  function newcartLaunchDate(name) {
+    var m = NEWCART_META[name];
+    return m && m[0] ? m[0] : "";
+  }
+  /** Unconfirmed means not a new arrival -- never inferred from anything else. */
+  function newcartIsNewArrival(name) {
+    var d = newcartLaunchDate(name);
+    return d !== "" && d > NEWCART_NEW_AFTER;
+  }
+
   var NEWCART_META = {
-    "Celeris-1": ["","","Fast response"],
-    "Claude Fable 5.1 (Adaptive Reasoning, High Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Fable 5.1 (Adaptive Reasoning, Low Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Fable 5.1 (Adaptive Reasoning, Max Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Fable 5.1 (Adaptive Reasoning, Medium Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Fable 5.1 (Adaptive Reasoning, Xhigh Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Opus 5.5 (Adaptive Reasoning, High Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Opus 5.5 (Adaptive Reasoning, Max Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Opus 5.5 (Adaptive Reasoning, Medium Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Opus 5.5 (Adaptive Reasoning, Xhigh Effort, Default Fallback)": ["","","Top 10% intelligence"],
-    "Claude Sonnet 5.5 (Adaptive Reasoning, High Effort, Default Fallback)": ["","2026-09-29","Top 10% intelligence"],
-    "Claude Sonnet 5.5 (Adaptive Reasoning, Low Effort, Default Fallback)": ["","2026-09-29",""],
-    "Claude Sonnet 5.5 (Adaptive Reasoning, Max Effort, Default Fallback)": ["","2026-09-29","Top 10% intelligence"],
-    "Claude Sonnet 5.5 (Adaptive Reasoning, Medium Effort, Default Fallback)": ["","2026-09-29",""],
-    "Claude Sonnet 5.5 (Adaptive Reasoning, Xhigh Effort, Default Fallback)": ["","2026-09-29","Top 10% intelligence"],
-    "Command A+": ["","","Fast response"],
-    "DeepSeek V4 Flash Vision (Max)": ["","2026-10-01",""],
-    "DeepSeek V4 Pro 0813 (Max)": ["","2026-10-01",""],
-    "DeepSeek V4 Pro 0813 (Non-reasoning)": ["","2026-09-30",""],
-    "DeepSeek V4.1 Flash (Max)": ["","2026-10-01",""],
-    "DeepSeek V4.1 Flash (Non-reasoning)": ["","2026-10-01",""],
-    "EXAONE 4.5 33B (Reasoning)": ["","2026-10-03",""],
-    "GLM-5.3 (Low)": ["","2026-10-01",""],
-    "GLM-5.3 (Max)": ["","2026-10-01",""],
-    "GPT-5.6 Terra (High)": ["","2026-10-01",""],
-    "GPT-5.6 Terra (Low)": ["","2026-10-01",""],
-    "GPT-5.6 Terra (Max)": ["","2026-10-01",""],
-    "GPT-5.6 Terra (Medium)": ["","2026-10-01",""],
-    "GPT-5.6 Terra (Non-reasoning)": ["","","Fast response"],
-    "GPT-5.6 Terra (Xhigh)": ["","2026-10-01",""],
-    "GPT-6 Astra (High)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6 Astra (Low)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6 Astra (Max)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6 Astra (Medium)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6 Astra (Xhigh)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6 Luna (High)": ["","2026-10-01",""],
-    "GPT-6 Luna (Low)": ["","2026-10-01",""],
-    "GPT-6 Luna (Max)": ["","2026-10-01",""],
-    "GPT-6 Luna (Medium)": ["","2026-10-01",""],
-    "GPT-6 Luna (Non-reasoning)": ["","","Fast response"],
-    "GPT-6 Luna (Xhigh)": ["","2026-10-01",""],
-    "GPT-6.1 Sol (High)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6.1 Sol (Low)": ["","2026-10-01",""],
-    "GPT-6.1 Sol (Max)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6.1 Sol (Medium)": ["","2026-10-01","Top 10% intelligence"],
-    "GPT-6.1 Sol (Xhigh)": ["","2026-10-01","Top 10% intelligence"],
-    "Gemini 3.8 Flash (High)": ["","2026-10-01",""],
-    "Gemini 3.8 Flash (Low)": ["","2026-10-01",""],
-    "Gemini 3.8 Flash (Medium)": ["","2026-10-01",""],
-    "Gemini 4 Argon (High)": ["","2026-10-01","Top 10% intelligence"],
-    "Granite 4.2 3B": ["","","Fast response"],
-    "Grok 4.7 (High)": ["","2026-10-01","Top 10% intelligence"],
-    "Grok 4.7 (Low)": ["","2026-10-03",""],
-    "Grok 4.7 (Xhigh)": ["","2026-10-01","Top 10% intelligence"],
-    "HyperNova 60B 2605 (High, Based on gpt-oss-120b)": ["","2026-10-01",""],
-    "Inkling (Xhigh)": ["","2026-10-01",""],
-    "JT-4.1 Flash 236B A21B (Non-reasoning)": ["","2026-10-01",""],
-    "JT-4.1 Flash 236B A21B (Reasoning)": ["","2026-10-03",""],
-    "Kimi K3 (Low)": ["","2026-10-01",""],
-    "Kimi K3 (Max)": ["","2026-10-01",""],
-    "MiMo-V2.6-Flash": ["","2026-09-28",""],
-    "MiMo-V2.6-Pro": ["","","Top 10% intelligence"],
-    "Muse Glimmer (High)": ["","2026-10-01",""],
-    "Muse Spark 1.3 (Max)": ["","2026-10-01","Top 10% intelligence"],
-    "Muse Spark 1.3 (Xhigh)": ["","2026-10-01",""],
-    "Nemotron 3 Nano Omni 30B A3B Reasoning": ["","","Fast response"],
-    "Nemotron 3.5 Lightning": ["","","Fast response"],
-    "Nex-N2-Pro (Based on Qwen3.5-397B-A17B)": ["","2026-10-01",""],
-    "North Mini Code": ["","","Fast response"],
-    "Quasar 438B (Max, Based on GLM-5.2)": ["","2026-10-01",""],
-    "Qwen3.8 27B (Low)": ["","2026-10-01",""],
-    "Qwen3.8 27B (Medium)": ["","2026-10-01",""],
-    "Qwen3.8 27B (Xhigh)": ["","2026-10-01",""],
-    "Solar Mini 4": ["","2026-10-01",""],
-    "gpt-oss-120b (High)": ["","2026-10-01",""],
-    "gpt-oss-120b (Low)": ["","2026-10-01",""],
-    "gpt-oss-20b (High)": ["","2026-10-01","Fast response"],
-    "gpt-oss-20b (Low)": ["","2026-10-01",""]
+    "A.X-K2": ["2026-08-12","",""],
+    "Apodex 1.1": ["2026-08-30","",""],
+    "Celeris-1": ["2026-07-24","","Fast response"],
+    "Claude Fable 5.1 (Adaptive Reasoning, High Effort, Default Fallback)": ["2026-09-01","","Top 10% intelligence"],
+    "Claude Fable 5.1 (Adaptive Reasoning, Low Effort, Default Fallback)": ["2026-09-01","","Top 10% intelligence"],
+    "Claude Fable 5.1 (Adaptive Reasoning, Max Effort, Default Fallback)": ["2026-09-01","","Top 10% intelligence"],
+    "Claude Fable 5.1 (Adaptive Reasoning, Medium Effort, Default Fallback)": ["2026-09-01","","Top 10% intelligence"],
+    "Claude Fable 5.1 (Adaptive Reasoning, Xhigh Effort, Default Fallback)": ["2026-09-01","","Top 10% intelligence"],
+    "Claude Opus 5.5 (Adaptive Reasoning, High Effort, Default Fallback)": ["2026-09-22","","Top 10% intelligence"],
+    "Claude Opus 5.5 (Adaptive Reasoning, Low Effort, Default Fallback)": ["2026-09-22","",""],
+    "Claude Opus 5.5 (Adaptive Reasoning, Max Effort, Default Fallback)": ["2026-09-22","","Top 10% intelligence"],
+    "Claude Opus 5.5 (Adaptive Reasoning, Medium Effort, Default Fallback)": ["2026-09-22","","Top 10% intelligence"],
+    "Claude Opus 5.5 (Adaptive Reasoning, Xhigh Effort, Default Fallback)": ["2026-09-22","","Top 10% intelligence"],
+    "Claude Sonnet 5.5 (Adaptive Reasoning, High Effort, Default Fallback)": ["2026-09-28","2026-09-29","Top 10% intelligence"],
+    "Claude Sonnet 5.5 (Adaptive Reasoning, Low Effort, Default Fallback)": ["2026-09-28","2026-09-29",""],
+    "Claude Sonnet 5.5 (Adaptive Reasoning, Max Effort, Default Fallback)": ["2026-09-28","2026-09-29","Top 10% intelligence"],
+    "Claude Sonnet 5.5 (Adaptive Reasoning, Medium Effort, Default Fallback)": ["2026-09-28","2026-09-29",""],
+    "Claude Sonnet 5.5 (Adaptive Reasoning, Xhigh Effort, Default Fallback)": ["2026-09-28","2026-09-29","Top 10% intelligence"],
+    "Command A+": ["2026-05-20","","Fast response"],
+    "DeepSeek V4 Flash Vision (Max)": ["2026-08-21","2026-10-01",""],
+    "DeepSeek V4 Pro 0813 (Max)": ["2026-08-13","2026-10-01",""],
+    "DeepSeek V4 Pro 0813 (Non-reasoning)": ["2026-08-13","2026-09-30",""],
+    "DeepSeek V4.1 Flash (Max)": ["2026-09-10","2026-10-01",""],
+    "DeepSeek V4.1 Flash (Non-reasoning)": ["2026-09-10","2026-10-01",""],
+    "DiffusionGemma 26B A4B": ["2026-06-10","",""],
+    "EXAONE 4.5 33B (Reasoning)": ["2026-04-09","2026-10-03",""],
+    "G9v3-39A5B": ["2026-08-20","",""],
+    "G9v3-3B": ["2026-07-23","",""],
+    "GLM 5.3 Flash": ["2026-08-26","",""],
+    "GLM-5.3 (Low)": ["2026-08-18","2026-10-01",""],
+    "GLM-5.3 (Max)": ["2026-08-18","2026-10-01",""],
+    "GPT-5.5 Instant (June 2026)": ["2026-06-25","",""],
+    "GPT-5.6 Terra (High)": ["2026-07-09","2026-10-01",""],
+    "GPT-5.6 Terra (Low)": ["2026-07-09","2026-10-01",""],
+    "GPT-5.6 Terra (Max)": ["2026-07-09","2026-10-01",""],
+    "GPT-5.6 Terra (Medium)": ["2026-07-09","2026-10-01",""],
+    "GPT-5.6 Terra (Non-reasoning)": ["2026-07-09","","Fast response"],
+    "GPT-5.6 Terra (Xhigh)": ["2026-07-09","2026-10-01",""],
+    "GPT-6 Astra (High)": ["2026-09-03","2026-10-01","Top 10% intelligence"],
+    "GPT-6 Astra (Low)": ["2026-09-03","2026-10-01","Top 10% intelligence"],
+    "GPT-6 Astra (Max)": ["2026-09-03","2026-10-01","Top 10% intelligence"],
+    "GPT-6 Astra (Medium)": ["2026-09-03","2026-10-01","Top 10% intelligence"],
+    "GPT-6 Astra (Xhigh)": ["2026-09-03","2026-10-01","Top 10% intelligence"],
+    "GPT-6 Luna (High)": ["2026-09-22","2026-10-01",""],
+    "GPT-6 Luna (Low)": ["2026-09-22","2026-10-01",""],
+    "GPT-6 Luna (Max)": ["2026-09-22","2026-10-01",""],
+    "GPT-6 Luna (Medium)": ["2026-09-22","2026-10-01",""],
+    "GPT-6 Luna (Non-reasoning)": ["2026-09-22","","Fast response"],
+    "GPT-6 Luna (Xhigh)": ["2026-09-22","2026-10-01",""],
+    "GPT-6.1 Sol (High)": ["2026-09-29","2026-10-01","Top 10% intelligence"],
+    "GPT-6.1 Sol (Low)": ["2026-09-29","2026-10-01",""],
+    "GPT-6.1 Sol (Max)": ["2026-09-29","2026-10-01","Top 10% intelligence"],
+    "GPT-6.1 Sol (Medium)": ["2026-09-29","2026-10-01","Top 10% intelligence"],
+    "GPT-6.1 Sol (Xhigh)": ["2026-09-29","2026-10-01","Top 10% intelligence"],
+    "Gemini 3.5 Flash-Lite": ["2026-07-21","",""],
+    "Gemini 3.8 Flash (High)": ["2026-09-02","2026-10-01",""],
+    "Gemini 3.8 Flash (Low)": ["2026-09-02","2026-10-01",""],
+    "Gemini 3.8 Flash (Medium)": ["2026-09-02","2026-10-01",""],
+    "Gemini 4 Argon (High)": ["2026-09-30","2026-10-01","Top 10% intelligence"],
+    "Gemma 4 12B (Non-reasoning)": ["2026-06-03","",""],
+    "Gemma 4 12B (Reasoning)": ["2026-06-03","",""],
+    "Gemma 4 26B A4B (Non-reasoning)": ["2026-04-02","",""],
+    "Gemma 4 26B A4B (Reasoning)": ["2026-04-02","",""],
+    "Gemma 4 31B (Non-reasoning)": ["2026-04-02","",""],
+    "Gemma 4 31B (Reasoning)": ["2026-04-02","",""],
+    "Gemma 4 E2B (Non-reasoning)": ["2026-04-02","",""],
+    "Gemma 4 E2B (Reasoning)": ["2026-04-02","",""],
+    "Gemma 4 E4B (Non-reasoning)": ["2026-04-03","",""],
+    "Gemma 4 E4B (Reasoning)": ["2026-04-03","",""],
+    "Granite 4.2 30B": ["2026-08-25","",""],
+    "Granite 4.2 3B": ["2026-08-25","","Fast response"],
+    "Granite 4.2 8B": ["2026-08-25","",""],
+    "Grok 4.7 (High)": ["2026-09-21","2026-10-01","Top 10% intelligence"],
+    "Grok 4.7 (Low)": ["2026-09-21","2026-10-03",""],
+    "Grok 4.7 (Xhigh)": ["2026-09-21","2026-10-01","Top 10% intelligence"],
+    "Hy3": ["2026-07-06","",""],
+    "HyperNova 60B 2605 (High, Based on gpt-oss-120b)": ["2026-05-26","2026-10-01",""],
+    "Inkling (Xhigh)": ["2026-07-15","2026-10-01",""],
+    "Inkling Small": ["2026-07-30","",""],
+    "JT-35B-Flash": ["2026-05-14","",""],
+    "JT-4.1 Flash 236B A21B (Non-reasoning)": ["2026-07-09","2026-10-01",""],
+    "JT-4.1 Flash 236B A21B (Reasoning)": ["2026-07-09","2026-10-03",""],
+    "JT-MINI": ["2026-04-15","",""],
+    "K-EXAONE 2.0 0803": ["2026-08-12","",""],
+    "K2 Horizon 0.9B": ["2026-09-03","",""],
+    "K2 Horizon 3.7B": ["2026-09-03","",""],
+    "K2 Horizon 375B A23B": ["2026-09-03","",""],
+    "K2 Horizon 7B": ["2026-09-03","",""],
+    "K2 Horizon MoVA 36B A4B": ["2026-09-03","",""],
+    "Kimi K2.7 Code": ["2026-06-12","",""],
+    "Kimi K3 (Low)": ["2026-07-16","2026-10-01",""],
+    "Kimi K3 (Max)": ["2026-07-16","2026-10-01",""],
+    "LFM2.5-2.6B": ["2026-08-04","",""],
+    "LFM2.5-8B-A1B": ["2026-05-28","",""],
+    "Ling 3.0 Flash": ["2026-08-04","",""],
+    "Ling 3.0 Tiny": ["2026-08-06","",""],
+    "Ling-3.0-flash-Fin": ["2026-09-11","",""],
+    "Ling-3.0-flash-VL": ["2026-09-10","",""],
+    "LongCat 2.0": ["2026-06-29","",""],
+    "Mercury 2.5": ["2026-09-08","",""],
+    "MiMo-V2.6-Flash": ["2026-09-21","2026-09-28",""],
+    "MiMo-V2.6-Pro": ["2026-09-21","","Top 10% intelligence"],
+    "MiniCPM-V 4.6 1.3B": ["2026-05-11","",""],
+    "MiniCPM5-1B (Non-reasoning)": ["2026-05-25","",""],
+    "MiniCPM5-1B (Reasoning)": ["2026-05-25","",""],
+    "MiniCPM5-2B": ["2026-09-07","",""],
+    "MiniMax-M3": ["2026-06-01","",""],
+    "Mistral Medium 3.5": ["2026-04-29","",""],
+    "Motif 3": ["2026-08-12","",""],
+    "Muse Glimmer (High)": ["2026-08-10","2026-10-01",""],
+    "Muse Spark 1.3 (Max)": ["2026-09-02","2026-10-01","Top 10% intelligence"],
+    "Muse Spark 1.3 (Xhigh)": ["2026-09-02","2026-10-01",""],
+    "Nemotron 3 Nano Omni 30B A3B Reasoning": ["2026-04-29","","Fast response"],
+    "Nemotron 3 Super 120B A12B (Reasoning)": ["2026-03-11","",""],
+    "Nemotron 3 Ultra 550B A55B (Reasoning)": ["2026-06-04","",""],
+    "Nemotron 3.5 Lightning": ["2026-08-11","","Fast response"],
+    "Nex-N2-Pro (Based on Qwen3.5-397B-A17B)": ["2026-06-02","2026-10-01",""],
+    "North Mini Code": ["2026-06-09","","Fast response"],
+    "Quasar 438B (Max, Based on GLM-5.2)": ["2026-08-10","2026-10-01",""],
+    "Qwen3.5 Omni Flash": ["2026-03-30","",""],
+    "Qwen3.5 Omni Plus": ["2026-03-30","",""],
+    "Qwen3.6 35B A3B (Non-reasoning)": ["2026-04-16","",""],
+    "Qwen3.6 35B A3B (Reasoning)": ["2026-04-16","",""],
+    "Qwen3.7 Plus": ["2026-06-01","",""],
+    "Qwen3.8 2.4T A95B": ["2026-08-12","",""],
+    "Qwen3.8 27B (Low)": ["2026-08-14","2026-10-01",""],
+    "Qwen3.8 27B (Medium)": ["2026-08-14","2026-10-01",""],
+    "Qwen3.8 27B (Non-reasoning)": ["2026-08-14","",""],
+    "Qwen3.8 27B (Xhigh)": ["2026-08-14","2026-10-01",""],
+    "Qwen3.8 Max (0902)": ["2026-09-02","",""],
+    "Qwen3.8-Flash-Next": ["2026-08-26","",""],
+    "Ring-2.6-1T": ["2026-05-08","",""],
+    "Solar Mini 4": ["2026-09-22","2026-10-01",""],
+    "Solar Open2 250B": ["2026-08-12","",""],
+    "Solar Pro 4": ["2026-08-06","",""],
+    "Step 5 Preview": ["2026-09-18","",""],
+    "Trinity Large Thinking": ["2026-04-01","",""],
+    "gpt-oss-120b (High)": ["2025-08-05","2026-10-01",""],
+    "gpt-oss-120b (Low)": ["2025-08-05","2026-10-01",""],
+    "gpt-oss-20b (High)": ["2025-08-05","2026-10-01","Fast response"],
+    "gpt-oss-20b (Low)": ["2025-08-05","2026-10-01",""]
   };
   var NEWCART_SHELF_MEDIA = false;   // true once assets/shelf.png + shelf.mp4 are committed
   var NEWCART_RAW = [
@@ -4092,6 +4170,9 @@
    */
   function newcartRank(task, tier, priceCeiling, minIntel) {
     var list = NEWCART_MODELS.filter(function (m) {
+      // Only a model with a confirmed post-cutoff launch date can be shelved
+      // as an arrival; everything else leaves the lane to its own model.
+      if (!newcartIsNewArrival(m.name)) return false;
       if (m.tier !== tier) return false;
       if (!NEWCART_MAINSTREAM[m.provider]) return false;
       if (m.ttft == null || m.ttft > CART_TTFT_THRESHOLD_S) return false;
@@ -4280,7 +4361,8 @@
     var c = newcartCandidatesFor(dept, task);
     if (!c || !c.list.length) return null;
     var m = c.list[NEWCART_OPTION % c.list.length];
-    return { model: m, reason: c.reason, oldName: c.oldName, wasPrice: c.wasPrice, count: c.list.length };
+    return { model: m, reason: c.reason, oldName: c.oldName, wasPrice: c.wasPrice,
+             count: c.list.length, list: c.list };
   }
 
   // One line of the new cart's bill, for the receipt to book.
@@ -4304,9 +4386,24 @@
         oldTotal += oldCalc.cost;
 
         var oldName = PCART_TASK_MODEL[dept][task].model;
-        // Nothing mainstream fits this tier at all: the Cart's own line stands.
+        // No confirmed arrival for this lane: the Cart's own model and price
+        // stand, and the card says so rather than substituting something.
         var pick = newcartPickFor(dept, task);
-        if (!pick) { newTotal += oldCalc.cost; return; }
+        if (!pick) {
+          newTotal += oldCalc.cost;
+          var noneKey = task + "|" + oldName;
+          if (!tags[noneKey]) {
+            var oldRow = pcardCartFindModel(oldName);
+            tags[noneKey] = {
+              task: task, name: oldName,
+              provider: oldRow && oldRow.provider ? oldRow.provider : "",
+              reason: "none", valuePick: false, wasName: null,
+              price: newcartOldBlended(oldName), wasPrice: null
+            };
+            order.push(noneKey);
+          }
+          return;
+        }
 
         newTotal += newcartLineCalc(dept, task, pick.model).cost;
 
@@ -4316,6 +4413,7 @@
             task: task,
             name: pick.model.name,
             provider: pick.model.provider,
+            laneList: pick.list || null,
             reason: pick.reason,
             valuePick: pick.model.valuePick === true,
             wasName: oldName,
@@ -4347,41 +4445,58 @@
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
   }
 
+  // Intelligence cut-off for the top decile of the priced pool, computed once.
+  var NEWCART_INTEL_CUT = null;
+  function newcartIntelCut() {
+    if (NEWCART_INTEL_CUT === null) {
+      var xs = NEWCART_MODELS.map(function (m) { return m.intel; })
+        .filter(function (v) { return v != null; }).sort(function (a, b) { return b - a; });
+      NEWCART_INTEL_CUT = xs.length ? xs[Math.max(0, Math.ceil(xs.length * 0.1) - 1)] : Infinity;
+    }
+    return NEWCART_INTEL_CUT;
+  }
+
   /**
-   * The arrival line under a model name. A real launch date is printed when the
-   * table carries one; otherwise the first pull that listed the model, which is
-   * a sighting and is labelled as one. With neither, the provider stands alone
-   * rather than the card implying a date it does not have.
+   * One claim per card, and only a claim the numbers already carry. First that
+   * holds wins: top decile on intelligence, then fastest of the models that
+   * qualified for this lane, then cheapest in its price tier. A model none of
+   * the three fits gets no line rather than a manufactured one.
    */
-  function newcartArrivalLine(t) {
-    var meta = NEWCART_META[t.name];
-    var launch = meta ? meta[0] : "";
-    var seen = meta ? meta[1] : "";
-    if (launch) return t.provider + " \u00b7 Launched " + newcartPrettyDate(launch);
-    if (seen) return t.provider + " \u00b7 New since " + newcartPrettyDate(seen);
-    return t.provider;
+  function newcartStrongIn(t) {
+    var m = newcartFindByName(t.name);
+    if (!m) return "";
+    if (m.intel != null && m.intel >= newcartIntelCut()) return "Top 10% intelligence";
+    // Both remaining tests are read against the models that actually competed
+    // for this lane, which is the comparison the card is making.
+    var lane = (t.laneList && t.laneList.length) ? t.laneList : [m];
+    var fastest = null;
+    lane.forEach(function (c) {
+      if (c.ttft == null) return;
+      if (!fastest || c.ttft < fastest.ttft) fastest = c;
+    });
+    if (fastest && fastest.name === m.name) return "Fast response";
+    var floor = null;
+    lane.forEach(function (c) {
+      if (c.tier !== m.tier) return;
+      if (floor == null || c.blended < floor) floor = c.blended;
+    });
+    if (floor != null && Math.abs(m.blended - floor) < 1e-9) return "Best price in tier";
+    return "";
   }
 
   function newcartTagHtml(t) {
-    var arrow = "";
-    // Only a kept model compares prices; a replacement is a different product.
-    if (t.reason === "kept" && t.wasPrice != null && t.price != null) {
-      var diff = t.price - t.wasPrice;
-      if (Math.abs(diff) > 1e-9) {
-        arrow = '<span class="ncart-arrow ' + (diff < 0 ? "ncart-down" : "ncart-up") + '">' +
-          (diff < 0 ? "\u25bc" : "\u25b2") + "</span>";
-      }
-    }
-    var meta = NEWCART_META[t.name];
-    var strong = meta ? meta[2] : "";
+    var launch = newcartLaunchDate(t.name);
+    // A lane with no confirmed arrival says so; it never borrows a date.
+    var line = t.reason === "none" || !launch
+      ? t.provider + " \u00b7 No new release"
+      : t.provider + " \u00b7 Launched " + newcartPrettyDate(launch);
+    var strong = t.reason === "none" ? "" : newcartStrongIn(t);
     return '<div class="ncart-tag">' +
-      (t.valuePick ? '<span class="ncart-tag-badge ncart-tag-badge-value">Value pick</span>' : "") +
-      '<p class="ncart-tag-lane">' + pcardEscapeXml(t.task) + "</p>" +
       '<p class="ncart-tag-name">' + pcardEscapeXml(t.name) + "</p>" +
-      '<p class="ncart-tag-meta">' + pcardEscapeXml(newcartArrivalLine(t)) + "</p>" +
+      '<p class="ncart-tag-meta">' + pcardEscapeXml(line) + "</p>" +
       (strong ? '<p class="ncart-tag-strong">Strong in: ' + pcardEscapeXml(strong) + "</p>" : "") +
       '<p class="ncart-tag-price">' + newcartMoney(t.price) +
-        '<span class="ncart-tag-unit">/1M blended</span>' + arrow + "</p>" +
+        '<span class="ncart-tag-unit">/1M blended</span></p>' +
       "</div>";
   }
 
@@ -4390,7 +4505,7 @@
     if (!wrap) return;
     // Both dates come off NEWCART_AS_OF, which the embed step rewrites, so a
     // refreshed pull never leaves a stale date behind in the markup.
-    byId("ncart-title").textContent = "New arrivals since Mar 31";
+    byId("ncart-title").textContent = "New arrivals";
     byId("ncart-new-label").textContent = "New Shopping Cart, as of " + NEWCART_AS_OF;
     // The click walks a frozen pool; the pull behind it is what refreshes daily.
     byId("ncart-nimble").textContent = "\ud83d\udd0d Updated daily via Nimble \u00b7 as of " + NEWCART_AS_OF;
@@ -4434,7 +4549,7 @@
     var gap = r.newTotal - r.oldTotal;
     byId("ncart-retired").textContent =
       "Your cart, restocked with today's lineup: " + fmtUSD(r.newTotal, 2) + "/month, " +
-      fmtUSD(Math.abs(gap), 2) + (gap <= 0 ? " less" : " more") + " than March.";
+      fmtUSD(Math.abs(gap), 2) + (gap <= 0 ? " less" : " more") + " than your cart.";
     byId("ncart-option").textContent = NEWCART_OPTION === 0
       ? "Option 1 \u00b7 Our pick"
       : "Option " + (NEWCART_OPTION + 1);

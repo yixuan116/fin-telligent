@@ -6,19 +6,24 @@
  *
  * Writes data/new_models_since_2026-03-31.csv, newest first.
  *
- * Two fields are deliberately conservative:
- *
- * launch_date is only ever a real date read from a source. Artificial Analysis
- * carries none -- neither the leaderboard payload nor the per-model pages hold
- * any date field -- and provider announcement pages did not yield a verifiable
- * one either, so it is written empty rather than guessed. Nothing here is
- * inferred from a version number, a file date or a first sighting.
+ * launch_date is read from Artificial Analysis, which carries a releaseDate per
+ * model in the payload behind any /models/<slug> page -- one fetch returns the
+ * whole catalogue, so this makes a single request. It is the date AA states;
+ * nothing is inferred from a version number, a file date or a first sighting,
+ * and a model AA has no date for is written empty. launch_date_source records
+ * the page the date was read from, so every filled cell is traceable.
  *
  * first_seen_in_pull is the first data/nimble_latest_*.csv a model appears in,
  * and is only written when that is LATER than the earliest pull on disk. A
  * model present in the earliest pull was already shipping before this repo
  * started looking, so its first sighting says nothing about when it arrived.
+ * It is kept as provenance only -- the page never prints it and never treats
+ * it as a launch date.
+ *
+ * Needs NIMBLE_API_KEY. Without it the dates are left empty and the run says so
+ * rather than writing a table that looks complete.
  */
+import Nimble from '@nimble-way/nimble-js';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
@@ -26,6 +31,39 @@ const DATA_DIR = resolve(process.cwd(), 'data');
 const TRACKER = resolve(process.cwd(),
   'ai-compute-datacenter-economics/llm_price_performance_tracker_2026-03-31.csv');
 const OUT = resolve(DATA_DIR, 'new_models_since_2026-03-31.csv');
+/** Any model page works: each embeds the full catalogue with release dates. */
+const AA_MODEL_PAGE = 'https://artificialanalysis.ai/models/claude-sonnet-5-5-medium';
+
+/**
+ * name -> releaseDate, harvested from the page payload. The pairs sit in a
+ * Next.js flight payload, so they are matched in the raw HTML rather than
+ * parsed as JSON -- the payload is escaped differently in different places.
+ */
+async function releaseDates(): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const apiKey = process.env.NIMBLE_API_KEY;
+  if (!apiKey) {
+    console.warn('NIMBLE_API_KEY is not set -- launch_date will be left empty for every row.');
+    return out;
+  }
+  const nimble = new Nimble({ apiKey });
+  const res = await nimble.extract.run({
+    url: AA_MODEL_PAGE, formats: ['html'], render: true, request_timeout: 120_000,
+  });
+  if (res.status !== 'success') {
+    console.warn(`Artificial Analysis returned status="${res.status}" -- launch_date left empty.`);
+    return out;
+  }
+  const html = String((res.data as any).html ?? '');
+  const re = /\\?"name\\?":\\?"((?:[^"\\]|\\.){1,160}?)\\?"[^{}]{0,400}?\\?"releaseDate\\?":\\?"(\d{4}-\d{2}-\d{2})\\?"/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) {
+    const name = m[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    if (!out.has(name)) out.set(name, m[2]);
+  }
+  console.log(`Artificial Analysis: ${out.size} models carry a releaseDate`);
+  return out;
+}
 
 /** Minimal RFC-4180 reader: the scrape quotes any cell holding a comma. */
 function parseCsv(text: string): Record<string, string>[] {
@@ -63,7 +101,7 @@ function pullFiles(): string[] {
 }
 const dateOf = (file: string) => file.replace(/^nimble_latest_/, '').replace(/\.csv$/, '');
 
-function main(): void {
+async function main(): Promise<void> {
   const pulls = pullFiles();
   if (!pulls.length) throw new Error(`no nimble_latest_*.csv in ${DATA_DIR}`);
   const earliestPull = dateOf(pulls[0]);
@@ -81,6 +119,23 @@ function main(): void {
   const trackerBases = new Set(
     parseCsv(readFileSync(TRACKER, 'utf8')).map((r) => baseName(r.model_name)));
 
+  const launch = await releaseDates();
+  // Artificial Analysis spells some variants differently from the pull
+  // ("(Medium, Default Fallback)" vs "(Adaptive Reasoning, Medium Effort,
+  // Default Fallback)"), so an exact-name miss falls back to the family -- but
+  // only when every AA entry for that family states the SAME date. One family
+  // with staggered variant dates is ambiguous, so it is left empty instead of
+  // having a date picked for it.
+  const byFamily = new Map<string, Set<string>>();
+  for (const [name, date] of launch) {
+    const f = baseName(name);
+    if (!byFamily.has(f)) byFamily.set(f, new Set());
+    byFamily.get(f)!.add(date);
+  }
+  const familyDate = (name: string): string => {
+    const set = byFamily.get(baseName(name));
+    return set && set.size === 1 ? [...set][0] : '';
+  };
   const latest = parseCsv(readFileSync(join(DATA_DIR, latestFile), 'utf8'));
   const isNew = latest.filter((r) => !trackerBases.has(baseName(r.model_name)));
 
@@ -104,11 +159,13 @@ function main(): void {
 
   const rows = isNew.map((r) => {
     const seen = firstSeen.get(r.model_name) ?? '';
+    const exact = launch.get(r.model_name) ?? '';
+    const date = exact || familyDate(r.model_name);
     return {
       model_name: r.model_name,
       provider: r.provider,
-      // No source consulted carries a launch date, so this stays empty.
-      launch_date: '',
+      launch_date: date,
+      launch_date_source: date ? AA_MODEL_PAGE : '',
       first_seen_in_pull: seen && seen > earliestPull ? seen : '',
       aa_intelligence_index: r.aa_intelligence_index,
       strong_in: strongIn(r),
@@ -127,13 +184,15 @@ function main(): void {
     (b.first_seen_in_pull || '').localeCompare(a.first_seen_in_pull || '') ||
     (Number(b.aa_intelligence_index) || 0) - (Number(a.aa_intelligence_index) || 0));
 
-  const header = ['model_name', 'provider', 'launch_date', 'first_seen_in_pull',
-    'aa_intelligence_index', 'strong_in', 'input_price', 'output_price',
-    'blended_price', 'source_url'];
+  const header = ['model_name', 'provider', 'launch_date', 'launch_date_source',
+    'first_seen_in_pull', 'aa_intelligence_index', 'strong_in', 'input_price',
+    'output_price', 'blended_price', 'source_url'];
   writeFileSync(OUT, [header.join(','),
     ...rows.map((r) => header.map((h) => csvCell((r as any)[h])).join(','))].join('\n') + '\n');
 
+  const CUTOFF = '2026-03-31';
   const withLaunch = rows.filter((r) => r.launch_date).length;
+  const trulyNew = rows.filter((r) => r.launch_date && r.launch_date > CUTOFF).length;
   const withSeen = rows.filter((r) => r.first_seen_in_pull).length;
   const withStrong = rows.filter((r) => r.strong_in).length;
   console.log(`Earliest pull on disk: ${earliestPull}  (first_seen only written when later)`);
@@ -142,6 +201,7 @@ function main(): void {
   console.log(`  launch_date filled       : ${withLaunch}/${rows.length} (${(100 * withLaunch / rows.length).toFixed(1)}%)`);
   console.log(`  first_seen_in_pull filled: ${withSeen}/${rows.length} (${(100 * withSeen / rows.length).toFixed(1)}%)`);
   console.log(`  strong_in filled         : ${withStrong}/${rows.length} (${(100 * withStrong / rows.length).toFixed(1)}%)`);
+  console.log(`  confirmed launched after ${CUTOFF}: ${trulyNew}  <- the only ones the page may shelve`);
   console.log(`\nWrote ${OUT}`);
 }
 
