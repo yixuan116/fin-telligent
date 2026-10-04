@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
 <script>
   /* ============================================================
@@ -827,6 +828,20 @@
   }
 
   .pcart-share-labels { display: flex; width: 100%; margin: 0 0 14px; }
+  /* Same shape as the Price & Cost callouts: tinted block, no border. */
+  .pcart-recon { background: var(--accent-soft); border-radius: var(--radius); padding: 18px 20px; margin: 22px 0 0; }
+  .pcart-recon-title { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin: 0 0 10px; }
+  .pcart-recon-list { margin: 0 0 14px; padding-left: 20px; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; }
+  .pcart-recon-list b { color: var(--text-primary); }
+  .pcart-recon-lead { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 10px; }
+  .pcart-export {
+    background: var(--accent); color: #fff; border: none; border-radius: 999px;
+    padding: 9px 20px; font-size: 0.86rem; font-weight: 700; cursor: pointer;
+  }
+  .pcart-export:hover { background: var(--accent-hover); }
+  .pcart-export[disabled] { opacity: 0.55; cursor: default; }
+  .pcart-export-note { font-size: 0.74rem; color: var(--text-muted); margin: 8px 0 0; }
+
   .pcart-share-label { font-size: 0.64rem; color: var(--text-secondary); text-align: center; padding: 0 4px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pcart-share-label b { display: block; color: var(--text-primary); font-size: 0.7rem; }
 
@@ -1462,6 +1477,7 @@
               <p class="pcard-formula">Unit Budget = (I/O Ratio &times; Input price + Thinking Multiplier &times; Output price) &divide; (I/O Ratio + 1)</p>
               <p class="pcard-legend">I/O Ratio = input : output tokens; Thinking Multiplier = extra output for reasoning (1 = no reasoning)</p>
               <p class="pcard-note">Industry default: I/O Ratio = 3, Thinking Multiplier = 1 brings Unit Budget back to Blended.</p>
+              <p class="pcard-note">Assumption: reasoning models are billed at 2&times; output (Thinking Multiplier = 2).</p>
             </div>
 
             <div class="pcard-hero" id="pcard-hero">
@@ -1512,11 +1528,7 @@
                 <input type="number" id="cart-company-size" value="100" min="1" max="100000">
               </label>
               <label class="pcart-control-field">Period
-                <select id="cart-period">
-                  <option value="20" selected>1 month (20 working days)</option>
-                  <option value="5">5 days</option>
-                  <option value="10">10 days</option>
-                </select>
+                <select id="cart-period"></select>
               </label>
             </div>
 
@@ -1544,8 +1556,9 @@
 
               <div class="pcart-pool" id="cart-pool"></div>
 
-              <p class="pcard-formula">Monthly Cost = &Sigma; ( Team Size &times; Task Share &times; Daily Tokens per Person &times; Days &times; Unit Budget )</p>
-              <p class="pcard-formula">Unit Budget = (I/O Ratio &times; Input price + Thinking Multiplier &times; Output price) &divide; (I/O Ratio + 1)</p>
+              <p class="pcard-formula">Monthly Cost = &Sigma; ( Team Size &times; Task Share &times; Daily Tokens per Person &times; Days &times; Unit Budget ) &times; Batch factor</p>
+              <p class="pcard-formula">Unit Budget = (I/O Ratio &times; Input price &times; Cache factor + Thinking Multiplier &times; Output price) &divide; (I/O Ratio + 1)</p>
+              <p class="pcard-legend">Cache factor and Batch factor are 1 when the toggle is off, and 0.6 and 0.5 when it is on.</p>
 
               <div class="pcard-receipt" id="cart-receipt">
                 <p class="pcart-receipt-savings" id="cart-receipt-savings"></p>
@@ -1564,7 +1577,20 @@
 
             <p class="pcard-assumption">Task presets are illustrative usage assumptions. 1 token &asymp; 0.75 words; 1 page &asymp; 500 words.</p>
 
-            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/sahityabiswas5/llm-api-pricing-and-performance-benchmark-tracker/data" target="_blank" rel="noopener noreferrer">pricing_history.csv</a> &middot; <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker</a></p>
+            <div class="pcart-recon">
+              <p class="pcart-recon-title">Reconciled three ways</p>
+              <ol class="pcart-recon-list">
+                <li><b>Source-locked prices.</b> Every unit price is looked up from the source dataset, row by row.</li>
+                <li><b>One set of inputs.</b> The page and the Excel file read the same assumptions; a Check sheet matches them line by line.</li>
+                <!-- Point 3 stays hidden until the independent recompute is published. -->
+                <li class="pcart-recon-hidden" hidden><b>Independent recompute.</b> The portfolio is recalculated from the raw CSV outside the page, and all three agree.</li>
+              </ol>
+              <p class="pcart-recon-lead">Download the snapshot and check every number yourself.</p>
+              <button type="button" class="pcart-export" id="cart-export">Download Excel snapshot</button>
+              <p class="pcart-export-note" id="cart-export-note"></p>
+            </div>
+
+            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker</a></p>
 
             <!-- ============ New Shopping Cart (part of the Cart step) ============ -->
             <div class="ncart-block" id="ncart-block">
@@ -1739,6 +1765,7 @@
   var GOLDEN = [];
   var GOLDEN_BY_ID = {};
   var AA_TRACKER = [];
+  var AA_TRACKER_RAW = "";
   var PBENCH_SHARED_BASES = [];
   var PCARD_TIER_MAP = { Budget: 1, Mid: 2, Premium: 3, Ultra: 4 };
   var PCARD_SELECTED_TIER = 3;
@@ -1768,6 +1795,8 @@
       var pricingParsed = Papa.parse(texts[1], { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
       var costEffParsed = Papa.parse(texts[3], { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
       AA_TRACKER = Papa.parse(texts[4], { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
+      // Kept so the Excel export can cite the line each price was read from.
+      AA_TRACKER_RAW = texts[4];
 
       RAW.models = modelsParsed;
       RAW.pricing = pricingParsed;
@@ -2470,6 +2499,65 @@
   // Canonical order, used everywhere a department list is rendered.
   var PBENCH_DEPT_ORDER = ["finance", "engineering", "rd", "legal", "customer"];
 
+  /* ============================================================
+     CART_CONST -- every constant that prices a token, in one place.
+     The Cart, the Nimble block and the Excel export all read from here, so a
+     number can never be written twice and drift. Each entry carries the source
+     the Excel export cites for it.
+     ============================================================ */
+  var CART_CONST = {
+    // Source: "Page assumption" -- stated under Price & Cost on the page.
+    thinkingMultiplier: 2,
+    // Source: Cart toggle label -- 80% of input repeated, that part 50% off,
+    // so 0.8 x 0.5 + 0.2 = 0.6. 1 when the toggle is off.
+    cacheFactor: 0.6,
+    // Source: Cart toggle label -- the whole bill 50% off. 1 when off.
+    batchFactor: 0.5,
+    // Source: Cart task presets -- Daily Tokens per Person and I/O Ratio.
+    taskPresets: {
+      "Coding": { dailyTokens: 400000, ioRatio: 8 },
+      "Document Analysis": { dailyTokens: 150000, ioRatio: 10 },
+      "Q&A": { dailyTokens: 30000, ioRatio: 3 },
+      "Modeling / Analytics": { dailyTokens: 200000, ioRatio: 5 },
+      "Hybrid": { dailyTokens: 100000, ioRatio: 3 }
+    },
+    // Source: Cart default task shares, percent of each department's time.
+    defaultShares: {
+      finance: { "Hybrid": 40, "Modeling / Analytics": 40, "Coding": 20 },
+      engineering: { "Coding": 70, "Document Analysis": 15, "Q&A": 15 },
+      rd: { "Document Analysis": 50, "Modeling / Analytics": 30, "Hybrid": 20 },
+      legal: { "Document Analysis": 80, "Q&A": 20 },
+      customer: { "Q&A": 80, "Document Analysis": 20 }
+    },
+    // Source: Cart department table -- headcount at a 100-person company.
+    defaultTeam: (function () {
+      var out = {};
+      PBENCH_DEPT_ORDER.forEach(function (d) { out[d] = PBENCH_DEPARTMENTS[d].people; });
+      return out;
+    })(),
+    // Source: Cart period selector.
+    defaultDays: 20,
+    dayOptions: [
+      { value: 20, label: "1 month (20 working days)" },
+      { value: 5, label: "5 days" },
+      { value: 10, label: "10 days" }
+    ]
+  };
+
+  /**
+   * One reasoning test for the whole page. A name carrying "Non-reasoning" is
+   * never reasoning; otherwise "reasoning" or "thinking" anywhere in the name,
+   * or an effort tier as a whole word, means the output is billed at the
+   * Thinking Multiplier. Effort tiers are matched on word boundaries so a model
+   * whose name merely contains those letters is not swept in.
+   */
+  function cartIsReasoning(name) {
+    if (!name) return false;
+    if (/non-?reasoning/i.test(name)) return false;
+    if (/reasoning|thinking/i.test(name)) return true;
+    return /\b(xhigh|high|medium|low|minimal)\b/i.test(name);
+  }
+
   function renderMatrixRows() {
     var total = 0;
     PBENCH_DEPT_ORDER.forEach(function (key) { total += PBENCH_DEPARTMENTS[key].people; });
@@ -2988,13 +3076,8 @@
 
   var PCARD_CART_DEFAULT_MODEL = "Claude Sonnet 4.6 (Adaptive Reasoning, Max Effort)";
 
-  var PCARD_TASK_PRESETS = {
-    "Coding": { dailyTokens: 400000, ioRatio: 8 },
-    "Document Analysis": { dailyTokens: 150000, ioRatio: 10 },
-    "Q&A": { dailyTokens: 30000, ioRatio: 3 },
-    "Modeling / Analytics": { dailyTokens: 200000, ioRatio: 5 },
-    "Hybrid": { dailyTokens: 100000, ioRatio: 3 }
-  };
+  // Read straight off CART_CONST: the presets live there, not here.
+  var PCARD_TASK_PRESETS = CART_CONST.taskPresets;
 
   // The table above the Cart, in the order the Cart lists its tasks. Each
   // row's count is divided out of PCARD_TASK_PRESETS at render time rather
@@ -3037,13 +3120,8 @@
     "Hybrid": ["Knowledge", "Coding", "Math"]
   };
 
-  var PCART_DEFAULT_SHARES = {
-    finance: { "Hybrid": 40, "Modeling / Analytics": 40, "Coding": 20 },
-    engineering: { "Coding": 70, "Document Analysis": 15, "Q&A": 15 },
-    rd: { "Document Analysis": 50, "Modeling / Analytics": 30, "Hybrid": 20 },
-    legal: { "Document Analysis": 80, "Q&A": 20 },
-    customer: { "Q&A": 80, "Document Analysis": 20 }
-  };
+  // Read straight off CART_CONST: the shares live there, not here.
+  var PCART_DEFAULT_SHARES = CART_CONST.defaultShares;
 
   // Same direction as PCARD_TIER_MAP / Card 1: Tier 1 is the cheapest shelf
   // (Budget), Tier 4 the priciest (Ultra).
@@ -3091,8 +3169,9 @@
   var PCART_JUST_ADDED = null;
   var PCART_VIEW = "dept";
 
+  // Kept as a name the Cart's call sites already use; the rule is shared.
   function pcardIsReasoningModel(name) {
-    return /reasoning/i.test(name) && !/non-reasoning/i.test(name);
+    return cartIsReasoning(name);
   }
 
   function pcardCartFindModel(name) {
@@ -3556,6 +3635,11 @@
 
   // --- calculation + receipt ---------------------------------------------
 
+  /** The selected period, defaulting to the one CART_CONST names. */
+  function cartDays() {
+    return +byId("cart-period").value || CART_CONST.defaultDays;
+  }
+
   function pcartLineCalc(dept, task) {
     var teamSize = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : PBENCH_DEPARTMENTS[dept].people;
     var share = (PCART_SHARES[dept][task] || 0) / 100;
@@ -3565,18 +3649,18 @@
     if (!taskDef || !priceRow || !share) return { cost: 0, baseCost: 0, reasoning: false, tokens: 0 };
 
     var pIn = priceRow.input_cost_usd_per_1m, pOut = priceRow.output_cost_usd_per_1m;
-    var mult = pcardIsReasoningModel(modelName) ? 2 : 1;
-    var days = +byId("cart-period").value || 20;
+    var mult = pcardIsReasoningModel(modelName) ? CART_CONST.thinkingMultiplier : 1;
+    var days = cartDays();
     var totalTokens = teamSize * share * taskDef.dailyTokens * days;
 
     function unitBudget(cacheOn) {
-      var effIn = cacheOn ? pIn * 0.6 : pIn;
+      var effIn = cacheOn ? pIn * CART_CONST.cacheFactor : pIn;
       return (taskDef.ioRatio * effIn + mult * pOut) / (taskDef.ioRatio + 1);
     }
 
     var baseCost = totalTokens * unitBudget(false) / 1e6;
     var cost = totalTokens * unitBudget(PCARD_CART_STATE.cacheOn) / 1e6;
-    if (PCARD_CART_STATE.batchOn) cost *= 0.5;
+    if (PCARD_CART_STATE.batchOn) cost *= CART_CONST.batchFactor;
     return { cost: cost, baseCost: baseCost, reasoning: mult === 2, tokens: totalTokens };
   }
 
@@ -4117,13 +4201,7 @@
    * Your Cart keeps its own pcardIsReasoningModel() untouched.
    */
   function newcartIsReasoning(name) {
-    var suffixes = name.match(/\(([^)]*)\)/g) || [];
-    for (var i = 0; i < suffixes.length; i++) {
-      var inner = suffixes[i].slice(1, -1);
-      if (/non-?reasoning/i.test(inner)) return false;
-      if (/reasoning|thinking|effort|xhigh|high|medium|low|minimal/i.test(inner)) return true;
-    }
-    return false;
+    return cartIsReasoning(name);
   }
 
   /**
@@ -4255,14 +4333,14 @@
 
     // Same Thinking Multiplier the Cart applies, over the wider set of
     // reasoning markers the new listings use.
-    var mult = newcartIsReasoning(model.name) ? 2 : 1;
-    var days = +byId("cart-period").value || 20;
+    var mult = newcartIsReasoning(model.name) ? CART_CONST.thinkingMultiplier : 1;
+    var days = cartDays();
     var totalTokens = teamSize * share * taskDef.dailyTokens * days;
 
-    var effIn = PCARD_CART_STATE.cacheOn ? model.input * 0.6 : model.input;
+    var effIn = PCARD_CART_STATE.cacheOn ? model.input * CART_CONST.cacheFactor : model.input;
     var unit = (taskDef.ioRatio * effIn + mult * model.output) / (taskDef.ioRatio + 1);
     var cost = totalTokens * unit / 1e6;
-    if (PCARD_CART_STATE.batchOn) cost *= 0.5;
+    if (PCARD_CART_STATE.batchOn) cost *= CART_CONST.batchFactor;
     return { cost: cost, tokens: totalTokens };
   }
 
@@ -4614,7 +4692,375 @@
     renderReceipt();
   }
 
+  /* ============================================================
+     Excel snapshot -- the Cart's model portfolio, rebuilt as a workbook that
+     recomputes itself. Every number except one column is an Excel formula
+     pointing at a cell, so a reader can follow any figure back to either an
+     input they chose or a row of the source price table. The sole exception is
+     the Check sheet's "Page value" column, which carries what the page showed
+     at the moment of download so the two can be compared.
+
+     Written with ExcelJS rather than SheetJS: the brief asked for SheetJS, but
+     its community build silently drops font colours on write, and the blue
+     inputs / black formulas / red mismatch rule needs them.
+     ============================================================ */
+  var XL_BLUE = "FF1F6FEB";   // an input the reader chose
+  var XL_BLACK = "FF1A1A2E";  // a formula the workbook computes
+  var XL_RED = "FFC0392B";    // a Check row that did not reconcile
+  var XL_GREY = "FF6B6B7D";   // sources and logic notes
+
+  function xlCell(ws, addr, value, opts) {
+    var c = ws.getCell(addr);
+    c.value = value;
+    var o = opts || {};
+    c.font = { name: "Calibri", size: 11, color: { argb: o.color || XL_BLACK }, bold: !!o.bold };
+    if (o.numFmt) c.numFmt = o.numFmt;
+    return c;
+  }
+  var XL_MONEY = '#,##0.0000';
+  var XL_NUM = '#,##0.######';
+
+  /** Header row, repeated on every sheet so the shape is obvious. */
+  function xlHead(ws, row, labels) {
+    labels.forEach(function (t, i) {
+      var c = ws.getCell(row, i + 1);
+      c.value = t;
+      c.font = { name: "Calibri", size: 11, bold: true, color: { argb: XL_BLACK } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEDEFFB" } };
+    });
+  }
+
+  /**
+   * The line in llm_price_performance_tracker_2026-03-31.csv each parsed row
+   * came from. Papa drops empty lines, so the raw text is walked in step with
+   * the parsed rows rather than assuming row i sits on line i + 2.
+   */
+  var XL_SRC_LINE = null;
+  function xlSourceLine(modelName) {
+    if (XL_SRC_LINE === null) {
+      XL_SRC_LINE = {};
+      var lines = AA_TRACKER_RAW.split("\n");
+      for (var i = 1; i < lines.length; i++) {
+        var line = lines[i];
+        if (!line) continue;
+        var first = line.charAt(0) === '"'
+          ? line.slice(1, line.indexOf('"', 1))
+          : line.slice(0, line.indexOf(","));
+        if (first && XL_SRC_LINE[first] == null) XL_SRC_LINE[first] = i + 1; // 1-based
+      }
+    }
+    return XL_SRC_LINE[modelName] || "";
+  }
+
+  /** Everything the page is showing right now, read once so it cannot drift. */
+  function xlSnapshot() {
+    var days = cartDays();
+    var lines = [];
+    var deptCost = {};
+    var tierCost = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    var total = 0;
+    PCART_POOL.forEach(function (dept) {
+      deptCost[dept] = 0;
+      Object.keys(PCART_SHARES[dept]).forEach(function (task) {
+        var assigned = PCART_TASK_MODEL[dept][task];
+        var calc = pcartLineCalc(dept, task);
+        var row = pcardCartFindModel(assigned.model);
+        if (!row) return;
+        lines.push({
+          dept: dept, deptLabel: PBENCH_DEPARTMENTS[dept].label, task: task,
+          model: assigned.model, tier: assigned.tier, cost: calc.cost, tokens: calc.tokens
+        });
+        deptCost[dept] += calc.cost;
+        if (tierCost[assigned.tier] != null) tierCost[assigned.tier] += calc.cost;
+        total += calc.cost;
+      });
+    });
+    return {
+      companySize: +byId("cart-company-size").value || 100,
+      days: days,
+      cacheOn: PCARD_CART_STATE.cacheOn,
+      batchOn: PCARD_CART_STATE.batchOn,
+      lines: lines, deptCost: deptCost, tierCost: tierCost, total: total
+    };
+  }
+
+  function xlFileName() {
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return "ai-model-portfolio_" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + ".xlsx";
+  }
+
+  async function buildWorkbook() {
+    var snap = xlSnapshot();
+    var wb = new ExcelJS.Workbook();
+    wb.creator = "fin-telligent";
+    wb.created = new Date();
+
+    /* ---------------- Inputs ---------------- */
+    var inp = wb.addWorksheet("Inputs");
+    inp.columns = [{ width: 38 }, { width: 18 }, { width: 34 }, { width: 72 }];
+    xlHead(inp, 1, ["Item", "Value", "Source", "Logic"]);
+    var r = 2;
+    var ref = {};
+    function putInput(key, label, value, source, logic, fmt) {
+      xlCell(inp, "A" + r, label, { color: XL_GREY });
+      xlCell(inp, "B" + r, value, { color: XL_BLUE, numFmt: fmt || XL_NUM });
+      xlCell(inp, "C" + r, source, { color: XL_GREY });
+      xlCell(inp, "D" + r, logic, { color: XL_GREY });
+      ref[key] = "Inputs!$B$" + r;
+      r++;
+    }
+    function putDerived(key, label, formula, source, logic, fmt) {
+      xlCell(inp, "A" + r, label, { color: XL_GREY });
+      xlCell(inp, "B" + r, { formula: formula }, { color: XL_BLACK, numFmt: fmt || XL_NUM });
+      xlCell(inp, "C" + r, source, { color: XL_GREY });
+      xlCell(inp, "D" + r, logic, { color: XL_GREY });
+      ref[key] = "Inputs!$B$" + r;
+      r++;
+    }
+
+    xlCell(inp, "A" + r, "Cart inputs", { bold: true }); r++;
+    putInput("companySize", "Company size (people)", snap.companySize, "Page input · Cart",
+      "Scales every department's Team Size from the 100-person default.");
+    putInput("days", "Days in period", snap.days, "Page input · Cart period selector",
+      "Working days the Cart prices. 1 month = 20 working days.");
+    putInput("cacheOn", "Cache toggle on", snap.cacheOn, "Page input · Cart toggle",
+      "Cache · 80% repeated input, 50% off.");
+    putInput("batchOn", "Batch toggle on", snap.batchOn, "Page input · Cart toggle",
+      "Batch · whole bill 50% off.");
+
+    r++;
+    xlCell(inp, "A" + r, "Constants", { bold: true }); r++;
+    putInput("tm", "Thinking Multiplier", CART_CONST.thinkingMultiplier, "Page assumption",
+      "Reasoning models are billed at 2× output (Thinking Multiplier = 2).");
+    putInput("cacheRate", "Cache factor when on", CART_CONST.cacheFactor, "CART_CONST.cacheFactor",
+      "80% of input repeated and that part 50% off: 0.8 × 0.5 + 0.2 = 0.6.");
+    putInput("batchRate", "Batch factor when on", CART_CONST.batchFactor, "CART_CONST.batchFactor",
+      "The whole bill costs 50% less.");
+    putDerived("cacheF", "Cache factor applied", "=IF(" + ref.cacheOn + "," + ref.cacheRate + ",1)",
+      "Derived", "1 when the Cache toggle is off, otherwise the cache factor.");
+    putDerived("batchF", "Batch factor applied", "=IF(" + ref.batchOn + "," + ref.batchRate + ",1)",
+      "Derived", "1 when the Batch toggle is off, otherwise the batch factor.");
+
+    r++;
+    xlCell(inp, "A" + r, "Team Size by department", { bold: true }); r++;
+    PCART_POOL.forEach(function (dept) {
+      var size = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : PBENCH_DEPARTMENTS[dept].people;
+      putInput("team_" + dept, PBENCH_DEPARTMENTS[dept].label, size, "Page input · Cart tile",
+        "People in this department at the chosen company size.");
+    });
+
+    r++;
+    xlCell(inp, "A" + r, "Task shares by department (%)", { bold: true }); r++;
+    PCART_POOL.forEach(function (dept) {
+      Object.keys(PCART_SHARES[dept]).forEach(function (task) {
+        putInput("share_" + dept + "_" + task, PBENCH_DEPARTMENTS[dept].label + " · " + task,
+          PCART_SHARES[dept][task], "Page input · Cart tile",
+          "Share of this department's time spent on " + task + ".");
+      });
+    });
+
+    r++;
+    xlCell(inp, "A" + r, "Task presets", { bold: true }); r++;
+    var tasksUsed = [];
+    snap.lines.forEach(function (l) { if (tasksUsed.indexOf(l.task) === -1) tasksUsed.push(l.task); });
+    tasksUsed.forEach(function (task) {
+      putInput("dt_" + task, task + " · Daily Tokens per Person",
+        CART_CONST.taskPresets[task].dailyTokens, "Cart task presets",
+        "Tokens one person runs through " + task + " in a working day.");
+      putInput("io_" + task, task + " · I/O Ratio",
+        CART_CONST.taskPresets[task].ioRatio, "Cart task presets",
+        "Input tokens per output token for " + task + ".");
+    });
+
+    /* ---------------- Prices ---------------- */
+    var pr = wb.addWorksheet("Prices");
+    pr.columns = [{ width: 54 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 },
+      { width: 14 }, { width: 13 }, { width: 12 }, { width: 10 }, { width: 62 }];
+    xlHead(pr, 1, ["model_name", "provider", "input_cost_usd_per_1m", "output_cost_usd_per_1m",
+      "blended_cost_usd_per_1m", "pricing_tier", "Source row", "Reasoning", "Cart Tier", "Logic"]);
+    var models = [];
+    var tierOfModel = {};
+    snap.lines.forEach(function (l) {
+      if (models.indexOf(l.model) === -1) { models.push(l.model); tierOfModel[l.model] = l.tier; }
+    });
+    var priceRow = {};
+    models.forEach(function (name, i) {
+      var row = pcardCartFindModel(name);
+      var rr = i + 2;
+      priceRow[name] = rr;
+      xlCell(pr, "A" + rr, name, { color: XL_BLUE });
+      xlCell(pr, "B" + rr, row.provider, { color: XL_BLUE });
+      xlCell(pr, "C" + rr, row.input_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
+      xlCell(pr, "D" + rr, row.output_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
+      xlCell(pr, "E" + rr, row.blended_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
+      xlCell(pr, "F" + rr, row.pricing_tier, { color: XL_BLUE });
+      xlCell(pr, "G" + rr, xlSourceLine(name), { color: XL_GREY });
+      xlCell(pr, "H" + rr, cartIsReasoning(name), { color: XL_BLUE });
+      xlCell(pr, "I" + rr, tierOfModel[name], { color: XL_BLUE });
+      xlCell(pr, "J" + rr,
+        "Row " + xlSourceLine(name) + " of llm_price_performance_tracker_2026-03-31.csv, copied as-is. " +
+        "Reasoning: name carries reasoning, thinking or an effort tier, and not Non-reasoning. " +
+        "Cart Tier from the Cart pack definition.", { color: XL_GREY });
+    });
+
+    /* ---------------- Portfolio ---------------- */
+    var pf = wb.addWorksheet("Portfolio");
+    pf.columns = [{ width: 30 }, { width: 20 }, { width: 50 }, { width: 11 }, { width: 11 },
+      { width: 14 }, { width: 8 }, { width: 15 }, { width: 12 }, { width: 12 }, { width: 10 },
+      { width: 11 }, { width: 11 }, { width: 13 }, { width: 11 }, { width: 14 }, { width: 8 }, { width: 76 }];
+    xlHead(pf, 1, ["Department", "Task", "Model", "Team Size", "Task Share", "Daily Tokens",
+      "Days", "Tokens", "Input price", "Output price", "I/O Ratio", "Thinking Mult",
+      "Cache factor", "Unit Budget", "Batch factor", "Monthly cost", "Tier", "Logic"]);
+    var pfFirst = 2;
+    snap.lines.forEach(function (l, i) {
+      var rr = i + 2;
+      var m = '$C$' + rr;
+      var idx = function (col) {
+        return "INDEX(Prices!$" + col + ":$" + col + ",MATCH(" + m + ",Prices!$A:$A,0))";
+      };
+      xlCell(pf, "A" + rr, l.deptLabel, { color: XL_BLUE });
+      xlCell(pf, "B" + rr, l.task, { color: XL_BLUE });
+      xlCell(pf, "C" + rr, l.model, { color: XL_BLUE });
+      xlCell(pf, "D" + rr, { formula: "=" + ref["team_" + l.dept] }, { numFmt: XL_NUM });
+      xlCell(pf, "E" + rr, { formula: "=" + ref["share_" + l.dept + "_" + l.task] + "/100" }, { numFmt: '0.00%' });
+      xlCell(pf, "F" + rr, { formula: "=" + ref["dt_" + l.task] }, { numFmt: XL_NUM });
+      xlCell(pf, "G" + rr, { formula: "=" + ref.days }, { numFmt: XL_NUM });
+      xlCell(pf, "H" + rr, { formula: "=D" + rr + "*E" + rr + "*F" + rr + "*G" + rr }, { numFmt: XL_NUM });
+      xlCell(pf, "I" + rr, { formula: "=" + idx("C") }, { numFmt: XL_MONEY });
+      xlCell(pf, "J" + rr, { formula: "=" + idx("D") }, { numFmt: XL_MONEY });
+      xlCell(pf, "K" + rr, { formula: "=" + ref["io_" + l.task] }, { numFmt: XL_NUM });
+      xlCell(pf, "L" + rr, { formula: "=IF(" + idx("H") + "," + ref.tm + ",1)" }, { numFmt: XL_NUM });
+      xlCell(pf, "M" + rr, { formula: "=" + ref.cacheF }, { numFmt: XL_NUM });
+      xlCell(pf, "N" + rr, { formula: "=(K" + rr + "*I" + rr + "*M" + rr + "+L" + rr + "*J" + rr + ")/(K" + rr + "+1)" }, { numFmt: XL_MONEY });
+      xlCell(pf, "O" + rr, { formula: "=" + ref.batchF }, { numFmt: XL_NUM });
+      xlCell(pf, "P" + rr, { formula: "=H" + rr + "*N" + rr + "/1000000*O" + rr }, { numFmt: XL_MONEY });
+      xlCell(pf, "Q" + rr, { formula: "=" + idx("I") }, { numFmt: XL_NUM });
+      xlCell(pf, "R" + rr,
+        "Tokens = Team Size × Task Share × Daily Tokens per Person × Days. " +
+        "Unit Budget = (I/O Ratio × Input price × Cache factor + Thinking Multiplier × Output price) ÷ (I/O Ratio + 1). " +
+        "Monthly Cost = Tokens × Unit Budget ÷ 1,000,000 × Batch factor.", { color: XL_GREY });
+    });
+    var pfLast = snap.lines.length + 1;
+    var totRow = pfLast + 2;
+    xlCell(pf, "A" + totRow, "Cart total", { bold: true });
+    xlCell(pf, "P" + totRow, { formula: "=SUM(P" + pfFirst + ":P" + pfLast + ")" }, { bold: true, numFmt: XL_MONEY });
+    xlCell(pf, "R" + totRow, "Sum of every department × task line above.", { color: XL_GREY });
+    var tierRowOf = {};
+    [1, 2, 3, 4].forEach(function (t, k) {
+      var rr = totRow + 1 + k;
+      tierRowOf[t] = rr;
+      xlCell(pf, "A" + rr, "Tier " + t + " total");
+      xlCell(pf, "P" + rr, { formula: "=SUMIF($Q$" + pfFirst + ":$Q$" + pfLast + "," + t + ",$P$" + pfFirst + ":$P$" + pfLast + ")" }, { numFmt: XL_MONEY });
+      xlCell(pf, "R" + rr, "Lines routed to Tier " + t + " by the Cart pack definition.", { color: XL_GREY });
+    });
+
+    /* ---------------- Walkthrough ---------------- */
+    var wt = wb.addWorksheet("Walkthrough");
+    wt.columns = [{ width: 6 }, { width: 34 }, { width: 46 }, { width: 18 }, { width: 80 }];
+    xlHead(wt, 1, ["Step", "Quantity", "Formula", "Value", "Logic"]);
+    var f = snap.lines[0];
+    var steps = [
+      ["Team Size", "=Portfolio!D2", "People in " + (f ? f.deptLabel : "") + ", from the Cart tile."],
+      ["Task Share", "=Portfolio!E2", "Share of that team's time on " + (f ? f.task : "") + "."],
+      ["Daily Tokens per Person", "=Portfolio!F2", "Tokens one person runs through this task per working day."],
+      ["Days", "=Portfolio!G2", "Working days in the chosen period."],
+      ["Tokens", "=Portfolio!D2*Portfolio!E2*Portfolio!F2*Portfolio!G2", "Team Size × Task Share × Daily Tokens per Person × Days."],
+      ["Input price (per 1M)", "=Portfolio!I2", "Looked up from the Prices sheet, which copies the source table row."],
+      ["Output price (per 1M)", "=Portfolio!J2", "Looked up from the Prices sheet, which copies the source table row."],
+      ["I/O Ratio", "=Portfolio!K2", "Input tokens per output token for this task."],
+      ["Thinking Multiplier", "=Portfolio!L2", "2 when the model is a reasoning model, otherwise 1."],
+      ["Cache factor", "=Portfolio!M2", "1 when the Cache toggle is off, 0.6 when it is on."],
+      ["Unit Budget", "=(Portfolio!K2*Portfolio!I2*Portfolio!M2+Portfolio!L2*Portfolio!J2)/(Portfolio!K2+1)",
+        "(I/O Ratio × Input price × Cache factor + Thinking Multiplier × Output price) ÷ (I/O Ratio + 1)."],
+      ["Batch factor", "=Portfolio!O2", "1 when the Batch toggle is off, 0.5 when it is on."],
+      ["Monthly Cost", "=Portfolio!H2*Portfolio!N2/1000000*Portfolio!O2",
+        "Tokens × Unit Budget ÷ 1,000,000 × Batch factor. Prices are per 1M tokens."]
+    ];
+    steps.forEach(function (st, i) {
+      var rr = i + 2;
+      xlCell(wt, "A" + rr, i + 1, { color: XL_GREY });
+      xlCell(wt, "B" + rr, st[0], { color: XL_GREY });
+      xlCell(wt, "C" + rr, st[1].slice(1), { color: XL_GREY });
+      xlCell(wt, "D" + rr, { formula: st[1] }, { numFmt: XL_MONEY });
+      xlCell(wt, "E" + rr, st[2], { color: XL_GREY });
+    });
+    xlCell(wt, "B" + (steps.length + 3), f ? (f.deptLabel + " · " + f.task + " · " + f.model) : "", { bold: true });
+
+    /* ---------------- Check ---------------- */
+    var ck = wb.addWorksheet("Check");
+    ck.columns = [{ width: 40 }, { width: 18 }, { width: 18 }, { width: 16 }, { width: 10 }, { width: 70 }];
+    xlHead(ck, 1, ["Item", "Excel result", "Page value", "Difference", "Status", "Logic"]);
+    var cr = 2;
+    function checkRow(label, formula, pageValue, logic) {
+      xlCell(ck, "A" + cr, label, { color: XL_GREY });
+      xlCell(ck, "B" + cr, { formula: formula }, { numFmt: XL_MONEY });
+      xlCell(ck, "C" + cr, pageValue, { color: XL_BLUE, numFmt: XL_MONEY });
+      xlCell(ck, "D" + cr, { formula: "=B" + cr + "-C" + cr }, { numFmt: XL_MONEY });
+      xlCell(ck, "E" + cr, { formula: '=IF(ABS(D' + cr + ')<0.005,"✓","MISMATCH")' },
+        { color: XL_BLACK, bold: true });
+      xlCell(ck, "F" + cr, logic, { color: XL_GREY });
+      cr++;
+    }
+    PCART_POOL.forEach(function (dept) {
+      checkRow(PBENCH_DEPARTMENTS[dept].label + " · monthly cost",
+        '=SUMIF(Portfolio!$A$' + pfFirst + ':$A$' + pfLast + ',"' + PBENCH_DEPARTMENTS[dept].label.replace(/"/g, '""') + '",Portfolio!$P$' + pfFirst + ':$P$' + pfLast + ')',
+        snap.deptCost[dept],
+        "Every line of this department, summed from the Portfolio sheet.");
+    });
+    [1, 2, 3, 4].forEach(function (t) {
+      checkRow("Tier " + t + " total", "=Portfolio!$P$" + tierRowOf[t], snap.tierCost[t],
+        "Lines routed to Tier " + t + ", summed from the Portfolio sheet.");
+    });
+    checkRow("Cart total", "=Portfolio!$P$" + totRow, snap.total,
+      "Every line in the Portfolio, summed.");
+    xlCell(ck, "A" + (cr + 1),
+      "Page value is the only column holding a pasted number: it is what the page displayed, unrounded, " +
+      "at the moment this file was downloaded. Everything else recomputes from the Inputs and Prices sheets.",
+      { color: XL_GREY });
+
+    return wb;
+  }
+
+  async function downloadWorkbook() {
+    var btn = byId("cart-export");
+    var note = byId("cart-export-note");
+    if (!PCART_POOL.length) { note.textContent = "Add a department to the Cart first."; return; }
+    btn.disabled = true;
+    note.textContent = "Building…";
+    try {
+      var wb = await buildWorkbook();
+      var buf = await wb.xlsx.writeBuffer();
+      var blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = xlFileName();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      note.textContent = "Saved " + xlFileName();
+    } catch (err) {
+      note.textContent = "Could not build the file: " + err.message;
+      throw err;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function renderCartPeriodOptions() {
+    var sel = byId("cart-period");
+    if (!sel) return;
+    sel.innerHTML = CART_CONST.dayOptions.map(function (o) {
+      return '<option value="' + o.value + '"' +
+        (o.value === CART_CONST.defaultDays ? " selected" : "") + ">" +
+        pcardEscapeXml(o.label) + "</option>";
+    }).join("");
+  }
+
   function renderCartCard() {
+    renderCartPeriodOptions();
+    byId("cart-export").addEventListener("click", downloadWorkbook);
     renderTokenUsage();
     newcartInitStage();
 
