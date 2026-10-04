@@ -372,12 +372,15 @@
   .ncart-tag-price { font-family: var(--mono); font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0; }
   .ncart-tag-unit { font-size: 0.58rem; color: var(--text-muted); font-weight: 400; margin-left: 3px; }
   .ncart-tag-was { font-size: 0.62rem; color: var(--text-muted); margin: 3px 0 0; text-decoration: line-through; }
+  .ncart-tag-note { font-size: 0.62rem; color: var(--text-muted); margin: 3px 0 0; line-height: 1.4; }
   .ncart-tag-badge {
     position: absolute; top: -9px; right: 8px; background: var(--accent); color: #fff;
     font-size: 0.55rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
     border-radius: 999px; padding: 2px 8px;
   }
   .ncart-tag-badge-retired { background: var(--text-primary); letter-spacing: 0.03em; }
+  /* Not a verdict on the model, just an absence from the current pull. */
+  .ncart-tag-badge-missing { background: var(--text-muted); letter-spacing: 0.03em; }
   .ncart-tag-badge-value { background: var(--green); letter-spacing: 0.03em; }
   .ncart-arrow { font-size: 0.72rem; font-weight: 800; margin-left: 6px; }
   .ncart-down { color: var(--green); }
@@ -1540,7 +1543,7 @@
               <div class="ncart-stage" id="ncart-stage">
                 <!-- shelf.png / shelf.mp4 are injected above the button only if both files exist -->
                 <div class="ncart-refresh-row">
-                  <button type="button" class="ncart-refresh" id="ncart-refresh">Refresh</button>
+                  <button type="button" class="ncart-refresh" id="ncart-refresh">Next option</button>
                   <span class="ncart-option" id="ncart-option"></span>
                 </div>
               </div>
@@ -1560,8 +1563,8 @@
               <p class="ncart-delta" id="ncart-delta"></p>
               <p class="ncart-retired" id="ncart-retired"></p>
 
-              <p class="ncart-nimble">&#128269; Checked by Nimble: Search finds the latest models, Extract reads today&#39;s prices.</p>
-              <p class="pcard-footer ncart-foot">Data: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener noreferrer">Artificial Analysis leaderboard</a> &middot; scraped by <a href="https://github.com/yixuan116/fin-telligent/blob/main/scripts/nimble-price-check.ts" target="_blank" rel="noopener noreferrer">scripts/nimble-price-check.ts</a> &middot; <a href="https://github.com/yixuan116/fin-telligent/blob/main/data/nimble_latest_2026-09-25.csv" target="_blank" rel="noopener noreferrer">nimble_latest_2026-09-25.csv</a></p>
+              <p class="ncart-nimble" id="ncart-nimble">&#128269; Updated daily via Nimble</p>
+              <p class="pcard-footer ncart-foot">Data: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener noreferrer">Artificial Analysis leaderboard</a> &middot; scraped by <a href="https://github.com/yixuan116/fin-telligent/blob/main/scripts/nimble-price-check.ts" target="_blank" rel="noopener noreferrer">scripts/nimble-price-check.ts</a> &middot; <a id="ncart-pull-link" href="https://github.com/yixuan116/fin-telligent/blob/main/data/nimble_latest_2026-10-04.csv" target="_blank" rel="noopener noreferrer">nimble_latest_2026-10-04.csv</a></p>
               <p class="pcard-footer ncart-foot">New picks ranked by Artificial Analysis Intelligence Index; Q&amp;A ranked by response speed.</p>
             </div>
 
@@ -3678,11 +3681,16 @@
   }
 
   // ============ New Shopping Cart ============
-  // Scraped at build time by scripts/nimble-price-check.ts and frozen here --
-  // the page never calls Nimble. Columns mirror the tracker CSV:
+  // Scraped by scripts/nimble-price-check.ts on a daily CI schedule and frozen
+  // here -- the page never calls Nimble, and the button only walks this pool.
+  // Columns mirror the tracker CSV:
   // [model_name, provider, intelligence index, $ in /1M, $ out /1M, TTFT s].
-  // Source: https://artificialanalysis.ai/leaderboards/models, 2026-09-25.
+  // Source: https://artificialanalysis.ai/leaderboards/models, as of the date
+  // in NEWCART_AS_OF below. Both date vars are rewritten by the embed step, and
+  // every date on the block -- heading, label, copy, tags, summary and the pull
+  // link -- is rendered from them, so none of them can go stale on their own.
   var NEWCART_AS_OF = "Oct 4, 2026";
+  var NEWCART_AS_OF_ISO = "2026-10-04";
   var NEWCART_SHELF_MEDIA = false;   // true once assets/shelf.png + shelf.mp4 are committed
   var NEWCART_RAW = [
     ["Qwen3.5 Omni Plus","Alibaba",20.384,0.4,4.8,2.122],
@@ -4198,16 +4206,22 @@
         "</div>";
     }
     var badge = t.reason === "retired"
-      ? '<span class="ncart-tag-badge ncart-tag-badge-retired">Upgraded</span>'
-      : (t.reason === "better" ? '<span class="ncart-tag-badge">New</span>' : "");
+      ? '<span class="ncart-tag-badge ncart-tag-badge-missing">Not listed</span>'
+      : (t.reason === "better" ? '<span class="ncart-tag-badge ncart-tag-badge-retired">Upgraded</span>' : "");
+    // A no-match says what it is: the cart's model is absent from this pull and
+    // what stands here is the nearest current model, not its successor.
+    var foot = t.reason === "retired"
+      ? '<p class="ncart-tag-note">Not on ' + pcardEscapeXml(NEWCART_AS_OF) + " leaderboard: " +
+          pcardEscapeXml(t.wasName) + " \u00b7 closest current: " + pcardEscapeXml(t.name) + "</p>"
+      : (t.reason !== "kept" && t.wasName
+        ? '<p class="ncart-tag-was">was ' + pcardEscapeXml(t.wasName) + "</p>"
+        : (t.wasPrice != null ? '<p class="ncart-tag-was">was ' + newcartMoney(t.wasPrice) + "</p>" : ""));
     return '<div class="ncart-tag">' + badge +
       '<p class="ncart-tag-lane">' + pcardEscapeXml(t.task) + "</p>" +
       '<p class="ncart-tag-name">' + pcardEscapeXml(t.name) + "</p>" +
       '<p class="ncart-tag-price">' + newcartMoney(t.price) +
         '<span class="ncart-tag-unit">/1M blended</span>' + arrow + "</p>" +
-      (t.reason !== "kept" && t.wasName
-        ? '<p class="ncart-tag-was">was ' + pcardEscapeXml(t.wasName) + "</p>"
-        : (t.wasPrice != null ? '<p class="ncart-tag-was">was ' + newcartMoney(t.wasPrice) + "</p>" : "")) +
+      foot +
       "</div>";
   }
 
@@ -4218,6 +4232,14 @@
     // refreshed pull never leaves a stale date behind in the markup.
     byId("ncart-title").textContent = "Latest Models & Prices, as of " + NEWCART_AS_OF;
     byId("ncart-new-label").textContent = "New Shopping Cart, as of " + NEWCART_AS_OF;
+    // The click walks a frozen pool; the pull behind it is what refreshes daily.
+    byId("ncart-nimble").textContent = "\ud83d\udd0d Updated daily via Nimble \u00b7 as of " + NEWCART_AS_OF;
+    var pullLink = byId("ncart-pull-link");
+    if (pullLink) {
+      var pullFile = "nimble_latest_" + NEWCART_AS_OF_ISO + ".csv";
+      pullLink.textContent = pullFile;
+      pullLink.href = "https://github.com/yixuan116/fin-telligent/blob/main/data/" + pullFile;
+    }
     var r = newcartCompute();
     NEWCART_LAST = r;
 
@@ -4248,8 +4270,9 @@
     byId("ncart-delta").textContent = sign + fmtUSD(Math.abs(diff), 2) +
       (pct == null ? "" : " (" + sign + Math.abs(pct).toFixed(1) + "%)") + " vs Your Cart";
 
-    byId("ncart-retired").textContent =
-      r.retired + " of " + r.tags.length + " models in your cart have newer versions.";
+    byId("ncart-retired").textContent = r.retired === 0 ? "" :
+      r.retired + " of " + r.tags.length + " cart models are not on the " +
+      NEWCART_AS_OF + " leaderboard; closest current models shown.";
     byId("ncart-option").textContent = NEWCART_OPTION === 0
       ? "Option 1 \u00b7 Our pick"
       : "Option " + (NEWCART_OPTION + 1);
@@ -4310,6 +4333,9 @@
     if (NEWCART_REVEALED) NEWCART_OPTION++;
     else NEWCART_REVEALED = true;
     renderNewCart(true);
+    // The receipt books its token spend off the new cart's picks, so advancing
+    // the option without this left the P&L showing the previous option.
+    renderReceipt();
   }
 
   function renderCartCard() {

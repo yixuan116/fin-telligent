@@ -3,10 +3,11 @@
  *
  *   npx tsx scripts/embed-latest.ts
  *
- * Reads the most recent data/nimble_latest_*.csv and rewrites two things in
+ * Reads the most recent data/nimble_latest_*.csv and rewrites three things in
  * ai-compute-datacenter-economics/index.html: the NEWCART_RAW table the New
- * Shopping Cart shops from, and NEWCART_AS_OF, which every date on the block
- * is rendered from. Nothing else in the file is touched.
+ * Shopping Cart shops from, NEWCART_AS_OF, which every date on the block is
+ * rendered from, and NEWCART_AS_OF_ISO, which also names the pull the footer
+ * link points at. Nothing else in the file is touched.
  *
  * Only priced rows are embedded -- a row without both prices, or with an
  * intelligence index missing, can never be a candidate, so carrying it would
@@ -77,7 +78,8 @@ function main(): void {
     round3(num(r.time_to_first_token_s)),
   ]);
 
-  const asOf = prettyDate(usable[0]?.as_of ?? rows[0]?.as_of ?? '');
+  const asOfIso = usable[0]?.as_of ?? rows[0]?.as_of ?? '';
+  const asOf = prettyDate(asOfIso);
   let page = readFileSync(PAGE, 'utf8');
 
   const rawBlock = `  var NEWCART_RAW = [\n${table.map((t) => `    ${JSON.stringify(t)}`).join(',\n')}\n  ];`;
@@ -89,8 +91,14 @@ function main(): void {
   if (!asOfRe.test(page)) throw new Error('NEWCART_AS_OF not found in the page');
   page = page.replace(asOfRe, `  var NEWCART_AS_OF = "${asOf}";`);
 
+  // The footer's pull link is built from this at render time, so the link can
+  // never name a different pull than the table above it.
+  const asOfIsoRe = /  var NEWCART_AS_OF_ISO = "[^"]*";/;
+  if (!asOfIsoRe.test(page)) throw new Error('NEWCART_AS_OF_ISO not found in the page');
+  page = page.replace(asOfIsoRe, `  var NEWCART_AS_OF_ISO = "${asOfIso}";`);
+
   writeFileSync(PAGE, page);
-  console.log(`Embedded ${table.length} priced models, as of ${asOf}`);
+  console.log(`Embedded ${table.length} priced models, as of ${asOf} (${asOfIso})`);
 }
 
 main();
