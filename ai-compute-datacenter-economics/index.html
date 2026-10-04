@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Model Shopping Cart &middot; fin-telligent</title>
+<title>AI Model Shopping Cart | AI Unit Economics</title>
 <meta name="description" content="Enterprise buyer's guide to the LLM pricing market: frontier price deflation over time, a live cost/latency simulator, and a model-selection router across 520 tracked models.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -274,7 +274,9 @@
   }
   .hero-inner { max-width: var(--page-max); margin: 0 auto; }
   .hero-eyebrow { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9aa4f0; margin: 0 0 12px; }
-  .hero h1 { font-size: 2.1rem; font-weight: 800; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .hero h1 { font-size: 2.1rem; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.01em; }
+  /* Sits between the title and the description in both size and weight. */
+  .hero p.hero-subtitle { font-size: 1.3rem; font-weight: 600; color: #d8daf0; margin: 0 0 16px; letter-spacing: -0.005em; }
   .hero p { font-size: 1.02rem; color: #c4c6e0; max-width: var(--prose-max); line-height: 1.6; margin: 0; }
 
   /* ============ page / sections ============ */
@@ -1124,6 +1126,7 @@
   @media (max-width: 760px) {
     :root { --page-gutter: 16px; }
     .hero h1 { font-size: 1.55rem; }
+    .hero p.hero-subtitle { font-size: 1.1rem; }
     .section-title { font-size: 1.2rem; }
     .section-card, .collapsible-toggle { padding: 18px 18px; }
     .pcart-sticky-total { font-size: 1rem; }
@@ -1153,13 +1156,16 @@
 
       <a class="series-tab" data-tab="cart" href="./" aria-current="page">
         <span class="series-tab-label">
-          <span class="series-tab-full">AI Model Shopping Cart</span>
-          <span class="series-tab-short">Shopping Cart</span>
+          <span class="series-tab-full">AI Unit Economics</span>
+          <span class="series-tab-short">AI Economics</span>
         </span>
       </a>
 
       <span class="series-tab is-soon" data-tab="compute" aria-disabled="true">
-        <span class="series-tab-label">Compute</span>
+        <span class="series-tab-label">
+          <span class="series-tab-full">Compute Economics</span>
+          <span class="series-tab-short">Compute</span>
+        </span>
         <span class="series-tab-flag">
           <span class="series-tab-full">Coming soon</span>
           <span class="series-tab-short">Soon</span>
@@ -1167,7 +1173,10 @@
       </span>
 
       <span class="series-tab is-soon" data-tab="datacenter" aria-disabled="true">
-        <span class="series-tab-label">Data Center</span>
+        <span class="series-tab-label">
+          <span class="series-tab-full">Data Center Economics</span>
+          <span class="series-tab-short">Data Center</span>
+        </span>
         <span class="series-tab-flag">
           <span class="series-tab-full">Coming soon</span>
           <span class="series-tab-short">Soon</span>
@@ -1188,7 +1197,8 @@
     <div class="hero-inner">
       <p class="hero-eyebrow">fin-telligent series</p>
       <h1>AI Model Shopping Cart</h1>
-      <p>A company wants to adopt AI. How much should it spend? Walk the aisles end to end: check the benchmarks, read the price tags, fill the cart, get the receipt. Across 450+ tracked LLMs.</p>
+      <p class="hero-subtitle">AI Unit Economics: Budgeting Token Spend</p>
+      <p>A company wants to adopt AI. How much should it spend? Walk the aisles end to end: check the benchmarks, read the price tags, fill the cart, get the receipt. A token-level cost model across 450+ LLMs: benchmarks to model mix, unit pricing to budget, budget to P&amp;L.</p>
     </div>
   </header>
 
