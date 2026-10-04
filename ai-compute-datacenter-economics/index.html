@@ -956,7 +956,33 @@
   /* two stacked lines: the dollar figure, then the usage underneath it */
   .rcpt-col-tokens { display: flex; flex-direction: column; align-items: flex-end; color: var(--accent); font-weight: 700; }
   .rcpt-tok-sub { font-size: 0.64rem; font-weight: 400; color: var(--text-muted); line-height: 1.3; }
-  .rcpt-col-total { color: var(--text-primary); font-weight: 800; }
+  /* Says which side of the P&L the tokens on this row landed on. */
+  .rcpt-tok-note { font-size: 0.58rem; font-weight: 600; color: var(--accent); opacity: 0.75; letter-spacing: 0.02em; line-height: 1.3; }
+
+  /* The Tokens column is tinted end to end so Classic | Tokens | Total read as
+     three separate things. The negative margins let each cell's tint cover the
+     row's own vertical padding, so the band is continuous between rows. */
+  .rcpt-cols-head span:nth-child(3),
+  .rcpt-cols-sub span:nth-child(3),
+  .rcpt-row .rcpt-col-tokens {
+    background: var(--accent-soft);
+    padding-left: 10px; padding-right: 10px;
+  }
+  .rcpt-cols-head span:nth-child(3) { color: var(--accent); font-weight: 800; }
+  .rcpt-row .rcpt-col-tokens { align-self: stretch; margin: -7px 0; padding-top: 7px; padding-bottom: 7px; }
+  .rcpt-row-final .rcpt-col-tokens { margin: -10px 0 -2px; padding-top: 10px; padding-bottom: 2px; }
+
+  .rcpt-col-total { color: var(--text-primary); font-weight: 800; display: flex; flex-direction: column; align-items: flex-end; }
+  /* What the Cart added to (or took off) this line, so Total reads as Classic
+     plus something rather than as another number. */
+  .rcpt-total-delta { font-size: 0.62rem; font-weight: 700; color: var(--accent); line-height: 1.3; }
+  .rcpt-row-final .rcpt-total-delta { font-size: 0.68rem; }
+
+  .rcpt-token-line {
+    text-align: center; font-size: 0.74rem; color: var(--text-secondary);
+    background: var(--accent-soft); border-radius: 999px;
+    padding: 6px 14px; margin: 0 auto 10px; display: table;
+  }
 
   .rcpt-empty-hint { text-align: center; font-size: 0.74rem; color: var(--text-muted); margin: 26px 0 0; }
   .rcpt-footer-line { text-align: center; font-size: 0.82rem; color: var(--text-secondary); margin: 26px 0 0; }
@@ -1143,6 +1169,12 @@
     .rcpt-cols-sub { font-size: 0.46rem; }
     .rcpt-row { font-size: 0.68rem; }
     .rcpt-tok-sub { font-size: 0.52rem; }
+    .rcpt-tok-note { font-size: 0.46rem; }
+    .rcpt-total-delta { font-size: 0.5rem; }
+    .rcpt-token-line { font-size: 0.58rem; padding: 5px 10px; }
+    .rcpt-cols-head span:nth-child(3),
+    .rcpt-cols-sub span:nth-child(3),
+    .rcpt-row .rcpt-col-tokens { padding-left: 4px; padding-right: 4px; }
     .rcpt-row-final { font-size: 0.78rem; }
     .rcpt-row-final .rcpt-col-total { font-size: 0.95rem; }
   }
@@ -1588,6 +1620,7 @@
               <p class="rcpt-slip-eyebrow">Model Supermarket &middot; Monthly Receipt</p>
               <p class="rcpt-slip-sub">Illustrative company, monthly</p>
               <p class="rcpt-assumption" id="rcpt-assumption"></p>
+              <p class="rcpt-token-line" id="rcpt-token-line"></p>
 
               <div class="rcpt-cols-head">
                 <span>&nbsp;</span><span>Classic</span><span>Tokens</span><span>Total</span>
@@ -1600,34 +1633,34 @@
               <div class="rcpt-row" id="rcpt-row-revenue">
                 <span class="rcpt-label">Revenue</span>
                 <span class="rcpt-col-classic"></span>
-                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
-                <span class="rcpt-col-total"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span><span class="rcpt-tok-note"></span></span>
+                <span class="rcpt-col-total"><span class="rcpt-total-main"></span><span class="rcpt-total-delta"></span></span>
               </div>
               <div class="rcpt-row" id="rcpt-row-cogs">
                 <span class="rcpt-label">COGS</span>
                 <span class="rcpt-col-classic"></span>
-                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
-                <span class="rcpt-col-total"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span><span class="rcpt-tok-note"></span></span>
+                <span class="rcpt-col-total"><span class="rcpt-total-main"></span><span class="rcpt-total-delta"></span></span>
               </div>
               <hr class="rcpt-divider">
               <div class="rcpt-row rcpt-row-strong" id="rcpt-row-gross">
                 <span class="rcpt-label">Gross Profit</span>
                 <span class="rcpt-col-classic"></span>
-                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
-                <span class="rcpt-col-total"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span><span class="rcpt-tok-note"></span></span>
+                <span class="rcpt-col-total"><span class="rcpt-total-main"></span><span class="rcpt-total-delta"></span></span>
               </div>
               <div class="rcpt-row" id="rcpt-row-opex">
                 <span class="rcpt-label">Opex</span>
                 <span class="rcpt-col-classic"></span>
-                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
-                <span class="rcpt-col-total"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span><span class="rcpt-tok-note"></span></span>
+                <span class="rcpt-col-total"><span class="rcpt-total-main"></span><span class="rcpt-total-delta"></span></span>
               </div>
               <hr class="rcpt-divider">
               <div class="rcpt-row rcpt-row-strong rcpt-row-final" id="rcpt-row-operating">
                 <span class="rcpt-label">Operating Income</span>
                 <span class="rcpt-col-classic"></span>
-                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span></span>
-                <span class="rcpt-col-total"></span>
+                <span class="rcpt-col-tokens"><span class="rcpt-tok-main"></span><span class="rcpt-tok-sub"></span><span class="rcpt-tok-note"></span></span>
+                <span class="rcpt-col-total"><span class="rcpt-total-main"></span><span class="rcpt-total-delta"></span></span>
               </div>
 
               <p class="rcpt-empty-hint" id="rcpt-empty-hint">Fill the Cart to see tokens land here.</p>
@@ -4009,6 +4042,38 @@
     return list;
   }
 
+  /**
+   * Ordering for a cart model that this pull does not list at all. The Cart is
+   * not being upgraded here, it is being stood in for, so the stand-in is the
+   * nearest thing on three counts, applied in order:
+   *   1. same provider  -- the account, quota and SDK already exist
+   *   2. same price tier -- the line item stays the same size
+   *   3. nearest score   -- closest capability to what was being paid for
+   * The task's own ranking (intelligence, or speed for Q&A) survives as the
+   * final tie-break, so within one bucket the better model still leads.
+   */
+  function newcartClosestOrder(list, oldName, oldTier) {
+    var row = pcardCartFindModel(oldName);
+    var oldProvider = row ? row.provider : null;
+    var oldIntel = row && row.aa_intelligence_index != null ? row.aa_intelligence_index : null;
+    var rank = {};
+    list.forEach(function (m, i) { rank[m.name] = i; });
+    return list.slice().sort(function (x, y) {
+      var xp = (oldProvider && x.provider === oldProvider) ? 0 : 1;
+      var yp = (oldProvider && y.provider === oldProvider) ? 0 : 1;
+      if (xp !== yp) return xp - yp;
+      var xt = x.tier === oldTier ? 0 : 1;
+      var yt = y.tier === oldTier ? 0 : 1;
+      if (xt !== yt) return xt - yt;
+      if (oldIntel != null) {
+        var xd = Math.abs(x.intel - oldIntel);
+        var yd = Math.abs(y.intel - oldIntel);
+        if (Math.abs(xd - yd) > 1e-9) return xd - yd;
+      }
+      return rank[x.name] - rank[y.name];
+    });
+  }
+
   /** The blended price the Cart is paying for a model today, from the tracker. */
   function newcartOldBlended(modelName) {
     var row = pcardCartFindModel(modelName);
@@ -4071,17 +4136,21 @@
     // exactly as the Cart's own routing does, keeping the price ceiling.
     var ceiling = newcartOldBlended(oldName);
     var tier = PCART_TASK_MODEL[dept][task].tier || newcartTierOf(ceiling == null ? 0 : ceiling);
-    var order = pcartTierSearchOrder(tier);
-    for (var i = 0; i < order.length; i++) {
-      var firstList = newcartRank(task, order[i], ceiling, null);
-      if (firstList.length) {
-        return {
-          list: newcartCombine(task, firstList, newcartRank(task, order[i], null, null)),
-          reason: "retired", oldName: oldName, wasPrice: ceiling
-        };
-      }
-    }
-    return null;
+    // Pool every tier the search would have widened to. Ranking inside a single
+    // tier would leave "same price tier" with nothing to decide, and would let
+    // whichever tier answered first outrank the provider the Cart already buys
+    // from -- the opposite of the order this substitution is meant to follow.
+    var pool = [];
+    pcartTierSearchOrder(tier).forEach(function (t) {
+      newcartRank(task, t, null, null).forEach(function (m) {
+        if (pool.indexOf(m) === -1) pool.push(m);
+      });
+    });
+    if (!pool.length) return null;
+    var ranked = newcartClosestOrder(pool, oldName, tier);
+    // Q&A still answers while someone waits, so it keeps its short fast list.
+    if (task === "Q&A") ranked = newcartApplyValuePick(task, ranked).slice(0, NEWCART_QA_ROTATION);
+    return { list: ranked, reason: "retired", oldName: oldName, wasPrice: ceiling };
   }
 
   // Q&A is a queue someone is waiting in, so its rotation is held to the three
@@ -4116,9 +4185,9 @@
     return podium.slice(0, NEWCART_QA_ROTATION - 1).concat([fastest]);
   }
 
-  // Which rung of the rotation every position is showing. Advanced by Refresh.
+  // Which rung of the rotation every position is showing. Advanced by the
+  // "Next option" button, which moves on every click.
   var NEWCART_OPTION = 0;
-  var NEWCART_REVEALED = false;
 
   /**
    * The candidate this position shows right now. Positions advance together,
@@ -4330,8 +4399,7 @@
    * positions to their next candidate at once.
    */
   function newcartAdvance() {
-    if (NEWCART_REVEALED) NEWCART_OPTION++;
-    else NEWCART_REVEALED = true;
+    NEWCART_OPTION++;
     renderNewCart(true);
     // The receipt books its token spend off the new cart's picks, so advancing
     // the option without this left the P&L showing the previous option.
@@ -4430,12 +4498,31 @@
     return sign + "$" + Math.round(a);
   }
 
-  function rcptSetRow(id, classicVal, tokensVal, tokensSub, totalVal) {
+  function rcptSetRow(id, classicVal, tokensVal, tokensSub, tokensNote, totalVal, totalDelta) {
     var row = byId(id);
     row.querySelector(".rcpt-col-classic").textContent = classicVal;
     row.querySelector(".rcpt-tok-main").textContent = tokensVal;
     row.querySelector(".rcpt-tok-sub").textContent = tokensSub;
-    row.querySelector(".rcpt-col-total").textContent = totalVal;
+    row.querySelector(".rcpt-tok-note").textContent = tokensNote || "";
+    row.querySelector(".rcpt-total-main").textContent = totalVal;
+    row.querySelector(".rcpt-total-delta").textContent = totalDelta || "";
+  }
+
+  /** Signed, for the line under a Total: what the Cart moved on that row. */
+  function rcptDelta(v) {
+    if (Math.abs(v) < 0.5) return "";
+    return (v > 0 ? "+" : "\u2212") + rcptMoneyShort(Math.abs(v));
+  }
+
+  /** Per-employee spend is often cents, which rcptMoneyShort would round to $0. */
+  function rcptPerHead(v) {
+    return v < 10 ? rcptUnitMoney(v) : rcptMoneyShort(v);
+  }
+
+  function rcptPct(part, whole) {
+    if (!whole) return "0%";
+    var p = Math.abs(part / whole) * 100;
+    return (p >= 10 ? Math.round(p) : p.toFixed(1)) + "%";
   }
 
   // Always plain decimals so the column never mixes K and M units.
@@ -4514,16 +4601,36 @@
     var cogsCell = spend(cogsTokens, cogsQty);
     var opexCell = spend(opexTokens, opexQty);
 
+    // Which side of the P&L each token row landed on.
+    var cogsNote = cartEmpty ? "" : "customer-facing";
+    var opexNote = cartEmpty ? "" : "internal use";
+    // Only the three rows the Cart actually moves carry a delta.
+    var delta = function (v) { return cartEmpty ? "" : rcptDelta(v); };
+
     rcptSetRow("rcpt-row-revenue",
-      rcptMoneyShort(PRCPT_REVENUE_CLASSIC), "", "", rcptMoneyShort(revenueTotal));
+      rcptMoneyShort(PRCPT_REVENUE_CLASSIC), "", "", "", rcptMoneyShort(revenueTotal), "");
     rcptSetRow("rcpt-row-cogs",
-      rcptMoneyShort(PRCPT_COGS_CLASSIC), cogsCell[0], cogsCell[1], rcptMoneyShort(cogsTotal));
+      rcptMoneyShort(PRCPT_COGS_CLASSIC), cogsCell[0], cogsCell[1], cogsNote,
+      rcptMoneyShort(cogsTotal), delta(cogsTotal - PRCPT_COGS_CLASSIC));
     rcptSetRow("rcpt-row-gross",
-      rcptMoneyShort(grossClassic), drag(cogsTokens), "", rcptMoneyShort(grossTotal));
+      rcptMoneyShort(grossClassic), drag(cogsTokens), "", "", rcptMoneyShort(grossTotal), "");
     rcptSetRow("rcpt-row-opex",
-      rcptMoneyShort(PRCPT_OPEX_CLASSIC), opexCell[0], opexCell[1], rcptMoneyShort(opexTotal));
+      rcptMoneyShort(PRCPT_OPEX_CLASSIC), opexCell[0], opexCell[1], opexNote,
+      rcptMoneyShort(opexTotal), delta(opexTotal - PRCPT_OPEX_CLASSIC));
     rcptSetRow("rcpt-row-operating",
-      rcptMoneyShort(opClassic), drag(cogsTokens + opexTokens), "", rcptMoneyShort(opTotal));
+      rcptMoneyShort(opClassic), drag(cogsTokens + opexTokens), "", "",
+      rcptMoneyShort(opTotal), delta(opTotal - opClassic));
+
+    // Numbers only: the same token bill measured four ways.
+    var tokenSpend = cogsTokens + opexTokens;
+    var lineEl = byId("rcpt-token-line");
+    lineEl.style.display = cartEmpty ? "none" : "";
+    if (!cartEmpty) {
+      lineEl.textContent = "Tokens: " + rcptMoneyShort(tokenSpend) + "/month \u00b7 " +
+        rcptPerHead(tokenSpend / PRCPT_HEADCOUNT) + " per employee \u00b7 " +
+        rcptPct(tokenSpend, opexTotal) + " of Opex \u00b7 " +
+        rcptPct(tokenSpend, opTotal) + " of Operating Income";
+    }
 
     byId("rcpt-empty-hint").style.display = cartEmpty ? "" : "none";
   }
