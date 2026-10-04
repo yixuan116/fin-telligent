@@ -833,6 +833,9 @@
   .pcart-recon-title { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin: 0 0 10px; }
   .pcart-recon-list { margin: 0 0 14px; padding-left: 20px; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; }
   .pcart-recon-list b { color: var(--text-primary); }
+  /* Reads as body text; the underline only appears on hover. */
+  .pcart-recon-link { color: inherit; text-decoration: none; }
+  .pcart-recon-link:hover { text-decoration: underline; }
   .pcart-recon-lead { font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 10px; }
   .pcart-export {
     background: var(--accent); color: #fff; border: none; border-radius: 999px;
@@ -1580,17 +1583,15 @@
             <div class="pcart-recon">
               <p class="pcart-recon-title">Reconciled three ways</p>
               <ol class="pcart-recon-list">
-                <li><b>Source-locked prices.</b> Every unit price is looked up from the source dataset, row by row.</li>
+                <li><b>Source-locked prices.</b> Every unit price is looked up from the <a class="pcart-recon-link" href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">source dataset</a>, row by row.</li>
                 <li><b>One set of inputs.</b> The page and the Excel file read the same assumptions; a Check sheet matches them line by line.</li>
                 <!-- Point 3 stays hidden until the independent recompute is published. -->
                 <li class="pcart-recon-hidden" hidden><b>Independent recompute.</b> The portfolio is recalculated from the raw CSV outside the page, and all three agree.</li>
               </ol>
-              <p class="pcart-recon-lead">Download the snapshot and check every number yourself.</p>
+              <p class="pcart-recon-lead">Every number in the snapshot traces back to its source.</p>
               <button type="button" class="pcart-export" id="cart-export">Download Excel snapshot</button>
               <p class="pcart-export-note" id="cart-export-note"></p>
             </div>
-
-            <p class="pcard-footer">Data: <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">LLM Price-Performance Tracker</a></p>
 
             <!-- ============ New Shopping Cart (part of the Cart step) ============ -->
             <div class="ncart-block" id="ncart-block">
@@ -5025,8 +5026,11 @@
     var btn = byId("cart-export");
     var note = byId("cart-export-note");
     if (!PCART_POOL.length) { note.textContent = "Add a department to the Cart first."; return; }
+    var label = btn.getAttribute("data-label") || btn.textContent;
+    btn.setAttribute("data-label", label);
     btn.disabled = true;
-    note.textContent = "Building…";
+    note.textContent = "";
+    btn.textContent = "Building…";
     try {
       var wb = await buildWorkbook();
       var buf = await wb.xlsx.writeBuffer();
@@ -5038,8 +5042,11 @@
       a.click();
       document.body.removeChild(a);
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-      note.textContent = "Saved " + xlFileName();
+      // The button says so itself, then goes back to inviting the next download.
+      btn.textContent = "Downloaded \u2713";
+      window.setTimeout(function () { btn.textContent = label; }, 2000);
     } catch (err) {
+      btn.textContent = label;
       note.textContent = "Could not build the file: " + err.message;
       throw err;
     } finally {
