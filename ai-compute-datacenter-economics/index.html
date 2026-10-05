@@ -567,7 +567,7 @@
     .pbench-matrix { grid-template-columns: 140px repeat(5, minmax(70px, 1fr)); }
   }
 
-  /* ============ Price & Cost ============ */
+  /* ============ AI Model Pricing & Shopping Cart ============ */
 
   .pcard-subtitle { font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 6px; line-height: 1.5; font-weight: 600; }
   .pcard-source { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 22px; }
@@ -862,7 +862,7 @@
   }
 
   .pcart-share-labels { display: flex; width: 100%; margin: 0 0 14px; }
-  /* Same shape as the Price & Cost callouts: tinted block, no border. */
+  /* Same shape as the AI Model Pricing callouts: tinted block, no border. */
   .pcart-recon { background: var(--accent-soft); border-radius: var(--radius); padding: 18px 20px; margin: 22px 0 0; }
   .pcart-recon-title { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin: 0 0 10px; }
   .pcart-recon-cards { display: flex; gap: 10px; margin: 0 0 14px; align-items: stretch; }
@@ -1329,7 +1329,7 @@
     <section class="section" id="sec-data-eng">
       <button type="button" class="collapsible-toggle" id="toggle-data-eng" aria-expanded="false" aria-controls="body-data-eng">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="ct-title">Data Engineering: Source Tables &amp; Pipeline</span>
+        <span class="ct-title">Data Engineering</span>
         <span class="ct-sub">Kaggle, LLM API Pricing and Performance Benchmark Tracker &middot; 4 CSVs joined in SQL, weekly data from 2024-06-03 to 2026-07-20 </span>
       </button>
       <div class="collapsible-body" id="body-data-eng">
@@ -1436,7 +1436,7 @@
     <section class="section" id="sec-price-cost">
       <button type="button" class="collapsible-toggle" id="toggle-price-cost" aria-expanded="false" aria-controls="body-price-cost">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="ct-title">LLM Pricing</span>
+        <span class="ct-title">AI Model Pricing &amp; Shopping Cart</span>
         <span class="ct-sub">4 price types &middot; Artificial Analysis snapshot</span>
       </button>
       <div class="collapsible-body" id="body-price-cost">
@@ -2576,7 +2576,7 @@
      the Excel export cites for it.
      ============================================================ */
   var CART_CONST = {
-    // Source: "Page assumption" -- stated under Price & Cost on the page.
+    // Source: "Page assumption" -- stated under AI Model Pricing on the page.
     thinkingMultiplier: 2,
     // Source: Cart toggle label -- 80% of input repeated, that part 50% off,
     // so 0.8 x 0.5 + 0.2 = 0.6. 1 when the toggle is off.
@@ -2694,7 +2694,7 @@
     }).join("");
   }
 
-  // ============ Price & Cost (Card 1: Price Tag) ============
+  // ============ AI Model Pricing & Shopping Cart (Card 1: Price Tag) ============
   // Reuses AA_TRACKER (already loaded for Performance Benchmark) and the
   // exact shared model list computed there (PBENCH_SHARED_BASES) -- no new
   // fetch(), no re-selecting a model set.
@@ -5747,7 +5747,7 @@
     });
   }
 
-  // Price & Cost owns this chart; it used to be declared beside the
+  // AI Model Pricing owns this chart; it used to be declared beside the
   // appendix ones, which have gone.
   var modelGrowthChart;
 
@@ -5756,15 +5756,14 @@
   // Data Engineering keeps its own collapsible up top but isn't one of the
   // four steps -- it's watched below only so the stepper can clear back to
   // its unactivated state while the user is still up there, before Benchmark.
-  // Each label is the section heading word for word, so the stepper and the
-  // block it scrolls to never go by different names.
+  // One step per section, each labelled with that section's heading word for
+  // word, so the stepper and the block it scrolls to never go by different
+  // names. The Cart has no step of its own: it lives inside AI Model Pricing
+  // & Shopping Cart, whose step already carries it.
   var STEPS = [
+    { id: "sec-data-eng", label: "Data Engineering", toggleId: "toggle-data-eng" },
     { id: "sec-perf-benchmark", label: "Performance Benchmark", toggleId: "toggle-perf-benchmark" },
-    { id: "sec-price-cost", label: "LLM Pricing", toggleId: "toggle-price-cost" },
-    // scrolls to the Cart heading itself, but highlights off #pcart-scope
-    // (the whole Cart module) -- the heading alone is too short to ever win
-    // the intersection-ratio race against its parent LLM Pricing section.
-    { id: "cart-anchor", observeId: "pcart-scope", label: "Cart", toggleId: "toggle-price-cost" },
+    { id: "sec-price-cost", label: "AI Model Pricing & Shopping Cart", toggleId: "toggle-price-cost" },
     { id: "sec-receipt", label: "P&L (Receipt)", toggleId: "toggle-receipt" }
   ];
 
