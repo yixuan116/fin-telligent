@@ -135,7 +135,7 @@ function main(): void {
   if (!metaRe.test(page)) throw new Error('NEWCART_META block not found in the page');
   page = page.replace(metaRe, metaBlock);
 
-  // The arrival pool: every model Artificial Analysis dates on or after
+  // The arrival pool: every priced model Artificial Analysis dates on or after
   // POOL_FROM that this pull also lists, carrying the raw benchmark scores the
   // swimlanes are read from. Scores are copied as AA states them; a model with
   // no score for a lane simply has none, and nothing is substituted.
@@ -149,6 +149,13 @@ function main(): void {
       if (!b.release_date || b.release_date < POOL_FROM) continue;
       const p = priced.get(b.model_name);
       if (!p) continue;
+      // Priced modes only. A row with no input/output price, or one whose
+      // blended cost works out to zero, has no published price at all -- the
+      // Cart's own pool reads it the same way -- so it never reaches a card.
+      const inUsd = num(p.input_cost_usd_per_1m);
+      const outUsd = num(p.output_cost_usd_per_1m);
+      if (inUsd == null || outUsd == null) continue;
+      if ((3 * inUsd + outUsd) / 4 <= 0) continue;
       fetchedOn = fetchedOn || b.fetched_on || '';
       poolRows.push([
         b.model_name, p.provider, b.release_date,
