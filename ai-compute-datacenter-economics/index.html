@@ -1023,7 +1023,6 @@
     padding: 30px 32px; font-family: var(--mono);
   }
   .rcpt-slip-eyebrow { text-align: center; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 4px; }
-  .rcpt-slip-sub { text-align: center; font-size: 0.76rem; color: var(--text-muted); margin: 0 0 4px; }
   .rcpt-assumption { text-align: center; font-size: 0.68rem; color: var(--text-muted); margin: 0 0 20px; line-height: 1.5; }
   .rcpt-divider { border: none; border-top: 1px dashed var(--border); margin: 12px 0; }
 
@@ -1047,6 +1046,8 @@
   .rcpt-col-classic { color: var(--text-secondary); }
   /* two stacked lines: the dollar figure, then the usage underneath it */
   .rcpt-col-tokens { display: flex; flex-direction: column; align-items: flex-end; color: var(--accent); font-weight: 700; }
+  /* Signals there is a figure behind a rounded-away amount. */
+  .rcpt-tok-under { cursor: help; border-bottom: 1px dotted currentColor; }
   .rcpt-tok-sub { font-size: 0.64rem; font-weight: 400; color: var(--text-muted); line-height: 1.3; }
   /* Says which side of the P&L the tokens on this row landed on. */
   .rcpt-tok-note { font-size: 0.58rem; font-weight: 600; color: var(--accent); opacity: 0.75; letter-spacing: 0.02em; line-height: 1.3; }
@@ -1077,24 +1078,12 @@
   }
 
   .rcpt-empty-hint { text-align: center; font-size: 0.74rem; color: var(--text-muted); margin: 26px 0 0; }
-  .rcpt-footer-line { text-align: center; font-size: 0.82rem; color: var(--text-secondary); margin: 26px 0 0; }
-  .rcpt-empty-hint + .rcpt-footer-line { margin-top: 10px; }
 
-  .rcpt-group { margin: 0 0 24px; }
-  .rcpt-group:last-child { margin-bottom: 0; }
-  .rcpt-group-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
-  .rcpt-group-sub { font-size: 0.78rem; color: var(--text-secondary); margin: 0 0 14px; }
-  .rcpt-group-note { font-size: 0.68rem; color: var(--text-muted); text-align: center; margin: 10px 0 0; }
 
   .rcpt-business-lines {
     max-width: 430px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--border);
     border-radius: 4px; padding: 4px 18px; font-family: var(--mono);
   }
-  .rcpt-biz-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.78rem; padding: 9px 0; }
-  .rcpt-biz-row + .rcpt-biz-row { border-top: 1px dashed var(--border); }
-  .rcpt-biz-label { color: var(--text-primary); }
-  .rcpt-biz-value { color: var(--accent); font-weight: 700; white-space: nowrap; }
-  .rcpt-biz-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; text-align: center; padding: 16px 0; }
 
   /* ============ benchmark story (performance_benchmarks.csv deep dive) ============ */
 
@@ -1732,8 +1721,7 @@
           <div class="section-card">
 
             <div class="rcpt-slip">
-              <p class="rcpt-slip-eyebrow">Model Supermarket &middot; Monthly Receipt</p>
-              <p class="rcpt-slip-sub">Illustrative company, monthly</p>
+              <p class="rcpt-slip-eyebrow">Profit and Loss Statement (P&amp;L) &middot; Monthly</p>
               <p class="rcpt-assumption" id="rcpt-assumption"></p>
               <p class="rcpt-token-line" id="rcpt-token-line"></p>
 
@@ -1779,14 +1767,6 @@
               </div>
 
               <p class="rcpt-empty-hint" id="rcpt-empty-hint">Fill the Cart to see tokens land here.</p>
-              <p class="rcpt-footer-line">Thank you for shopping.<br>Tokens are a line item now.</p>
-            </div>
-
-            <div class="rcpt-group">
-              <p class="rcpt-group-title">&#128230; Business</p>
-              <p class="rcpt-group-sub">Every token lands on a business outcome.</p>
-              <div class="rcpt-business-lines" id="rcpt-business-lines"></div>
-              <p class="rcpt-group-note">Placeholder volumes. Swap in your own.</p>
             </div>
 
           </div>
@@ -5512,14 +5492,6 @@
   var PRCPT_OPEX_CLASSIC = PRCPT_REVENUE_CLASSIC * PRCPT_OPEX_PCT;
   var PRCPT_COGS_DEPTS = { customer: true };
 
-  var PRCPT_OUTCOMES = {
-    finance: { label: "Cost per Forecast", perPerson: 2 },
-    engineering: { label: "Cost per Merged PR", perPerson: 10 },
-    rd: { label: "Cost per Research Brief", perPerson: 4 },
-    legal: { label: "Cost per Contract Reviewed", perPerson: 15 },
-    customer: { label: "Cost per Ticket Resolved", perPerson: 200 }
-  };
-
   function rcptMoney(v) {
     var sign = v < 0 ? "-" : "";
     return sign + fmtUSD(Math.abs(v), 2);
@@ -5553,10 +5525,18 @@
     return sign + "$" + Math.round(a);
   }
 
-  function rcptSetRow(id, classicVal, tokensVal, tokensSub, tokensNote, totalVal, totalDelta) {
+  function rcptSetRow(id, classicVal, tokensVal, tokensSub, tokensNote, totalVal, totalDelta, tokensTitle) {
     var row = byId(id);
     row.querySelector(".rcpt-col-classic").textContent = classicVal;
-    row.querySelector(".rcpt-tok-main").textContent = tokensVal;
+    var tok = row.querySelector(".rcpt-tok-main");
+    tok.textContent = tokensVal;
+    if (tokensTitle) {
+      tok.setAttribute("title", tokensTitle);
+      tok.classList.add("rcpt-tok-under");
+    } else {
+      tok.removeAttribute("title");
+      tok.classList.remove("rcpt-tok-under");
+    }
     row.querySelector(".rcpt-tok-sub").textContent = tokensSub;
     row.querySelector(".rcpt-tok-note").textContent = tokensNote || "";
     row.querySelector(".rcpt-total-main").textContent = totalVal;
@@ -5589,28 +5569,14 @@
     return n + " MTok";
   }
 
-  function renderReceiptBusiness(deptCosts) {
-    var container = byId("rcpt-business-lines");
-    if (!PCART_POOL.length) {
-      container.innerHTML = '<p class="rcpt-biz-empty">Add a department to the Cart to see this.</p>';
-      return;
-    }
-    container.innerHTML = PCART_POOL.map(function (dept) {
-      var outcome = PRCPT_OUTCOMES[dept];
-      var teamSize = PCART_TEAM[dept] != null ? PCART_TEAM[dept] : PBENCH_DEPARTMENTS[dept].people;
-      var monthlyOutput = teamSize * outcome.perPerson;
-      var unitCost = monthlyOutput > 0 ? (deptCosts[dept] || 0) / monthlyOutput : 0;
-      return '<div class="rcpt-biz-row"><span class="rcpt-biz-label">' + pcardEscapeXml(PBENCH_DEPARTMENTS[dept].label) + ' · ' + outcome.label + '</span><span class="rcpt-biz-value">' + rcptUnitMoney(unitCost) + '</span></div>';
-    }).join("");
-  }
-
   // Written from the same constants that drive the table, so the stated
   // assumption can't drift away from the numbers underneath it.
   function renderReceiptAssumption() {
     byId("rcpt-assumption").textContent =
-      "Assumes " + PRCPT_HEADCOUNT + " employees × $" + (PRCPT_REVENUE_PER_HEAD / 1000) +
-      "K annual revenue per employee. COGS " + Math.round(PRCPT_COGS_PCT * 100) +
-      "%, Opex " + Math.round(PRCPT_OPEX_PCT * 100) + "% of revenue.";
+      "Illustrative company: " + PRCPT_HEADCOUNT + " employees × $" +
+      (PRCPT_REVENUE_PER_HEAD / 1000) + "K annual revenue each. COGS " +
+      Math.round(PRCPT_COGS_PCT * 100) + "%, Opex " +
+      Math.round(PRCPT_OPEX_PCT * 100) + "% of revenue.";
   }
 
   /**
@@ -5657,21 +5623,16 @@
 
     var cogsTokens = 0, opexTokens = 0;
     var cogsQty = 0, opexQty = 0;
-    var deptCosts = {};
     PCART_POOL.forEach(function (dept) {
       var bucket = PRCPT_COGS_DEPTS[dept] ? "cogs" : "opex";
-      var deptCost = 0;
       Object.keys(PCART_SHARES[dept]).forEach(function (task) {
         // Booked off the New Shopping Cart, so the P&L reflects what the same
         // basket costs at today's prices rather than the older snapshot.
         var calc = newcartLineFor(dept, task);
         if (bucket === "cogs") { cogsTokens += calc.cost; cogsQty += calc.tokens; }
         else { opexTokens += calc.cost; opexQty += calc.tokens; }
-        deptCost += calc.cost;
       });
-      deptCosts[dept] = deptCost;
     });
-    renderReceiptBusiness(deptCosts);
 
     // The statement is assembled from whole dollars, not rounded for display
     // afterwards: each subtotal is derived from figures already rounded, so the
@@ -5700,12 +5661,29 @@
     // With an empty Cart the whole Tokens column stays blank rather than
     // showing a column of zeroes; the hint below the table explains why.
     var cartEmpty = !PCART_POOL.length;
-    var spend = function (v, qty) { return cartEmpty ? ["", ""] : [rcptMoneyFull(v), rcptMTok(qty)]; };
-    // Profit lines carry the token spend as a drag; rcptMoneyFull brackets it.
-    var drag = function (v) { return cartEmpty ? "" : rcptMoneyFull(v); };
+    /**
+     * A token cost under a dollar rounds to zero in a whole-dollar statement,
+     * which would read as "nothing was spent". It prints as "<$1" instead, and
+     * the exact cents sit in the cell's tooltip. The arithmetic is untouched:
+     * the rounded figure is still what every column adds.
+     */
+    function tokenCell(raw, rounded) {
+      if (cartEmpty) return { text: "", title: "" };
+      if (rounded === 0 && Math.abs(raw) >= 0.005) {
+        return {
+          text: raw < 0 ? "(<$1)" : "<$1",
+          title: (raw < 0 ? "\u2212$" : "$") + Math.abs(raw).toFixed(2)
+        };
+      }
+      return { text: rcptMoneyFull(rounded), title: "" };
+    }
 
-    var cogsCell = spend(cogsTok, cogsQty);
-    var opexCell = spend(opexTok, opexQty);
+    var cogsCell = cartEmpty ? ["", ""] : [null, rcptMTok(cogsQty)];
+    var opexCell = cartEmpty ? ["", ""] : [null, rcptMTok(opexQty)];
+    var cogsTokCell = tokenCell(cogsTokens, cogsTok);
+    var opexTokCell = tokenCell(opexTokens, opexTok);
+    var grossTokCell = tokenCell(-cogsTokens, grossTok);
+    var opTokCell = tokenCell(-(cogsTokens + opexTokens), opTok);
 
     // Which side of the P&L each token row landed on.
     var cogsNote = cartEmpty ? "" : "customer-facing";
@@ -5716,16 +5694,17 @@
     rcptSetRow("rcpt-row-revenue",
       rcptMoneyFull(revenueClassic), "", "", "", rcptMoneyFull(revenueTotal), "");
     rcptSetRow("rcpt-row-cogs",
-      rcptMoneyFull(cogsClassic), cogsCell[0], cogsCell[1], cogsNote,
-      rcptMoneyFull(cogsTotal), delta(cogsTok));
+      rcptMoneyFull(cogsClassic), cogsTokCell.text, cogsCell[1], cogsNote,
+      rcptMoneyFull(cogsTotal), delta(cogsTok), cogsTokCell.title);
     rcptSetRow("rcpt-row-gross",
-      rcptMoneyFull(grossClassic), drag(grossTok), "", "", rcptMoneyFull(grossTotal), "");
+      rcptMoneyFull(grossClassic), grossTokCell.text, "", "",
+      rcptMoneyFull(grossTotal), "", grossTokCell.title);
     rcptSetRow("rcpt-row-opex",
-      rcptMoneyFull(opexClassic), opexCell[0], opexCell[1], opexNote,
-      rcptMoneyFull(opexTotal), delta(opexTok));
+      rcptMoneyFull(opexClassic), opexTokCell.text, opexCell[1], opexNote,
+      rcptMoneyFull(opexTotal), delta(opexTok), opexTokCell.title);
     rcptSetRow("rcpt-row-operating",
-      rcptMoneyFull(opClassic), drag(opTok), "", "",
-      rcptMoneyFull(opTotal), delta(opTok));
+      rcptMoneyFull(opClassic), opTokCell.text, "", "",
+      rcptMoneyFull(opTotal), delta(opTok), opTokCell.title);
 
     // Reads the statement back and complains loudly if any of it fails to add.
     rcptAudit([
@@ -5741,7 +5720,12 @@
     var lineEl = byId("rcpt-token-line");
     lineEl.style.display = cartEmpty ? "none" : "";
     if (!cartEmpty) {
-      lineEl.textContent = "Tokens: " + rcptMoneyFull(cogsTok + opexTok) + "/month \u00b7 " +
+      // Same rule as the Tokens column: a sub-dollar bill says so rather than
+      // reading as zero directly above a row that says "<$1".
+      var spendRounded = cogsTok + opexTok;
+      var spendShown = (spendRounded === 0 && tokenSpend >= 0.005)
+        ? "<$1" : rcptMoneyFull(spendRounded);
+      lineEl.textContent = "Tokens: " + spendShown + "/month \u00b7 " +
         rcptPerHead(tokenSpend / PRCPT_HEADCOUNT) + " per employee \u00b7 " +
         rcptPct(tokenSpend, opexTotal) + " of Opex \u00b7 " +
         rcptPct(tokenSpend, opTotal) + " of Operating Income";
