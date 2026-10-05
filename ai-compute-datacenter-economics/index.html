@@ -1361,15 +1361,15 @@
       <button type="button" class="collapsible-toggle" id="toggle-perf-benchmark" aria-expanded="false" aria-controls="body-perf-benchmark">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="ct-title">Performance Benchmark</span>
-        <span class="ct-sub">8 exams &middot; 5 lanes &middot; Artificial Analysis snapshot</span>
+        <span class="ct-sub">8 benchmarks &middot; 5 lanes &middot; Artificial Analysis snapshot</span>
       </button>
       <div class="collapsible-body" id="body-perf-benchmark">
         <div class="collapsible-body-inner">
           <div class="section-card">
 
-            <h3 class="section-title" style="font-size:1.05rem; margin:0 0 6px;">&#127891; Models take exams too. 8 exams, 5 skills.</h3>
+            <h3 class="section-title" style="font-size:1.05rem; margin:0 0 6px;">8 benchmarks, 5 skills.</h3>
             <p class="pbench-subline">&#128225; Source: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener noreferrer">Artificial Analysis</a>, via <a href="https://www.kaggle.com/datasets/kanchana1990/llm-price-performance-tracker-march-2026?resource=download" target="_blank" rel="noopener noreferrer">Kaggle</a>.</p>
-            <p class="pbench-rule">Judged on two dimensions: exam score and time to first token (TTFT). &#9889; = fastest third on TTFT.</p>
+            <p class="pbench-rule">Judged on two dimensions: benchmark score and time to first token (TTFT). &#9889; = fastest third on TTFT.</p>
 
             <div class="pbench-lanes" id="pbench-lanes"></div>
 
@@ -1436,7 +1436,7 @@
     <section class="section" id="sec-price-cost">
       <button type="button" class="collapsible-toggle" id="toggle-price-cost" aria-expanded="false" aria-controls="body-price-cost">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="ct-title">Price &amp; Cost</span>
+        <span class="ct-title">LLM Pricing</span>
         <span class="ct-sub">4 price types &middot; Artificial Analysis snapshot</span>
       </button>
       <div class="collapsible-body" id="body-price-cost">
@@ -1713,8 +1713,8 @@
     <section class="section" id="sec-receipt">
       <button type="button" class="collapsible-toggle" id="toggle-receipt" aria-expanded="false" aria-controls="body-receipt">
         <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 2l7 6-7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="ct-title">&#129534; Receipt</span>
-        <span class="ct-sub">The Cart's bill, booked as a P&amp;L</span>
+        <span class="ct-title">P&amp;L (Receipt)</span>
+        <span class="ct-sub">Monthly token cost in the P&amp;L</span>
       </button>
       <div class="collapsible-body" id="body-receipt">
         <div class="collapsible-body-inner">
@@ -5756,14 +5756,16 @@
   // Data Engineering keeps its own collapsible up top but isn't one of the
   // four steps -- it's watched below only so the stepper can clear back to
   // its unactivated state while the user is still up there, before Benchmark.
+  // Each label is the section heading word for word, so the stepper and the
+  // block it scrolls to never go by different names.
   var STEPS = [
-    { id: "sec-perf-benchmark", label: "Benchmark", toggleId: "toggle-perf-benchmark" },
-    { id: "sec-price-cost", label: "Price & Cost", toggleId: "toggle-price-cost" },
+    { id: "sec-perf-benchmark", label: "Performance Benchmark", toggleId: "toggle-perf-benchmark" },
+    { id: "sec-price-cost", label: "LLM Pricing", toggleId: "toggle-price-cost" },
     // scrolls to the Cart heading itself, but highlights off #pcart-scope
     // (the whole Cart module) -- the heading alone is too short to ever win
-    // the intersection-ratio race against its parent Price & Cost section.
+    // the intersection-ratio race against its parent LLM Pricing section.
     { id: "cart-anchor", observeId: "pcart-scope", label: "Cart", toggleId: "toggle-price-cost" },
-    { id: "sec-receipt", label: "Receipt", toggleId: "toggle-receipt" }
+    { id: "sec-receipt", label: "P&L (Receipt)", toggleId: "toggle-receipt" }
   ];
 
   function initProgressNav() {
