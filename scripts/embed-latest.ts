@@ -24,6 +24,20 @@ import { resolve, join } from 'node:path';
 const DATA_DIR = resolve(process.cwd(), 'data');
 const PAGE = resolve(process.cwd(), 'ai-compute-datacenter-economics/index.html');
 const NEW_MODELS = resolve(DATA_DIR, 'new_models_since_2026-03-31.csv');
+/** Models shelved as new arrivals: everything released on or after this date. */
+const POOL_FROM = '2026-07-20';
+/** Lane -> the verified Artificial Analysis fields behind it. */
+const LANE_FIELDS: Record<string, string[]> = {
+  Knowledge: ['gpqa'],
+  Coding: ['livecodebench', 'scicode'],
+  Math: ['aime25'],
+  Reasoning: ['hle'],
+};
+
+function newestBenchmarkFile(): string | null {
+  const files = readdirSync(DATA_DIR).filter((f) => /^aa_benchmarks_.*\.csv$/.test(f)).sort();
+  return files.length ? join(DATA_DIR, files[files.length - 1]) : null;
+}
 
 /** Minimal RFC-4180 reader: the scrape quotes any cell holding a comma. */
 function parseCsv(text: string): Record<string, string>[] {
@@ -121,8 +135,44 @@ function main(): void {
   if (!metaRe.test(page)) throw new Error('NEWCART_META block not found in the page');
   page = page.replace(metaRe, metaBlock);
 
+  // The arrival pool: every model Artificial Analysis dates on or after
+  // POOL_FROM that this pull also lists, carrying the raw benchmark scores the
+  // swimlanes are read from. Scores are copied as AA states them; a model with
+  // no score for a lane simply has none, and nothing is substituted.
+  const benchFile = newestBenchmarkFile();
+  let poolRows: any[][] = [];
+  let fetchedOn = '';
+  if (benchFile) {
+    const bench = parseCsv(readFileSync(benchFile, 'utf8'));
+    const priced = new Map(rows.map((r) => [r.model_name, r]));
+    for (const b of bench) {
+      if (!b.release_date || b.release_date < POOL_FROM) continue;
+      const p = priced.get(b.model_name);
+      if (!p) continue;
+      fetchedOn = fetchedOn || b.fetched_on || '';
+      poolRows.push([
+        b.model_name, p.provider, b.release_date,
+        round3(num(b.gpqa)), round3(num(b.livecodebench)), round3(num(b.scicode)),
+        round3(num(b.aime25)), round3(num(b.hle)),
+        round3(num(p.input_cost_usd_per_1m)), round3(num(p.output_cost_usd_per_1m)),
+      ]);
+    }
+    poolRows.sort((a, b) => String(b[2]).localeCompare(String(a[2])));
+  } else {
+    console.warn('  no aa_benchmarks_*.csv found -- NEWCART_POOL emitted empty');
+  }
+  const poolBlock = `  var NEWCART_POOL = [\n${poolRows.map((r) => `    ${JSON.stringify(r)}`).join(',\n')}\n  ];`;
+  const poolRe = /  var NEWCART_POOL = \[[\s\S]*?\n  \];/;
+  if (!poolRe.test(page)) throw new Error('NEWCART_POOL block not found in the page');
+  page = page.replace(poolRe, poolBlock);
+
+  const fetchedRe = /  var NEWCART_BENCH_FETCHED = "[^"]*";/;
+  if (!fetchedRe.test(page)) throw new Error('NEWCART_BENCH_FETCHED not found in the page');
+  page = page.replace(fetchedRe, `  var NEWCART_BENCH_FETCHED = "${fetchedOn}";`);
+
   writeFileSync(PAGE, page);
   console.log(`Embedded ${table.length} priced models, as of ${asOf} (${asOfIso})`);
+  console.log(`Embedded an arrival pool of ${poolRows.length} models released since ${POOL_FROM}`);
   console.log(`Embedded arrival meta for ${Object.keys(meta).length} models`);
 }
 
