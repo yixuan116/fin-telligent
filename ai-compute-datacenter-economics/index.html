@@ -4772,31 +4772,60 @@
       .slice(0, 2).map(function (e) { return e.lane; }).join(", ");
   }
 
+  /** A lane is only claimed when the model sits in the pool's top third for it. */
+  var NEWCART_LANE_CUT = 2 / 3;
+
   /**
-   * The arrival pool, ranked per swimlane. A lane's score is the mean of the
-   * benchmarks behind it that this model actually has; the lane a card claims
-   * is decided on percentile within the pool, so lanes on different scales can
-   * be compared. A model with no score for any lane claims nothing.
+   * The arrival pool, one entry per base model. Variants of the same model are
+   * folded together: the card counts them, takes each benchmark at the best any
+   * mode scored, and shows the price as a range when the modes differ.
+   *
+   * A lane's score is the mean of the benchmarks behind it that the model has.
+   * Lanes are ranked on percentile within the pool so scales can be compared,
+   * and only a lane in the top third is claimed at all -- a model that leads
+   * nothing simply says nothing.
    */
   var NEWCART_POOL_VIEW = null;
   function newcartPool() {
     if (NEWCART_POOL_VIEW) return NEWCART_POOL_VIEW;
-    var models = NEWCART_POOL.map(function (r) {
-      var lanes = {};
-      NEWCART_LANE_SOURCES.forEach(function (src) {
-        var vals = src.idx.map(function (i) { return r[i]; })
-          .filter(function (v) { return v != null; });
-        if (vals.length) {
-          lanes[src.lane] = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
-        }
+    var byBase = {};
+    NEWCART_POOL.forEach(function (r) {
+      var base = pbenchBaseName(r[0]);
+      var g = byBase[base];
+      if (!g) {
+        g = byBase[base] = {
+          name: base, provider: r[1], launch: r[2], modes: 0,
+          best: [null, null, null, null, null], lo: null, hi: null
+        };
+      }
+      g.modes++;
+      if (r[2] && r[2] < g.launch) g.launch = r[2];
+      [3, 4, 5, 6, 7].forEach(function (i, k) {
+        if (r[i] != null && (g.best[k] == null || r[i] > g.best[k])) g.best[k] = r[i];
       });
       var input = r[8], output = r[9];
-      return {
-        name: r[0], provider: r[1], launch: r[2], raw: r, laneScore: lanes,
-        blended: (input != null && output != null) ? (3 * input + output) / 4 : null
-      };
+      if (input != null && output != null) {
+        var blended = (3 * input + output) / 4;
+        // Same rule the Cart's own pool uses: a blended cost of zero is a model
+        // with no published price, not a free one, so it sets no price here.
+        if (blended > 0) {
+          if (g.lo == null || blended < g.lo) g.lo = blended;
+          if (g.hi == null || blended > g.hi) g.hi = blended;
+        }
+      }
     });
-    // Percentile per lane, highest score first.
+
+    var models = Object.keys(byBase).map(function (k) { return byBase[k]; });
+    models.forEach(function (m) {
+      m.laneScore = {};
+      NEWCART_LANE_SOURCES.forEach(function (src) {
+        var vals = src.idx.map(function (i) { return m.best[i - 3]; })
+          .filter(function (v) { return v != null; });
+        if (vals.length) {
+          m.laneScore[src.lane] = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+        }
+      });
+    });
     NEWCART_LANE_SOURCES.forEach(function (src) {
       var scored = models.filter(function (m) { return m.laneScore[src.lane] != null; })
         .sort(function (a, b) { return b.laneScore[src.lane] - a.laneScore[src.lane]; });
@@ -4808,8 +4837,12 @@
     });
     models.forEach(function (m) {
       var pct = m.lanePct || {};
-      m.lanes = Object.keys(pct).sort(function (a, b) { return pct[b] - pct[a]; }).slice(0, 2);
+      m.lanes = Object.keys(pct)
+        .filter(function (l) { return pct[l] >= NEWCART_LANE_CUT; })
+        .sort(function (a, b) { return pct[b] - pct[a]; })
+        .slice(0, 2);
     });
+    models.sort(function (a, b) { return String(b.launch).localeCompare(String(a.launch)); });
     NEWCART_POOL_VIEW = models;
     return models;
   }
@@ -4819,7 +4852,8 @@
     if (!m.lanes.length) return "";
     var parts = m.lanes.map(function (lane) {
       var src = NEWCART_LANE_SOURCES.filter(function (x) { return x.lane === lane; })[0];
-      return lane + ": " + src.label + " " + m.laneScore[lane].toFixed(3);
+      return lane + ": " + src.label + " " + m.laneScore[lane].toFixed(3) +
+        (m.modes > 1 ? " (best mode)" : "");
     });
     return parts.join(" · ") + " · Artificial Analysis, fetched " +
       newcartPrettyDate(NEWCART_BENCH_FETCHED);
@@ -4837,22 +4871,29 @@
     return pool.slice(start, start + NEWCART_ROW);
   }
 
+  /** One price when every mode charges the same, otherwise the span. */
+  function newcartPoolPrice(m) {
+    if (m.lo == null) return newcartMoney(null);
+    if (m.hi == null || Math.abs(m.hi - m.lo) < 1e-9) return newcartMoney(m.lo);
+    return newcartMoney(m.lo) + "–" + newcartMoney(m.hi);
+  }
+
   function newcartPoolCardHtml(m) {
     var country = NEWCART_PROVIDER_COUNTRY[m.provider] || "";
     var who = country ? m.provider + " · " + country : m.provider;
-    var variant = newcartVariantTag(m.name);
+    var variant = m.modes + (m.modes === 1 ? " mode" : " modes");
     var strong = m.lanes.join(", ");
     var note = newcartLaneNote(m);
     return '<div class="ncart-tag">' +
-      '<p class="ncart-tag-name">' + pcardEscapeXml(pbenchBaseName(m.name)) + "</p>" +
-      (variant ? '<p class="ncart-tag-variant">' + pcardEscapeXml(variant) + "</p>" : "") +
+      '<p class="ncart-tag-name">' + pcardEscapeXml(m.name) + "</p>" +
+      '<p class="ncart-tag-variant">' + pcardEscapeXml(variant) + "</p>" +
       '<p class="ncart-tag-meta">' + pcardEscapeXml(who) + "</p>" +
       (strong
         ? '<p class="ncart-tag-strong" tabindex="0">Strong in: ' + pcardEscapeXml(strong) +
             '<span class="ncart-tag-note">' + pcardEscapeXml(note) + "</span></p>"
         : '<p class="ncart-tag-strong ncart-tag-strong-empty"></p>') +
       '<div class="ncart-tag-foot">' +
-        '<p class="ncart-tag-price">' + newcartMoney(m.blended) +
+        '<p class="ncart-tag-price">' + newcartPoolPrice(m) +
           '<span class="ncart-tag-unit">/1M blended</span></p>' +
         '<p class="ncart-tag-launch">Launched ' + pcardEscapeXml(newcartPrettyDate(m.launch)) + "</p>" +
       "</div>" +

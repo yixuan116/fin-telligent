@@ -1,15 +1,17 @@
 # Re-shops the New Shopping Cart against today's listings.
 #
+# The daily schedule is OFF. The Nimble block is published as a fixed snapshot
+# dated Oct 4, 2026, and a nightly run would rewrite NEWCART_AS_OF and the
+# embedded pull underneath that date, leaving the page claiming a snapshot it
+# no longer holds. The job stays here and can still be started by hand, which
+# is the moment to re-date the snapshot deliberately.
+#
 # Runs the Nimble scrape, folds the result into the page, and commits only if
 # something actually moved. Needs a NIMBLE_API_KEY repository secret; without
 # it the job fails loudly rather than committing a half-built table.
-name: Nimble daily price check
+name: Nimble price check (manual)
 
 on:
-  schedule:
-    # 06:20 UTC daily -- after Artificial Analysis's own overnight refresh,
-    # and off the hour, where scheduled runs queue up worst.
-    - cron: '20 6 * * *'
   workflow_dispatch:
 
 permissions:
