@@ -357,9 +357,13 @@
   .ncart-refresh[disabled] { opacity: 0.55; cursor: default; }
 
   /* supermarket price tags -- a wall of them, never a table */
-  .ncart-tags { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 22px; }
+  /* A fixed five-up grid so every tag is the same width and height however
+     long a model name runs; the foot block is pushed down so the price line
+     sits on one baseline across the row. */
+  .ncart-tags { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0 0 22px; align-items: stretch; }
   .ncart-tag {
-    position: relative; flex: 0 0 auto; width: 168px;
+    position: relative; min-width: 0;
+    display: flex; flex-direction: column;
     background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
     box-shadow: var(--shadow); padding: 12px 12px 10px;
     /* the notch a shelf tag hangs from */
@@ -369,11 +373,21 @@
   }
   .ncart-tag-in { opacity: 1; transform: translateY(0); }
   .ncart-tag-lane { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 3px; }
-  .ncart-tag-name { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; line-height: 1.25; min-height: 2.5em; }
-  .ncart-tag-price { font-family: var(--mono); font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+  .ncart-tag-name {
+    font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin: 0;
+    line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ncart-tag-variant {
+    font-size: 0.6rem; color: var(--text-muted); margin: 3px 0 0; line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* margin-top:auto pins the foot to the bottom, so prices line up. */
+  .ncart-tag-foot { margin-top: auto; padding-top: 10px; }
+  .ncart-tag-price { font-family: var(--mono); font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+  .ncart-tag-launch { font-size: 0.58rem; color: var(--text-muted); margin: 3px 0 0; line-height: 1.3; }
   .ncart-tag-unit { font-size: 0.58rem; color: var(--text-muted); font-weight: 400; margin-left: 3px; }
   .ncart-tag-was { font-size: 0.62rem; color: var(--text-muted); margin: 3px 0 0; text-decoration: line-through; }
-  .ncart-tag-meta { font-size: 0.66rem; color: var(--text-secondary); margin: 3px 0 0; line-height: 1.4; }
+  .ncart-tag-meta { font-size: 0.66rem; color: var(--text-secondary); margin: 6px 0 0; line-height: 1.4; }
   .ncart-tag-strong { font-size: 0.64rem; font-weight: 600; color: var(--accent); margin: 2px 0 0; line-height: 1.4; }
   .ncart-tag-badge {
     position: absolute; top: -9px; right: 8px; background: var(--accent); color: #fff;
@@ -400,8 +414,8 @@
 
   @media (max-width: 760px) {
     .ncart-title { font-size: 0.98rem; }
-    .ncart-tags { gap: 8px; }
-    .ncart-tag { width: calc(50% - 4px); }
+    .ncart-tags { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .ncart-tag-name { font-size: 0.74rem; }
     .ncart-totals { grid-template-columns: minmax(0, 1fr); }
     .ncart-total-value { font-size: 1.2rem; }
   }
@@ -4548,7 +4562,6 @@
             task: task,
             name: pick.model.name,
             provider: pick.model.provider,
-            laneList: pick.list || null,
             reason: pick.reason,
             valuePick: pick.model.valuePick === true,
             wasName: oldName,
@@ -4580,58 +4593,90 @@
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
   }
 
-  // Intelligence cut-off for the top decile of the priced pool, computed once.
-  var NEWCART_INTEL_CUT = null;
-  function newcartIntelCut() {
-    if (NEWCART_INTEL_CUT === null) {
-      var xs = NEWCART_MODELS.map(function (m) { return m.intel; })
-        .filter(function (v) { return v != null; }).sort(function (a, b) { return b - a; });
-      NEWCART_INTEL_CUT = xs.length ? xs[Math.max(0, Math.ceil(xs.length * 0.1) - 1)] : Infinity;
-    }
-    return NEWCART_INTEL_CUT;
+  /**
+   * Where each provider is headquartered. Printed next to the provider so the
+   * shelf reads as a global market rather than a US one. A provider missing
+   * here simply shows without a country -- nothing is guessed.
+   */
+  var NEWCART_PROVIDER_COUNTRY = {
+    "AI9Stars": "China", "Alibaba": "China", "Allen Institute for AI": "United States",
+    "Amazon": "United States", "Anthropic": "United States", "Arcee AI": "United States",
+    "Baidu": "China", "Cohere": "Canada", "DeepSeek": "China", "Google": "United States",
+    "IBM": "United States", "Inception": "United States", "InclusionAI": "China",
+    "Institute of Foundation Models": "United Arab Emirates", "Kimi": "China",
+    "KwaiKAT": "China", "Liquid AI": "United States", "LongCat": "China",
+    "Meta": "United States", "Microsoft": "United States", "MiniMax": "China",
+    "Mistral": "France", "Multiverse Computing": "Spain", "NVIDIA": "United States",
+    "Nous Research": "United States", "OpenAI": "United States", "Reka AI": "United States",
+    "Sarvam": "India", "ServiceNow": "United States", "SpaceXAI": "United States",
+    "StepFun": "China", "Swiss AI Initiative": "Switzerland", "Tencent": "China",
+    "Thinking Machines": "United States", "Upstage": "South Korea", "Xiaomi": "China",
+    "Z AI": "China", "LG AI Research": "South Korea", "China Mobile": "China",
+    "01.AI": "China", "Perplexity": "United States", "xAI": "United States",
+    "Moonshot AI": "China", "Zhipu AI": "China", "Writer": "United States",
+    "AI21 Labs": "Israel", "Falcon": "United Arab Emirates", "Naver": "South Korea",
+    "Rakuten": "Japan", "Fujitsu": "Japan", "NTT": "Japan", "Yandex": "Russia",
+    "Aleph Alpha": "Germany", "Stability AI": "United Kingdom",
+    "DeepMind": "United Kingdom", "Nexusflow": "United States"
+  };
+
+  /** "Claude Sonnet 5.5 (Adaptive Reasoning, Low Effort)" -> "Adaptive Reasoning". */
+  function newcartVariantTag(name) {
+    var m = name.match(/\(([^)]*)\)/);
+    if (!m) return "";
+    var first = m[1].split(",")[0].trim();
+    return first;
   }
 
   /**
-   * One claim per card, and only a claim the numbers already carry. First that
-   * holds wins: top decile on intelligence, then fastest of the models that
-   * qualified for this lane, then cheapest in its price tier. A model none of
-   * the three fits gets no line rather than a manufactured one.
+   * The swimlanes this model leads on, named exactly as the Performance
+   * Benchmark block names them, ranked by its own score in the tracker CSV and
+   * capped at two. A model the tracker holds no benchmark for gets nothing --
+   * the line is simply left off rather than filled with a different kind of
+   * claim.
    */
-  function newcartStrongIn(t) {
-    var m = newcartFindByName(t.name);
-    if (!m) return "";
-    if (m.intel != null && m.intel >= newcartIntelCut()) return "Top 10% intelligence";
-    // Both remaining tests are read against the models that actually competed
-    // for this lane, which is the comparison the card is making.
-    var lane = (t.laneList && t.laneList.length) ? t.laneList : [m];
-    var fastest = null;
-    lane.forEach(function (c) {
-      if (c.ttft == null) return;
-      if (!fastest || c.ttft < fastest.ttft) fastest = c;
-    });
-    if (fastest && fastest.name === m.name) return "Fast response";
-    var floor = null;
-    lane.forEach(function (c) {
-      if (c.tier !== m.tier) return;
-      if (floor == null || c.blended < floor) floor = c.blended;
-    });
-    if (floor != null && Math.abs(m.blended - floor) < 1e-9) return "Best price in tier";
-    return "";
+  var NEWCART_LANE_RANK = null;
+  function newcartLaneRanks() {
+    if (NEWCART_LANE_RANK === null) {
+      NEWCART_LANE_RANK = {};
+      PBENCH_LANES.forEach(function (lane) {
+        var ranked = pbenchComputeLane(lane.keys);
+        var n = ranked.length;
+        ranked.forEach(function (row) {
+          if (!NEWCART_LANE_RANK[row.base]) NEWCART_LANE_RANK[row.base] = [];
+          // Percentile within the lane, so lanes of different sizes compare.
+          NEWCART_LANE_RANK[row.base].push({ lane: lane.label, pct: n > 1 ? 1 - (row.rank - 1) / (n - 1) : 1 });
+        });
+      });
+    }
+    return NEWCART_LANE_RANK;
+  }
+  function newcartStrongIn(name) {
+    var entries = newcartLaneRanks()[pbenchBaseName(name)];
+    if (!entries || !entries.length) return "";
+    return entries.slice().sort(function (a, b) { return b.pct - a.pct; })
+      .slice(0, 2).map(function (e) { return e.lane; }).join(", ");
   }
 
   function newcartTagHtml(t) {
     var launch = newcartLaunchDate(t.name);
-    // A lane with no confirmed arrival says so; it never borrows a date.
-    var line = t.reason === "none" || !launch
-      ? t.provider + " \u00b7 No new release"
-      : t.provider + " \u00b7 Launched " + newcartPrettyDate(launch);
-    var strong = t.reason === "none" ? "" : newcartStrongIn(t);
+    var country = NEWCART_PROVIDER_COUNTRY[t.provider] || "";
+    var who = country ? t.provider + " · " + country : t.provider;
+    var variant = newcartVariantTag(t.name);
+    var strong = t.reason === "none" ? "" : newcartStrongIn(t.name);
     return '<div class="ncart-tag">' +
-      '<p class="ncart-tag-name">' + pcardEscapeXml(t.name) + "</p>" +
-      '<p class="ncart-tag-meta">' + pcardEscapeXml(line) + "</p>" +
+      (t.valuePick ? '<span class="ncart-tag-badge ncart-tag-badge-value">Value pick</span>' : "") +
+      '<p class="ncart-tag-name">' + pcardEscapeXml(pbenchBaseName(t.name)) + "</p>" +
+      (variant ? '<p class="ncart-tag-variant">' + pcardEscapeXml(variant) + "</p>" : "") +
+      '<p class="ncart-tag-meta">' + pcardEscapeXml(who) + "</p>" +
       (strong ? '<p class="ncart-tag-strong">Strong in: ' + pcardEscapeXml(strong) + "</p>" : "") +
-      '<p class="ncart-tag-price">' + newcartMoney(t.price) +
-        '<span class="ncart-tag-unit">/1M blended</span></p>' +
+      '<div class="ncart-tag-foot">' +
+        '<p class="ncart-tag-price">' + newcartMoney(t.price) +
+          '<span class="ncart-tag-unit">/1M blended</span></p>' +
+        (t.reason === "none" || !launch
+          ? '<p class="ncart-tag-launch">No new release</p>'
+          : '<p class="ncart-tag-launch">Launched ' + pcardEscapeXml(newcartPrettyDate(launch)) + "</p>") +
+      "</div>" +
       "</div>";
   }
 
