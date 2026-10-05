@@ -5533,6 +5533,17 @@
   }
 
   // Abbreviated, no decimals: $1.6M / $640K / $3.2K / $812
+  /**
+   * Whole dollars with thousands separators, negatives in brackets the way a
+   * statement writes them. Every figure in the P&L is printed through this, so
+   * what the reader adds up is exactly what the arithmetic below used.
+   */
+  function rcptMoneyFull(v) {
+    var n = Math.round(v);
+    var body = "$" + Math.abs(n).toLocaleString("en-US");
+    return n < 0 ? "(" + body + ")" : body;
+  }
+
   function rcptMoneyShort(v) {
     var sign = v < 0 ? "-" : "";
     var a = Math.abs(v);
@@ -5552,10 +5563,12 @@
     row.querySelector(".rcpt-total-delta").textContent = totalDelta || "";
   }
 
-  /** Signed, for the line under a Total: what the Cart moved on that row. */
+  /** Signed, for the line under a Total: what the Cart moved on that row.
+      Printed in whole dollars like the column it sits in. */
   function rcptDelta(v) {
-    if (Math.abs(v) < 0.5) return "";
-    return (v > 0 ? "+" : "\u2212") + rcptMoneyShort(Math.abs(v));
+    var n = Math.round(v);
+    if (n === 0) return "";
+    return (n > 0 ? "+" : "\u2212") + "$" + Math.abs(n).toLocaleString("en-US");
   }
 
   /** Per-employee spend is often cents, which rcptMoneyShort would round to $0. */
@@ -5564,9 +5577,8 @@
   }
 
   function rcptPct(part, whole) {
-    if (!whole) return "0%";
-    var p = Math.abs(part / whole) * 100;
-    return (p >= 10 ? Math.round(p) : p.toFixed(1)) + "%";
+    if (!whole) return "0.00%";
+    return (Math.abs(part / whole) * 100).toFixed(2) + "%";
   }
 
   // Always plain decimals so the column never mixes K and M units.
@@ -5601,6 +5613,43 @@
       "%, Opex " + Math.round(PRCPT_OPEX_PCT * 100) + "% of revenue.";
   }
 
+  /**
+   * Checks the statement the way a reader would: every row's Classic + Tokens
+   * must land on its Total, and each column must step Revenue - COGS = Gross
+   * Profit, Gross Profit - Opex = Operating Income. These run on the same whole
+   * dollars the page prints, so a pass means the printed figures themselves
+   * add up, not merely the unrounded ones behind them. Anything off is a bug,
+   * so it goes to the console as an error rather than being quietly absorbed.
+   */
+  function rcptAudit(rows) {
+    var problems = [];
+    rows.forEach(function (r) {
+      if (r.classic + r.tokens !== r.total) {
+        problems.push(r.row + ": Classic " + r.classic + " + Tokens " + r.tokens +
+          " = " + (r.classic + r.tokens) + ", but Total shows " + r.total);
+      }
+    });
+    var by = {};
+    rows.forEach(function (r) { by[r.row] = r; });
+    [["classic", "Classic"], ["tokens", "Tokens"], ["total", "Total"]].forEach(function (col) {
+      var k = col[0], label = col[1];
+      var gross = by["Revenue"][k] - by["COGS"][k];
+      if (gross !== by["Gross Profit"][k]) {
+        problems.push(label + " column: Revenue - COGS = " + gross +
+          ", but Gross Profit shows " + by["Gross Profit"][k]);
+      }
+      var op = by["Gross Profit"][k] - by["Opex"][k];
+      if (op !== by["Operating Income"][k]) {
+        problems.push(label + " column: Gross Profit - Opex = " + op +
+          ", but Operating Income shows " + by["Operating Income"][k]);
+      }
+    });
+    if (problems.length) {
+      console.error("Receipt does not add up:\n  " + problems.join("\n  "));
+    }
+    return problems;
+  }
+
   function renderReceipt() {
     // cogsTokens / opexTokens are dollar spend; cogsQty / opexQty are the token
     // counts behind that spend, which is what the MTok column shows.
@@ -5624,26 +5673,39 @@
     });
     renderReceiptBusiness(deptCosts);
 
-    // Classic column: the constants alone, never touched by the Cart.
-    var grossClassic = PRCPT_REVENUE_CLASSIC - PRCPT_COGS_CLASSIC;
-    var opClassic = grossClassic - PRCPT_OPEX_CLASSIC;
+    // The statement is assembled from whole dollars, not rounded for display
+    // afterwards: each subtotal is derived from figures already rounded, so the
+    // columns add down and every row's Classic + Tokens lands on its Total.
+    var R = Math.round;
+    var revenueClassic = R(PRCPT_REVENUE_CLASSIC);
+    var cogsClassic = R(PRCPT_COGS_CLASSIC);
+    var opexClassic = R(PRCPT_OPEX_CLASSIC);
+    var grossClassic = revenueClassic - cogsClassic;
+    var opClassic = grossClassic - opexClassic;
 
-    // Total column: Classic + whatever the Cart is spending this month.
-    var revenueTotal = PRCPT_REVENUE_CLASSIC;
-    var cogsTotal = PRCPT_COGS_CLASSIC + cogsTokens;
-    var grossTotal = revenueTotal - cogsTotal;
-    var opexTotal = PRCPT_OPEX_CLASSIC + opexTokens;
-    var opTotal = grossTotal - opexTotal;
+    // Tokens column, signed: a cost on the spend rows, a drag on the profit rows.
+    var revenueTok = 0;
+    var cogsTok = R(cogsTokens);
+    var opexTok = R(opexTokens);
+    var grossTok = revenueTok - cogsTok;
+    var opTok = grossTok - opexTok;
+
+    // Total column is simply the two columns beside it, added.
+    var revenueTotal = revenueClassic + revenueTok;
+    var cogsTotal = cogsClassic + cogsTok;
+    var grossTotal = grossClassic + grossTok;
+    var opexTotal = opexClassic + opexTok;
+    var opTotal = opClassic + opTok;
 
     // With an empty Cart the whole Tokens column stays blank rather than
     // showing a column of zeroes; the hint below the table explains why.
     var cartEmpty = !PCART_POOL.length;
-    var spend = function (v, qty) { return cartEmpty ? ["", ""] : [rcptMoneyShort(v), rcptMTok(qty)]; };
-    // Profit lines carry the token spend as a drag, shown in brackets.
-    var drag = function (v) { return cartEmpty ? "" : "(" + rcptMoneyShort(v) + ")"; };
+    var spend = function (v, qty) { return cartEmpty ? ["", ""] : [rcptMoneyFull(v), rcptMTok(qty)]; };
+    // Profit lines carry the token spend as a drag; rcptMoneyFull brackets it.
+    var drag = function (v) { return cartEmpty ? "" : rcptMoneyFull(v); };
 
-    var cogsCell = spend(cogsTokens, cogsQty);
-    var opexCell = spend(opexTokens, opexQty);
+    var cogsCell = spend(cogsTok, cogsQty);
+    var opexCell = spend(opexTok, opexQty);
 
     // Which side of the P&L each token row landed on.
     var cogsNote = cartEmpty ? "" : "customer-facing";
@@ -5652,25 +5714,34 @@
     var delta = function (v) { return cartEmpty ? "" : rcptDelta(v); };
 
     rcptSetRow("rcpt-row-revenue",
-      rcptMoneyShort(PRCPT_REVENUE_CLASSIC), "", "", "", rcptMoneyShort(revenueTotal), "");
+      rcptMoneyFull(revenueClassic), "", "", "", rcptMoneyFull(revenueTotal), "");
     rcptSetRow("rcpt-row-cogs",
-      rcptMoneyShort(PRCPT_COGS_CLASSIC), cogsCell[0], cogsCell[1], cogsNote,
-      rcptMoneyShort(cogsTotal), delta(cogsTotal - PRCPT_COGS_CLASSIC));
+      rcptMoneyFull(cogsClassic), cogsCell[0], cogsCell[1], cogsNote,
+      rcptMoneyFull(cogsTotal), delta(cogsTok));
     rcptSetRow("rcpt-row-gross",
-      rcptMoneyShort(grossClassic), drag(cogsTokens), "", "", rcptMoneyShort(grossTotal), "");
+      rcptMoneyFull(grossClassic), drag(grossTok), "", "", rcptMoneyFull(grossTotal), "");
     rcptSetRow("rcpt-row-opex",
-      rcptMoneyShort(PRCPT_OPEX_CLASSIC), opexCell[0], opexCell[1], opexNote,
-      rcptMoneyShort(opexTotal), delta(opexTotal - PRCPT_OPEX_CLASSIC));
+      rcptMoneyFull(opexClassic), opexCell[0], opexCell[1], opexNote,
+      rcptMoneyFull(opexTotal), delta(opexTok));
     rcptSetRow("rcpt-row-operating",
-      rcptMoneyShort(opClassic), drag(cogsTokens + opexTokens), "", "",
-      rcptMoneyShort(opTotal), delta(opTotal - opClassic));
+      rcptMoneyFull(opClassic), drag(opTok), "", "",
+      rcptMoneyFull(opTotal), delta(opTok));
+
+    // Reads the statement back and complains loudly if any of it fails to add.
+    rcptAudit([
+      { row: "Revenue", classic: revenueClassic, tokens: revenueTok, total: revenueTotal },
+      { row: "COGS", classic: cogsClassic, tokens: cogsTok, total: cogsTotal },
+      { row: "Gross Profit", classic: grossClassic, tokens: grossTok, total: grossTotal },
+      { row: "Opex", classic: opexClassic, tokens: opexTok, total: opexTotal },
+      { row: "Operating Income", classic: opClassic, tokens: opTok, total: opTotal }
+    ]);
 
     // Numbers only: the same token bill measured four ways.
     var tokenSpend = cogsTokens + opexTokens;
     var lineEl = byId("rcpt-token-line");
     lineEl.style.display = cartEmpty ? "none" : "";
     if (!cartEmpty) {
-      lineEl.textContent = "Tokens: " + rcptMoneyShort(tokenSpend) + "/month \u00b7 " +
+      lineEl.textContent = "Tokens: " + rcptMoneyFull(cogsTok + opexTok) + "/month \u00b7 " +
         rcptPerHead(tokenSpend / PRCPT_HEADCOUNT) + " per employee \u00b7 " +
         rcptPct(tokenSpend, opexTotal) + " of Opex \u00b7 " +
         rcptPct(tokenSpend, opTotal) + " of Operating Income";
