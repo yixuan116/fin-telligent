@@ -462,11 +462,20 @@
   .ncart-tags-empty { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
 
   .ncart-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .ncart-total { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
-  .ncart-total-new { border-color: var(--accent); background: var(--accent-soft); }
+  /* Both cards are choices now: grey until picked, then the accent outline
+     the New Shopping Cart card used to wear on its own. */
+  .ncart-total {
+    display: block; width: 100%; text-align: left; font: inherit; cursor: pointer;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .ncart-total:hover { border-color: var(--accent-hover); }
+  .ncart-total:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ncart-total[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
   .ncart-total-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 6px; }
   .ncart-total-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0; }
-  .ncart-total-new .ncart-total-value { color: var(--accent); }
+  .ncart-total[aria-checked="true"] .ncart-total-value { color: var(--accent); }
   /* neutral on purpose: a cheaper basket is not automatically the better one */
   .ncart-delta { font-size: 0.86rem; font-weight: 700; margin: 10px 0 0; color: var(--accent); }
   .ncart-retired { font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0; }
@@ -1067,7 +1076,9 @@
     padding: 30px 32px; font-family: var(--mono);
   }
   .rcpt-slip-eyebrow { text-align: center; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 4px; }
-  .rcpt-assumption { text-align: center; font-size: 0.68rem; color: var(--text-muted); margin: 0 0 20px; line-height: 1.5; }
+  .rcpt-assumption { text-align: center; font-size: 0.68rem; color: var(--text-muted); margin: 0 0 4px; line-height: 1.5; }
+  /* Names the basket the statement below is pricing. */
+  .rcpt-settled { text-align: center; font-size: 0.68rem; font-weight: 700; color: var(--accent); margin: 0 0 20px; }
   .rcpt-divider { border: none; border-top: 1px dashed var(--border); margin: 12px 0; }
 
   /* three equal money columns after the label */
@@ -1734,15 +1745,18 @@
 
               <div class="ncart-tags" id="ncart-tags"></div>
 
-              <div class="ncart-totals">
-                <div class="ncart-total">
+              <!-- Pick which basket the Receipt and the Excel snapshot price. -->
+              <div class="ncart-totals" role="radiogroup" aria-label="Which cart to settle">
+                <button type="button" class="ncart-total" id="ncart-pick-old"
+                        role="radio" aria-checked="true" data-cart="old">
                   <p class="ncart-total-label">Your Cart</p>
                   <p class="ncart-total-value" id="ncart-total-old">&ndash;</p>
-                </div>
-                <div class="ncart-total ncart-total-new">
+                </button>
+                <button type="button" class="ncart-total" id="ncart-pick-new"
+                        role="radio" aria-checked="false" data-cart="new">
                   <p class="ncart-total-label" id="ncart-new-label">New Shopping Cart</p>
                   <p class="ncart-total-value" id="ncart-total-new">&ndash;</p>
-                </div>
+                </button>
               </div>
               <p class="ncart-delta" id="ncart-delta"></p>
               <p class="ncart-retired" id="ncart-retired"></p>
@@ -1771,6 +1785,7 @@
             <div class="rcpt-slip">
               <p class="rcpt-slip-eyebrow">Profit and Loss Statement (P&amp;L) &middot; Monthly</p>
               <p class="rcpt-assumption" id="rcpt-assumption"></p>
+              <p class="rcpt-settled" id="rcpt-settled"></p>
               <p class="rcpt-token-line" id="rcpt-token-line"></p>
 
               <div class="rcpt-cols-head">
@@ -3309,6 +3324,11 @@
   var PCART_ACTIVE_PACK = "Balanced";
   var PCART_JUST_ADDED = null;
   var PCART_VIEW = "dept";
+  // Which basket the Receipt and the Excel snapshot settle: "old" is Your Cart
+  // (the Cart's own models), "new" is the New Shopping Cart (today's lineup).
+  // Everything downstream reads this one flag, so the cards, the P&L and the
+  // workbook can never disagree about what they are pricing.
+  var PCART_SETTLE = "old";
 
   // Kept as a name the Cart's call sites already use; the rule is shared.
   function pcardIsReasoningModel(name) {
@@ -5150,16 +5170,21 @@
     PCART_POOL.forEach(function (dept) {
       deptCost[dept] = 0;
       Object.keys(PCART_SHARES[dept]).forEach(function (task) {
+        // The selected basket decides both the model priced and the price
+        // used, so the workbook settles exactly what the Receipt settles.
         var assigned = PCART_TASK_MODEL[dept][task];
-        var calc = pcartLineCalc(dept, task);
-        var row = pcardCartFindModel(assigned.model);
+        var pick = PCART_SETTLE === "new" ? newcartPickFor(dept, task) : null;
+        var modelName = pick ? pick.model.name : assigned.model;
+        var tier = pick ? pick.model.tier : assigned.tier;
+        var calc = cartSettledLine(dept, task);
+        var row = pcardCartFindModel(modelName) || newcartFindByName(modelName);
         if (!row) return;
         lines.push({
           dept: dept, deptLabel: PBENCH_DEPARTMENTS[dept].label, task: task,
-          model: assigned.model, tier: assigned.tier, cost: calc.cost, tokens: calc.tokens
+          model: modelName, tier: tier, cost: calc.cost, tokens: calc.tokens
         });
         deptCost[dept] += calc.cost;
-        if (tierCost[assigned.tier] != null) tierCost[assigned.tier] += calc.cost;
+        if (tierCost[tier] != null) tierCost[tier] += calc.cost;
         total += calc.cost;
       });
     });
@@ -5168,6 +5193,7 @@
       days: days,
       cacheOn: PCARD_CART_STATE.cacheOn,
       batchOn: PCARD_CART_STATE.batchOn,
+      settledFrom: cartSettledLabel(),
       lines: lines, deptCost: deptCost, tierCost: tierCost, total: total
     };
   }
@@ -5248,6 +5274,8 @@
       "Scales every department's Team Size from the 100-person default.");
     putInput("days", "Days in period", snap.days, "Page input · Cart period selector",
       "Working days the Cart prices. 1 month = 20 working days.");
+    putInput(null, "Settled from", snap.settledFrom, "Page input · Cart total cards",
+      "Which of the two total cards was selected when this file was built.");
     putInput("cacheOn", "Cache toggle on", snap.cacheOn, "Page input · Cart toggle",
       "Cache · 80% repeated input, 50% off.");
     putInput("batchOn", "Batch toggle on", snap.batchOn, "Page input · Cart toggle",
@@ -5299,20 +5327,28 @@
     });
     var priceFirst = r;
     models.forEach(function (name) {
+      // Your Cart's models come from the March tracker; the New Shopping
+      // Cart's come from the Nimble pull, which the tracker has never heard
+      // of. Each row names the file it was actually copied from.
       var row = pcardCartFindModel(name);
-      var line = xlSourceLine(name);
+      var pooled = row ? null : newcartFindByName(name);
+      if (!row && !pooled) return;
+      var line = row ? xlSourceLine(name) : "";
+      var source = row
+        ? "Row " + line + " of llm_price_performance_tracker_2026-03-31.csv, copied as-is."
+        : "From the Artificial Analysis pull embedded in this page, as of " + NEWCART_AS_OF + ".";
       put("A", name, { color: XL_BLUE });
-      put("B", row.provider, { color: XL_BLUE });
-      put("C", row.input_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
-      put("D", row.output_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
-      put("E", row.blended_cost_usd_per_1m, { color: XL_BLUE, numFmt: XL_MONEY });
-      put("F", row.pricing_tier, { color: XL_BLUE });
+      put("B", row ? row.provider : pooled.provider, { color: XL_BLUE });
+      put("C", row ? row.input_cost_usd_per_1m : pooled.input, { color: XL_BLUE, numFmt: XL_MONEY });
+      put("D", row ? row.output_cost_usd_per_1m : pooled.output, { color: XL_BLUE, numFmt: XL_MONEY });
+      put("E", row ? row.blended_cost_usd_per_1m : pooled.blended, { color: XL_BLUE, numFmt: XL_MONEY });
+      put("F", row ? row.pricing_tier : "", { color: XL_BLUE });
       put("G", line, { color: XL_GREY });
       put("H", cartIsReasoning(name), { color: XL_BLUE });
       put("I", tierOfModel[name], { color: XL_BLUE });
-      put("R", "Row " + line + " of llm_price_performance_tracker_2026-03-31.csv, copied as-is. " +
-        "Reasoning: the name carries reasoning, thinking or an effort tier, and not Non-reasoning. " +
-        "Cart Tier comes from the Cart pack definition.", { color: XL_GREY });
+      put("R", source + " Reasoning: the name carries reasoning, thinking or an " +
+        "effort tier, and not Non-reasoning. Cart Tier comes from the Cart pack definition.",
+        { color: XL_GREY });
       r++;
     });
     var priceLast = r - 1;
@@ -5493,10 +5529,48 @@
     }).join("");
   }
 
+  /**
+   * The two total cards are a two-way choice. Picking one only re-renders the
+   * Receipt: the cards' own figures do not change, and the Excel snapshot reads
+   * the same flag when it is built, so all three stay in step.
+   */
+  var SETTLE_BOUND = false;
+  function initSettlePicker() {
+    if (SETTLE_BOUND) return;
+    SETTLE_BOUND = true;
+    Array.prototype.forEach.call(document.querySelectorAll(".ncart-total[data-cart]"), function (card) {
+      card.addEventListener("click", function () {
+        PCART_SETTLE = card.getAttribute("data-cart");
+        syncSettlePicker();
+        renderReceipt();
+      });
+    });
+    syncSettlePicker();
+  }
+  function syncSettlePicker() {
+    Array.prototype.forEach.call(document.querySelectorAll(".ncart-total[data-cart]"), function (card) {
+      card.setAttribute("aria-checked",
+        card.getAttribute("data-cart") === PCART_SETTLE ? "true" : "false");
+    });
+  }
+
   var EXPORT_BOUND = false;
+  /** One line of the basket currently selected. */
+  function cartSettledLine(dept, task) {
+    return PCART_SETTLE === "new" ? newcartLineFor(dept, task) : pcartLineCalc(dept, task);
+  }
+
+  /** What the Receipt says it is pricing. */
+  function cartSettledLabel() {
+    return PCART_SETTLE === "new"
+      ? "Priced from New Shopping Cart, as of " + NEWCART_AS_OF
+      : "Priced from Your Cart";
+  }
+
   function renderCartCard() {
     renderCartPeriodOptions();
     initReconCards();
+    initSettlePicker();
     if (!EXPORT_BOUND) {
       EXPORT_BOUND = true;
       byId("cart-export").addEventListener("click", downloadWorkbook);
@@ -5690,15 +5764,16 @@
     // cogsTokens / opexTokens are dollar spend; cogsQty / opexQty are the token
     // counts behind that spend, which is what the MTok column shows.
     renderReceiptAssumption();
+    byId("rcpt-settled").textContent = cartSettledLabel();
 
     var cogsTokens = 0, opexTokens = 0;
     var cogsQty = 0, opexQty = 0;
     PCART_POOL.forEach(function (dept) {
       var bucket = PRCPT_COGS_DEPTS[dept] ? "cogs" : "opex";
       Object.keys(PCART_SHARES[dept]).forEach(function (task) {
-        // Booked off the New Shopping Cart, so the P&L reflects what the same
-        // basket costs at today's prices rather than the older snapshot.
-        var calc = newcartLineFor(dept, task);
+        // Booked off whichever basket is selected above, so the P&L always
+        // reports the same total the chosen card is showing.
+        var calc = cartSettledLine(dept, task);
         if (bucket === "cogs") { cogsTokens += calc.cost; cogsQty += calc.tokens; }
         else { opexTokens += calc.cost; opexQty += calc.tokens; }
       });
