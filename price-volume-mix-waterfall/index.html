@@ -70,9 +70,46 @@
     margin: 0 auto;
   }
 
+  /* Title left, player right, both starting level. Under 900px the two stack
+     with the title first. Colours come from this page's own tokens rather than
+     the Shopping Cart's hardcoded navy ones, so this follows dark mode. */
   header.hero {
-    text-align: center;
+    display: grid;
+    grid-template-columns: 65fr 35fr;
+    gap: 24px;
+    align-items: start;
     margin-bottom: 36px;
+  }
+  header.hero .hero-text { min-width: 0; }
+  header.hero .hero-media {
+    min-width: 0; width: 100%; max-width: 400px; margin-left: auto;
+  }
+  /* header.hero p names an element, so it outranks a bare class and would set
+     this label's size. Matching that specificity keeps the label at eyebrow
+     size rather than body size. */
+  header.hero p.hero-video-label {
+    font-size: 0.76rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-secondary);
+    margin: 0 0 10px; line-height: 1.4;
+  }
+  .hero-video-frame {
+    width: 100%; aspect-ratio: 16 / 9;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .hero-video-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+  .hero-video-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; color: var(--text-muted);
+  }
+
+  @media (max-width: 900px) {
+    header.hero { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    /* Stacked, the player spans the column instead of staying a card pinned
+       to the right edge. */
+    header.hero .hero-media { max-width: none; margin-left: 0; }
   }
 
   header.hero h1 {
@@ -962,8 +999,12 @@
 <div class="app">
 
   <header class="hero">
-    <h1>AI Assistant and Me (Finance Analyst): Who Does What</h1>
-    <p>Case: Growth &ne; Profit, diagnosed with a price-volume-mix waterfall</p>
+    <div class="hero-text">
+      <h1>AI Assistant and Me (Finance Analyst): Who Does What</h1>
+      <p>Case: Growth &ne; Profit, diagnosed with a price-volume-mix waterfall</p>
+    </div>
+    <!-- Filled by renderHeroVideo(); empty id renders the Coming soon card. -->
+    <div class="hero-media" id="hero-video"></div>
   </header>
 
   <div class="conversation">
@@ -1351,6 +1392,28 @@
 </div>
 
 <script>
+  /**
+   * The hero's video slot, same component as the AI Model Shopping Cart page.
+   * Pass a YouTube id to embed it; pass nothing and the same-sized card says
+   * "Coming soon" instead, so a page without a video yet keeps the hero's
+   * shape. The label is the same either way.
+   */
+  function renderHeroVideo(el, videoId) {
+    if (!el) return;
+    var label = '<p class="hero-video-label">\u25b6 Watch the Video</p>';
+    var body = videoId
+      ? '<div class="hero-video-frame"><iframe' +
+          ' src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) + '"' +
+          ' title="Price-Volume-Mix Waterfall video"' +
+          ' loading="lazy"' +
+          ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"' +
+          ' allowfullscreen></iframe></div>'
+      : '<div class="hero-video-frame hero-video-placeholder">Coming soon</div>';
+    el.innerHTML = label + body;
+  }
+
+  renderHeroVideo(document.getElementById('hero-video'), 'eXZR-pW_UO4');
+
   function cssVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
