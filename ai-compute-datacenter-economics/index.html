@@ -272,7 +272,7 @@
   .hero {
     background: linear-gradient(160deg, var(--navy), var(--navy-light));
     color: #f5f5fa;
-    padding: 56px 0 48px;
+    padding: 40px 0 36px;
   }
   .hero-inner { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-gutter); }
   .hero-eyebrow { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9aa4f0; margin: 0 0 12px; }
@@ -282,16 +282,28 @@
   .hero p { font-size: 1.02rem; color: #c4c6e0; max-width: var(--prose-max); line-height: 1.6; margin: 0; }
 
   /* ============ hero video ============ */
-  /* Text left, player right, centred against each other. Under 900px the two
+  /* The title leads: text takes two thirds, the player sits right-aligned in
+     the remaining third and starts level with the eyebrow. Under 900px the two
      stack with the text first, so the pitch still reads before the video. */
-  .hero-inner { display: grid; grid-template-columns: 55fr 45fr; gap: 36px; align-items: center; }
+  .hero-inner { display: grid; grid-template-columns: 65fr 35fr; gap: 36px; align-items: start; }
   .hero-text { min-width: 0; }
-  .hero-media { min-width: 0; }
-  /* Same treatment as the FIN-TELLIGENT SERIES eyebrow above it. */
-  .hero-video-label {
+  /* width:100% matters: with only a max-width and an auto margin the item
+     shrink-to-fits and the label text ends up setting the player's size. */
+  .hero-media { min-width: 0; width: 100%; max-width: 400px; margin-left: auto; }
+  /*
+   * .hero p carries an element in its selector, so it outranks a bare class
+   * and was overriding both of these -- the eyebrow has never rendered at the
+   * size and colour written for it. Naming the element here matches that
+   * specificity, so the two labels are identical by construction rather than
+   * by coincidence.
+   */
+  .hero p.hero-eyebrow,
+  .hero p.hero-video-label {
     font-size: 0.76rem; font-weight: 700; letter-spacing: 0.1em;
-    text-transform: uppercase; color: #9aa4f0; margin: 0 0 10px;
+    text-transform: uppercase; color: #9aa4f0; line-height: 1.4;
   }
+  .hero p.hero-eyebrow { margin: 0 0 12px; }
+  .hero p.hero-video-label { margin: 0 0 10px; }
   .hero-video-frame {
     width: 100%; aspect-ratio: 16 / 9;
     background: #11112099;
@@ -308,6 +320,9 @@
 
   @media (max-width: 900px) {
     .hero-inner { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    /* Stacked, the player spans the column instead of staying a 400px card
+       pinned to the right edge. */
+    .hero-media { max-width: none; margin-left: 0; }
   }
 
   /* ============ page / sections ============ */
