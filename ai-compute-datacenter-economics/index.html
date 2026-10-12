@@ -1011,6 +1011,9 @@
 
   .pcart-task-subtotal { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 
+  .pcart-tier-line {
+    font-size: 0.68rem; color: var(--text-muted); margin: 10px 0 0; line-height: 1.5;
+  }
   .pcart-detail-tokens {
     font-size: 0.68rem; color: var(--text-muted); margin: 4px 0 0; padding-top: 10px; border-top: 1px dashed var(--border);
   }
@@ -1684,6 +1687,7 @@
               <div class="pcart-pool" id="cart-pool"></div>
 
               <p class="pcard-formula">Monthly Cost = &Sigma; ( Team Size &times; Task Share &times; Daily Tokens per Person &times; Days &times; Unit Budget ) &times; Batch factor</p>
+              <p class="pcard-formula">Daily Tokens per Person = &Sigma; ( Tier Share &times; Tier Tokens )</p>
               <p class="pcard-formula">Unit Budget = (I/O Ratio &times; Input price &times; Cache factor + Thinking Multiplier &times; Output price) &divide; (I/O Ratio + 1)</p>
               <p class="pcard-legend">Cache factor and Batch factor are 1 when the toggle is off, and 0.6 and 0.5 when it is on.</p>
 
@@ -2669,6 +2673,20 @@
     cacheFactor: 0.6,
     // Source: Cart toggle label -- the whole bill 50% off. 1 when off.
     batchFactor: 0.5,
+    /*
+     * Not everyone in a team works a task the same way. Each task's Daily
+     * Tokens per Person is the weighted average of three usage tiers, where
+     * `rel` is each tier's load relative to the others. The tiers are scaled
+     * so the weighted average lands exactly on the preset below -- 0.6x0.5 +
+     * 0.3x1.5 + 0.1x4 = 1.15, so each tier's tokens are rel x preset / 1.15.
+     * Nothing about the bill changes; this only shows what the average is
+     * made of. Shares must total 1.
+     */
+    tierMix: [
+      { id: "Standard", share: 0.60, rel: 0.5 },
+      { id: "Mid", share: 0.30, rel: 1.5 },
+      { id: "Heavy", share: 0.10, rel: 4 }
+    ],
     // Source: Cart task presets -- Daily Tokens per Person and I/O Ratio.
     taskPresets: {
       "Coding": { dailyTokens: 400000, ioRatio: 8 },
@@ -3257,7 +3275,7 @@
     var body = byId("ptok-table-body");
     if (!body) return;
     body.innerHTML = PCARD_TASK_BREAKDOWN.map(function (row) {
-      var daily = PCARD_TASK_PRESETS[row.task].dailyTokens;
+      var daily = cartDailyTokens(row.task);
       var how = row.text;
       if (!how) {
         how = "~" + Math.round(daily / row.unit) + " " + row.noun +
@@ -3331,6 +3349,31 @@
   var PCART_SETTLE = "old";
 
   // Kept as a name the Cart's call sites already use; the rule is shared.
+  /** Sum of share x rel across the mix; the preset is divided by this. */
+  var CART_TIER_WEIGHT = CART_CONST.tierMix.reduce(function (a, t) { return a + t.share * t.rel; }, 0);
+
+  /**
+   * The three usage tiers behind a task, in tokens per person per day. Scaled
+   * so that the share-weighted average is the task's preset exactly.
+   */
+  function cartTierTokens(task) {
+    var preset = CART_CONST.taskPresets[task];
+    if (!preset) return [];
+    var unit = preset.dailyTokens / CART_TIER_WEIGHT;
+    return CART_CONST.tierMix.map(function (t) {
+      return { id: t.id, share: t.share, tokens: t.rel * unit };
+    });
+  }
+
+  /**
+   * Daily Tokens per Person, read off the tiers rather than the preset, so the
+   * number the Cart bills is the one the formula line describes. It equals the
+   * preset by construction.
+   */
+  function cartDailyTokens(task) {
+    return cartTierTokens(task).reduce(function (a, t) { return a + t.share * t.tokens; }, 0);
+  }
+
   function pcardIsReasoningModel(name) {
     return cartIsReasoning(name);
   }
@@ -3693,6 +3736,23 @@
       '</div>';
   }
 
+  /**
+   * One line naming the usage mix behind this department's tasks: each tier's
+   * headcount share and what that tier runs per day. Where the department has
+   * more than one task the tokens differ per task, so the line shows the range.
+   */
+  function cartTierMixLine(tasks) {
+    var mix = CART_CONST.tierMix.map(function (t, i) {
+      var vals = tasks.map(function (task) { return cartTierTokens(task)[i].tokens; });
+      var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+      var tok = Math.abs(hi - lo) < 1
+        ? pcardTokensShort(lo)
+        : pcardTokensShort(lo) + "\u2013" + pcardTokensShort(hi);
+      return t.id + " " + Math.round(t.share * 100) + "% \u00b7 " + tok + "/day";
+    });
+    return "Usage mix: " + mix.join("  |  ");
+  }
+
   function pcartDetailHtml(dept) {
     var d = PBENCH_DEPARTMENTS[dept];
     var shares = PCART_SHARES[dept];
@@ -3730,6 +3790,7 @@
       '<div class="pcart-share-bar">' + barHtml + '</div>' +
       '<div class="pcart-share-labels">' + labelsHtml + '</div>' +
       '<div class="pcart-task-lines">' + taskLinesHtml + '</div>' +
+      '<p class="pcart-tier-line">' + pcardEscapeXml(cartTierMixLine(tasks)) + '</p>' +
       '<p class="pcart-detail-tokens"></p>' +
       '</div>';
   }
@@ -3812,7 +3873,7 @@
     var pIn = priceRow.input_cost_usd_per_1m, pOut = priceRow.output_cost_usd_per_1m;
     var mult = pcardIsReasoningModel(modelName) ? CART_CONST.thinkingMultiplier : 1;
     var days = cartDays();
-    var totalTokens = teamSize * share * taskDef.dailyTokens * days;
+    var totalTokens = teamSize * share * cartDailyTokens(task) * days;
 
     function unitBudget(cacheOn) {
       var effIn = cacheOn ? pIn * CART_CONST.cacheFactor : pIn;
@@ -4576,7 +4637,7 @@
     // reasoning markers the new listings use.
     var mult = newcartIsReasoning(model.name) ? CART_CONST.thinkingMultiplier : 1;
     var days = cartDays();
-    var totalTokens = teamSize * share * taskDef.dailyTokens * days;
+    var totalTokens = teamSize * share * cartDailyTokens(task) * days;
 
     var effIn = PCARD_CART_STATE.cacheOn ? model.input * CART_CONST.cacheFactor : model.input;
     var unit = (taskDef.ioRatio * effIn + mult * model.output) / (taskDef.ioRatio + 1);
@@ -5307,9 +5368,26 @@
     var tasksUsed = [];
     snap.lines.forEach(function (l) { if (tasksUsed.indexOf(l.task) === -1) tasksUsed.push(l.task); });
     tasksUsed.forEach(function (task) {
-      putInput("dt_" + task, task + " · Daily Tokens per Person",
-        CART_CONST.taskPresets[task].dailyTokens, "Cart task presets",
-        "Tokens one person runs through " + task + " in a working day.");
+      // The three usage tiers, then the average they produce. The average is
+      // a formula over the tier rows, so the workbook derives Daily Tokens per
+      // Person the same way the page does rather than restating the preset.
+      var tiers = cartTierTokens(task);
+      var shareRefs = [], tokenRefs = [];
+      tiers.forEach(function (t, i) {
+        putInput("tshare_" + task + "_" + i, task + " · " + t.id + " share",
+          t.share, "Cart usage mix",
+          "Share of the team running " + task + " at the " + t.id + " tier.");
+        shareRefs.push(ref["tshare_" + task + "_" + i]);
+        putInput("ttok_" + task + "_" + i, task + " · " + t.id + " tokens/day",
+          t.tokens, "Cart usage mix",
+          "Tokens a " + t.id + "-tier person runs through " + task + " in a working day.");
+        tokenRefs.push(ref["ttok_" + task + "_" + i]);
+      });
+      putDerived("dt_" + task, task + " · Daily Tokens per Person",
+        "=" + tiers.map(function (t, i) { return shareRefs[i] + "*" + tokenRefs[i]; }).join("+"),
+        "Derived · Σ (Tier Share × Tier Tokens)",
+        "The weighted average of the three tiers above. This is the figure the " +
+        "Portfolio bills, and it lands on the Cart's published preset for " + task + ".");
       putInput("io_" + task, task + " · I/O Ratio",
         CART_CONST.taskPresets[task].ioRatio, "Cart task presets",
         "Input tokens per output token for " + task + ".");
