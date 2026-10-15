@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOM Deep Dive | Consumer Hardware Finance</title>
+<meta name="description" content="A costed BOM tree for an AI-native consumer device: every part with its unit cost, tier depth, sourcing model and cost driver, rolled up to a blended standard BOM. All figures simulated.">
+<style>
+  /* Tokens, type scale and card/table language are carried over from the
+     Build to Sell page so the two read as one document. */
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --card-bg: #f7f7f8;
+    --card-border: #e8e8ea;
+    --border: #e5e5e8;
+    --text-primary: #1a1a1c;
+    --text-secondary: #55555b;
+    --text-muted: #8a8a90;
+    --shadow: rgba(20, 20, 25, 0.07);
+
+    --blue: #2a78d6;
+    --orange: #eb6834;
+    --green: #0ca30c;
+    --red: #e34948;
+    --amber: #d9971f;
+    --purple: #7c5cbf;
+
+    --blue-tint: rgba(42, 120, 214, 0.12);
+    --orange-tint: rgba(235, 104, 52, 0.14);
+    --green-tint: rgba(12, 163, 12, 0.12);
+    --red-tint: rgba(227, 73, 72, 0.12);
+    --amber-tint: rgba(217, 151, 31, 0.16);
+    --purple-tint: rgba(124, 92, 191, 0.14);
+
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0c0e;
+      --card-bg: #1a1a1d;
+      --card-border: #2a2a2e;
+      --border: #29292d;
+      --text-primary: #f2f2f3;
+      --text-secondary: #b7b7bc;
+      --text-muted: #85858c;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 28px 16px 56px; }
+
+  .app { max-width: 980px; margin: 0 auto; }
+
+  /* ---------- back link ---------- */
+
+  .backlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+
+  .backlink:hover { color: var(--text-primary); }
+
+  /* ---------- hero ---------- */
+
+  header.hero { margin-bottom: 22px; }
+
+  header.hero h1 {
+    font-size: 1.55rem;
+    font-weight: 800;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  header.hero p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  .continuity {
+    margin: 12px 0 0;
+    padding: 9px 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .continuity strong { color: var(--text-secondary); font-weight: 700; }
+
+  .hero-footnote {
+    margin: 8px 0 0;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--text-muted);
+  }
+
+  /* ---------- sections ---------- */
+
+  .section {
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px 22px 18px;
+    margin-bottom: 18px;
+    background: var(--bg);
+  }
+
+  .section h2 {
+    font-size: 1.02rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  .section .section-sub {
+    margin: 0 0 14px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+  }
+
+  .chip:nth-child(4n+1) { background: var(--blue-tint); color: var(--blue); }
+  .chip:nth-child(4n+2) { background: var(--green-tint); color: var(--green); }
+  .chip:nth-child(4n+3) { background: var(--purple-tint); color: var(--purple); }
+  .chip:nth-child(4n+4) { background: var(--orange-tint); color: var(--orange); }
+
+  /* ---------- product toggle ---------- */
+
+  .toggle-row { display: flex; gap: 8px; margin: 4px 0 16px; }
+
+  .toggle-btn {
+    flex: 1;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  /* Build-side section, so the selected state uses the build blue rather than
+     the sell orange the Build to Sell page's logistics toggle uses. */
+  .toggle-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* ---------- costed BOM tree ---------- */
+
+  .tree { margin: 2px 0 4px; }
+
+  .tree-root {
+    text-align: center;
+    background: var(--blue-tint);
+    border: 1px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 14px 18px 12px;
+  }
+
+  .tree-root-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--blue);
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .tree-root-value { display: block; font-size: 1.8rem; font-weight: 800; color: var(--blue); line-height: 1.1; }
+
+  .tree-root-sub { display: block; margin-top: 4px; font-size: 0.72rem; color: var(--text-secondary); }
+
+  .tree-stem { position: relative; height: 18px; }
+  .tree-stem::before {
+    content: ""; position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 1px; background: var(--border);
+  }
+
+  .tree-branches {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding-top: 16px;
+  }
+
+  /* Horizontal rail joining the root stem to the two level 1 nodes. The two
+     columns are equal, so their centres sit at 25% and 75%. */
+  .tree-branches::before {
+    content: ""; position: absolute; top: 0; left: 25%; right: 25%;
+    height: 1px; background: var(--border);
+  }
+
+  .branch {
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 12px 14px 13px;
+  }
+
+  .branch::before {
+    content: ""; position: absolute; top: -16px; left: 50%;
+    width: 1px; height: 16px; background: var(--border);
+  }
+
+  .branch-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .branch-name {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .branch.imported .branch-name { color: var(--purple); }
+  .branch.local .branch-name { color: var(--green); }
+
+  .branch-value { font-size: 1.02rem; font-weight: 800; color: var(--text-primary); }
+
+  /* Level 2 parts hang off a left rail with an elbow into each node. */
+  .branch-parts { position: relative; padding-left: 14px; }
+  .branch-parts::before {
+    content: ""; position: absolute; left: 2px; top: 0; bottom: 0;
+    width: 1px; background: var(--border);
+  }
+
+  .part { position: relative; padding: 9px 0 8px; }
+  .part + .part { border-top: 1px dashed var(--border); }
+  .part::before {
+    content: ""; position: absolute; left: -12px; top: 18px;
+    width: 9px; height: 1px; background: var(--border);
+  }
+
+  .part-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .part-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+  .part-cost { font-size: 0.82rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+
+  .part-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  .tag.tier { background: var(--purple-tint); color: var(--purple); }
+  .tag.src { background: var(--blue-tint); color: var(--blue); }
+  .tag.drv { background: var(--amber-tint); color: var(--amber); }
+
+  /* ---------- legend and summary ---------- */
+
+  .tree-legend {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tree-legend li {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    padding: 2px 0;
+  }
+
+  .tree-legend li strong { color: var(--text-secondary); font-weight: 700; }
+
+  .tree-summary {
+    margin: 14px 0 0;
+    padding: 11px 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .tree-summary strong { color: var(--text-primary); font-weight: 800; }
+
+  /* ---------- footer ---------- */
+
+  footer.page-footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  footer.page-footer p {
+    max-width: 640px;
+    margin: 0 auto 12px;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  footer.page-footer .footer-links {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px;
+  }
+
+  footer.page-footer .gh-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.84rem;
+  }
+
+  footer.page-footer .gh-link:hover { color: var(--text-primary); }
+  footer.page-footer .gh-link svg { fill: currentColor; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 700px) {
+    /* Stacked, the two level 1 nodes no longer sit either side of the root
+       stem, so the connectors would point at nothing. The left rail inside
+       each branch still carries the hierarchy. */
+    .tree-stem { display: none; }
+    .tree-branches { grid-template-columns: minmax(0, 1fr); padding-top: 14px; }
+    .tree-branches::before { display: none; }
+    .branch::before { display: none; }
+    header.hero h1 { font-size: 1.25rem; }
+    .section { padding: 16px 14px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <a class="backlink" href="../">&#8592; Build to Sell</a>
+
+  <header class="hero">
+    <h1>BOM Deep Dive</h1>
+    <p>From unit cost to month-end close, inventory, and cash.</p>
+    <p class="continuity" id="continuityStrip"></p>
+    <p class="hero-footnote">All figures simulated for framework demonstration.</p>
+  </header>
+
+  <!-- Section 0. Later sections (budget vs. actual, inventory, cash) are
+       appended below this one as sibling .section blocks. -->
+  <section class="section" id="section-0">
+    <h2>Section 0. Costed BOM Tree</h2>
+    <p class="section-sub">One device, every part, and what each part tells you about cost.</p>
+
+    <div class="chip-row">
+      <span class="chip">Engineering</span>
+      <span class="chip">Procurement</span>
+      <span class="chip">Finance</span>
+    </div>
+
+    <div class="toggle-row" id="productToggle" role="group" aria-label="Product">
+      <button type="button" class="toggle-btn active" data-product="A" aria-pressed="true">Product A (Premium)</button>
+      <button type="button" class="toggle-btn" data-product="B" aria-pressed="false">Product B (Standard)</button>
+    </div>
+
+    <div class="tree" id="bomTree"></div>
+
+    <ul class="tree-legend">
+      <li><strong>Tier</strong> &middot; how deep cost visibility goes</li>
+      <li><strong>Sourcing</strong> &middot; who owns the price, and whose books the inventory sits on</li>
+      <li><strong>Imported / Local</strong> &middot; where FX and tariff apply</li>
+    </ul>
+
+    <p class="tree-summary" id="treeSummary"></p>
+  </section>
+
+  <footer class="page-footer">
+    <p>Simulated data for framework demonstration. No real company, supplier or product is represented.</p>
+    <div class="footer-links">
+      <a class="gh-link" href="../">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M7.5 1.6L2.9 6.2l1.1 1.1 3.5-3.5 3.5 3.5 1.1-1.1z" transform="rotate(-90 7.5 7.5)"></path></svg>
+        <span>Build to Sell</span>
+      </a>
+      <a class="gh-link" href="https://github.com/yixuan116/fin-telligent" target="_blank" rel="noopener noreferrer">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        <span>github.com/yixuan116/fin-telligent</span>
+      </a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- carried assumptions (Build to Sell page) ---------- */
+
+  var UNITS = 500000;
+  var MIX = { A: 0.60, B: 0.40 };
+  var ACTUAL_BLENDED = 77.17;   // blended actual BOM per unit at 92% yield
+  var YIELD = 0.92;
+
+  /* ---------- level 2 part rows ----------
+     Subtotals and totals are never stated here; everything above a part is
+     summed from these rows so the tree cannot drift from its own data. */
+
+  var PARTS = [
+    { name: "Main Chip",                  group: "Imported", a: 20, b: 12, tier: "T2", sourcing: "Directed Buy", driver: "Top cost · penetrate to T2" },
+    { name: "Memory",                     group: "Imported", a: 10, b:  6, tier: "T2", sourcing: "Consigned",    driver: "Market cycle · highest volatility" },
+    { name: "Camera Module (optics)",     group: "Imported", a:  8, b:  0, tier: "T1", sourcing: "CM Turnkey" },
+    { name: "Wireless Module",            group: "Imported", a:  7, b:  7, tier: "T1", sourcing: "CM Turnkey" },
+    { name: "Battery",                    group: "Local",    a:  5, b:  4, tier: "T1", sourcing: "Directed Buy", driver: "Lithium index" },
+    { name: "Enclosure",                  group: "Local",    a: 12, b:  8, tier: "T1", sourcing: "CM Turnkey",   driver: "Aluminum index" },
+    { name: "PCB, PMIC & Passives",       group: "Local",    a:  9, b:  6, tier: "T1", sourcing: "CM Turnkey" },
+    { name: "Audio (mic array, speaker)", group: "Local",    a:  7, b:  3, tier: "T1", sourcing: "CM Turnkey" },
+    { name: "Sensors & Haptics",          group: "Local",    a:  2, b:  1, tier: "T1", sourcing: "CM Turnkey" },
+    { name: "Packaging & Accessories",    group: "Local",    a:  5, b:  3, tier: "T1", sourcing: "CM Turnkey" }
+  ];
+
+  var GROUPS = ["Imported", "Local"];
+
+  var PRODUCTS = {
+    A: { key: "a", label: "Product A (Premium)" },
+    B: { key: "b", label: "Product B (Standard)" }
+  };
+
+  var current = "A";
+
+  /* ---------- helpers ---------- */
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function money(v) {
+    return "$" + v.toFixed(2);
+  }
+
+  function millions(v) {
+    return "$" + (v / 1e6).toFixed(2) + "M";
+  }
+
+  // Parts priced at $0 are not in this product's bill, so they are left out
+  // of its tree rather than shown as an empty node.
+  function partsFor(productId, group) {
+    var key = PRODUCTS[productId].key;
+    return PARTS.filter(function (p) {
+      return p.group === group && p[key] > 0;
+    });
+  }
+
+  function groupSubtotal(productId, group) {
+    var key = PRODUCTS[productId].key;
+    return partsFor(productId, group).reduce(function (sum, p) { return sum + p[key]; }, 0);
+  }
+
+  function productTotal(productId) {
+    return GROUPS.reduce(function (sum, g) { return sum + groupSubtotal(productId, g); }, 0);
+  }
+
+  function blendedStandardBom() {
+    return Object.keys(MIX).reduce(function (sum, id) {
+      return sum + MIX[id] * productTotal(id);
+    }, 0);
+  }
+
+  /* ---------- render ---------- */
+
+  function partHtml(part, productId) {
+    var key = PRODUCTS[productId].key;
+    var tags = '<span class="tag tier">' + esc(part.tier) + "</span>" +
+               '<span class="tag src">' + esc(part.sourcing) + "</span>";
+    if (part.driver) tags += '<span class="tag drv">' + esc(part.driver) + "</span>";
+    return '<div class="part">' +
+             '<div class="part-top">' +
+               '<span class="part-name">' + esc(part.name) + "</span>" +
+               '<span class="part-cost">' + money(part[key]) + "</span>" +
+             "</div>" +
+             '<div class="part-tags">' + tags + "</div>" +
+           "</div>";
+  }
+
+  function branchHtml(group, productId) {
+    var parts = partsFor(productId, group).map(function (p) {
+      return partHtml(p, productId);
+    }).join("");
+    return '<div class="branch ' + group.toLowerCase() + '">' +
+             '<div class="branch-head">' +
+               '<span class="branch-name">' + esc(group) + "</span>" +
+               '<span class="branch-value">' + money(groupSubtotal(productId, group)) + "</span>" +
+             "</div>" +
+             '<div class="branch-parts">' + parts + "</div>" +
+           "</div>";
+  }
+
+  function renderTree() {
+    var total = productTotal(current);
+    document.getElementById("bomTree").innerHTML =
+      '<div class="tree-root">' +
+        '<span class="tree-root-label">' + esc(PRODUCTS[current].label) + "</span>" +
+        '<span class="tree-root-value">' + money(total) + "</span>" +
+        '<span class="tree-root-sub">Standard BOM / unit</span>' +
+      "</div>" +
+      '<div class="tree-stem"></div>' +
+      '<div class="tree-branches">' +
+        GROUPS.map(function (g) { return branchHtml(g, current); }).join("") +
+      "</div>";
+  }
+
+  function renderSummary() {
+    var blended = blendedStandardBom();
+    var parts = Object.keys(MIX).map(function (id) {
+      return Math.round(MIX[id] * 100) + "% × $" + productTotal(id).toFixed(0);
+    });
+    document.getElementById("treeSummary").innerHTML =
+      "Blended Standard BOM <strong>" + money(blended) + " / unit</strong> (" +
+      parts.join(" + ") + ") · Annual at " +
+      (UNITS / 1000).toFixed(0) + "K units: <strong>" +
+      millions(blended * UNITS) + "</strong>";
+  }
+
+  function renderContinuity() {
+    var blended = blendedStandardBom();
+    var mix = Object.keys(MIX).map(function (id) { return Math.round(MIX[id] * 100); }).join(" / ");
+    document.getElementById("continuityStrip").innerHTML =
+      "<strong>" + (UNITS / 1000).toFixed(0) + "K units</strong> · Mix " + mix +
+      " · Blended Standard BOM <strong>" + money(blended) + " / unit</strong>" +
+      " · Actual <strong>" + money(ACTUAL_BLENDED) + " / unit</strong> @ " +
+      Math.round(YIELD * 100) + "% yield";
+  }
+
+  /* ---------- toggle ---------- */
+
+  document.getElementById("productToggle").addEventListener("click", function (e) {
+    var btn = e.target.closest(".toggle-btn");
+    if (!btn || btn.dataset.product === current) return;
+    current = btn.dataset.product;
+    Array.prototype.forEach.call(this.querySelectorAll(".toggle-btn"), function (b) {
+      var on = b.dataset.product === current;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderTree();
+  });
+
+  /* ---------- self-check ----------
+     The tree is built from part rows alone, so an edit to a row that breaks a
+     documented subtotal should surface here rather than silently re-footing. */
+
+  (function selfCheck() {
+    var expect = [
+      ["A Imported", groupSubtotal("A", "Imported"), 45],
+      ["A Local",    groupSubtotal("A", "Local"),    40],
+      ["A Total",    productTotal("A"),              85],
+      ["B Imported", groupSubtotal("B", "Imported"), 25],
+      ["B Local",    groupSubtotal("B", "Local"),    25],
+      ["B Total",    productTotal("B"),              50],
+      ["Blended",    blendedStandardBom(),           71],
+      ["Annual",     blendedStandardBom() * UNITS,   35500000]
+    ];
+    expect.forEach(function (row) {
+      if (Math.abs(row[1] - row[2]) > 1e-9) {
+        console.error("BOM check failed: " + row[0] + " = " + row[1] + ", expected " + row[2]);
+      }
+    });
+  })();
+
+  renderContinuity();
+  renderSummary();
+  renderTree();
+})();
+</script>
+</body>
+</html>
