@@ -1323,8 +1323,9 @@
 
   <!-- Series nav. Parts 2 and 3 ship as sibling pages under the same
        published link: .../ai-compute-datacenter-economics/compute/ and
-       .../ai-compute-datacenter-economics/datacenter/. Until then their tabs
-       are plain <span>s with no href, so they are not clickable at all.
+       .../ai-compute-datacenter-economics/datacenter/. Part 3 is live, so its
+       tab is a link; Compute is still a plain <span> with no href, so it is
+       not clickable at all.
        See the .series-nav CSS block for the three edits a sub-page needs. -->
   <nav class="series-nav" data-current="cart" aria-label="AI / Compute / Data Center series">
     <div class="series-nav-inner">
@@ -1347,16 +1348,12 @@
         </span>
       </span>
 
-      <span class="series-tab is-soon" data-tab="datacenter" aria-disabled="true">
+      <a class="series-tab" data-tab="datacenter" href="datacenter/">
         <span class="series-tab-label">
           <span class="series-tab-full">Data Center Economics</span>
           <span class="series-tab-short">Data Center</span>
         </span>
-        <span class="series-tab-flag">
-          <span class="series-tab-full">Coming soon</span>
-          <span class="series-tab-short">Soon</span>
-        </span>
-      </span>
+      </a>
 
     </div>
   </nav>

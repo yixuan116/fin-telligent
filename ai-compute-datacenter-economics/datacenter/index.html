@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Center Economics | AI / Compute / Data Center</title>
+<meta name="description" content="Every tracked US AI data center on one map: 3D columns sized by IT power, coloured by owner, from the first 48 MW site in 2021 to 12 GW running today. Data: Epoch AI (CC-BY).">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.4.0/maplibre-gl.css"
+      integrity="sha512-DBNed2oEjOrfIRj8Czuzs7padWawLWbA64OoDekn8gs2a3J6WOaR5xXfnFgaxKGpxIuSn/rAo/PsgOgO6PZ/vA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer">
+
+<style>
+  /* ============================================================
+     Tokens. The nav and the page chrome reuse the series variables
+     from ai-compute-datacenter-economics/index.html so the three parts
+     read as one site. The map stage keeps its own dark tokens in both
+     light and dark mode -- this page is built to be projected, and a
+     light basemap washes out the columns.
+     ============================================================ */
+  :root {
+    --bg: #f5f6f8;
+    --glass-bg: #ffffff;
+    --glass-border: rgba(0, 0, 0, 0.06);
+    --text-primary: #1a1a2e;
+    --text-secondary: #4a4a68;
+    --text-muted: #8b8ba0;
+    --accent: #4f5bd5;
+    --accent-soft: rgba(79, 91, 213, 0.1);
+    --radius: 12px;
+    --page-max: 1440px;
+    --page-gutter: 32px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Map stage: fixed, never themed. */
+    --stage-bg: #11151a;
+    --stage-panel: rgba(12, 16, 21, 0.82);
+    --stage-panel-solid: #121820;
+    --stage-border: rgba(255, 255, 255, 0.14);
+    --stage-text: #f2f5f8;
+    --stage-text-dim: #9fb0c0;
+    --stage-text-faint: #64748b;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- series nav (copied from part 1, three edits applied) ---------- */
+
+  .series-nav {
+    --series-tab-pad-x: 14px;
+    background: #ffffff;
+    border-bottom: 1px solid #e4e5ea;
+    overflow-x: hidden;
+  }
+  .series-nav-inner {
+    max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-gutter);
+    display: flex; align-items: stretch; gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .series-tab {
+    display: flex; align-items: center; gap: 8px;
+    flex: 0 1 auto; min-width: 0;
+    padding: 18px var(--series-tab-pad-x) 15px;
+    border-bottom: 3px solid transparent;
+    font-size: 0.86rem; font-weight: 500; line-height: 1.25;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .series-tab:first-child { padding-left: 0; }
+  .series-tab-label {
+    display: block; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  a.series-tab:hover { color: var(--text-primary); }
+  .series-nav[data-current="cart"]       .series-tab[data-tab="cart"],
+  .series-nav[data-current="compute"]    .series-tab[data-tab="compute"],
+  .series-nav[data-current="datacenter"] .series-tab[data-tab="datacenter"] {
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom-color: var(--accent);
+  }
+  .series-tab.is-soon { color: #8e8e9c; cursor: default; }
+  .series-tab-flag {
+    flex-shrink: 0;
+    font-size: 0.58rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; white-space: nowrap;
+    color: #7c7c8a; background: #eeeef3;
+    border-radius: 999px; padding: 3px 8px;
+  }
+  .series-tab-short { display: none; }
+
+  @media (max-width: 620px) {
+    .series-nav { --series-tab-pad-x: 7px; }
+    .series-nav-inner { gap: 0; }
+    .series-tab { flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px var(--series-tab-pad-x) 10px; font-size: 0.76rem; }
+    .series-tab-full { display: none; }
+    .series-tab-short { display: inline; }
+    .series-tab-flag { font-size: 0.52rem; padding: 2px 6px; letter-spacing: 0.04em; }
+  }
+
+  /* ---------- stage ---------- */
+
+  #stage {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 56px);
+    min-height: 560px;
+    background: var(--stage-bg);
+    overflow: hidden;
+    color: var(--stage-text);
+  }
+
+  #map, #deck-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  #deck-canvas { z-index: 2; }
+  .maplibregl-ctrl-attrib { display: none; }
+
+  .stage-panel {
+    background: var(--stage-panel);
+    border: 1px solid var(--stage-border);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* ---------- scene buttons ---------- */
+
+  #scene-bar {
+    position: absolute; z-index: 5;
+    top: 16px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .scene-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .scene-btn {
+    font-family: inherit;
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 9px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--stage-border);
+    background: var(--stage-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--stage-text-faint);
+    cursor: not-allowed;
+  }
+  .scene-btn.is-sub { font-size: 0.68rem; padding: 5px 13px; font-weight: 600; }
+  .scene-btn[aria-disabled="true"] { opacity: 0.75; }
+
+  /* ---------- counters ---------- */
+
+  #counters {
+    position: absolute; z-index: 5;
+    top: 16px; left: 16px;
+    padding: 12px 16px 11px;
+    min-width: 168px;
+  }
+  .counter + .counter { margin-top: 9px; }
+  .counter-label {
+    display: block;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+    margin-bottom: 2px;
+  }
+  .counter-value {
+    display: block;
+    font-size: 1.6rem; font-weight: 800; line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
+  .counter-value .unit { font-size: 0.8rem; font-weight: 700; color: var(--stage-text-dim); margin-left: 3px; }
+
+  /* ---------- legend ---------- */
+
+  #legend {
+    position: absolute; z-index: 5;
+    top: 16px; right: 16px;
+    width: 232px;
+    max-height: calc(100% - 150px);
+    display: flex; flex-direction: column;
+    padding: 11px 6px 10px 12px;
+  }
+  .legend-head {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+    padding-right: 6px; margin-bottom: 8px;
+  }
+  .legend-rows { overflow-y: auto; padding-right: 6px; }
+  .legend-rows::-webkit-scrollbar { width: 6px; }
+  .legend-rows::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; }
+  .legend-row {
+    display: grid; grid-template-columns: 11px 1fr auto;
+    align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 0.74rem;
+    transition: opacity 0.25s ease;
+  }
+  .legend-row.is-zero { opacity: 0.32; }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
+  .legend-name {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--stage-text);
+  }
+  .legend-mw {
+    font-variant-numeric: tabular-nums;
+    color: var(--stage-text-dim); font-weight: 700;
+  }
+
+  /* ---------- headline ---------- */
+
+  #headline {
+    position: absolute; z-index: 5;
+    left: 50%; transform: translateX(-50%);
+    bottom: 128px;
+    max-width: min(620px, calc(100% - 64px));
+    text-align: center;
+    padding: 14px 24px;
+    font-size: 1.04rem; font-weight: 600; line-height: 1.5;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.9s ease, visibility 0.9s;
+  }
+  #headline.is-shown { opacity: 1; visibility: visible; }
+
+  /* ---------- timeline ---------- */
+
+  #timeline {
+    position: absolute; z-index: 5;
+    left: 16px; right: 16px; bottom: 44px;
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px;
+  }
+  #play {
+    flex-shrink: 0;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--stage-border);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--stage-text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease;
+  }
+  #play:hover { background: rgba(255, 255, 255, 0.18); }
+  #play svg { display: block; fill: currentColor; }
+
+  .track-wrap { flex: 1; min-width: 0; }
+  .track-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.68rem; color: var(--stage-text-dim);
+    margin-bottom: 2px;
+  }
+  .track-now { font-weight: 800; color: var(--stage-text); font-size: 0.8rem; }
+
+  /* The slider is the primary control, so it gets a real grab handle and a
+     generous hit area rather than a hairline. */
+  #slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 22px;
+    background: transparent;
+    cursor: grab;
+    margin: 0;
+  }
+  #slider:active { cursor: grabbing; }
+  #slider::-webkit-slider-runnable-track {
+    height: 4px; border-radius: 2px;
+    background: var(--track-fill);
+  }
+  #slider::-moz-range-track {
+    height: 4px; border-radius: 2px;
+    background: var(--track-fill);
+  }
+  #slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #11151a;
+    margin-top: -6px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  }
+  #slider::-moz-range-thumb {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #ffffff; border: 2px solid #11151a;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  }
+  #slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  .track-ticks {
+    position: relative; height: 13px;
+    font-size: 0.56rem; color: var(--stage-text-faint);
+  }
+  .track-tick {
+    position: absolute; top: 0;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .track-tick.is-locked { color: #475569; }
+  .track-tick.is-today { color: var(--stage-text); font-weight: 800; }
+
+  /* ---------- site card ---------- */
+
+  #site-card {
+    position: absolute; z-index: 6;
+    width: 266px;
+    padding: 13px 15px 12px;
+    background: var(--stage-panel-solid);
+    border: 1px solid var(--stage-border);
+    border-radius: 10px;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+    display: none;
+  }
+  #site-card.is-pinned { pointer-events: auto; }
+  .card-name { font-size: 0.92rem; font-weight: 800; line-height: 1.25; margin-bottom: 2px; }
+  .card-owner {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.72rem; color: var(--stage-text-dim);
+    margin-bottom: 9px;
+  }
+  .card-owner .legend-swatch { width: 9px; height: 9px; }
+  .card-rows { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 0.74rem; }
+  .card-key { color: var(--stage-text-faint); white-space: nowrap; }
+  .card-val { color: var(--stage-text); font-variant-numeric: tabular-nums; }
+  .card-note {
+    margin-top: 9px; padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.64rem; color: var(--stage-text-faint); line-height: 1.45;
+  }
+  .card-approx { color: #d97e00; font-weight: 700; }
+
+  /* ---------- footnote ---------- */
+
+  #footnote {
+    position: absolute; z-index: 5;
+    left: 16px; right: 16px; bottom: 12px;
+    text-align: center;
+    font-size: 0.62rem; line-height: 1.5;
+    color: var(--stage-text-faint);
+  }
+
+  /* ---------- loading / error ---------- */
+
+  #stage-status {
+    position: absolute; inset: 0; z-index: 8;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px;
+    background: var(--stage-bg);
+    font-size: 0.86rem; color: var(--stage-text-dim);
+    text-align: center; padding: 24px;
+  }
+  #stage-status.is-hidden { display: none; }
+  .spinner {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.14);
+    border-top-color: #ffffff;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 900px) {
+    #legend { display: none; }
+    #counters { padding: 9px 12px 8px; min-width: 136px; }
+    .counter-value { font-size: 1.25rem; }
+    #scene-bar { top: auto; bottom: 150px; }
+    .scene-btn { font-size: 0.74rem; padding: 7px 13px; }
+    #headline { bottom: 196px; font-size: 0.9rem; padding: 11px 16px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Series nav. Three edits from part 1's copy, as its comment block
+       prescribes: data-current is this page's tab, every href is prefixed
+       with ../ because the sub-pages sit one level deeper, and the Data
+       Center span became an <a> while part 1 went back to being a link. -->
+  <nav class="series-nav" data-current="datacenter" aria-label="AI / Compute / Data Center series">
+    <div class="series-nav-inner">
+
+      <a class="series-tab" data-tab="cart" href="../">
+        <span class="series-tab-label">
+          <span class="series-tab-full">AI Unit Economics</span>
+          <span class="series-tab-short">AI Economics</span>
+        </span>
+      </a>
+
+      <span class="series-tab is-soon" data-tab="compute" aria-disabled="true">
+        <span class="series-tab-label">
+          <span class="series-tab-full">Compute Economics</span>
+          <span class="series-tab-short">Compute</span>
+        </span>
+        <span class="series-tab-flag">
+          <span class="series-tab-full">Coming soon</span>
+          <span class="series-tab-short">Soon</span>
+        </span>
+      </span>
+
+      <a class="series-tab" data-tab="datacenter" href="./" aria-current="page">
+        <span class="series-tab-label">
+          <span class="series-tab-full">Data Center Economics</span>
+          <span class="series-tab-short">Data Center</span>
+        </span>
+      </a>
+
+    </div>
+  </nav>
+
+  <main id="stage">
+    <div id="map"></div>
+    <canvas id="deck-canvas"></canvas>
+
+    <!-- Scene switches. Only the timeline is wired in this step; the four
+         buttons are deliberately visible and inert so the shape of the full
+         piece is legible from the first frame. -->
+    <div id="scene-bar" role="group" aria-label="Scenes">
+      <div class="scene-group">
+        <button type="button" class="scene-btn" aria-disabled="true" disabled>Who</button>
+        <button type="button" class="scene-btn is-sub" aria-disabled="true" disabled>For whom</button>
+      </div>
+      <button type="button" class="scene-btn" aria-disabled="true" disabled>Where</button>
+      <button type="button" class="scene-btn" aria-disabled="true" disabled>Why</button>
+      <button type="button" class="scene-btn" aria-disabled="true" disabled>When</button>
+    </div>
+
+    <div id="counters" class="stage-panel">
+      <div class="counter">
+        <span class="counter-label" id="counter-power-label">IT power</span>
+        <span class="counter-value" id="counter-power">&mdash;</span>
+      </div>
+      <div class="counter">
+        <span class="counter-label" id="counter-sites-label">Sites live</span>
+        <span class="counter-value" id="counter-sites">&mdash;</span>
+      </div>
+    </div>
+
+    <div id="legend" class="stage-panel">
+      <div class="legend-head" id="legend-head">Owner</div>
+      <div class="legend-rows" id="legend-rows"></div>
+    </div>
+
+    <p id="headline" class="stage-panel"></p>
+
+    <div id="timeline" class="stage-panel">
+      <button type="button" id="play" aria-label="Play the timeline to today">
+        <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"></path></svg>
+      </button>
+      <div class="track-wrap">
+        <div class="track-top">
+          <span class="track-now" id="track-now">2021 H1</span>
+          <span id="track-hint">Drag, or use the left and right arrow keys</span>
+        </div>
+        <input type="range" id="slider" min="0" max="0" step="1" value="0"
+               aria-label="Timeline position">
+        <div class="track-ticks" id="track-ticks"></div>
+      </div>
+    </div>
+
+    <p id="footnote"></p>
+
+    <div id="site-card" role="dialog" aria-label="Site detail"></div>
+
+    <div id="stage-status">
+      <div class="spinner"></div>
+      <div id="stage-status-text">Loading sites&hellip;</div>
+    </div>
+  </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.4.0/maplibre-gl.js"
+        integrity="sha512-V0VCR62R076Ezy2E5xflGqGPDhGYWzebW9NQlh2y2qvAGzBu2xxuCsIF9DXLPasvmNNoQ5bSd+9wl+zOwwJ0Kg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- deck.gl is not published on cdnjs, so it comes from jsDelivr at an exact
+     pinned version, per the repo's library policy. -->
+<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.3.11/dist.min.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ==========================================================================
+     CONFIG -- every piece of on-screen wording and every colour lives here, so
+     later scenes only add entries rather than editing the render code.
+     ========================================================================== */
+  var CONFIG = {
+    data: {
+      sites: "data/sites.json",
+      states: "data/us_states.geojson"
+    },
+
+    /* Owner colours, in order of 2030H1 IT power. The leading eight are the
+       owners that fill the screen, and that subset validates against the dark
+       map surface on the all-pairs test (worst CVD delta-E 8.2, worst
+       normal-vision 15.6). Thirteen mutually distinguishable hues do not
+       exist, so identity is never carried by colour alone: the legend names
+       every owner and the site card repeats the owner in text. */
+    ownerColors: {
+      "Oracle":          "#c64200",
+      "Google":          "#e876ae",
+      "Meta":            "#8fdd42",
+      "Microsoft":       "#00fdff",
+      "Amazon":          "#60a858",
+      "Colocation":      "#82a5ff",
+      "SpaceXAI":        "#9967cf",
+      "CoreWeave":       "#ffe688",
+      "Softbank":        "#00765b",
+      "AI XPV Platform": "#295ad7",
+      "Cipher Mining":   "#d97e00",
+      "Core42":          "#be408b",
+      "Nebius":          "#00cae8"
+    },
+    ownerFallback: "#94a3b8",
+
+    map: {
+      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      /* Continental US, pitched so the columns read as volume. */
+      view: { longitude: -96.5, latitude: 37.4, zoom: 3.8, pitch: 45, bearing: 0 },
+      stateLineColor: "#3d495a",
+      stateLineWidth: 0.9,
+      columnRadiusMeters: 21000,
+      /* Metres of column per MW. Geographic nonsense by design: it is the
+         vertical scale of a bar chart that happens to stand on a map. At the
+         default zoom this puts the tallest single site, 1,037 MW in 2030, at
+         roughly a sixth of the viewport height. */
+      metersPerMW: 700,
+      columnOpacity: 0.88,
+      glowMs: 1100
+    },
+
+    labels: {
+      power: "IT power",
+      sites: "Sites live",
+      legend: "Owner",
+      dragHint: "Drag, or use the left and right arrow keys",
+      todayStop: "Today"
+    },
+
+    card: {
+      owner: "Owner",
+      users: "Users",
+      state: "State",
+      powerNow: "IT power now",
+      power2030: "IT power 2030",
+      firstOperational: "First operational",
+      source: "Source: Epoch AI",
+      approximate: "Approximate location",
+      approximateWhy: {
+        postcode: "pinned to the postcode, not the building",
+        city: "pinned to the city, not the building",
+        county: "pinned to the county, not the building"
+      },
+      noneYet: "not yet operational",
+      undisclosedUsers: "Undisclosed"
+    },
+
+    scenes: {
+      /* Scene 1. Placeholder wording: edit the two strings here, nothing else. */
+      timeline: {
+        id: "timeline",
+        headline: "From 1 site to 60 in five years. 12 GW of frontier AI compute now running in the US.",
+        headlineAt: "today"
+      }
+    },
+
+    footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026."
+  };
+
+  /* ==========================================================================
+     State
+     ========================================================================== */
+  var SITES = [];
+  var STOPS = [];          /* [{ key, label, tick, isToday, locked }] */
+  var TODAY_INDEX = 0;     /* last stop scene 1 allows */
+  var stopIndex = 0;
+  var deckInstance = null;
+  var mapInstance = null;
+  var playTimer = null;
+  var glowUntil = 0;
+  var glowSites = [];
+  var glowFrame = null;
+  var pinnedSite = null;
+  var hoverSite = null;
+  var lastPointer = { x: 0, y: 0 };
+
+  var el = function (id) { return document.getElementById(id); };
+
+  /* ==========================================================================
+     Formatting
+     ========================================================================== */
+  function splitPower(mw) {
+    if (mw >= 1000) return { value: (mw / 1000).toFixed(1), unit: "GW" };
+    return { value: String(Math.round(mw)), unit: "MW" };
+  }
+
+  function powerText(mw) {
+    var p = splitPower(mw);
+    return p.value + " " + p.unit;
+  }
+
+  function stopLabel(stop) {
+    if (stop.isToday) return CONFIG.labels.todayStop;
+    return stop.key.slice(0, 4) + " " + stop.key.slice(4);
+  }
+
+  function escapeHtml(text) {
+    return String(text == null ? "" : text).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function hexToRgb(hex) {
+    var h = hex.replace("#", "");
+    return [
+      parseInt(h.slice(0, 2), 16),
+      parseInt(h.slice(2, 4), 16),
+      parseInt(h.slice(4, 6), 16)
+    ];
+  }
+
+  function ownerColor(owner) {
+    return CONFIG.ownerColors[owner] || CONFIG.ownerFallback;
+  }
+
+  /* ==========================================================================
+     Timeline model
+     ========================================================================== */
+  function buildStops(periods) {
+    /* Today sits chronologically between 2026H2 (Jul 1) and 2027H1 (Jan 1),
+       so it is inserted in sequence rather than appended. Everything after it
+       is reserved for the later When scene and stays locked here. */
+    var stops = periods.map(function (key) {
+      return { key: key, isToday: false, locked: false };
+    });
+
+    var asOf = CONFIG.asOf;                       /* set from sites.json meta */
+    var asOfYear = Number(asOf.slice(0, 4));
+    var asOfMonth = Number(asOf.slice(5, 7));
+    var afterKey = asOfMonth > 6
+      ? asOfYear + "H2"
+      : asOfYear + "H1";
+
+    var insertAt = stops.findIndex(function (s) { return s.key === afterKey; });
+    insertAt = insertAt === -1 ? stops.length - 1 : insertAt;
+    stops.splice(insertAt + 1, 0, { key: "today", isToday: true, locked: false });
+
+    stops.forEach(function (stop, i) {
+      stop.locked = i > insertAt + 1;
+      stop.label = stopLabel(stop);
+    });
+    return stops;
+  }
+
+  function powerAt(site, stop) {
+    if (stop.isToday) return site.it_mw_as_of;
+    return site.it_mw_by_period[stop.key] || 0;
+  }
+
+  function liveAt(stop) {
+    return SITES.filter(function (s) { return powerAt(s, stop) > 0; });
+  }
+
+  /* ==========================================================================
+     Rendering
+     ========================================================================== */
+  function renderCounters(stop) {
+    var live = liveAt(stop);
+    var total = live.reduce(function (sum, s) { return sum + powerAt(s, stop); }, 0);
+    var p = splitPower(total);
+    el("counter-power").innerHTML =
+      escapeHtml(p.value) + '<span class="unit">' + p.unit + "</span>";
+    el("counter-sites").textContent = String(live.length);
+  }
+
+  function renderLegend(stop) {
+    var totals = {};
+    Object.keys(CONFIG.ownerColors).forEach(function (owner) { totals[owner] = 0; });
+    SITES.forEach(function (site) {
+      if (!(site.owner in totals)) totals[site.owner] = 0;
+      totals[site.owner] += powerAt(site, stop);
+    });
+
+    var rows = Object.keys(totals).map(function (owner) {
+      return { owner: owner, mw: totals[owner] };
+    }).sort(function (a, b) {
+      return b.mw - a.mw || a.owner.localeCompare(b.owner);
+    });
+
+    el("legend-rows").innerHTML = rows.map(function (row) {
+      return '<div class="legend-row' + (row.mw > 0 ? "" : " is-zero") + '">' +
+        '<span class="legend-swatch" style="background:' + ownerColor(row.owner) + '"></span>' +
+        '<span class="legend-name" title="' + escapeHtml(row.owner) + '">' +
+          escapeHtml(row.owner) + "</span>" +
+        '<span class="legend-mw">' + (row.mw > 0 ? escapeHtml(powerText(row.mw)) : "&ndash;") + "</span>" +
+      "</div>";
+    }).join("");
+  }
+
+  function renderTrack(stop) {
+    el("track-now").textContent = stop.label;
+    el("slider").value = String(stopIndex);
+
+    var fillPct = STOPS.length > 1 ? (stopIndex / (STOPS.length - 1)) * 100 : 0;
+    var todayPct = STOPS.length > 1 ? (TODAY_INDEX / (STOPS.length - 1)) * 100 : 100;
+    /* Three bands: played, playable-but-not-yet-reached, and the locked
+       stretch past Today that the When scene will unlock. */
+    el("timeline").style.setProperty("--track-fill",
+      "linear-gradient(to right," +
+      " #ffffff 0%, #ffffff " + fillPct + "%," +
+      " rgba(255,255,255,0.30) " + fillPct + "%, rgba(255,255,255,0.30) " + todayPct + "%," +
+      " rgba(255,255,255,0.08) " + todayPct + "%, rgba(255,255,255,0.08) 100%)");
+  }
+
+  function renderTicks() {
+    el("track-ticks").innerHTML = STOPS.map(function (stop, i) {
+      /* Only the H1 stops and Today get a printed label; H2 would crowd. */
+      var show = stop.isToday || stop.key.endsWith("H1");
+      if (!show) return "";
+      var pct = STOPS.length > 1 ? (i / (STOPS.length - 1)) * 100 : 0;
+      var cls = "track-tick" + (stop.isToday ? " is-today" : (stop.locked ? " is-locked" : ""));
+      var text = stop.isToday ? CONFIG.labels.todayStop : stop.key.slice(2, 4);
+      return '<span class="' + cls + '" style="left:' + pct + '%">' + text + "</span>";
+    }).join("");
+  }
+
+  function renderHeadline(stop) {
+    var scene = CONFIG.scenes.timeline;
+    var show = scene.headlineAt === "today" ? stop.isToday : false;
+    var node = el("headline");
+    node.textContent = scene.headline;
+    node.classList.toggle("is-shown", show);
+  }
+
+  function columnLayers(stop) {
+    var live = liveAt(stop);
+    var now = performance.now();
+    var glowAlpha = now < glowUntil
+      ? Math.max(0, (glowUntil - now) / CONFIG.map.glowMs)
+      : 0;
+
+    var layers = [
+      new deck.ColumnLayer({
+        id: "sites",
+        data: live,
+        diskResolution: 18,
+        radius: CONFIG.map.columnRadiusMeters,
+        extruded: true,
+        pickable: true,
+        elevationScale: CONFIG.map.metersPerMW,
+        getPosition: function (d) { return [d.lon, d.lat]; },
+        getElevation: function (d) { return powerAt(d, stop); },
+        getFillColor: function (d) {
+          return hexToRgb(ownerColor(d.owner)).concat(
+            Math.round(255 * CONFIG.map.columnOpacity)
+          );
+        },
+        /* Re-evaluating fill and elevation is what makes a column grow with
+           its MW rather than snapping only when the dataset changes. */
+        updateTriggers: {
+          getElevation: stop.key,
+          getFillColor: stop.key
+        },
+        transitions: { getElevation: 450 },
+        onHover: onHover,
+        onClick: onClick
+      })
+    ];
+
+    if (glowAlpha > 0 && glowSites.length) {
+      layers.push(new deck.ScatterplotLayer({
+        id: "glow",
+        data: glowSites,
+        pickable: false,
+        stroked: true,
+        filled: false,
+        radiusUnits: "meters",
+        lineWidthUnits: "meters",
+        getPosition: function (d) { return [d.lon, d.lat]; },
+        getRadius: CONFIG.map.columnRadiusMeters * (1.6 + 2.4 * (1 - glowAlpha)),
+        getLineWidth: CONFIG.map.columnRadiusMeters * 0.22 * glowAlpha,
+        getLineColor: function (d) {
+          return hexToRgb(ownerColor(d.owner)).concat(Math.round(220 * glowAlpha));
+        }
+      }));
+    }
+
+    return layers;
+  }
+
+  function draw() {
+    var stop = STOPS[stopIndex];
+    if (deckInstance) deckInstance.setProps({ layers: columnLayers(stop) });
+    renderCounters(stop);
+    renderLegend(stop);
+    renderTrack(stop);
+    renderHeadline(stop);
+    if (pinnedSite) showCard(pinnedSite, true);
+  }
+
+  /* The glow decays over time, so the layer has to be rebuilt each frame
+     while it is alive and then left alone. */
+  function animateGlow() {
+    if (glowFrame) cancelAnimationFrame(glowFrame);
+    var tick = function () {
+      if (performance.now() >= glowUntil) {
+        glowFrame = null;
+        if (deckInstance) deckInstance.setProps({ layers: columnLayers(STOPS[stopIndex]) });
+        return;
+      }
+      if (deckInstance) deckInstance.setProps({ layers: columnLayers(STOPS[stopIndex]) });
+      glowFrame = requestAnimationFrame(tick);
+    };
+    glowFrame = requestAnimationFrame(tick);
+  }
+
+  /* ==========================================================================
+     Site card
+     ========================================================================== */
+  function showCard(site, keepPosition) {
+    var stop = STOPS[stopIndex];
+    var card = el("site-card");
+    var mwNow = powerAt(site, stop);
+    var approx = CONFIG.card.approximateWhy[site.geocode_precision];
+
+    card.innerHTML =
+      '<div class="card-name">' + escapeHtml(site.name) + "</div>" +
+      '<div class="card-owner">' +
+        '<span class="legend-swatch" style="background:' + ownerColor(site.owner) + '"></span>' +
+        escapeHtml(site.owner) +
+      "</div>" +
+      '<div class="card-rows">' +
+        '<span class="card-key">' + CONFIG.card.users + '</span>' +
+          '<span class="card-val">' + escapeHtml(site.users) + "</span>" +
+        '<span class="card-key">' + CONFIG.card.state + '</span>' +
+          '<span class="card-val">' + escapeHtml(site.state || "&mdash;") + "</span>" +
+        '<span class="card-key">' + CONFIG.card.powerNow + '</span>' +
+          '<span class="card-val">' + escapeHtml(powerText(mwNow)) + "</span>" +
+        '<span class="card-key">' + CONFIG.card.power2030 + '</span>' +
+          '<span class="card-val">' + escapeHtml(powerText(site.it_mw_2030h1)) + "</span>" +
+        '<span class="card-key">' + CONFIG.card.firstOperational + '</span>' +
+          '<span class="card-val">' +
+            escapeHtml(site.first_operational || CONFIG.card.noneYet) + "</span>" +
+      "</div>" +
+      '<div class="card-note">' +
+        (approx
+          ? '<span class="card-approx">' + CONFIG.card.approximate + "</span> &middot; " +
+            escapeHtml(approx) + "<br>"
+          : "") +
+        CONFIG.card.source +
+      "</div>";
+
+    card.style.display = "block";
+    if (!keepPosition) positionCard(lastPointer.x, lastPointer.y);
+  }
+
+  function positionCard(x, y) {
+    var card = el("site-card");
+    var stage = el("stage").getBoundingClientRect();
+    var width = card.offsetWidth || 266;
+    var height = card.offsetHeight || 190;
+    var left = x - stage.left + 16;
+    var top = y - stage.top + 16;
+    if (left + width > stage.width - 8) left = x - stage.left - width - 16;
+    if (top + height > stage.height - 8) top = Math.max(8, y - stage.top - height - 16);
+    card.style.left = Math.max(8, left) + "px";
+    card.style.top = Math.max(8, top) + "px";
+  }
+
+  function hideCard() {
+    el("site-card").style.display = "none";
+    el("site-card").classList.remove("is-pinned");
+  }
+
+  function onHover(info) {
+    if (pinnedSite) return;
+    if (info && info.object) {
+      hoverSite = info.object;
+      lastPointer = { x: info.x + el("stage").getBoundingClientRect().left,
+                      y: info.y + el("stage").getBoundingClientRect().top };
+      showCard(info.object, false);
+    } else if (hoverSite) {
+      hoverSite = null;
+      hideCard();
+    }
+  }
+
+  function onClick(info) {
+    if (info && info.object) {
+      pinnedSite = info.object;
+      lastPointer = { x: info.x + el("stage").getBoundingClientRect().left,
+                      y: info.y + el("stage").getBoundingClientRect().top };
+      showCard(info.object, false);
+      el("site-card").classList.add("is-pinned");
+    } else {
+      pinnedSite = null;
+      hideCard();
+    }
+  }
+
+  /* ==========================================================================
+     Timeline control
+     ========================================================================== */
+  function goTo(index, options) {
+    var opts = options || {};
+    var clamped = Math.max(0, Math.min(TODAY_INDEX, index));
+    if (clamped === stopIndex && !opts.force) return;
+
+    var before = liveAt(STOPS[stopIndex]).map(function (s) { return s.name; });
+    stopIndex = clamped;
+    var after = liveAt(STOPS[stopIndex]);
+
+    /* A site glows on the stop where its IT power first rises above zero. */
+    glowSites = after.filter(function (s) { return before.indexOf(s.name) === -1; });
+    if (glowSites.length && !opts.silent) {
+      glowUntil = performance.now() + CONFIG.map.glowMs;
+      animateGlow();
+    }
+    draw();
+  }
+
+  function stopPlaying() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; }
+    el("play").setAttribute("aria-label", "Play the timeline to today");
+  }
+
+  function togglePlay() {
+    if (playTimer) { stopPlaying(); return; }
+    if (stopIndex >= TODAY_INDEX) goTo(0, { silent: true });
+    el("play").setAttribute("aria-label", "Pause the timeline");
+    playTimer = setInterval(function () {
+      if (stopIndex >= TODAY_INDEX) { stopPlaying(); return; }
+      goTo(stopIndex + 1);
+    }, 760);
+  }
+
+  function bindControls() {
+    var slider = el("slider");
+    slider.min = "0";
+    slider.max = String(STOPS.length - 1);
+    slider.addEventListener("input", function () {
+      stopPlaying();
+      var wanted = Number(slider.value);
+      /* Scene 1 ends at Today; the locked stretch is visible but not
+         reachable, so the handle is pulled back rather than silently
+         accepting a value the scene cannot render. */
+      if (wanted > TODAY_INDEX) { slider.value = String(TODAY_INDEX); wanted = TODAY_INDEX; }
+      goTo(wanted);
+    });
+
+    el("play").addEventListener("click", togglePlay);
+
+    /* Up and Down are reserved for switching scenes in a later step. */
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowLeft") {
+        stopPlaying(); goTo(stopIndex - 1); event.preventDefault();
+      } else if (event.key === "ArrowRight") {
+        stopPlaying(); goTo(stopIndex + 1); event.preventDefault();
+      } else if (event.key === "Escape") {
+        pinnedSite = null; hideCard();
+      }
+    });
+
+    el("stage").addEventListener("mousemove", function (event) {
+      lastPointer = { x: event.clientX, y: event.clientY };
+    });
+  }
+
+  /* ==========================================================================
+     Boot
+     ========================================================================== */
+  function fail(message) {
+    el("stage-status").classList.remove("is-hidden");
+    el("stage-status").innerHTML =
+      '<div style="max-width:420px">' + escapeHtml(message) + "</div>";
+  }
+
+  function initMap(states) {
+    var view = CONFIG.map.view;
+
+    mapInstance = new maplibregl.Map({
+      container: "map",
+      style: CONFIG.map.style,
+      center: [view.longitude, view.latitude],
+      zoom: view.zoom,
+      pitch: view.pitch,
+      bearing: view.bearing,
+      interactive: false,       /* deck.gl owns the camera */
+      attributionControl: false
+    });
+
+    mapInstance.on("load", function () {
+      /* The basemap's own boundary_state layer only draws from zoom 6, and
+         this map opens at 3.6, so the outlines come from the local file. */
+      mapInstance.addSource("us-states", { type: "geojson", data: states });
+      mapInstance.addLayer({
+        id: "us-states-outline",
+        type: "line",
+        source: "us-states",
+        paint: {
+          "line-color": CONFIG.map.stateLineColor,
+          "line-width": CONFIG.map.stateLineWidth
+        }
+      });
+    });
+
+    deckInstance = new deck.Deck({
+      canvas: "deck-canvas",
+      initialViewState: view,
+      controller: true,
+      layers: [],
+      onViewStateChange: function (params) {
+        var v = params.viewState;
+        mapInstance.jumpTo({
+          center: [v.longitude, v.latitude],
+          zoom: v.zoom,
+          bearing: v.bearing,
+          pitch: v.pitch
+        });
+        return v;
+      }
+    });
+  }
+
+  function boot(payload, states) {
+    SITES = payload.sites.filter(function (s) {
+      return typeof s.lat === "number" && typeof s.lon === "number";
+    });
+    CONFIG.asOf = payload.meta.as_of;
+
+    STOPS = buildStops(payload.meta.periods);
+    TODAY_INDEX = STOPS.findIndex(function (s) { return s.isToday; });
+
+    el("counter-power-label").textContent = CONFIG.labels.power;
+    el("counter-sites-label").textContent = CONFIG.labels.sites;
+    el("legend-head").textContent = CONFIG.labels.legend;
+    el("track-hint").textContent = CONFIG.labels.dragHint;
+    el("footnote").textContent = CONFIG.footnote;
+
+    renderTicks();
+    bindControls();
+    initMap(states);
+
+    stopIndex = 0;
+    goTo(0, { force: true, silent: true });
+    el("stage-status").classList.add("is-hidden");
+
+    /* A hook for the browser checks, and for the later scenes to read. */
+    window.__dcMap = {
+      config: CONFIG,
+      sites: SITES,
+      stops: STOPS,
+      todayIndex: TODAY_INDEX,
+      deck: function () { return deckInstance; },
+      map: function () { return mapInstance; },
+      camera: function () {
+        return {
+          mapPitch: mapInstance.getPitch(),
+          mapZoom: +mapInstance.getZoom().toFixed(3),
+          mapCenter: mapInstance.getCenter().toArray().map(function (n) { return +n.toFixed(3); }),
+          deckView: deckInstance.viewState || (deckInstance.viewManager
+            && deckInstance.viewManager.getViewState())
+        };
+      },
+      goTo: goTo,
+      current: function () { return STOPS[stopIndex]; },
+      totals: function (index) {
+        var stop = STOPS[index == null ? stopIndex : index];
+        var live = liveAt(stop);
+        return {
+          stop: stop.label,
+          mw: live.reduce(function (sum, s) { return sum + powerAt(s, stop); }, 0),
+          sites: live.length
+        };
+      }
+    };
+  }
+
+  if (!window.deck || !window.maplibregl) {
+    fail("The map libraries did not load. Check the network connection and reload.");
+    return;
+  }
+
+  Promise.all([
+    fetch(CONFIG.data.sites).then(function (r) {
+      if (!r.ok) throw new Error("sites.json " + r.status);
+      return r.json();
+    }),
+    fetch(CONFIG.data.states).then(function (r) {
+      if (!r.ok) throw new Error("us_states.geojson " + r.status);
+      return r.json();
+    })
+  ]).then(function (results) {
+    boot(results[0], results[1]);
+  }).catch(function (error) {
+    fail("Could not load the site data (" + error.message +
+         "). This page reads its JSON over HTTP, so it needs a server rather than a file:// path.");
+  });
+})();
+</script>
+</body>
+</html>

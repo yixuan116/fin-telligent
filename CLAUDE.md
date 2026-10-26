@@ -5,6 +5,7 @@ Self-contained finance-analytics demos published as static pages on GitHub Pages
 and is a single `index.html` with its HTML, CSS and JS inline; no build step.
 
 - `ai-compute-datacenter-economics/` — AI Model Shopping Cart, part 1 of the AI / Compute / Data Center series; see its own `CLAUDE.md`. Holds `compute/` (part 2) and `datacenter/` (part 3) as separate demos.
+- `ai-compute-datacenter-economics/datacenter/data/` — the Data Center demo's own data: Epoch AI's CC-BY CSVs plus the `sites.json` and `us_states.geojson` its two `build_*.py` scripts generate. Those scripts resolve paths from their own file, so they run from anywhere; the raw Epoch download in `Data Center demo/` is gitignored and must not be published.
 - `price-volume-mix-waterfall/` — price / volume / mix bridge.
 - `consumer-hardware-finance/` — consumer hardware build- and sell-side indicators.
 - `hardware-build-to-sell/` — hardware build-to-sell indicators.
