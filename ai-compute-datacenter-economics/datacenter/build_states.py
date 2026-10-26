@@ -5,6 +5,8 @@ Build the Data Center map's cartography from the us-atlas boundary file.
 Outputs
     data/us_states.geojson  state outlines, each carrying its two-letter code
                             and a label anchor placed inside the state
+    data/us_mask.geojson    the world with the United States punched out, so
+                            the page can darken everything outside the country
 
 The CARTO dark-matter basemap does carry a `boundary_state` layer, but its
 filter only draws US state lines from zoom 6, and the map opens on the whole
@@ -35,6 +37,7 @@ DATA = HERE / "data"
 SOURCE_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-10m.json"
 CACHE = DATA / "us_states_topo.json"
 OUT = DATA / "us_states.geojson"
+OUT_MASK = DATA / "us_mask.geojson"
 
 USER_AGENT = "fin-telligent-datacenter-map/1.0 (+https://github.com/yixuan116/fin-telligent)"
 
@@ -96,6 +99,14 @@ ANCHOR_OVERRIDES = {
     "AK": (-152.0, 63.5),
     "HI": (-155.5, 19.6),   # Hawaii island, not the channel between islands
 }
+
+# The ring the mask is cut out of. Longitudes stay inside the projection's
+# valid range so the fill does not wrap around the globe.
+WORLD_RING = [
+    [-179.99, -85.0], [179.99, -85.0], [179.99, 85.0], [-179.99, 85.0],
+    [-179.99, -85.0],
+]
+
 
 def fetch_topology() -> dict:
     if CACHE.exists():
@@ -248,6 +259,40 @@ def label_anchor(rings: list[list[list[float]]]) -> tuple[float, float]:
     return (best[1], best[2])
 
 
+def build_mask(topology: dict) -> dict:
+    """The world with the country punched out.
+
+    The holes come from us-atlas's `nation` object, not from the 51 state
+    polygons. Adjacent states share their borders, so using them would hand
+    the renderer 285 holes that touch along every edge, and the tessellator
+    turns that into black wedges across the middle of the country. The nation
+    outline is the same arcs already merged, so the mask is a world ring with
+    a few dozen clean, non-touching holes.
+    """
+    geometry = topology["objects"]["nation"]["geometries"][0]
+    if geometry["type"] == "Polygon":
+        polygons = [geometry["arcs"]]
+    else:
+        polygons = geometry["arcs"]
+
+    holes = []
+    for polygon in polygons:
+        # Only the outer ring of each landmass; an inner ring would be a lake,
+        # and re-darkening lakes is not worth the geometry at this zoom.
+        ring = unwrap_antimeridian(stitch(topology, polygon[0]))
+        if len(ring) >= 4:
+            holes.append(ring)
+
+    return {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "properties": {"holes": len(holes)},
+            "geometry": {"type": "Polygon", "coordinates": [WORLD_RING] + holes},
+        }],
+    }
+
+
 def main() -> int:
     topology = fetch_topology()
     geometries = topology["objects"]["states"]["geometries"]
@@ -262,6 +307,9 @@ def main() -> int:
     OUT.write_text(
         json.dumps({"type": "FeatureCollection", "features": features},
                    separators=(",", ":")) + "\n"
+    )
+    OUT_MASK.write_text(
+        json.dumps(build_mask(topology), separators=(",", ":")) + "\n"
     )
 
     lons = []

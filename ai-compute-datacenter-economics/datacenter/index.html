@@ -4,19 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Center Economics | AI / Compute / Data Center</title>
-<meta name="description" content="Every tracked US AI data center on one map: a spike per site, height linear in IT power, coloured by owner, from the first 48 MW site in 2021 to 12 GW running today. Data: Epoch AI (CC-BY).">
+<meta name="description" content="Every tracked US AI data center on one map: bars whose height is linear in IT power, coloured by owner, from the first 48 MW site in 2021 to 12 GW running today. Data: Epoch AI (CC-BY).">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.4.0/maplibre-gl.css"
+      integrity="sha512-DBNed2oEjOrfIRj8Czuzs7padWawLWbA64OoDekn8gs2a3J6WOaR5xXfnFgaxKGpxIuSn/rAo/PsgOgO6PZ/vA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer">
 
 <style>
   /* ============================================================
-     Tokens. Carried from ai-compute-datacenter-economics/index.html so the
-     three parts of the series read as one site. The map is light like the
-     rest of the series, so there is no separate dark stage palette.
+     Tokens. The nav and the page chrome reuse the series variables
+     from ai-compute-datacenter-economics/index.html so the three parts
+     read as one site. The map stage keeps its own dark tokens in both
+     light and dark mode -- this page is built to be projected, and a
+     light basemap washes out the bars.
      ============================================================ */
   :root {
     --bg: #f5f6f8;
     --glass-bg: #ffffff;
     --glass-border: rgba(0, 0, 0, 0.06);
-    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     --text-primary: #1a1a2e;
     --text-secondary: #4a4a68;
     --text-muted: #8b8ba0;
@@ -27,11 +32,14 @@
     --page-gutter: 32px;
     --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-    /* Map surfaces. The ocean is a soft off-white and the land is white, so
-       the country reads as paper laid on the page. */
-    --map-bg: #eef1f5;
-    --panel-bg: rgba(255, 255, 255, 0.94);
-    --panel-border: rgba(26, 26, 46, 0.1);
+    /* Map stage: fixed, never themed. */
+    --stage-bg: #11151a;
+    --stage-panel: rgba(12, 16, 21, 0.82);
+    --stage-panel-solid: #121820;
+    --stage-border: rgba(255, 255, 255, 0.14);
+    --stage-text: #f2f5f8;
+    --stage-text-dim: #9fb0c0;
+    --stage-text-faint: #64748b;
   }
 
   * { box-sizing: border-box; }
@@ -106,19 +114,24 @@
     width: 100%;
     height: calc(100vh - 56px);
     min-height: 560px;
-    background: var(--map-bg);
+    background: var(--stage-bg);
     overflow: hidden;
+    color: var(--stage-text);
   }
 
-  #deck-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #map, #deck-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  #deck-canvas { z-index: 2; }
+  .maplibregl-ctrl-attrib { display: none; }
 
   .stage-panel {
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
+    background: var(--stage-panel);
+    border: 1px solid var(--stage-border);
     border-radius: 10px;
-    box-shadow: var(--card-shadow);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   /* ---------- scene buttons ---------- */
@@ -134,13 +147,15 @@
     font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em;
     padding: 9px 20px;
     border-radius: 999px;
-    border: 1px solid var(--panel-border);
-    background: var(--panel-bg);
-    box-shadow: var(--card-shadow);
-    color: var(--text-muted);
+    border: 1px solid var(--stage-border);
+    background: var(--stage-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--stage-text-faint);
     cursor: not-allowed;
   }
   .scene-btn.is-sub { font-size: 0.68rem; padding: 5px 13px; font-weight: 600; }
+  .scene-btn[aria-disabled="true"] { opacity: 0.75; }
 
   /* ---------- counters ---------- */
 
@@ -154,20 +169,56 @@
   .counter-label {
     display: block;
     font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
-    text-transform: uppercase; color: var(--text-muted);
+    text-transform: uppercase; color: var(--stage-text-dim);
     margin-bottom: 2px;
   }
   .counter-value {
     display: block;
     font-size: 1.6rem; font-weight: 800; line-height: 1.05;
-    color: var(--text-primary);
     font-variant-numeric: tabular-nums;
   }
-  .counter-value .unit { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-left: 3px; }
+  .counter-value .unit { font-size: 0.8rem; font-weight: 700; color: var(--stage-text-dim); margin-left: 3px; }
+
+  /* ---------- legend ---------- */
+
+  #legend {
+    position: absolute; z-index: 5;
+    top: 16px; right: 16px;
+    width: 232px;
+    max-height: calc(100% - 150px);
+    display: flex; flex-direction: column;
+    padding: 11px 6px 10px 12px;
+  }
+  .legend-head {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+    padding-right: 6px; margin-bottom: 8px;
+  }
+  .legend-rows { overflow-y: auto; padding-right: 6px; min-height: 0; }
+  .legend-rows::-webkit-scrollbar { width: 6px; }
+  .legend-rows::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; }
+  .legend-row {
+    display: grid; grid-template-columns: 11px 1fr auto;
+    align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 0.74rem;
+    transition: opacity 0.25s ease;
+  }
+  .legend-row.is-zero { opacity: 0.32; }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
+  .legend-name {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--stage-text);
+  }
+  .legend-mw {
+    font-variant-numeric: tabular-nums;
+    color: var(--stage-text-dim); font-weight: 700;
+  }
 
   /* ---------- caption ----------
-     Under the scene buttons at the top, not over the map, so it never sits on
-     Texas or the Midwest. */
+     Directly under the scene buttons at the top, not over the map, so it never
+     sits on Texas or the Midwest. Smaller than the old overlay card, and with
+     no panel behind it so it reads as a caption rather than a dialog. */
 
   #headline {
     position: absolute; z-index: 5;
@@ -177,57 +228,22 @@
     margin: 0;
     text-align: center;
     font-size: 0.82rem; font-weight: 600; line-height: 1.45;
-    color: var(--text-primary);
-    text-shadow: 0 1px 8px rgba(238, 241, 245, 0.95), 0 0 16px rgba(238, 241, 245, 0.9);
+    letter-spacing: 0.01em;
+    color: var(--stage-text);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
     opacity: 0; visibility: hidden;
     transition: opacity 0.9s ease, visibility 0.9s;
   }
   #headline.is-shown { opacity: 1; visibility: visible; }
 
-  /* ---------- legend ---------- */
-
-  #legend {
-    position: absolute; z-index: 5;
-    top: 16px; right: 16px;
-    width: 236px;
-    max-height: calc(100% - 150px);
-    display: flex; flex-direction: column;
-    padding: 11px 6px 10px 12px;
-  }
-  .legend-head {
-    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
-    text-transform: uppercase; color: var(--text-muted);
-    padding-right: 6px; margin-bottom: 8px;
-  }
-  .legend-rows { overflow-y: auto; padding-right: 6px; min-height: 0; }
-  .legend-rows::-webkit-scrollbar { width: 6px; }
-  .legend-rows::-webkit-scrollbar-thumb { background: rgba(26, 26, 46, 0.18); border-radius: 3px; }
-  .legend-row {
-    display: grid; grid-template-columns: 11px 1fr auto;
-    align-items: center; gap: 8px;
-    padding: 3px 0;
-    font-size: 0.74rem;
-    transition: opacity 0.25s ease;
-  }
-  .legend-row.is-zero { opacity: 0.38; }
-  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
-  .legend-name {
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    color: var(--text-primary);
-  }
-  .legend-mw {
-    font-variant-numeric: tabular-nums;
-    color: var(--text-secondary); font-weight: 700;
-  }
-
   /* ---------- size key ---------- */
 
   #size-key {
     margin-top: 11px; padding-top: 10px; padding-right: 6px;
-    border-top: 1px solid var(--panel-border);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
   }
-  #size-key-spikes { display: block; margin-top: 2px; }
+  #size-key-bars { display: block; margin-top: 2px; }
 
   /* ---------- timeline ---------- */
 
@@ -241,24 +257,26 @@
     flex-shrink: 0;
     width: 34px; height: 34px;
     border-radius: 50%;
-    border: 1px solid var(--panel-border);
-    background: #ffffff;
-    color: var(--text-primary);
+    border: 1px solid var(--stage-border);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--stage-text);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    transition: background 0.15s ease;
   }
-  #play:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #play:hover { background: rgba(255, 255, 255, 0.18); }
   #play svg { display: block; fill: currentColor; }
 
   .track-wrap { flex: 1; min-width: 0; }
   .track-top {
     display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 0.68rem; color: var(--text-muted);
+    font-size: 0.68rem; color: var(--stage-text-dim);
     margin-bottom: 2px;
   }
-  .track-now { font-weight: 800; color: var(--text-primary); font-size: 0.8rem; }
+  .track-now { font-weight: 800; color: var(--stage-text); font-size: 0.8rem; }
 
+  /* The slider is the primary control, so it gets a real grab handle and a
+     generous hit area rather than a hairline. */
   #slider {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 22px;
@@ -278,29 +296,29 @@
   #slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
     width: 16px; height: 16px; border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid #ffffff;
+    background: #ffffff;
+    border: 2px solid #11151a;
     margin-top: -6px;
-    box-shadow: 0 1px 5px rgba(26, 26, 46, 0.3);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
   }
   #slider::-moz-range-thumb {
     width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent); border: 2px solid #ffffff;
-    box-shadow: 0 1px 5px rgba(26, 26, 46, 0.3);
+    background: #ffffff; border: 2px solid #11151a;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
   }
   #slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
   .track-ticks {
     position: relative; height: 13px;
-    font-size: 0.56rem; color: var(--text-muted);
+    font-size: 0.56rem; color: var(--stage-text-faint);
   }
   .track-tick {
     position: absolute; top: 0;
     transform: translateX(-50%);
     white-space: nowrap;
   }
-  .track-tick.is-locked { color: #c3c6d2; }
-  .track-tick.is-today { color: var(--text-primary); font-weight: 800; }
+  .track-tick.is-locked { color: #475569; }
+  .track-tick.is-today { color: var(--stage-text); font-weight: 800; }
 
   /* ---------- site card ---------- */
 
@@ -308,30 +326,30 @@
     position: absolute; z-index: 6;
     width: 266px;
     padding: 13px 15px 12px;
-    background: #ffffff;
-    border: 1px solid var(--panel-border);
+    background: var(--stage-panel-solid);
+    border: 1px solid var(--stage-border);
     border-radius: 10px;
-    box-shadow: 0 8px 28px rgba(26, 26, 46, 0.18);
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
     pointer-events: none;
     display: none;
   }
   #site-card.is-pinned { pointer-events: auto; }
-  .card-name { font-size: 0.92rem; font-weight: 800; line-height: 1.25; margin-bottom: 2px; color: var(--text-primary); }
+  .card-name { font-size: 0.92rem; font-weight: 800; line-height: 1.25; margin-bottom: 2px; }
   .card-owner {
     display: flex; align-items: center; gap: 6px;
-    font-size: 0.72rem; color: var(--text-secondary);
+    font-size: 0.72rem; color: var(--stage-text-dim);
     margin-bottom: 9px;
   }
   .card-owner .legend-swatch { width: 9px; height: 9px; }
   .card-rows { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 0.74rem; }
-  .card-key { color: var(--text-muted); white-space: nowrap; }
-  .card-val { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .card-key { color: var(--stage-text-faint); white-space: nowrap; }
+  .card-val { color: var(--stage-text); font-variant-numeric: tabular-nums; }
   .card-note {
     margin-top: 9px; padding-top: 8px;
-    border-top: 1px solid var(--panel-border);
-    font-size: 0.64rem; color: var(--text-muted); line-height: 1.45;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.64rem; color: var(--stage-text-faint); line-height: 1.45;
   }
-  .card-approx { color: #a8650a; font-weight: 700; }
+  .card-approx { color: #d97e00; font-weight: 700; }
 
   /* ---------- footnote ---------- */
 
@@ -340,7 +358,7 @@
     left: 16px; right: 16px; bottom: 12px;
     text-align: center;
     font-size: 0.62rem; line-height: 1.5;
-    color: var(--text-muted);
+    color: var(--stage-text-faint);
   }
 
   /* ---------- loading / error ---------- */
@@ -349,15 +367,15 @@
     position: absolute; inset: 0; z-index: 8;
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; gap: 12px;
-    background: var(--map-bg);
-    font-size: 0.86rem; color: var(--text-secondary);
+    background: var(--stage-bg);
+    font-size: 0.86rem; color: var(--stage-text-dim);
     text-align: center; padding: 24px;
   }
   #stage-status.is-hidden { display: none; }
   .spinner {
     width: 32px; height: 32px; border-radius: 50%;
-    border: 3px solid rgba(26, 26, 46, 0.12);
-    border-top-color: var(--accent);
+    border: 3px solid rgba(255, 255, 255, 0.14);
+    border-top-color: #ffffff;
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -368,6 +386,7 @@
     .counter-value { font-size: 1.25rem; }
     #scene-bar { top: auto; bottom: 150px; }
     .scene-btn { font-size: 0.74rem; padding: 7px 13px; }
+    /* No legend at this width, so the caption may use the full column. */
     #headline { top: 150px; max-width: calc(100% - 32px); font-size: 0.74rem; }
   }
 </style>
@@ -410,6 +429,7 @@
   </nav>
 
   <main id="stage">
+    <div id="map"></div>
     <canvas id="deck-canvas"></canvas>
 
     <!-- Scene switches. Only the timeline is wired in this step; the four
@@ -425,6 +445,8 @@
       <button type="button" class="scene-btn" aria-disabled="true" disabled>When</button>
     </div>
 
+    <!-- The caption sits under the scene buttons rather than over the map, so
+         it never covers Texas or the Midwest. -->
     <p id="headline"></p>
 
     <div id="counters" class="stage-panel">
@@ -442,8 +464,8 @@
       <div class="legend-head" id="legend-head">Owner</div>
       <div class="legend-rows" id="legend-rows"></div>
       <div id="size-key">
-        <div class="legend-head" id="size-key-head">Spike height = IT power</div>
-        <svg id="size-key-spikes" aria-hidden="true"></svg>
+        <div class="legend-head" id="size-key-head">Bar height = IT power</div>
+        <svg id="size-key-bars" aria-hidden="true"></svg>
       </div>
     </div>
 
@@ -472,10 +494,9 @@
     </div>
   </main>
 
-<!-- deck.gl is not published on cdnjs, so it comes from jsDelivr at an exact
-     pinned version, per the repo's library policy. There is no basemap
-     library any more: the only geometry on screen is this folder's own
-     us_states.geojson, drawn by deck.gl. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.4.0/maplibre-gl.js"
+        integrity="sha512-V0VCR62R076Ezy2E5xflGqGPDhGYWzebW9NQlh2y2qvAGzBu2xxuCsIF9DXLPasvmNNoQ5bSd+9wl+zOwwJ0Kg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.jsdelivr.net/npm/deck.gl@9.3.11/dist.min.js"></script>
 
 <script>
@@ -489,88 +510,96 @@
   var CONFIG = {
     data: {
       sites: "data/sites.json",
-      states: "data/us_states.geojson"
+      states: "data/us_states.geojson",
+      mask: "data/us_mask.geojson"
     },
 
-    /* Owner colours for a light background, in two tiers.
+    /* Owner colours for the dark stage, in two tiers.
 
-       The six owners the stage demo is about carry the strongest, most
-       separated hues: blue, green, amber, red, magenta, violet. That subset
-       measures 14.6 worst-pair normal-vision delta-E against this off-white
-       and clears 3:1 contrast on every slot.
+       The six owners the demo is about carry vivid, widely separated hues:
+       blue, green, amber, red, magenta, violet. That subset measures 16.3
+       worst-pair normal-vision delta-E against this surface and 7.4 on the
+       CVD test, inside the band that is legal with secondary encoding.
 
-       The seven small owners are softer -- warm grey, teal, olive, lavender,
-       brown, wine, mauve -- and also clear 3:1. Across all thirteen the worst
-       pair falls to 6.4, and the pairs that limit it are owners of a few
-       hundred MW. Identity never rests on colour alone: the legend names
-       every owner, hovering fades the rest, and the card repeats the owner. */
+       The seven small owners are muted and spread across lightness as well as
+       hue: slate, teal, olive, purple-grey, tan, wine, steel. Colocation was
+       a near-white in the earlier dark build and is now a proper mid slate,
+       which costs a little separation -- across all thirteen the worst pair
+       is 10.1 -- but keeps every bar readable as a colour rather than as
+       paper. No two owners share a hue family, and identity never rests on
+       colour alone: the legend names every owner, hovering fades the rest,
+       and the card repeats the owner in text. */
     ownerColors: {
-      "Google":          "#0d6fc7",
-      "Meta":            "#1a8f4c",
-      "Amazon":          "#a87400",
-      "Oracle":          "#d63b2f",
-      "Microsoft":       "#c0288f",
-      "SpaceXAI":        "#7b2cbf",
-      "Colocation":      "#8a8277",
-      "CoreWeave":       "#1f8a86",
-      "Softbank":        "#7a7f2e",
-      "AI XPV Platform": "#8578a8",
-      "Cipher Mining":   "#74512c",
-      "Core42":          "#a3415c",
-      "Nebius":          "#a87f9e"
+      "Google":          "#4a9eff",
+      "Meta":            "#3ddc84",
+      "Amazon":          "#ffb347",
+      "Oracle":          "#ff5a4d",
+      "Microsoft":       "#ff5fd2",
+      "SpaceXAI":        "#8b5cf6",
+      "Colocation":      "#5f84a8",
+      "CoreWeave":       "#2a9d8f",
+      "Softbank":        "#6f7a3a",
+      "AI XPV Platform": "#7d5ea0",
+      "Cipher Mining":   "#c99a63",
+      "Core42":          "#a15b68",
+      "Nebius":          "#7fb3c4"
     },
-    ownerFallback: "#7a8296",
+    ownerFallback: "#94a3b8",
 
     map: {
+      /* The no-labels dark basemap: the only type on the map is this page's
+         own state codes, so Canada, Mexico and the oceans stay unlabelled. */
+      style: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
+
       /* Flat and top-down. The camera is fitted to these bounds on load and
          on resize, so the contiguous US fills whatever viewport it gets. The
          top padding leaves room for the scene buttons and the caption, since
-         the spikes rise into that space. */
+         the bars rise into that space. */
       conusBounds: [[-124.8, 24.4], [-66.9, 49.4]],
       fitPadding: { top: 150, bottom: 118, left: 28, right: 28 },
       pitch: 0,
       bearing: 0,
 
-      landColor: [255, 255, 255, 255],
-      landLineColor: [205, 212, 222, 255],
-      landLineWidth: 0.8,
+      /* Everything outside the country is dimmed so the US reads as a lit
+         stage rather than one landmass among several. */
+      maskColor: "rgba(3, 5, 8, 0.93)",
+      stateFillColor: "rgba(150, 182, 230, 0.035)",
+      stateLineColor: "rgba(150, 175, 210, 0.26)",
+      stateLineWidth: 0.6,
 
-      /* Spike geometry. Height is strictly linear in MW: 1 GW is 150 px, so
-         500 MW is exactly 75 px and 100 MW exactly 15 px. The base is a fixed
-         narrow width, independent of value. */
-      pxPerMW: 0.15,
-      baseHalfWidthPx: 3.2,
-      fillAlpha: 0.85,
-      outlineDarken: 0.55,      /* outline = fill darkened by this factor */
+      /* Bars, not spikes: a fixed-width rectangle with a square top. Height
+         is strictly linear in MW and scaled so the tallest site today, 1,037
+         MW, stands about 160 px high. */
+      barWidthPx: 10,
+      pxPerMW: 0.1543,
+      fillAlpha: 0.92,
+      outlineLighten: 1.35,     /* outline = fill lightened, for a dark stage */
       outlineWidthPx: 0.9,
-      hoverFadeAlpha: 0.3,      /* other spikes while one is hovered */
+      hoverFadeAlpha: 0.3,      /* other bars while one is hovered */
 
-      baseDotRadiusPx: 2.6,
-      /* The dot lands first, then the spike grows out of it. */
-      dotLeadMs: 260,
+      /* Bars whose bases land within this many pixels of each other are
+         spread sideways so none is hidden behind its neighbour. */
+      collisionGapPx: 12,
+      collisionVicinityPx: 26,
+
       growMs: 700,
 
-      valueLabelMinMW: 500,     /* spikes at or above this always show a value */
-      valueLabelSize: 11,
-      valueLabelColor: [26, 26, 46, 235],
-      valueLabelOffsetPx: 8,
-
       stateLabelSize: 11,
-      stateLabelDim: [150, 152, 170, 205],
-      stateLabelLive: [84, 84, 112, 255],
-      leaderColor: [168, 176, 190, 210]
+      stateLabelDim: [140, 155, 175, 115],
+      stateLabelLive: [214, 228, 245, 235],
+      leaderColor: [120, 140, 165, 130]
     },
 
     labels: {
       power: "IT power",
       sites: "Sites live",
       legend: "Owner",
-      sizeKey: "Spike height = IT power",
+      sizeKey: "Bar height = IT power",
       dragHint: "Drag, or use the left and right arrow keys",
       todayStop: "Today"
     },
 
-    /* Reference spikes, drawn at exactly the map's own pixels per MW. */
+    /* Reference bars, drawn at exactly the map's own pixels per MW. */
     sizeKey: [1000, 500, 100],
 
     card: {
@@ -612,6 +641,7 @@
   var TODAY_INDEX = 0;
   var stopIndex = 0;
   var deckInstance = null;
+  var mapInstance = null;
   var playTimer = null;
   var pinnedSite = null;
   var hoverSite = null;
@@ -619,10 +649,10 @@
   var viewState = null;
 
   /* Spike heights are animated here rather than through deck's own attribute
-     transitions: the data is re-sorted every stop so tall spikes draw behind
+     transitions: the data is re-sorted every stop so tall bars draw behind
      short ones, and deck matches transitions by index, which that reordering
      would scramble. */
-  var anim = { from: {}, to: {}, fresh: {}, start: 0, frame: null };
+  var anim = { from: {}, to: {}, start: 0, frame: null };
   var shown = {};              /* MW currently displayed, per site name */
 
   var el = function (id) { return document.getElementById(id); };
@@ -664,6 +694,10 @@
     return rgb.map(function (c) { return Math.round(c * factor); });
   }
 
+  function lighten(rgb, factor) {
+    return rgb.map(function (c) { return Math.min(255, Math.round(c * factor)); });
+  }
+
   function ownerColor(owner) {
     return CONFIG.ownerColors[owner] || CONFIG.ownerFallback;
   }
@@ -702,16 +736,17 @@
   }
 
   /* ==========================================================================
-     Spike geometry
+     Bar geometry
 
-     deck.gl has no screen-space triangle, so each spike is a three-point
-     polygon in lon/lat whose size is converted back from pixels. Longitude
-     degrees per pixel is constant in Web Mercator; latitude degrees per pixel
-     shrinks with the cosine of the latitude, so a spike in Texas and one in
-     North Dakota need different conversions or the northern one comes out
-     visibly taller for the same MW.
+     deck.gl has no screen-space rectangle, so each bar is a four-point polygon
+     in lon/lat whose size is converted back from pixels. Longitude degrees per
+     pixel is constant in Web Mercator; latitude degrees per pixel shrinks with
+     the cosine of the latitude, so a bar in Texas and one in North Dakota need
+     different conversions or the northern one comes out visibly taller for the
+     same MW.
      ========================================================================== */
   var degPerPx = { lon: 0.01 };
+  var offsetDeg = {};          /* sideways nudge per site, in degrees of lon */
 
   /* Derived from the zoom rather than from a live viewport. deck.gl asserts
      if getViewports() is called before its first render, and the closed form
@@ -722,21 +757,73 @@
   function refreshScale() {
     if (!viewState) return;
     degPerPx.lon = 360 / (512 * Math.pow(2, viewState.zoom));
+    layoutOffsets();
   }
 
-  function spikeTip(site, mw) {
-    var heightDeg = mw * CONFIG.map.pxPerMW * degPerPx.lon *
+  function mercatorY(lat) {
+    return Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI / 180) / 2));
+  }
+
+  /* Bars standing on nearly the same spot would hide each other, so sites
+     whose bases fall within a few pixels are spread sideways around their
+     shared centre. The spread is computed from position alone, never from
+     height, so a bar does not slide as the timeline moves; and over all 77
+     sites rather than the live ones, so it does not shift as sites appear. */
+  function layoutOffsets() {
+    var cfg = CONFIG.map;
+    if (!SITES.length || !viewState) return;
+
+    var worldPx = 512 * Math.pow(2, viewState.zoom);
+    var points = SITES.map(function (site) {
+      return {
+        name: site.name,
+        x: (site.lon / 360) * worldPx,
+        y: -(mercatorY(site.lat) / (2 * Math.PI)) * worldPx
+      };
+    }).sort(function (a, b) { return a.x - b.x; });
+
+    /* One sweep along x: a point joins the running cluster when it is close
+       to the previous point in x and in the same horizontal band. */
+    var clusters = [];
+    var current = [points[0]];
+    for (var i = 1; i < points.length; i++) {
+      var prev = points[i - 1];
+      var here = points[i];
+      if (here.x - prev.x < cfg.collisionGapPx &&
+          Math.abs(here.y - prev.y) < cfg.collisionVicinityPx) {
+        current.push(here);
+      } else {
+        clusters.push(current);
+        current = [here];
+      }
+    }
+    clusters.push(current);
+
+    offsetDeg = {};
+    clusters.forEach(function (cluster) {
+      if (cluster.length === 1) { offsetDeg[cluster[0].name] = 0; return; }
+      cluster.forEach(function (point, index) {
+        var slot = index - (cluster.length - 1) / 2;
+        offsetDeg[point.name] = slot * cfg.collisionGapPx * degPerPx.lon;
+      });
+    });
+  }
+
+  function barPolygon(site, mw) {
+    var cfg = CONFIG.map;
+    var halfW = (cfg.barWidthPx / 2) * degPerPx.lon;
+    var dx = offsetDeg[site.name] || 0;
+    var heightDeg = mw * cfg.pxPerMW * degPerPx.lon *
                     Math.cos(site.lat * Math.PI / 180);
-    return [site.lon, site.lat + heightDeg];
-  }
-
-  function spikePolygon(site, mw) {
-    var halfW = CONFIG.map.baseHalfWidthPx * degPerPx.lon;
-    var tip = spikeTip(site, mw);
+    var left = site.lon + dx - halfW;
+    var right = site.lon + dx + halfW;
+    var top = site.lat + heightDeg;
+    /* Square top: the two upper corners sit at the same latitude. */
     return [[
-      [site.lon - halfW, site.lat],
-      [site.lon + halfW, site.lat],
-      tip
+      [left, site.lat],
+      [right, site.lat],
+      [right, top],
+      [left, top]
     ]];
   }
 
@@ -744,20 +831,16 @@
      Animation
 
      On every move the displayed MW eases from what is on screen to the new
-     value. A site that has just come alive holds at zero for dotLeadMs first,
-     so its base dot is visible before the spike starts to rise.
+     value, so a bar that has just come alive grows up from the ground and a
+     bar that was already standing slides to its new height.
      ========================================================================== */
   function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
   function displayedMW(site) {
-    var cfg = CONFIG.map;
     var to = anim.to[site.name] || 0;
     if (anim.start === 0) return to;
     var from = anim.from[site.name] || 0;
-    var elapsed = performance.now() - anim.start;
-    var lead = anim.fresh[site.name] ? cfg.dotLeadMs : 0;
-    if (elapsed <= lead) return from;
-    var t = Math.min(1, (elapsed - lead) / cfg.growMs);
+    var t = Math.min(1, (performance.now() - anim.start) / CONFIG.map.growMs);
     return from + (to - from) * easeOut(t);
   }
 
@@ -765,13 +848,13 @@
     var cfg = CONFIG.map;
     anim.from = {};
     anim.to = {};
-    anim.fresh = {};
     SITES.forEach(function (site) {
       var was = shown[site.name] || 0;
       var now = powerAt(site, stop);
+      /* A site that has just gone live starts at zero, so its bar rises out
+         of the ground rather than appearing at full height. */
       anim.from[site.name] = instant ? now : was;
       anim.to[site.name] = now;
-      anim.fresh[site.name] = !instant && was === 0 && now > 0;
       shown[site.name] = now;
     });
 
@@ -779,7 +862,7 @@
     if (instant) { anim.start = 0; paint(); return; }
 
     anim.start = performance.now();
-    var ends = anim.start + cfg.dotLeadMs + cfg.growMs;
+    var ends = anim.start + cfg.growMs;
     var tick = function () {
       paint();
       if (performance.now() >= ends) {
@@ -807,22 +890,6 @@
     var base = Math.round(255 * cfg.fillAlpha);
     if (!focus) return base;
     return site.name === focus ? base : Math.round(255 * cfg.hoverFadeAlpha);
-  }
-
-  function landLayer() {
-    var cfg = CONFIG.map;
-    return new deck.GeoJsonLayer({
-      id: "land",
-      data: { type: "FeatureCollection", features: STATES },
-      pickable: false,
-      filled: true,
-      stroked: true,
-      getFillColor: cfg.landColor,
-      getLineColor: cfg.landLineColor,
-      lineWidthUnits: "pixels",
-      getLineWidth: cfg.landLineWidth,
-      lineWidthMinPixels: 0.6
-    });
   }
 
   function stateLabelLayers(stop) {
@@ -875,12 +942,12 @@
     return layers;
   }
 
-  function spikeLayers() {
+  function barLayers() {
     var cfg = CONFIG.map;
     var focus = focusName();
 
     /* Each row carries its currently displayed MW, and the list is sorted
-       tallest first so a tall spike is drawn behind the shorter ones in front
+       tallest first so a tall bar is drawn behind the shorter ones in front
        of it rather than burying them. */
     var rows = SITES.map(function (site) {
       return { site: site, mw: displayedMW(site) };
@@ -890,26 +957,9 @@
       return b.mw - a.mw;
     });
 
-    var labelled = rows.filter(function (row) {
-      return row.mw >= cfg.valueLabelMinMW || row.site.name === focus;
-    });
-
     return [
-      new deck.ScatterplotLayer({
-        id: "spike-base",
-        data: rows,
-        pickable: false,
-        radiusUnits: "pixels",
-        getPosition: function (row) { return [row.site.lon, row.site.lat]; },
-        getRadius: cfg.baseDotRadiusPx,
-        getFillColor: function (row) {
-          return darken(hexToRgb(ownerColor(row.site.owner)), 0.78)
-            .concat(fillAlphaFor(row.site));
-        }
-      }),
-
       new deck.PolygonLayer({
-        id: "spikes",
+        id: "bars",
         data: rows,
         pickable: true,
         filled: true,
@@ -917,14 +967,16 @@
         extruded: false,
         lineWidthUnits: "pixels",
         lineJointRounded: false,
-        getPolygon: function (row) { return spikePolygon(row.site, row.mw); },
+        getPolygon: function (row) { return barPolygon(row.site, row.mw); },
         getFillColor: function (row) {
           return hexToRgb(ownerColor(row.site.owner)).concat(fillAlphaFor(row.site));
         },
         getLineColor: function (row) {
           var isFocus = row.site.name === focus;
-          return darken(hexToRgb(ownerColor(row.site.owner)),
-                        isFocus ? 0.3 : cfg.outlineDarken)
+          /* On a dark stage the outline reads as a highlight, so it lightens
+             the fill rather than darkening it. */
+          return lighten(hexToRgb(ownerColor(row.site.owner)),
+                         isFocus ? cfg.outlineLighten * 1.25 : cfg.outlineLighten)
             .concat(isFocus ? 255 : fillAlphaFor(row.site));
         },
         getLineWidth: function (row) {
@@ -932,22 +984,6 @@
         },
         onHover: onHover,
         onClick: onClick
-      }),
-
-      new deck.TextLayer({
-        id: "spike-values",
-        data: labelled,
-        pickable: false,
-        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-        fontWeight: 700,
-        getPosition: function (row) { return spikeTip(row.site, row.mw); },
-        getText: function (row) { return powerText(row.mw); },
-        getSize: cfg.valueLabelSize,
-        sizeUnits: "pixels",
-        getColor: cfg.valueLabelColor,
-        getTextAnchor: "middle",
-        getAlignmentBaseline: "bottom",
-        getPixelOffset: [0, -cfg.valueLabelOffsetPx]
       })
     ];
   }
@@ -956,9 +992,7 @@
     if (!deckInstance) return;
     var stop = STOPS[stopIndex];
     deckInstance.setProps({
-      layers: [landLayer()]
-        .concat(stateLabelLayers(stop))
-        .concat(spikeLayers())
+      layers: stateLabelLayers(stop).concat(barLayers())
     });
   }
 
@@ -998,13 +1032,13 @@
     }).join("");
   }
 
-  /* Three reference spikes, drawn at exactly the map's own pixels per MW, so
-     the key is a measurement rather than a decoration. */
+  /* Three reference bars, drawn at exactly the map's own pixels per MW and
+     the map's own bar width, so the key is a measurement, not a decoration. */
   function renderSizeKey() {
     var cfg = CONFIG.map;
     var values = CONFIG.sizeKey.slice().sort(function (a, b) { return b - a; });
     var gapX = 64;
-    var padX = 20;
+    var padX = 22;
     var baseY = Math.max.apply(null, values) * cfg.pxPerMW + 6;
     var height = baseY + 16;
     var width = padX * 2 + (values.length - 1) * gapX;
@@ -1012,20 +1046,17 @@
     var parts = values.map(function (mw, i) {
       var h = mw * cfg.pxPerMW;
       var cx = padX + i * gapX;
-      var w = cfg.baseHalfWidthPx;
-      return '<polygon points="' +
-          (cx - w) + "," + baseY + " " +
-          (cx + w) + "," + baseY + " " +
-          cx + "," + (baseY - h) +
-        '" fill="rgba(74,74,104,0.45)" stroke="rgba(26,26,46,0.6)" stroke-width="0.9"></polygon>' +
-        '<circle cx="' + cx + '" cy="' + baseY + '" r="' + cfg.baseDotRadiusPx +
-          '" fill="rgba(26,26,46,0.55)"></circle>' +
+      var w = cfg.barWidthPx;
+      return '<rect x="' + (cx - w / 2) + '" y="' + (baseY - h) +
+          '" width="' + w + '" height="' + h +
+          '" fill="rgba(200,214,232,0.5)" stroke="rgba(226,236,248,0.8)" ' +
+          'stroke-width="0.9"></rect>' +
         '<text x="' + cx + '" y="' + (baseY + 13) +
-          '" text-anchor="middle" font-size="9" font-weight="700" fill="#8b8ba0">' +
+          '" text-anchor="middle" font-size="9" font-weight="700" fill="#9fb0c0">' +
           powerText(mw) + "</text>";
     }).join("");
 
-    var svg = el("size-key-spikes");
+    var svg = el("size-key-bars");
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     svg.setAttribute("width", String(width));
     svg.setAttribute("height", String(height));
@@ -1262,12 +1293,70 @@
   function applyView(next) {
     viewState = next;
     deckInstance.setProps({ viewState: viewState });
+    if (mapInstance) {
+      mapInstance.jumpTo({
+        center: [next.longitude, next.latitude],
+        zoom: next.zoom,
+        bearing: next.bearing || 0,
+        pitch: next.pitch || 0
+      });
+    }
     refreshScale();
     paint();
   }
 
-  function initDeck() {
+  function initMap(states, mask) {
+    var cfg = CONFIG.map;
     viewState = fittedView();
+
+    mapInstance = new maplibregl.Map({
+      container: "map",
+      style: cfg.style,
+      center: [viewState.longitude, viewState.latitude],
+      zoom: viewState.zoom,
+      pitch: viewState.pitch,
+      bearing: viewState.bearing,
+      interactive: false,       /* deck.gl owns the camera */
+      attributionControl: false
+    });
+
+    /* The data parses in milliseconds but the basemap needs a style and a
+       round of vector tiles, so hiding the overlay on the data alone shows a
+       black rectangle for a second or two. Wait for the basemap's first paint
+       as well -- but never longer than the fallback, or an unreachable tile
+       CDN would leave the overlay up over a map that is otherwise usable. */
+    mapInstance.once("idle", revealStage);
+    setTimeout(revealStage, 4000);
+
+    mapInstance.on("load", function () {
+      /* A faint wash inside the states, then the outlines, then one dark
+         polygon covering the world with the country punched out of it. The
+         basemap's own boundary_state layer only draws from zoom 6 and this
+         map opens near 3.7, so the outlines come from the local file. */
+      mapInstance.addSource("us-states", { type: "geojson", data: states });
+      mapInstance.addLayer({
+        id: "us-states-fill",
+        type: "fill",
+        source: "us-states",
+        paint: { "fill-color": cfg.stateFillColor }
+      });
+      mapInstance.addLayer({
+        id: "us-states-outline",
+        type: "line",
+        source: "us-states",
+        paint: {
+          "line-color": cfg.stateLineColor,
+          "line-width": cfg.stateLineWidth
+        }
+      });
+      mapInstance.addSource("us-mask", { type: "geojson", data: mask });
+      mapInstance.addLayer({
+        id: "us-mask-fill",
+        type: "fill",
+        source: "us-mask",
+        paint: { "fill-color": cfg.maskColor }
+      });
+    });
 
     deckInstance = new deck.Deck({
       canvas: "deck-canvas",
@@ -1275,7 +1364,7 @@
       /* Rotation stays off: this scene is a flat, top-down stage. */
       controller: { dragRotate: false, touchRotate: false, keyboard: false },
       layers: [],
-      /* The page's own off-white shows through; deck paints no surface. */
+      /* The basemap below shows through; deck paints no surface of its own. */
       parameters: { clearColor: [0, 0, 0, 0] },
       onViewStateChange: function (params) { applyView(params.viewState); },
       onAfterRender: revealStage
@@ -1290,7 +1379,7 @@
     });
   }
 
-  function boot(payload, states) {
+  function boot(payload, states, mask) {
     SITES = payload.sites.filter(function (s) {
       return typeof s.lat === "number" && typeof s.lon === "number";
     });
@@ -1310,7 +1399,7 @@
     renderTicks();
     renderSizeKey();
     bindControls();
-    initDeck();
+    initMap(states, mask);
 
     stopIndex = 0;
     goTo(0, { force: true, silent: true });
@@ -1323,9 +1412,11 @@
       stops: STOPS,
       todayIndex: TODAY_INDEX,
       deck: function () { return deckInstance; },
+      map: function () { return mapInstance; },
       camera: function () { return viewState; },
       scale: function () { return degPerPx; },
-      spikePolygon: spikePolygon,
+      barPolygon: barPolygon,
+      offsets: function () { return offsetDeg; },
       displayedMW: displayedMW,
       goTo: goTo,
       current: function () { return STOPS[stopIndex]; },
@@ -1341,8 +1432,8 @@
     };
   }
 
-  if (!window.deck) {
-    fail("The map library did not load. Check the network connection and reload.");
+  if (!window.deck || !window.maplibregl) {
+    fail("The map libraries did not load. Check the network connection and reload.");
     return;
   }
 
@@ -1354,6 +1445,10 @@
     fetch(CONFIG.data.states).then(function (r) {
       if (!r.ok) throw new Error("us_states.geojson " + r.status);
       return r.json();
+    }),
+    fetch(CONFIG.data.mask).then(function (r) {
+      if (!r.ok) throw new Error("us_mask.geojson " + r.status);
+      return r.json();
     })
   ]).catch(function (error) {
     fail("Could not load the site data (" + error.message +
@@ -1363,7 +1458,7 @@
     /* Separate from the fetch catch above: a render fault must not be
        reported as a missing file. */
     try {
-      boot(results[0], results[1]);
+      boot(results[0], results[1], results[2]);
     } catch (error) {
       console.error(error);
       fail("The map failed to draw (" + error.message + ").");
