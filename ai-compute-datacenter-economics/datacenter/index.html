@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Center Economics | AI / Compute / Data Center</title>
-<meta name="description" content="Every tracked US AI data center on one map: 3D columns sized by IT power, coloured by owner, from the first 48 MW site in 2021 to 12 GW running today. Data: Epoch AI (CC-BY).">
+<meta name="description" content="Every tracked US AI data center on one map: glowing circles sized by IT power, coloured by owner, from the first 48 MW site in 2021 to 12 GW running today. Data: Epoch AI (CC-BY).">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.4.0/maplibre-gl.css"
       integrity="sha512-DBNed2oEjOrfIRj8Czuzs7padWawLWbA64OoDekn8gs2a3J6WOaR5xXfnFgaxKGpxIuSn/rAo/PsgOgO6PZ/vA=="
@@ -16,7 +16,7 @@
      from ai-compute-datacenter-economics/index.html so the three parts
      read as one site. The map stage keeps its own dark tokens in both
      light and dark mode -- this page is built to be projected, and a
-     light basemap washes out the columns.
+     light basemap washes out the glow.
      ============================================================ */
   :root {
     --bg: #f5f6f8;
@@ -185,7 +185,7 @@
     position: absolute; z-index: 5;
     top: 16px; right: 16px;
     width: 232px;
-    max-height: calc(100% - 150px);
+    max-height: calc(100% - 190px);
     display: flex; flex-direction: column;
     padding: 11px 6px 10px 12px;
   }
@@ -194,7 +194,7 @@
     text-transform: uppercase; color: var(--stage-text-dim);
     padding-right: 6px; margin-bottom: 8px;
   }
-  .legend-rows { overflow-y: auto; padding-right: 6px; }
+  .legend-rows { overflow-y: auto; padding-right: 6px; min-height: 0; }
   .legend-rows::-webkit-scrollbar { width: 6px; }
   .legend-rows::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; }
   .legend-row {
@@ -215,20 +215,48 @@
     color: var(--stage-text-dim); font-weight: 700;
   }
 
-  /* ---------- headline ---------- */
+  /* ---------- caption ----------
+     Directly under the scene buttons at the top, not over the map, so it never
+     sits on Texas or the Midwest. Smaller than the old overlay card, and with
+     no panel behind it so it reads as a caption rather than a dialog. */
 
   #headline {
     position: absolute; z-index: 5;
-    left: 50%; transform: translateX(-50%);
-    bottom: 128px;
-    max-width: min(620px, calc(100% - 64px));
+    top: 96px; left: 50%; transform: translateX(-50%);
+    width: max-content;
+    max-width: min(560px, calc(100% - 420px));
+    margin: 0;
     text-align: center;
-    padding: 14px 24px;
-    font-size: 1.04rem; font-weight: 600; line-height: 1.5;
+    font-size: 0.82rem; font-weight: 600; line-height: 1.45;
+    letter-spacing: 0.01em;
+    color: var(--stage-text);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
     opacity: 0; visibility: hidden;
     transition: opacity 0.9s ease, visibility 0.9s;
   }
   #headline.is-shown { opacity: 1; visibility: visible; }
+
+  /* ---------- size key ---------- */
+
+  #size-key {
+    margin-top: 11px; padding-top: 10px; padding-right: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .size-key-circles {
+    display: flex; align-items: flex-end; justify-content: flex-start;
+    gap: 14px; padding: 4px 2px 0;
+  }
+  .size-key-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .size-key-disc {
+    border-radius: 50%;
+    background: rgba(226, 236, 248, 0.16);
+    box-shadow: 0 0 0 1px rgba(226, 236, 248, 0.5) inset;
+  }
+  .size-key-label {
+    font-size: 0.6rem; font-weight: 700;
+    color: var(--stage-text-dim);
+    font-variant-numeric: tabular-nums;
+  }
 
   /* ---------- timeline ---------- */
 
@@ -371,7 +399,8 @@
     .counter-value { font-size: 1.25rem; }
     #scene-bar { top: auto; bottom: 150px; }
     .scene-btn { font-size: 0.74rem; padding: 7px 13px; }
-    #headline { bottom: 196px; font-size: 0.9rem; padding: 11px 16px; }
+    /* No legend at this width, so the caption may use the full column. */
+    #headline { top: 150px; max-width: calc(100% - 32px); font-size: 0.74rem; }
   }
 </style>
 </head>
@@ -429,6 +458,10 @@
       <button type="button" class="scene-btn" aria-disabled="true" disabled>When</button>
     </div>
 
+    <!-- The caption sits under the scene buttons rather than over the map, so
+         it never covers Texas or the Midwest. -->
+    <p id="headline"></p>
+
     <div id="counters" class="stage-panel">
       <div class="counter">
         <span class="counter-label" id="counter-power-label">IT power</span>
@@ -443,9 +476,11 @@
     <div id="legend" class="stage-panel">
       <div class="legend-head" id="legend-head">Owner</div>
       <div class="legend-rows" id="legend-rows"></div>
+      <div id="size-key">
+        <div class="legend-head" id="size-key-head">Circle area = IT power</div>
+        <div class="size-key-circles" id="size-key-circles"></div>
+      </div>
     </div>
-
-    <p id="headline" class="stage-panel"></p>
 
     <div id="timeline" class="stage-panel">
       <button type="button" id="play" aria-label="Play the timeline to today">
@@ -490,55 +525,92 @@
   var CONFIG = {
     data: {
       sites: "data/sites.json",
-      states: "data/us_states.geojson"
+      states: "data/us_states.geojson",
+      mask: "data/us_mask.geojson"
     },
 
-    /* Owner colours, in order of 2030H1 IT power. The leading eight are the
-       owners that fill the screen, and that subset validates against the dark
-       map surface on the all-pairs test (worst CVD delta-E 8.2, worst
-       normal-vision 15.6). Thirteen mutually distinguishable hues do not
-       exist, so identity is never carried by colour alone: the legend names
-       every owner and the site card repeats the owner in text. */
+    /* Owner colours in two tiers.
+
+       The six owners the stage demo is about carry vivid, widely separated
+       hues: blue, green, amber, red, magenta, violet. That subset clears the
+       normal-vision floor on the all-pairs test against this dark surface
+       (worst pair delta-E 16.3) and sits at 7.4 on the CVD test, inside the
+       band that is legal with secondary encoding.
+
+       The seven small owners are deliberately muted and spread across
+       lightness rather than hue alone, which is what actually separates
+       colours: pale slate, deep teal, dark olive, purple-grey, tan, wine,
+       steel. Across all thirteen the worst pair falls to delta-E 10.6, and
+       the pairs that limit it are all among owners of a few hundred MW. No
+       two owners share a hue family, and identity never rests on colour
+       alone: the legend names every owner, hovering dims the others, and the
+       site card repeats the owner in text. */
     ownerColors: {
-      "Oracle":          "#c64200",
-      "Google":          "#e876ae",
-      "Meta":            "#8fdd42",
-      "Microsoft":       "#00fdff",
-      "Amazon":          "#60a858",
-      "Colocation":      "#82a5ff",
-      "SpaceXAI":        "#9967cf",
-      "CoreWeave":       "#ffe688",
-      "Softbank":        "#00765b",
-      "AI XPV Platform": "#295ad7",
-      "Cipher Mining":   "#d97e00",
-      "Core42":          "#be408b",
-      "Nebius":          "#00cae8"
+      "Google":          "#4a9eff",
+      "Meta":            "#3ddc84",
+      "Amazon":          "#ffb347",
+      "Oracle":          "#ff5a4d",
+      "Microsoft":       "#ff5fd2",
+      "SpaceXAI":        "#8b5cf6",
+      "Colocation":      "#c9d4e8",
+      "CoreWeave":       "#2a9d8f",
+      "Softbank":        "#6f7a3a",
+      "AI XPV Platform": "#7d5ea0",
+      "Cipher Mining":   "#c99a63",
+      "Core42":          "#a15b68",
+      "Nebius":          "#7fb3c4"
     },
     ownerFallback: "#94a3b8",
 
     map: {
-      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      /* Continental US, pitched so the columns read as volume. */
-      view: { longitude: -96.5, latitude: 37.4, zoom: 3.8, pitch: 45, bearing: 0 },
-      stateLineColor: "#3d495a",
-      stateLineWidth: 0.9,
-      columnRadiusMeters: 21000,
-      /* Metres of column per MW. Geographic nonsense by design: it is the
-         vertical scale of a bar chart that happens to stand on a map. At the
-         default zoom this puts the tallest single site, 1,037 MW in 2030, at
-         roughly a sixth of the viewport height. */
-      metersPerMW: 700,
-      columnOpacity: 0.88,
-      glowMs: 1100
+      /* The no-labels basemap: the only type on the map is this page's own
+         state codes, so Canada, Mexico and the oceans stay unlabelled. */
+      style: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
+      /* Flat and top-down. The camera is fitted to these bounds on load and
+         on resize rather than hard-coded, so the contiguous US fills whatever
+         viewport the projector gives it. */
+      conusBounds: [[-124.8, 24.4], [-66.9, 49.4]],
+      fitPadding: { top: 74, bottom: 104, left: 24, right: 24 },
+      pitch: 0,
+      bearing: 0,
+
+      /* Everything outside the country is dimmed so the US reads as a lit
+         stage rather than one landmass among several. */
+      maskColor: "rgba(3, 5, 8, 0.93)",
+      stateFillColor: "rgba(150, 182, 230, 0.035)",
+      stateLineColor: "rgba(150, 175, 210, 0.26)",
+      stateLineWidth: 0.6,
+
+      /* Circle AREA is proportional to IT power, so the radius goes as the
+         square root. In pixels, so the size key's reference circles mean the
+         same thing at any zoom. 1 GW lands at 26 px. */
+      radiusPerSqrtMW: 0.822,
+      haloScale: 2.7,
+      coreAlpha: 0.95,
+      haloAlpha: 0.3,
+      dimAlpha: 0.14,          /* non-hovered sites while one is hovered */
+      growMs: 620,             /* circle growth between timeline stops */
+      pulseMs: 1300,           /* the ring thrown off by a site going live */
+      pulseScale: 5.2,
+
+      stateLabelSize: 11,
+      stateLabelDim: [140, 155, 175, 115],
+      stateLabelLive: [214, 228, 245, 235],
+      leaderColor: [120, 140, 165, 130]
     },
 
     labels: {
       power: "IT power",
       sites: "Sites live",
       legend: "Owner",
+      sizeKey: "Circle area = IT power",
       dragHint: "Drag, or use the left and right arrow keys",
       todayStop: "Today"
     },
+
+    /* The size key's reference circles. Area, not radius, carries the value,
+       so these are drawn at the same radiusPerSqrtMW the map uses. */
+    sizeKey: [1000, 500, 100],
 
     card: {
       owner: "Owner",
@@ -574,15 +646,16 @@
      State
      ========================================================================== */
   var SITES = [];
+  var STATES = [];
   var STOPS = [];          /* [{ key, label, tick, isToday, locked }] */
   var TODAY_INDEX = 0;     /* last stop scene 1 allows */
   var stopIndex = 0;
   var deckInstance = null;
   var mapInstance = null;
   var playTimer = null;
-  var glowUntil = 0;
-  var glowSites = [];
-  var glowFrame = null;
+  var pulseUntil = 0;
+  var pulseSites = [];
+  var pulseFrame = null;
   var pinnedSite = null;
   var hoverSite = null;
   var lastPointer = { x: 0, y: 0 };
@@ -735,65 +808,174 @@
     node.classList.toggle("is-shown", show);
   }
 
-  function columnLayers(stop) {
-    var live = liveAt(stop);
+  /* Additive blending: where two halos overlap the light sums rather than
+     one covering the other, so a cluster reads brighter than its parts. */
+  var ADDITIVE = {
+    blend: true,
+    blendColorOperation: "add",
+    blendColorSrcFactor: "src-alpha",
+    blendColorDstFactor: "one",
+    blendAlphaOperation: "add",
+    blendAlphaSrcFactor: "src-alpha",
+    blendAlphaDstFactor: "one",
+    depthTest: false
+  };
+
+  function siteRadius(site, stop) {
+    var mw = powerAt(site, stop);
+    /* Area proportional to MW means radius proportional to its square root.
+       A site that is not live yet has radius 0, which is also what makes it
+       expand from a point: it is in the layer the whole time, so deck
+       interpolates 0 -> r rather than popping a new circle into place. */
+    return mw > 0 ? CONFIG.map.radiusPerSqrtMW * Math.sqrt(mw) : 0;
+  }
+
+  function alphaFor(site, base) {
+    if (!hoverSite && !pinnedSite) return base;
+    var focus = pinnedSite || hoverSite;
+    return site.name === focus.name ? base : Math.round(base * CONFIG.map.dimAlpha / 0.95);
+  }
+
+  function siteLayers(stop) {
+    var cfg = CONFIG.map;
     var now = performance.now();
-    var glowAlpha = now < glowUntil
-      ? Math.max(0, (glowUntil - now) / CONFIG.map.glowMs)
-      : 0;
+    var pulseT = now < pulseUntil
+      ? 1 - (pulseUntil - now) / cfg.pulseMs
+      : -1;
+
+    var triggers = {
+      getRadius: stop.key,
+      getFillColor: stop.key + "|" + (hoverSite ? hoverSite.name : "") +
+                    "|" + (pinnedSite ? pinnedSite.name : "")
+    };
 
     var layers = [
-      new deck.ColumnLayer({
-        id: "sites",
-        data: live,
-        diskResolution: 18,
-        radius: CONFIG.map.columnRadiusMeters,
-        extruded: true,
-        pickable: true,
-        elevationScale: CONFIG.map.metersPerMW,
+      /* Soft outer halo. Drawn first so the core sits on top of it. */
+      new deck.ScatterplotLayer({
+        id: "site-halo",
+        data: SITES,
+        pickable: false,
+        radiusUnits: "pixels",
+        radiusMinPixels: 0,
         getPosition: function (d) { return [d.lon, d.lat]; },
-        getElevation: function (d) { return powerAt(d, stop); },
+        getRadius: function (d) { return siteRadius(d, stop) * cfg.haloScale; },
         getFillColor: function (d) {
-          return hexToRgb(ownerColor(d.owner)).concat(
-            Math.round(255 * CONFIG.map.columnOpacity)
-          );
+          return hexToRgb(ownerColor(d.owner))
+            .concat(alphaFor(d, Math.round(255 * cfg.haloAlpha)));
         },
-        /* Re-evaluating fill and elevation is what makes a column grow with
-           its MW rather than snapping only when the dataset changes. */
-        updateTriggers: {
-          getElevation: stop.key,
-          getFillColor: stop.key
+        parameters: ADDITIVE,
+        transitions: { getRadius: cfg.growMs },
+        updateTriggers: triggers
+      }),
+
+      /* Bright core in the owner colour. */
+      new deck.ScatterplotLayer({
+        id: "site-core",
+        data: SITES,
+        pickable: true,
+        radiusUnits: "pixels",
+        radiusMinPixels: 0,
+        getPosition: function (d) { return [d.lon, d.lat]; },
+        getRadius: function (d) { return siteRadius(d, stop); },
+        getFillColor: function (d) {
+          return hexToRgb(ownerColor(d.owner))
+            .concat(alphaFor(d, Math.round(255 * cfg.coreAlpha)));
         },
-        transitions: { getElevation: 450 },
+        parameters: ADDITIVE,
+        transitions: { getRadius: cfg.growMs },
+        updateTriggers: triggers,
         onHover: onHover,
         onClick: onClick
       })
     ];
 
-    if (glowAlpha > 0 && glowSites.length) {
+    /* The ring a site throws off on the stop it first goes live. */
+    if (pulseT >= 0 && pulseSites.length) {
       layers.push(new deck.ScatterplotLayer({
-        id: "glow",
-        data: glowSites,
+        id: "site-pulse",
+        data: pulseSites,
         pickable: false,
         stroked: true,
         filled: false,
-        radiusUnits: "meters",
-        lineWidthUnits: "meters",
+        radiusUnits: "pixels",
+        lineWidthUnits: "pixels",
         getPosition: function (d) { return [d.lon, d.lat]; },
-        getRadius: CONFIG.map.columnRadiusMeters * (1.6 + 2.4 * (1 - glowAlpha)),
-        getLineWidth: CONFIG.map.columnRadiusMeters * 0.22 * glowAlpha,
+        getRadius: function (d) {
+          var r = siteRadius(d, stop) || 4;
+          return r * (1 + (cfg.pulseScale - 1) * pulseT);
+        },
+        getLineWidth: Math.max(0.6, 2.4 * (1 - pulseT)),
         getLineColor: function (d) {
-          return hexToRgb(ownerColor(d.owner)).concat(Math.round(220 * glowAlpha));
-        }
+          return hexToRgb(ownerColor(d.owner))
+            .concat(Math.round(235 * (1 - pulseT)));
+        },
+        parameters: ADDITIVE
       }));
     }
 
     return layers;
   }
 
+  function labelLayers(stop) {
+    var cfg = CONFIG.map;
+    var liveStates = {};
+    liveAt(stop).forEach(function (site) {
+      if (site.state) liveStates[site.state] = true;
+    });
+
+    /* A state whose label would only collide in the northeast is parked
+       offshore, and is shown only once it actually has something to say. */
+    var labels = STATES.filter(function (f) {
+      return f.properties.code &&
+        (!f.properties.offshore || liveStates[f.properties.code]);
+    });
+
+    var leaders = labels.filter(function (f) { return f.properties.offshore; });
+
+    var layers = [];
+
+    if (leaders.length) {
+      layers.push(new deck.LineLayer({
+        id: "state-leaders",
+        data: leaders,
+        widthUnits: "pixels",
+        getWidth: 0.8,
+        getSourcePosition: function (f) { return f.properties.anchor; },
+        getTargetPosition: function (f) { return f.properties.label; },
+        getColor: cfg.leaderColor,
+        updateTriggers: { getSourcePosition: stop.key }
+      }));
+    }
+
+    layers.push(new deck.TextLayer({
+      id: "state-labels",
+      data: labels,
+      pickable: false,
+      characterSet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+      fontWeight: 700,
+      getPosition: function (f) { return f.properties.label; },
+      getText: function (f) { return f.properties.code; },
+      getSize: cfg.stateLabelSize,
+      sizeUnits: "pixels",
+      getColor: function (f) {
+        return liveStates[f.properties.code] ? cfg.stateLabelLive : cfg.stateLabelDim;
+      },
+      getTextAnchor: "middle",
+      getAlignmentBaseline: "center",
+      updateTriggers: { getColor: stop.key, getText: stop.key }
+    }));
+
+    return layers;
+  }
+
+  function allLayers(stop) {
+    return labelLayers(stop).concat(siteLayers(stop));
+  }
+
   function draw() {
     var stop = STOPS[stopIndex];
-    if (deckInstance) deckInstance.setProps({ layers: columnLayers(stop) });
+    if (deckInstance) deckInstance.setProps({ layers: allLayers(stop) });
     renderCounters(stop);
     renderLegend(stop);
     renderTrack(stop);
@@ -801,20 +983,17 @@
     if (pinnedSite) showCard(pinnedSite, true);
   }
 
-  /* The glow decays over time, so the layer has to be rebuilt each frame
-     while it is alive and then left alone. */
-  function animateGlow() {
-    if (glowFrame) cancelAnimationFrame(glowFrame);
+  /* The pulse ring expands and fades over time, so the layer has to be
+     rebuilt each frame while it is alive and then left alone. */
+  function animatePulse() {
+    if (pulseFrame) cancelAnimationFrame(pulseFrame);
     var tick = function () {
-      if (performance.now() >= glowUntil) {
-        glowFrame = null;
-        if (deckInstance) deckInstance.setProps({ layers: columnLayers(STOPS[stopIndex]) });
-        return;
-      }
-      if (deckInstance) deckInstance.setProps({ layers: columnLayers(STOPS[stopIndex]) });
-      glowFrame = requestAnimationFrame(tick);
+      if (!deckInstance) { pulseFrame = null; return; }
+      deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
+      if (performance.now() >= pulseUntil) { pulseFrame = null; return; }
+      pulseFrame = requestAnimationFrame(tick);
     };
-    glowFrame = requestAnimationFrame(tick);
+    pulseFrame = requestAnimationFrame(tick);
   }
 
   /* ==========================================================================
@@ -877,6 +1056,7 @@
 
   function onHover(info) {
     if (pinnedSite) return;
+    var previous = hoverSite;
     if (info && info.object) {
       hoverSite = info.object;
       lastPointer = { x: info.x + el("stage").getBoundingClientRect().left,
@@ -885,6 +1065,10 @@
     } else if (hoverSite) {
       hoverSite = null;
       hideCard();
+    }
+    /* The focus changed, so the dimmed/brightened fills have to be rebuilt. */
+    if ((previous && previous.name) !== (hoverSite && hoverSite.name)) {
+      if (deckInstance) deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
     }
   }
 
@@ -899,6 +1083,7 @@
       pinnedSite = null;
       hideCard();
     }
+    if (deckInstance) deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
   }
 
   /* ==========================================================================
@@ -913,11 +1098,11 @@
     stopIndex = clamped;
     var after = liveAt(STOPS[stopIndex]);
 
-    /* A site glows on the stop where its IT power first rises above zero. */
-    glowSites = after.filter(function (s) { return before.indexOf(s.name) === -1; });
-    if (glowSites.length && !opts.silent) {
-      glowUntil = performance.now() + CONFIG.map.glowMs;
-      animateGlow();
+    /* A site pulses on the stop where its IT power first rises above zero. */
+    pulseSites = after.filter(function (s) { return before.indexOf(s.name) === -1; });
+    if (pulseSites.length && !opts.silent) {
+      pulseUntil = performance.now() + CONFIG.map.pulseMs;
+      animatePulse();
     }
     draw();
   }
@@ -960,7 +1145,8 @@
       } else if (event.key === "ArrowRight") {
         stopPlaying(); goTo(stopIndex + 1); event.preventDefault();
       } else if (event.key === "Escape") {
-        pinnedSite = null; hideCard();
+        pinnedSite = null; hoverSite = null; hideCard();
+        if (deckInstance) deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
       }
     });
 
@@ -978,12 +1164,50 @@
       '<div style="max-width:420px">' + escapeHtml(message) + "</div>";
   }
 
-  function initMap(states) {
-    var view = CONFIG.map.view;
+  var stageRevealed = false;
+  function revealStage() {
+    if (stageRevealed) return;
+    stageRevealed = true;
+    el("stage-status").classList.add("is-hidden");
+  }
+
+  /* The camera is derived from the CONUS bounds and the viewport rather than
+     hard-coded, so the contiguous US fills whatever screen it is projected on.
+     Recomputed on resize for the same reason. */
+  function fittedView() {
+    var stage = el("stage");
+    var cfg = CONFIG.map;
+    var viewport = new deck.WebMercatorViewport({
+      width: Math.max(320, stage.clientWidth),
+      height: Math.max(320, stage.clientHeight)
+    });
+    var fitted = viewport.fitBounds(cfg.conusBounds, { padding: cfg.fitPadding });
+    return {
+      longitude: fitted.longitude,
+      latitude: fitted.latitude,
+      zoom: fitted.zoom,
+      pitch: cfg.pitch,
+      bearing: cfg.bearing
+    };
+  }
+
+  function syncBasemap(view) {
+    if (!mapInstance) return;
+    mapInstance.jumpTo({
+      center: [view.longitude, view.latitude],
+      zoom: view.zoom,
+      bearing: view.bearing || 0,
+      pitch: view.pitch || 0
+    });
+  }
+
+  function initMap(states, mask) {
+    var cfg = CONFIG.map;
+    var view = fittedView();
 
     mapInstance = new maplibregl.Map({
       container: "map",
-      style: CONFIG.map.style,
+      style: cfg.style,
       center: [view.longitude, view.latitude],
       zoom: view.zoom,
       pitch: view.pitch,
@@ -992,40 +1216,69 @@
       attributionControl: false
     });
 
+    /* The data parses in milliseconds but the basemap needs a style and a
+       round of vector tiles, so hiding the overlay on the data alone shows a
+       black rectangle for a second or two. Wait for the basemap's first paint
+       as well -- but never longer than the fallback, or an unreachable tile
+       CDN would leave the overlay up over a map that is otherwise usable. */
+    mapInstance.once("idle", revealStage);
+    setTimeout(revealStage, 4000);
+
     mapInstance.on("load", function () {
-      /* The basemap's own boundary_state layer only draws from zoom 6, and
-         this map opens at 3.6, so the outlines come from the local file. */
+      /* A faint wash inside the states, then the outlines, then one dark
+         polygon covering the world with the country punched out of it. Order
+         matters: the mask goes on last so it dims the neighbours and the
+         oceans without touching the US. */
       mapInstance.addSource("us-states", { type: "geojson", data: states });
+      mapInstance.addLayer({
+        id: "us-states-fill",
+        type: "fill",
+        source: "us-states",
+        paint: { "fill-color": cfg.stateFillColor }
+      });
       mapInstance.addLayer({
         id: "us-states-outline",
         type: "line",
         source: "us-states",
         paint: {
-          "line-color": CONFIG.map.stateLineColor,
-          "line-width": CONFIG.map.stateLineWidth
+          "line-color": cfg.stateLineColor,
+          "line-width": cfg.stateLineWidth
         }
+      });
+      mapInstance.addSource("us-mask", { type: "geojson", data: mask });
+      mapInstance.addLayer({
+        id: "us-mask-fill",
+        type: "fill",
+        source: "us-mask",
+        paint: { "fill-color": cfg.maskColor }
       });
     });
 
     deckInstance = new deck.Deck({
       canvas: "deck-canvas",
       initialViewState: view,
-      controller: true,
+      /* Rotation stays off: this scene is a flat, top-down stage. */
+      controller: { dragRotate: false, touchRotate: false, keyboard: false },
       layers: [],
       onViewStateChange: function (params) {
-        var v = params.viewState;
-        mapInstance.jumpTo({
-          center: [v.longitude, v.latitude],
-          zoom: v.zoom,
-          bearing: v.bearing,
-          pitch: v.pitch
-        });
-        return v;
+        syncBasemap(params.viewState);
+        return params.viewState;
       }
+    });
+
+    var refit = function () {
+      var next = fittedView();
+      deckInstance.setProps({ initialViewState: next, viewState: undefined });
+      syncBasemap(next);
+    };
+    var refitTimer = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(refitTimer);
+      refitTimer = setTimeout(refit, 180);
     });
   }
 
-  function boot(payload, states) {
+  function boot(payload, states, mask) {
     SITES = payload.sites.filter(function (s) {
       return typeof s.lat === "number" && typeof s.lon === "number";
     });
@@ -1037,16 +1290,26 @@
     el("counter-power-label").textContent = CONFIG.labels.power;
     el("counter-sites-label").textContent = CONFIG.labels.sites;
     el("legend-head").textContent = CONFIG.labels.legend;
+    el("size-key-head").textContent = CONFIG.labels.sizeKey;
+    el("size-key-circles").innerHTML = CONFIG.sizeKey.map(function (mw) {
+      /* Drawn at exactly the radius the map uses, so the key is a measurement
+         rather than a decoration. */
+      var d = Math.round(2 * CONFIG.map.radiusPerSqrtMW * Math.sqrt(mw));
+      return '<div class="size-key-item">' +
+        '<span class="size-key-disc" style="width:' + d + "px;height:" + d + 'px"></span>' +
+        '<span class="size-key-label">' + escapeHtml(powerText(mw)) + "</span>" +
+      "</div>";
+    }).join("");
     el("track-hint").textContent = CONFIG.labels.dragHint;
     el("footnote").textContent = CONFIG.footnote;
 
     renderTicks();
     bindControls();
-    initMap(states);
+    STATES = states.features;
+    initMap(states, mask);
 
     stopIndex = 0;
     goTo(0, { force: true, silent: true });
-    el("stage-status").classList.add("is-hidden");
 
     /* A hook for the browser checks, and for the later scenes to read. */
     window.__dcMap = {
@@ -1092,9 +1355,13 @@
     fetch(CONFIG.data.states).then(function (r) {
       if (!r.ok) throw new Error("us_states.geojson " + r.status);
       return r.json();
+    }),
+    fetch(CONFIG.data.mask).then(function (r) {
+      if (!r.ok) throw new Error("us_mask.geojson " + r.status);
+      return r.json();
     })
   ]).then(function (results) {
-    boot(results[0], results[1]);
+    boot(results[0], results[1], results[2]);
   }).catch(function (error) {
     fail("Could not load the site data (" + error.message +
          "). This page reads its JSON over HTTP, so it needs a server rather than a file:// path.");
