@@ -1,0 +1,9 @@
+{
+ "kw_per_fan_median": 80.4,
+ "kw_per_fan_display": 80,
+ "kw_per_fan_q1": 69.38,
+ "kw_per_fan_q3": 100.0,
+ "models": 59,
+ "filter": "Air-cooled, cooling capacity >= 500 kW",
+ "source": "Epoch AI, 'AI data centers', data_center_chillers.csv"
+}

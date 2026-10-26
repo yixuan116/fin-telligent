@@ -179,6 +179,125 @@
   }
   .counter-value .unit { font-size: 0.8rem; font-weight: 700; color: var(--stage-text-dim); margin-left: 3px; }
 
+  /* ---------- how we know ----------
+     A quiet link under the counters. It is deliberately small and un-pilled
+     so it does not read as a fifth scene button next to Who / Where / Why /
+     When. */
+
+  #how-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 11px; padding: 5px 9px 5px 6px;
+    font-family: inherit; font-size: 0.66rem; font-weight: 700;
+    letter-spacing: 0.03em;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--stage-text-dim);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  #how-btn:hover { background: rgba(255, 255, 255, 0.13); color: var(--stage-text); }
+  #how-btn svg { display: block; flex-shrink: 0; fill: currentColor; }
+
+  #how-scrim {
+    position: absolute; inset: 0; z-index: 9;
+    background: rgba(6, 9, 13, 0.55);
+    display: none;
+  }
+  #how-scrim.is-open { display: block; }
+
+  #how-panel {
+    position: absolute; z-index: 10;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(560px, calc(100% - 48px));
+    max-height: calc(100% - 64px);
+    overflow-y: auto;
+    padding: 20px 22px 18px;
+    background: var(--stage-panel-solid);
+    border: 1px solid var(--stage-border);
+    border-radius: 12px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+    display: none;
+  }
+  #how-panel.is-open { display: block; }
+
+  .how-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; margin-bottom: 12px;
+  }
+  .how-title {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+  }
+  #how-close {
+    flex-shrink: 0;
+    width: 24px; height: 24px; margin: -4px -4px 0 0;
+    border: 1px solid var(--stage-border); border-radius: 6px;
+    background: transparent; color: var(--stage-text-dim);
+    font-size: 0.9rem; line-height: 1; cursor: pointer;
+  }
+  #how-close:hover { background: rgba(255, 255, 255, 0.12); color: var(--stage-text); }
+
+  .how-headline {
+    margin: 0 0 16px;
+    font-size: 1rem; font-weight: 700; line-height: 1.45;
+    color: var(--stage-text);
+  }
+
+  .how-steps {
+    display: flex; align-items: stretch; gap: 0;
+    margin-bottom: 16px;
+  }
+  .how-step {
+    flex: 1;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.72rem; line-height: 1.4;
+    color: var(--stage-text);
+  }
+  .how-step-n {
+    display: block;
+    font-size: 0.56rem; font-weight: 800; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--stage-text-faint);
+    margin-bottom: 4px;
+  }
+  .how-arrow {
+    flex-shrink: 0;
+    display: flex; align-items: center;
+    padding: 0 7px;
+    color: var(--stage-text-faint); font-size: 0.9rem;
+  }
+
+  .how-fact { display: flex; gap: 10px; font-size: 0.78rem; line-height: 1.5; }
+  .how-fact + .how-fact { margin-top: 7px; }
+  .how-fact-label {
+    flex-shrink: 0; width: 92px;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--stage-text-faint);
+    padding-top: 3px;
+  }
+  .how-fact-value { color: var(--stage-text); }
+  .how-fact-value strong { color: #ffd37a; font-weight: 800; }
+  .how-fact-note {
+    display: block; margin-top: 2px;
+    font-size: 0.64rem; color: var(--stage-text-faint);
+  }
+
+  .how-footnote {
+    margin: 15px 0 0; padding-top: 11px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.66rem; line-height: 1.5; color: var(--stage-text-faint);
+  }
+
+  @media (max-width: 620px) {
+    .how-steps { flex-direction: column; gap: 0; }
+    .how-arrow { padding: 4px 0; justify-content: center; transform: rotate(90deg); }
+    .how-fact { flex-direction: column; gap: 2px; }
+    .how-fact-label { width: auto; padding-top: 0; }
+  }
+
   /* ---------- legend ---------- */
 
   #legend {
@@ -458,6 +577,10 @@
         <span class="counter-label" id="counter-sites-label">Sites live</span>
         <span class="counter-value" id="counter-sites">&mdash;</span>
       </div>
+      <button type="button" id="how-btn" aria-haspopup="dialog" aria-expanded="false">
+        <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 14.6A6.6 6.6 0 118 1.4a6.6 6.6 0 010 13.2zM7.1 6.6h1.8v5.6H7.1V6.6zM8 3.3a1 1 0 110 2.1 1 1 0 010-2.1z"></path></svg>
+        <span id="how-btn-label">How we know</span>
+      </button>
     </div>
 
     <div id="legend" class="stage-panel">
@@ -488,6 +611,9 @@
 
     <div id="site-card" role="dialog" aria-label="Site detail"></div>
 
+    <div id="how-scrim"></div>
+    <div id="how-panel" role="dialog" aria-modal="true" aria-labelledby="how-title"></div>
+
     <div id="stage-status">
       <div class="spinner"></div>
       <div id="stage-status-text">Loading sites&hellip;</div>
@@ -511,7 +637,8 @@
     data: {
       sites: "data/sites.json",
       states: "data/us_states.geojson",
-      mask: "data/us_mask.geojson"
+      mask: "data/us_mask.geojson",
+      chiller: "data/chiller_rule.json"
     },
 
     /* Owner colours for the dark stage, in two tiers.
@@ -585,8 +712,11 @@
       growMs: 700,
 
       stateLabelSize: 11,
-      stateLabelDim: [140, 155, 175, 115],
-      stateLabelLive: [214, 228, 245, 235],
+      stateLabelDim: [150, 165, 185, 150],
+      stateLabelLive: [222, 234, 248, 245],
+      /* The halo that keeps a code readable where a bar sits behind it. */
+      stateLabelOutlineWidth: 3,
+      stateLabelOutlineColor: [6, 9, 13, 215],
       leaderColor: [120, 140, 165, 130]
     },
 
@@ -620,6 +750,28 @@
       undisclosedUsers: "Undisclosed"
     },
 
+    /* The "How we know" panel. Every string lives here; the one number in it
+       is filled from data/chiller_rule.json, which build_sites.py computes
+       from Epoch's own chiller measurements. */
+    howWeKnow: {
+      button: "How we know",
+      title: "How we know",
+      headline: "Nobody publishes these numbers. Epoch counted the cooling fans from space.",
+      steps: [
+        "Satellite images and permits",
+        "Count cooling fans and towers",
+        "Cooling capacity \u2248 heat from chips \u2192 IT power"
+      ],
+      ruleLabel: "Rule of thumb",
+      /* {kw} is the median kW of cooling per fan, rounded to the nearest 5. */
+      ruleTemplate: "One chiller fan \u2248 <strong>{kw} kW</strong> of chips.",
+      ruleNote: "Median across {models} air-cooled chiller models of 500 kW and above.",
+      exampleLabel: "Example",
+      example: "Daikin EWAD 850: 12 fans \u2192 817 kW of cooling.",
+      footnote: "All power figures are estimates. Epoch tracks the largest frontier AI sites, about 43% of global AI compute.",
+      closeLabel: "Close"
+    },
+
     scenes: {
       /* Scene 1. Placeholder wording: edit the two strings here, nothing else. */
       timeline: {
@@ -637,6 +789,7 @@
      ========================================================================== */
   var SITES = [];
   var STATES = [];
+  var CHILLER = null;
   var STOPS = [];
   var TODAY_INDEX = 0;
   var stopIndex = 0;
@@ -936,6 +1089,11 @@
       },
       getTextAnchor: "middle",
       getAlignmentBaseline: "center",
+      /* A signed-distance font lets the glyphs carry a dark outline, which is
+         what keeps OH, VA, AZ, MS and AL legible against a bar behind them. */
+      fontSettings: { sdf: true, radius: 12 },
+      outlineWidth: cfg.stateLabelOutlineWidth,
+      outlineColor: cfg.stateLabelOutlineColor,
       updateTriggers: { getColor: stop.key }
     }));
 
@@ -992,7 +1150,10 @@
     if (!deckInstance) return;
     var stop = STOPS[stopIndex];
     deckInstance.setProps({
-      layers: stateLabelLayers(stop).concat(barLayers())
+      /* Bars first, labels second: a state code has to stay readable where a
+         bar stands on top of it, so the type is drawn over the bars rather
+         than under them. */
+      layers: barLayers().concat(stateLabelLayers(stop))
     });
   }
 
@@ -1104,6 +1265,65 @@
     renderTrack(stop);
     renderHeadline(stop);
     if (pinnedSite) showCard(pinnedSite, true);
+  }
+
+  /* ==========================================================================
+     "How we know" panel
+     ========================================================================== */
+  function renderHowPanel() {
+    var how = CONFIG.howWeKnow;
+    var rule = CHILLER || {};
+    var kw = rule.kw_per_fan_display;
+
+    var steps = how.steps.map(function (text, i) {
+      return '<div class="how-step">' +
+          '<span class="how-step-n">Step ' + (i + 1) + "</span>" +
+          escapeHtml(text) +
+        "</div>";
+    }).join('<div class="how-arrow">\u2192</div>');
+
+    /* The rule of thumb carries one markup tag, so the number is substituted
+       into the template after the surrounding text is escaped. */
+    var ruleHtml = how.ruleTemplate.replace("{kw}", escapeHtml(String(kw)));
+    var ruleNote = how.ruleNote.replace("{models}", escapeHtml(String(rule.models)));
+
+    el("how-panel").innerHTML =
+      '<div class="how-head">' +
+        '<span class="how-title" id="how-title">' + escapeHtml(how.title) + "</span>" +
+        '<button type="button" id="how-close" aria-label="' +
+          escapeHtml(how.closeLabel) + '">\u00d7</button>' +
+      "</div>" +
+      '<p class="how-headline">' + escapeHtml(how.headline) + "</p>" +
+      '<div class="how-steps">' + steps + "</div>" +
+      '<div class="how-fact">' +
+        '<span class="how-fact-label">' + escapeHtml(how.ruleLabel) + "</span>" +
+        '<span class="how-fact-value">' + ruleHtml +
+          '<span class="how-fact-note">' + ruleNote + "</span></span>" +
+      "</div>" +
+      '<div class="how-fact">' +
+        '<span class="how-fact-label">' + escapeHtml(how.exampleLabel) + "</span>" +
+        '<span class="how-fact-value">' + escapeHtml(how.example) + "</span>" +
+      "</div>" +
+      '<p class="how-footnote">' + escapeHtml(how.footnote) + "</p>";
+
+    el("how-close").addEventListener("click", closeHow);
+  }
+
+  function openHow() {
+    el("how-panel").classList.add("is-open");
+    el("how-scrim").classList.add("is-open");
+    el("how-btn").setAttribute("aria-expanded", "true");
+    el("how-close").focus();
+  }
+
+  function closeHow() {
+    el("how-panel").classList.remove("is-open");
+    el("how-scrim").classList.remove("is-open");
+    el("how-btn").setAttribute("aria-expanded", "false");
+  }
+
+  function howIsOpen() {
+    return el("how-panel").classList.contains("is-open");
   }
 
   /* ==========================================================================
@@ -1241,13 +1461,21 @@
 
     el("play").addEventListener("click", togglePlay);
 
+    el("how-btn").addEventListener("click", function () {
+      if (howIsOpen()) closeHow(); else openHow();
+    });
+    /* A click anywhere off the panel closes it: the scrim covers the map. */
+    el("how-scrim").addEventListener("click", closeHow);
+
     /* Up and Down are reserved for switching scenes in a later step. */
     document.addEventListener("keydown", function (event) {
+      if (howIsOpen() && event.key !== "Escape") return;
       if (event.key === "ArrowLeft") {
         stopPlaying(); goTo(stopIndex - 1); event.preventDefault();
       } else if (event.key === "ArrowRight") {
         stopPlaying(); goTo(stopIndex + 1); event.preventDefault();
       } else if (event.key === "Escape") {
+        if (howIsOpen()) { closeHow(); return; }
         pinnedSite = null; hoverSite = null; hideCard(); paint();
       }
     });
@@ -1379,11 +1607,12 @@
     });
   }
 
-  function boot(payload, states, mask) {
+  function boot(payload, states, mask, chiller) {
     SITES = payload.sites.filter(function (s) {
       return typeof s.lat === "number" && typeof s.lon === "number";
     });
     STATES = states.features;
+    CHILLER = chiller;
     CONFIG.asOf = payload.meta.as_of;
 
     STOPS = buildStops(payload.meta.periods);
@@ -1394,6 +1623,8 @@
     el("legend-head").textContent = CONFIG.labels.legend;
     el("size-key-head").textContent = CONFIG.labels.sizeKey;
     el("track-hint").textContent = CONFIG.labels.dragHint;
+    el("how-btn-label").textContent = CONFIG.howWeKnow.button;
+    renderHowPanel();
     el("footnote").textContent = CONFIG.footnote;
 
     renderTicks();
@@ -1417,6 +1648,10 @@
       scale: function () { return degPerPx; },
       barPolygon: barPolygon,
       offsets: function () { return offsetDeg; },
+      chiller: function () { return CHILLER; },
+      openHow: openHow,
+      closeHow: closeHow,
+      howIsOpen: howIsOpen,
       displayedMW: displayedMW,
       goTo: goTo,
       current: function () { return STOPS[stopIndex]; },
@@ -1449,6 +1684,10 @@
     fetch(CONFIG.data.mask).then(function (r) {
       if (!r.ok) throw new Error("us_mask.geojson " + r.status);
       return r.json();
+    }),
+    fetch(CONFIG.data.chiller).then(function (r) {
+      if (!r.ok) throw new Error("chiller_rule.json " + r.status);
+      return r.json();
     })
   ]).catch(function (error) {
     fail("Could not load the site data (" + error.message +
@@ -1458,7 +1697,7 @@
     /* Separate from the fetch catch above: a render fault must not be
        reported as a missing file. */
     try {
-      boot(results[0], results[1], results[2]);
+      boot(results[0], results[1], results[2], results[3]);
     } catch (error) {
       console.error(error);
       fail("The map failed to draw (" + error.message + ").");

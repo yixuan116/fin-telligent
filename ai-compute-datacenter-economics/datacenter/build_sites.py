@@ -10,9 +10,12 @@ Source
 Inputs  (siblings in data/, copied from the Epoch download)
     data/data_centers.csv           one row per site
     data/data_center_timelines.csv  dated observations per site
+    data/data_center_chillers.csv   chiller models, for the rule of thumb
 
 Outputs
     data/sites.json                 US sites only, ready for the map
+    data/chiller_rule.json          median kW of cooling per chiller fan, the
+                                    number behind the "How we know" panel
     data/geocode_cache.json         Nominatim responses, committed so a rerun
                                     is deterministic and needs no network
 
@@ -32,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import statistics
 import datetime as dt
 import json
 import re
@@ -47,7 +51,9 @@ DATA = HERE / "data"
 
 SITES_CSV = DATA / "data_centers.csv"
 TIMELINES_CSV = DATA / "data_center_timelines.csv"
+CHILLERS_CSV = DATA / "data_center_chillers.csv"
 OUT_JSON = DATA / "sites.json"
+OUT_CHILLER = DATA / "chiller_rule.json"
 GEOCODE_CACHE = DATA / "geocode_cache.json"
 
 COUNTRY = "United States"
@@ -177,6 +183,15 @@ ADDRESS_FIXES: dict[str, dict[str, str]] = {
                   "'2950 S. Litchfield Road' with no town",
     },
 }
+
+# The rule of thumb behind the "How we know" panel is taken from the chiller
+# models Epoch measured: the big air-cooled units a hyperscale site actually
+# uses, not the small packaged ones. The page rounds the median to the nearest
+# 5 for display, so the headline number moves only when the data really does.
+CHILLER_MIN_KW = 500.0
+CHILLER_TYPE = "Air-cooled"
+CHILLER_DISPLAY_ROUNDING = 5
+
 
 # US IT power and live-site counts the build is checked against. "Live" means
 # a site whose carried-forward IT power is above zero at that instant.
@@ -438,6 +453,44 @@ def geocode(query: str, cache: dict, stats: dict) -> dict | None:
 # Load
 # ---------------------------------------------------------------------------
 
+def chiller_rule() -> dict:
+    """Median kW of cooling per fan across the big air-cooled chiller models.
+
+    This is the number the "How we know" panel leans on: a satellite image
+    shows fans, and a fan is worth roughly this much cooling, which in turn is
+    roughly the heat the chips under it throw off. Models below 500 kW are
+    packaged units for ordinary buildings, not the hyperscale machines Epoch
+    counts, and water-cooled models have no fans at all.
+    """
+    with CHILLERS_CSV.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+
+    per_fan = []
+    for row in rows:
+        if row["Type"].strip() != CHILLER_TYPE:
+            continue
+        capacity = to_float(row["Cooling capacity (kW)"])
+        fans = to_float(row["Number of fans"])
+        if capacity < CHILLER_MIN_KW or fans <= 0:
+            continue
+        per_fan.append(capacity / fans)
+
+    per_fan.sort()
+    quartiles = statistics.quantiles(per_fan, n=4, method="inclusive")
+    median = statistics.median(per_fan)
+    step = CHILLER_DISPLAY_ROUNDING
+
+    return {
+        "kw_per_fan_median": round(median, 2),
+        "kw_per_fan_display": int(round(median / step) * step),
+        "kw_per_fan_q1": round(quartiles[0], 2),
+        "kw_per_fan_q3": round(quartiles[2], 2),
+        "models": len(per_fan),
+        "filter": f"{CHILLER_TYPE}, cooling capacity >= {CHILLER_MIN_KW:.0f} kW",
+        "source": "Epoch AI, 'AI data centers', data_center_chillers.csv",
+    }
+
+
 def read_us_sites() -> list[dict]:
     with SITES_CSV.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
@@ -605,6 +658,7 @@ def build(refresh: bool) -> dict:
         },
         "sites": sites,
     }
+    payload["_chiller"] = chiller_rule()
     payload["_manual_log"] = manual_log
     payload["_rejected"] = rejected
     payload["_geocode_stats"] = stats
@@ -629,6 +683,7 @@ def period_totals(sites: list[dict], label: str) -> tuple[float, int]:
 def report(payload: dict) -> bool:
     sites = payload["sites"]
     manual_log = payload["_manual_log"]
+    chiller = payload["_chiller"]
     stats = payload["_geocode_stats"]
     rejected = payload["_rejected"]
     ok = True
@@ -678,6 +733,13 @@ def report(payload: dict) -> bool:
     future_total, _ = totals(sites, "it_mw_2030h1")
     print(f"{'TOTAL':<28}{fmt_mw(today_total):>12}{fmt_mw(future_total):>12}"
           f"{len(sites):>7}")
+
+    print("\n=== Chiller rule of thumb ===")
+    print(f"  filter        : {chiller['filter']}")
+    print(f"  models        : {chiller['models']}")
+    print(f"  median kW/fan : {chiller['kw_per_fan_median']}  "
+          f"(shown as {chiller['kw_per_fan_display']})")
+    print(f"  IQR kW/fan    : {chiller['kw_per_fan_q1']} .. {chiller['kw_per_fan_q3']}")
 
     print("\n=== Geocode precision ===")
     precisions: dict[str, int] = defaultdict(int)
@@ -750,8 +812,10 @@ def main() -> int:
 
     out = {"meta": payload["meta"], "sites": payload["sites"]}
     OUT_JSON.write_text(json.dumps(out, indent=1) + "\n")
+    OUT_CHILLER.write_text(json.dumps(payload["_chiller"], indent=1) + "\n")
     print(f"\nWrote {OUT_JSON.relative_to(HERE.parent.parent)} "
           f"({OUT_JSON.stat().st_size / 1024:.0f} KB)")
+    print(f"Wrote {OUT_CHILLER.relative_to(HERE.parent.parent)}")
     print(f"Wrote {GEOCODE_CACHE.relative_to(HERE.parent.parent)}")
 
     print("\nALL CHECKS PASSED" if ok else "\nCHECKS FAILED")
