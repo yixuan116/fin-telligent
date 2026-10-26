@@ -5,8 +5,6 @@ Build the Data Center map's cartography from the us-atlas boundary file.
 Outputs
     data/us_states.geojson  state outlines, each carrying its two-letter code
                             and a label anchor placed inside the state
-    data/us_mask.geojson    the world with the United States punched out, so
-                            the page can darken everything outside the country
 
 The CARTO dark-matter basemap does carry a `boundary_state` layer, but its
 filter only draws US state lines from zoom 6, and the map opens on the whole
@@ -37,7 +35,6 @@ DATA = HERE / "data"
 SOURCE_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-10m.json"
 CACHE = DATA / "us_states_topo.json"
 OUT = DATA / "us_states.geojson"
-OUT_MASK = DATA / "us_mask.geojson"
 
 USER_AGENT = "fin-telligent-datacenter-map/1.0 (+https://github.com/yixuan116/fin-telligent)"
 
@@ -69,20 +66,22 @@ STATE_CODES = {
 }
 
 # The crowded northeast. These labels cannot sit inside their own state at a
-# national zoom without colliding, so each gets a berth in a column out in the
-# Atlantic and a leader line back to the state. The page hides any of them
-# whose state has no live site at the selected time, which is most of them:
-# only New Jersey holds a tracked site.
+# national zoom without colliding, so each is parked just off its own coast
+# with a short leader line back to the state. Earlier these sat in one column
+# far out in the Atlantic, which made New Jersey's leader cross three states;
+# each now sits a short hop from the shoreline it belongs to. The page hides
+# any whose state has no live site at the selected time, which is most of
+# them: only New Jersey holds a tracked site.
 OFFSHORE_LABELS = {
-    "VT": (-68.2, 43.9),
-    "NH": (-68.2, 43.0),
-    "MA": (-68.2, 42.1),
-    "RI": (-68.2, 41.2),
-    "CT": (-68.2, 40.3),
-    "NJ": (-68.2, 39.4),
-    "DE": (-68.2, 38.5),
-    "MD": (-68.2, 37.6),
-    "DC": (-68.2, 36.7),
+    "VT": (-71.4, 45.1),
+    "NH": (-70.5, 44.2),
+    "MA": (-69.7, 42.3),
+    "RI": (-70.6, 40.9),
+    "CT": (-71.8, 40.3),
+    "NJ": (-73.3, 39.2),
+    "DE": (-74.4, 38.3),
+    "MD": (-74.9, 37.5),
+    "DC": (-75.4, 36.8),
 }
 
 # A handful of states whose computed anchor is technically inside the state but
@@ -97,14 +96,6 @@ ANCHOR_OVERRIDES = {
     "AK": (-152.0, 63.5),
     "HI": (-155.5, 19.6),   # Hawaii island, not the channel between islands
 }
-
-# The ring the mask is cut out of. Longitudes stay inside the projection's
-# valid range so the fill does not wrap around the globe.
-WORLD_RING = [
-    [-179.99, -85.0], [179.99, -85.0], [179.99, 85.0], [-179.99, 85.0],
-    [-179.99, -85.0],
-]
-
 
 def fetch_topology() -> dict:
     if CACHE.exists():
@@ -257,40 +248,6 @@ def label_anchor(rings: list[list[list[float]]]) -> tuple[float, float]:
     return (best[1], best[2])
 
 
-def build_mask(topology: dict) -> dict:
-    """The world with the country punched out.
-
-    The holes come from us-atlas's `nation` object, not from the 51 state
-    polygons. Adjacent states share their borders, so using them would hand
-    the renderer 285 holes that touch along every edge, and the tessellator
-    turns that into black wedges across the middle of the country. The nation
-    outline is the same arcs already merged, so the mask is a world ring with
-    a few dozen clean, non-touching holes.
-    """
-    geometry = topology["objects"]["nation"]["geometries"][0]
-    if geometry["type"] == "Polygon":
-        polygons = [geometry["arcs"]]
-    else:
-        polygons = geometry["arcs"]
-
-    holes = []
-    for polygon in polygons:
-        # Only the outer ring of each landmass; an inner ring would be a lake,
-        # and re-darkening lakes is not worth the geometry at this zoom.
-        ring = unwrap_antimeridian(stitch(topology, polygon[0]))
-        if len(ring) >= 4:
-            holes.append(ring)
-
-    return {
-        "type": "FeatureCollection",
-        "features": [{
-            "type": "Feature",
-            "properties": {"holes": len(holes)},
-            "geometry": {"type": "Polygon", "coordinates": [WORLD_RING] + holes},
-        }],
-    }
-
-
 def main() -> int:
     topology = fetch_topology()
     geometries = topology["objects"]["states"]["geometries"]
@@ -305,9 +262,6 @@ def main() -> int:
     OUT.write_text(
         json.dumps({"type": "FeatureCollection", "features": features},
                    separators=(",", ":")) + "\n"
-    )
-    OUT_MASK.write_text(
-        json.dumps(build_mask(topology), separators=(",", ":")) + "\n"
     )
 
     lons = []

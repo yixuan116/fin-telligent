@@ -4,24 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Center Economics | AI / Compute / Data Center</title>
-<meta name="description" content="Every tracked US AI data center on one map: glowing circles sized by IT power, coloured by owner, from the first 48 MW site in 2021 to 12 GW running today. Data: Epoch AI (CC-BY).">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.4.0/maplibre-gl.css"
-      integrity="sha512-DBNed2oEjOrfIRj8Czuzs7padWawLWbA64OoDekn8gs2a3J6WOaR5xXfnFgaxKGpxIuSn/rAo/PsgOgO6PZ/vA=="
-      crossorigin="anonymous" referrerpolicy="no-referrer">
+<meta name="description" content="Every tracked US AI data center on one map: a spike per site, height linear in IT power, coloured by owner, from the first 48 MW site in 2021 to 12 GW running today. Data: Epoch AI (CC-BY).">
 
 <style>
   /* ============================================================
-     Tokens. The nav and the page chrome reuse the series variables
-     from ai-compute-datacenter-economics/index.html so the three parts
-     read as one site. The map stage keeps its own dark tokens in both
-     light and dark mode -- this page is built to be projected, and a
-     light basemap washes out the glow.
+     Tokens. Carried from ai-compute-datacenter-economics/index.html so the
+     three parts of the series read as one site. The map is light like the
+     rest of the series, so there is no separate dark stage palette.
      ============================================================ */
   :root {
     --bg: #f5f6f8;
     --glass-bg: #ffffff;
     --glass-border: rgba(0, 0, 0, 0.06);
+    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     --text-primary: #1a1a2e;
     --text-secondary: #4a4a68;
     --text-muted: #8b8ba0;
@@ -32,14 +27,11 @@
     --page-gutter: 32px;
     --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-    /* Map stage: fixed, never themed. */
-    --stage-bg: #11151a;
-    --stage-panel: rgba(12, 16, 21, 0.82);
-    --stage-panel-solid: #121820;
-    --stage-border: rgba(255, 255, 255, 0.14);
-    --stage-text: #f2f5f8;
-    --stage-text-dim: #9fb0c0;
-    --stage-text-faint: #64748b;
+    /* Map surfaces. The ocean is a soft off-white and the land is white, so
+       the country reads as paper laid on the page. */
+    --map-bg: #eef1f5;
+    --panel-bg: rgba(255, 255, 255, 0.94);
+    --panel-border: rgba(26, 26, 46, 0.1);
   }
 
   * { box-sizing: border-box; }
@@ -114,24 +106,19 @@
     width: 100%;
     height: calc(100vh - 56px);
     min-height: 560px;
-    background: var(--stage-bg);
+    background: var(--map-bg);
     overflow: hidden;
-    color: var(--stage-text);
   }
 
-  #map, #deck-canvas {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-  }
-  #deck-canvas { z-index: 2; }
-  .maplibregl-ctrl-attrib { display: none; }
+  #deck-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
   .stage-panel {
-    background: var(--stage-panel);
-    border: 1px solid var(--stage-border);
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
     border-radius: 10px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* ---------- scene buttons ---------- */
@@ -147,15 +134,13 @@
     font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em;
     padding: 9px 20px;
     border-radius: 999px;
-    border: 1px solid var(--stage-border);
-    background: var(--stage-panel);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    color: var(--stage-text-faint);
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    box-shadow: var(--card-shadow);
+    color: var(--text-muted);
     cursor: not-allowed;
   }
   .scene-btn.is-sub { font-size: 0.68rem; padding: 5px 13px; font-weight: 600; }
-  .scene-btn[aria-disabled="true"] { opacity: 0.75; }
 
   /* ---------- counters ---------- */
 
@@ -169,56 +154,20 @@
   .counter-label {
     display: block;
     font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
-    text-transform: uppercase; color: var(--stage-text-dim);
+    text-transform: uppercase; color: var(--text-muted);
     margin-bottom: 2px;
   }
   .counter-value {
     display: block;
     font-size: 1.6rem; font-weight: 800; line-height: 1.05;
+    color: var(--text-primary);
     font-variant-numeric: tabular-nums;
   }
-  .counter-value .unit { font-size: 0.8rem; font-weight: 700; color: var(--stage-text-dim); margin-left: 3px; }
-
-  /* ---------- legend ---------- */
-
-  #legend {
-    position: absolute; z-index: 5;
-    top: 16px; right: 16px;
-    width: 232px;
-    max-height: calc(100% - 190px);
-    display: flex; flex-direction: column;
-    padding: 11px 6px 10px 12px;
-  }
-  .legend-head {
-    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
-    text-transform: uppercase; color: var(--stage-text-dim);
-    padding-right: 6px; margin-bottom: 8px;
-  }
-  .legend-rows { overflow-y: auto; padding-right: 6px; min-height: 0; }
-  .legend-rows::-webkit-scrollbar { width: 6px; }
-  .legend-rows::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; }
-  .legend-row {
-    display: grid; grid-template-columns: 11px 1fr auto;
-    align-items: center; gap: 8px;
-    padding: 3px 0;
-    font-size: 0.74rem;
-    transition: opacity 0.25s ease;
-  }
-  .legend-row.is-zero { opacity: 0.32; }
-  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
-  .legend-name {
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    color: var(--stage-text);
-  }
-  .legend-mw {
-    font-variant-numeric: tabular-nums;
-    color: var(--stage-text-dim); font-weight: 700;
-  }
+  .counter-value .unit { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-left: 3px; }
 
   /* ---------- caption ----------
-     Directly under the scene buttons at the top, not over the map, so it never
-     sits on Texas or the Midwest. Smaller than the old overlay card, and with
-     no panel behind it so it reads as a caption rather than a dialog. */
+     Under the scene buttons at the top, not over the map, so it never sits on
+     Texas or the Midwest. */
 
   #headline {
     position: absolute; z-index: 5;
@@ -228,35 +177,57 @@
     margin: 0;
     text-align: center;
     font-size: 0.82rem; font-weight: 600; line-height: 1.45;
-    letter-spacing: 0.01em;
-    color: var(--stage-text);
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
+    color: var(--text-primary);
+    text-shadow: 0 1px 8px rgba(238, 241, 245, 0.95), 0 0 16px rgba(238, 241, 245, 0.9);
     opacity: 0; visibility: hidden;
     transition: opacity 0.9s ease, visibility 0.9s;
   }
   #headline.is-shown { opacity: 1; visibility: visible; }
 
+  /* ---------- legend ---------- */
+
+  #legend {
+    position: absolute; z-index: 5;
+    top: 16px; right: 16px;
+    width: 236px;
+    max-height: calc(100% - 150px);
+    display: flex; flex-direction: column;
+    padding: 11px 6px 10px 12px;
+  }
+  .legend-head {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--text-muted);
+    padding-right: 6px; margin-bottom: 8px;
+  }
+  .legend-rows { overflow-y: auto; padding-right: 6px; min-height: 0; }
+  .legend-rows::-webkit-scrollbar { width: 6px; }
+  .legend-rows::-webkit-scrollbar-thumb { background: rgba(26, 26, 46, 0.18); border-radius: 3px; }
+  .legend-row {
+    display: grid; grid-template-columns: 11px 1fr auto;
+    align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 0.74rem;
+    transition: opacity 0.25s ease;
+  }
+  .legend-row.is-zero { opacity: 0.38; }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
+  .legend-name {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--text-primary);
+  }
+  .legend-mw {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary); font-weight: 700;
+  }
+
   /* ---------- size key ---------- */
 
   #size-key {
     margin-top: 11px; padding-top: 10px; padding-right: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--panel-border);
+    flex-shrink: 0;
   }
-  .size-key-circles {
-    display: flex; align-items: flex-end; justify-content: flex-start;
-    gap: 14px; padding: 4px 2px 0;
-  }
-  .size-key-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-  .size-key-disc {
-    border-radius: 50%;
-    background: rgba(226, 236, 248, 0.16);
-    box-shadow: 0 0 0 1px rgba(226, 236, 248, 0.5) inset;
-  }
-  .size-key-label {
-    font-size: 0.6rem; font-weight: 700;
-    color: var(--stage-text-dim);
-    font-variant-numeric: tabular-nums;
-  }
+  #size-key-spikes { display: block; margin-top: 2px; }
 
   /* ---------- timeline ---------- */
 
@@ -270,26 +241,24 @@
     flex-shrink: 0;
     width: 34px; height: 34px;
     border-radius: 50%;
-    border: 1px solid var(--stage-border);
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--stage-text);
+    border: 1px solid var(--panel-border);
+    background: #ffffff;
+    color: var(--text-primary);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
-  #play:hover { background: rgba(255, 255, 255, 0.18); }
+  #play:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
   #play svg { display: block; fill: currentColor; }
 
   .track-wrap { flex: 1; min-width: 0; }
   .track-top {
     display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 0.68rem; color: var(--stage-text-dim);
+    font-size: 0.68rem; color: var(--text-muted);
     margin-bottom: 2px;
   }
-  .track-now { font-weight: 800; color: var(--stage-text); font-size: 0.8rem; }
+  .track-now { font-weight: 800; color: var(--text-primary); font-size: 0.8rem; }
 
-  /* The slider is the primary control, so it gets a real grab handle and a
-     generous hit area rather than a hairline. */
   #slider {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 22px;
@@ -309,29 +278,29 @@
   #slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
     width: 16px; height: 16px; border-radius: 50%;
-    background: #ffffff;
-    border: 2px solid #11151a;
+    background: var(--accent);
+    border: 2px solid #ffffff;
     margin-top: -6px;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 1px 5px rgba(26, 26, 46, 0.3);
   }
   #slider::-moz-range-thumb {
     width: 14px; height: 14px; border-radius: 50%;
-    background: #ffffff; border: 2px solid #11151a;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    background: var(--accent); border: 2px solid #ffffff;
+    box-shadow: 0 1px 5px rgba(26, 26, 46, 0.3);
   }
   #slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
   .track-ticks {
     position: relative; height: 13px;
-    font-size: 0.56rem; color: var(--stage-text-faint);
+    font-size: 0.56rem; color: var(--text-muted);
   }
   .track-tick {
     position: absolute; top: 0;
     transform: translateX(-50%);
     white-space: nowrap;
   }
-  .track-tick.is-locked { color: #475569; }
-  .track-tick.is-today { color: var(--stage-text); font-weight: 800; }
+  .track-tick.is-locked { color: #c3c6d2; }
+  .track-tick.is-today { color: var(--text-primary); font-weight: 800; }
 
   /* ---------- site card ---------- */
 
@@ -339,30 +308,30 @@
     position: absolute; z-index: 6;
     width: 266px;
     padding: 13px 15px 12px;
-    background: var(--stage-panel-solid);
-    border: 1px solid var(--stage-border);
+    background: #ffffff;
+    border: 1px solid var(--panel-border);
     border-radius: 10px;
-    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 8px 28px rgba(26, 26, 46, 0.18);
     pointer-events: none;
     display: none;
   }
   #site-card.is-pinned { pointer-events: auto; }
-  .card-name { font-size: 0.92rem; font-weight: 800; line-height: 1.25; margin-bottom: 2px; }
+  .card-name { font-size: 0.92rem; font-weight: 800; line-height: 1.25; margin-bottom: 2px; color: var(--text-primary); }
   .card-owner {
     display: flex; align-items: center; gap: 6px;
-    font-size: 0.72rem; color: var(--stage-text-dim);
+    font-size: 0.72rem; color: var(--text-secondary);
     margin-bottom: 9px;
   }
   .card-owner .legend-swatch { width: 9px; height: 9px; }
   .card-rows { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 0.74rem; }
-  .card-key { color: var(--stage-text-faint); white-space: nowrap; }
-  .card-val { color: var(--stage-text); font-variant-numeric: tabular-nums; }
+  .card-key { color: var(--text-muted); white-space: nowrap; }
+  .card-val { color: var(--text-primary); font-variant-numeric: tabular-nums; }
   .card-note {
     margin-top: 9px; padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.64rem; color: var(--stage-text-faint); line-height: 1.45;
+    border-top: 1px solid var(--panel-border);
+    font-size: 0.64rem; color: var(--text-muted); line-height: 1.45;
   }
-  .card-approx { color: #d97e00; font-weight: 700; }
+  .card-approx { color: #a8650a; font-weight: 700; }
 
   /* ---------- footnote ---------- */
 
@@ -371,7 +340,7 @@
     left: 16px; right: 16px; bottom: 12px;
     text-align: center;
     font-size: 0.62rem; line-height: 1.5;
-    color: var(--stage-text-faint);
+    color: var(--text-muted);
   }
 
   /* ---------- loading / error ---------- */
@@ -380,15 +349,15 @@
     position: absolute; inset: 0; z-index: 8;
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; gap: 12px;
-    background: var(--stage-bg);
-    font-size: 0.86rem; color: var(--stage-text-dim);
+    background: var(--map-bg);
+    font-size: 0.86rem; color: var(--text-secondary);
     text-align: center; padding: 24px;
   }
   #stage-status.is-hidden { display: none; }
   .spinner {
     width: 32px; height: 32px; border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.14);
-    border-top-color: #ffffff;
+    border: 3px solid rgba(26, 26, 46, 0.12);
+    border-top-color: var(--accent);
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -399,7 +368,6 @@
     .counter-value { font-size: 1.25rem; }
     #scene-bar { top: auto; bottom: 150px; }
     .scene-btn { font-size: 0.74rem; padding: 7px 13px; }
-    /* No legend at this width, so the caption may use the full column. */
     #headline { top: 150px; max-width: calc(100% - 32px); font-size: 0.74rem; }
   }
 </style>
@@ -442,7 +410,6 @@
   </nav>
 
   <main id="stage">
-    <div id="map"></div>
     <canvas id="deck-canvas"></canvas>
 
     <!-- Scene switches. Only the timeline is wired in this step; the four
@@ -458,8 +425,6 @@
       <button type="button" class="scene-btn" aria-disabled="true" disabled>When</button>
     </div>
 
-    <!-- The caption sits under the scene buttons rather than over the map, so
-         it never covers Texas or the Midwest. -->
     <p id="headline"></p>
 
     <div id="counters" class="stage-panel">
@@ -477,8 +442,8 @@
       <div class="legend-head" id="legend-head">Owner</div>
       <div class="legend-rows" id="legend-rows"></div>
       <div id="size-key">
-        <div class="legend-head" id="size-key-head">Circle area = IT power</div>
-        <div class="size-key-circles" id="size-key-circles"></div>
+        <div class="legend-head" id="size-key-head">Spike height = IT power</div>
+        <svg id="size-key-spikes" aria-hidden="true"></svg>
       </div>
     </div>
 
@@ -507,11 +472,10 @@
     </div>
   </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.4.0/maplibre-gl.js"
-        integrity="sha512-V0VCR62R076Ezy2E5xflGqGPDhGYWzebW9NQlh2y2qvAGzBu2xxuCsIF9DXLPasvmNNoQ5bSd+9wl+zOwwJ0Kg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- deck.gl is not published on cdnjs, so it comes from jsDelivr at an exact
-     pinned version, per the repo's library policy. -->
+     pinned version, per the repo's library policy. There is no basemap
+     library any more: the only geometry on screen is this folder's own
+     us_states.geojson, drawn by deck.gl. -->
 <script src="https://cdn.jsdelivr.net/npm/deck.gl@9.3.11/dist.min.js"></script>
 
 <script>
@@ -525,91 +489,88 @@
   var CONFIG = {
     data: {
       sites: "data/sites.json",
-      states: "data/us_states.geojson",
-      mask: "data/us_mask.geojson"
+      states: "data/us_states.geojson"
     },
 
-    /* Owner colours in two tiers.
+    /* Owner colours for a light background, in two tiers.
 
-       The six owners the stage demo is about carry vivid, widely separated
-       hues: blue, green, amber, red, magenta, violet. That subset clears the
-       normal-vision floor on the all-pairs test against this dark surface
-       (worst pair delta-E 16.3) and sits at 7.4 on the CVD test, inside the
-       band that is legal with secondary encoding.
+       The six owners the stage demo is about carry the strongest, most
+       separated hues: blue, green, amber, red, magenta, violet. That subset
+       measures 14.6 worst-pair normal-vision delta-E against this off-white
+       and clears 3:1 contrast on every slot.
 
-       The seven small owners are deliberately muted and spread across
-       lightness rather than hue alone, which is what actually separates
-       colours: pale slate, deep teal, dark olive, purple-grey, tan, wine,
-       steel. Across all thirteen the worst pair falls to delta-E 10.6, and
-       the pairs that limit it are all among owners of a few hundred MW. No
-       two owners share a hue family, and identity never rests on colour
-       alone: the legend names every owner, hovering dims the others, and the
-       site card repeats the owner in text. */
+       The seven small owners are softer -- warm grey, teal, olive, lavender,
+       brown, wine, mauve -- and also clear 3:1. Across all thirteen the worst
+       pair falls to 6.4, and the pairs that limit it are owners of a few
+       hundred MW. Identity never rests on colour alone: the legend names
+       every owner, hovering fades the rest, and the card repeats the owner. */
     ownerColors: {
-      "Google":          "#4a9eff",
-      "Meta":            "#3ddc84",
-      "Amazon":          "#ffb347",
-      "Oracle":          "#ff5a4d",
-      "Microsoft":       "#ff5fd2",
-      "SpaceXAI":        "#8b5cf6",
-      "Colocation":      "#c9d4e8",
-      "CoreWeave":       "#2a9d8f",
-      "Softbank":        "#6f7a3a",
-      "AI XPV Platform": "#7d5ea0",
-      "Cipher Mining":   "#c99a63",
-      "Core42":          "#a15b68",
-      "Nebius":          "#7fb3c4"
+      "Google":          "#0d6fc7",
+      "Meta":            "#1a8f4c",
+      "Amazon":          "#a87400",
+      "Oracle":          "#d63b2f",
+      "Microsoft":       "#c0288f",
+      "SpaceXAI":        "#7b2cbf",
+      "Colocation":      "#8a8277",
+      "CoreWeave":       "#1f8a86",
+      "Softbank":        "#7a7f2e",
+      "AI XPV Platform": "#8578a8",
+      "Cipher Mining":   "#74512c",
+      "Core42":          "#a3415c",
+      "Nebius":          "#a87f9e"
     },
-    ownerFallback: "#94a3b8",
+    ownerFallback: "#7a8296",
 
     map: {
-      /* The no-labels basemap: the only type on the map is this page's own
-         state codes, so Canada, Mexico and the oceans stay unlabelled. */
-      style: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
       /* Flat and top-down. The camera is fitted to these bounds on load and
-         on resize rather than hard-coded, so the contiguous US fills whatever
-         viewport the projector gives it. */
+         on resize, so the contiguous US fills whatever viewport it gets. The
+         top padding leaves room for the scene buttons and the caption, since
+         the spikes rise into that space. */
       conusBounds: [[-124.8, 24.4], [-66.9, 49.4]],
-      fitPadding: { top: 74, bottom: 104, left: 24, right: 24 },
+      fitPadding: { top: 150, bottom: 118, left: 28, right: 28 },
       pitch: 0,
       bearing: 0,
 
-      /* Everything outside the country is dimmed so the US reads as a lit
-         stage rather than one landmass among several. */
-      maskColor: "rgba(3, 5, 8, 0.93)",
-      stateFillColor: "rgba(150, 182, 230, 0.035)",
-      stateLineColor: "rgba(150, 175, 210, 0.26)",
-      stateLineWidth: 0.6,
+      landColor: [255, 255, 255, 255],
+      landLineColor: [205, 212, 222, 255],
+      landLineWidth: 0.8,
 
-      /* Circle AREA is proportional to IT power, so the radius goes as the
-         square root. In pixels, so the size key's reference circles mean the
-         same thing at any zoom. 1 GW lands at 26 px. */
-      radiusPerSqrtMW: 0.822,
-      haloScale: 2.7,
-      coreAlpha: 0.95,
-      haloAlpha: 0.3,
-      dimAlpha: 0.14,          /* non-hovered sites while one is hovered */
-      growMs: 620,             /* circle growth between timeline stops */
-      pulseMs: 1300,           /* the ring thrown off by a site going live */
-      pulseScale: 5.2,
+      /* Spike geometry. Height is strictly linear in MW: 1 GW is 150 px, so
+         500 MW is exactly 75 px and 100 MW exactly 15 px. The base is a fixed
+         narrow width, independent of value. */
+      pxPerMW: 0.15,
+      baseHalfWidthPx: 3.2,
+      fillAlpha: 0.85,
+      outlineDarken: 0.55,      /* outline = fill darkened by this factor */
+      outlineWidthPx: 0.9,
+      hoverFadeAlpha: 0.3,      /* other spikes while one is hovered */
+
+      baseDotRadiusPx: 2.6,
+      /* The dot lands first, then the spike grows out of it. */
+      dotLeadMs: 260,
+      growMs: 700,
+
+      valueLabelMinMW: 500,     /* spikes at or above this always show a value */
+      valueLabelSize: 11,
+      valueLabelColor: [26, 26, 46, 235],
+      valueLabelOffsetPx: 8,
 
       stateLabelSize: 11,
-      stateLabelDim: [140, 155, 175, 115],
-      stateLabelLive: [214, 228, 245, 235],
-      leaderColor: [120, 140, 165, 130]
+      stateLabelDim: [150, 152, 170, 205],
+      stateLabelLive: [84, 84, 112, 255],
+      leaderColor: [168, 176, 190, 210]
     },
 
     labels: {
       power: "IT power",
       sites: "Sites live",
       legend: "Owner",
-      sizeKey: "Circle area = IT power",
+      sizeKey: "Spike height = IT power",
       dragHint: "Drag, or use the left and right arrow keys",
       todayStop: "Today"
     },
 
-    /* The size key's reference circles. Area, not radius, carries the value,
-       so these are drawn at the same radiusPerSqrtMW the map uses. */
+    /* Reference spikes, drawn at exactly the map's own pixels per MW. */
     sizeKey: [1000, 500, 100],
 
     card: {
@@ -647,18 +608,22 @@
      ========================================================================== */
   var SITES = [];
   var STATES = [];
-  var STOPS = [];          /* [{ key, label, tick, isToday, locked }] */
-  var TODAY_INDEX = 0;     /* last stop scene 1 allows */
+  var STOPS = [];
+  var TODAY_INDEX = 0;
   var stopIndex = 0;
   var deckInstance = null;
-  var mapInstance = null;
   var playTimer = null;
-  var pulseUntil = 0;
-  var pulseSites = [];
-  var pulseFrame = null;
   var pinnedSite = null;
   var hoverSite = null;
   var lastPointer = { x: 0, y: 0 };
+  var viewState = null;
+
+  /* Spike heights are animated here rather than through deck's own attribute
+     transitions: the data is re-sorted every stop so tall spikes draw behind
+     short ones, and deck matches transitions by index, which that reordering
+     would scramble. */
+  var anim = { from: {}, to: {}, fresh: {}, start: 0, frame: null };
+  var shown = {};              /* MW currently displayed, per site name */
 
   var el = function (id) { return document.getElementById(id); };
 
@@ -695,6 +660,10 @@
     ];
   }
 
+  function darken(rgb, factor) {
+    return rgb.map(function (c) { return Math.round(c * factor); });
+  }
+
   function ownerColor(owner) {
     return CONFIG.ownerColors[owner] || CONFIG.ownerFallback;
   }
@@ -703,19 +672,14 @@
      Timeline model
      ========================================================================== */
   function buildStops(periods) {
-    /* Today sits chronologically between 2026H2 (Jul 1) and 2027H1 (Jan 1),
-       so it is inserted in sequence rather than appended. Everything after it
-       is reserved for the later When scene and stays locked here. */
     var stops = periods.map(function (key) {
       return { key: key, isToday: false, locked: false };
     });
 
-    var asOf = CONFIG.asOf;                       /* set from sites.json meta */
+    var asOf = CONFIG.asOf;
     var asOfYear = Number(asOf.slice(0, 4));
     var asOfMonth = Number(asOf.slice(5, 7));
-    var afterKey = asOfMonth > 6
-      ? asOfYear + "H2"
-      : asOfYear + "H1";
+    var afterKey = asOfMonth > 6 ? asOfYear + "H2" : asOfYear + "H1";
 
     var insertAt = stops.findIndex(function (s) { return s.key === afterKey; });
     insertAt = insertAt === -1 ? stops.length - 1 : insertAt;
@@ -738,7 +702,268 @@
   }
 
   /* ==========================================================================
-     Rendering
+     Spike geometry
+
+     deck.gl has no screen-space triangle, so each spike is a three-point
+     polygon in lon/lat whose size is converted back from pixels. Longitude
+     degrees per pixel is constant in Web Mercator; latitude degrees per pixel
+     shrinks with the cosine of the latitude, so a spike in Texas and one in
+     North Dakota need different conversions or the northern one comes out
+     visibly taller for the same MW.
+     ========================================================================== */
+  var degPerPx = { lon: 0.01 };
+
+  /* Derived from the zoom rather than from a live viewport. deck.gl asserts
+     if getViewports() is called before its first render, and the closed form
+     is exact anyway: at deck's zoom convention the world is 512 * 2^z pixels
+     wide, so a pixel spans 360 / (512 * 2^z) degrees of longitude, and
+     cos(latitude) times that in latitude. Checked against unproject at 27, 39
+     and 49 degrees north: agreement to within 0.04%. */
+  function refreshScale() {
+    if (!viewState) return;
+    degPerPx.lon = 360 / (512 * Math.pow(2, viewState.zoom));
+  }
+
+  function spikeTip(site, mw) {
+    var heightDeg = mw * CONFIG.map.pxPerMW * degPerPx.lon *
+                    Math.cos(site.lat * Math.PI / 180);
+    return [site.lon, site.lat + heightDeg];
+  }
+
+  function spikePolygon(site, mw) {
+    var halfW = CONFIG.map.baseHalfWidthPx * degPerPx.lon;
+    var tip = spikeTip(site, mw);
+    return [[
+      [site.lon - halfW, site.lat],
+      [site.lon + halfW, site.lat],
+      tip
+    ]];
+  }
+
+  /* ==========================================================================
+     Animation
+
+     On every move the displayed MW eases from what is on screen to the new
+     value. A site that has just come alive holds at zero for dotLeadMs first,
+     so its base dot is visible before the spike starts to rise.
+     ========================================================================== */
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function displayedMW(site) {
+    var cfg = CONFIG.map;
+    var to = anim.to[site.name] || 0;
+    if (anim.start === 0) return to;
+    var from = anim.from[site.name] || 0;
+    var elapsed = performance.now() - anim.start;
+    var lead = anim.fresh[site.name] ? cfg.dotLeadMs : 0;
+    if (elapsed <= lead) return from;
+    var t = Math.min(1, (elapsed - lead) / cfg.growMs);
+    return from + (to - from) * easeOut(t);
+  }
+
+  function startAnimation(stop, instant) {
+    var cfg = CONFIG.map;
+    anim.from = {};
+    anim.to = {};
+    anim.fresh = {};
+    SITES.forEach(function (site) {
+      var was = shown[site.name] || 0;
+      var now = powerAt(site, stop);
+      anim.from[site.name] = instant ? now : was;
+      anim.to[site.name] = now;
+      anim.fresh[site.name] = !instant && was === 0 && now > 0;
+      shown[site.name] = now;
+    });
+
+    if (anim.frame) { cancelAnimationFrame(anim.frame); anim.frame = null; }
+    if (instant) { anim.start = 0; paint(); return; }
+
+    anim.start = performance.now();
+    var ends = anim.start + cfg.dotLeadMs + cfg.growMs;
+    var tick = function () {
+      paint();
+      if (performance.now() >= ends) {
+        anim.frame = null;
+        anim.start = 0;
+        paint();
+        return;
+      }
+      anim.frame = requestAnimationFrame(tick);
+    };
+    anim.frame = requestAnimationFrame(tick);
+  }
+
+  /* ==========================================================================
+     Layers
+     ========================================================================== */
+  function focusName() {
+    var focus = pinnedSite || hoverSite;
+    return focus ? focus.name : null;
+  }
+
+  function fillAlphaFor(site) {
+    var cfg = CONFIG.map;
+    var focus = focusName();
+    var base = Math.round(255 * cfg.fillAlpha);
+    if (!focus) return base;
+    return site.name === focus ? base : Math.round(255 * cfg.hoverFadeAlpha);
+  }
+
+  function landLayer() {
+    var cfg = CONFIG.map;
+    return new deck.GeoJsonLayer({
+      id: "land",
+      data: { type: "FeatureCollection", features: STATES },
+      pickable: false,
+      filled: true,
+      stroked: true,
+      getFillColor: cfg.landColor,
+      getLineColor: cfg.landLineColor,
+      lineWidthUnits: "pixels",
+      getLineWidth: cfg.landLineWidth,
+      lineWidthMinPixels: 0.6
+    });
+  }
+
+  function stateLabelLayers(stop) {
+    var cfg = CONFIG.map;
+    var liveStates = {};
+    liveAt(stop).forEach(function (site) {
+      if (site.state) liveStates[site.state] = true;
+    });
+
+    /* A state whose label would only collide in the northeast is parked just
+       off its own coast, and is shown only once it has something to say. */
+    var labels = STATES.filter(function (f) {
+      return f.properties.code &&
+        (!f.properties.offshore || liveStates[f.properties.code]);
+    });
+    var leaders = labels.filter(function (f) { return f.properties.offshore; });
+
+    var layers = [];
+    if (leaders.length) {
+      layers.push(new deck.LineLayer({
+        id: "state-leaders",
+        data: leaders,
+        widthUnits: "pixels",
+        getWidth: 0.8,
+        getSourcePosition: function (f) { return f.properties.anchor; },
+        getTargetPosition: function (f) { return f.properties.label; },
+        getColor: cfg.leaderColor
+      }));
+    }
+
+    layers.push(new deck.TextLayer({
+      id: "state-labels",
+      data: labels,
+      pickable: false,
+      characterSet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+      fontWeight: 600,
+      getPosition: function (f) { return f.properties.label; },
+      getText: function (f) { return f.properties.code; },
+      getSize: cfg.stateLabelSize,
+      sizeUnits: "pixels",
+      getColor: function (f) {
+        return liveStates[f.properties.code] ? cfg.stateLabelLive : cfg.stateLabelDim;
+      },
+      getTextAnchor: "middle",
+      getAlignmentBaseline: "center",
+      updateTriggers: { getColor: stop.key }
+    }));
+
+    return layers;
+  }
+
+  function spikeLayers() {
+    var cfg = CONFIG.map;
+    var focus = focusName();
+
+    /* Each row carries its currently displayed MW, and the list is sorted
+       tallest first so a tall spike is drawn behind the shorter ones in front
+       of it rather than burying them. */
+    var rows = SITES.map(function (site) {
+      return { site: site, mw: displayedMW(site) };
+    }).filter(function (row) {
+      return row.mw > 0.01 || (anim.to[row.site.name] || 0) > 0;
+    }).sort(function (a, b) {
+      return b.mw - a.mw;
+    });
+
+    var labelled = rows.filter(function (row) {
+      return row.mw >= cfg.valueLabelMinMW || row.site.name === focus;
+    });
+
+    return [
+      new deck.ScatterplotLayer({
+        id: "spike-base",
+        data: rows,
+        pickable: false,
+        radiusUnits: "pixels",
+        getPosition: function (row) { return [row.site.lon, row.site.lat]; },
+        getRadius: cfg.baseDotRadiusPx,
+        getFillColor: function (row) {
+          return darken(hexToRgb(ownerColor(row.site.owner)), 0.78)
+            .concat(fillAlphaFor(row.site));
+        }
+      }),
+
+      new deck.PolygonLayer({
+        id: "spikes",
+        data: rows,
+        pickable: true,
+        filled: true,
+        stroked: true,
+        extruded: false,
+        lineWidthUnits: "pixels",
+        lineJointRounded: false,
+        getPolygon: function (row) { return spikePolygon(row.site, row.mw); },
+        getFillColor: function (row) {
+          return hexToRgb(ownerColor(row.site.owner)).concat(fillAlphaFor(row.site));
+        },
+        getLineColor: function (row) {
+          var isFocus = row.site.name === focus;
+          return darken(hexToRgb(ownerColor(row.site.owner)),
+                        isFocus ? 0.3 : cfg.outlineDarken)
+            .concat(isFocus ? 255 : fillAlphaFor(row.site));
+        },
+        getLineWidth: function (row) {
+          return row.site.name === focus ? cfg.outlineWidthPx * 2.2 : cfg.outlineWidthPx;
+        },
+        onHover: onHover,
+        onClick: onClick
+      }),
+
+      new deck.TextLayer({
+        id: "spike-values",
+        data: labelled,
+        pickable: false,
+        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+        fontWeight: 700,
+        getPosition: function (row) { return spikeTip(row.site, row.mw); },
+        getText: function (row) { return powerText(row.mw); },
+        getSize: cfg.valueLabelSize,
+        sizeUnits: "pixels",
+        getColor: cfg.valueLabelColor,
+        getTextAnchor: "middle",
+        getAlignmentBaseline: "bottom",
+        getPixelOffset: [0, -cfg.valueLabelOffsetPx]
+      })
+    ];
+  }
+
+  function paint() {
+    if (!deckInstance) return;
+    var stop = STOPS[stopIndex];
+    deckInstance.setProps({
+      layers: [landLayer()]
+        .concat(stateLabelLayers(stop))
+        .concat(spikeLayers())
+    });
+  }
+
+  /* ==========================================================================
+     Panels
      ========================================================================== */
   function renderCounters(stop) {
     var live = liveAt(stop);
@@ -773,6 +998,40 @@
     }).join("");
   }
 
+  /* Three reference spikes, drawn at exactly the map's own pixels per MW, so
+     the key is a measurement rather than a decoration. */
+  function renderSizeKey() {
+    var cfg = CONFIG.map;
+    var values = CONFIG.sizeKey.slice().sort(function (a, b) { return b - a; });
+    var gapX = 64;
+    var padX = 20;
+    var baseY = Math.max.apply(null, values) * cfg.pxPerMW + 6;
+    var height = baseY + 16;
+    var width = padX * 2 + (values.length - 1) * gapX;
+
+    var parts = values.map(function (mw, i) {
+      var h = mw * cfg.pxPerMW;
+      var cx = padX + i * gapX;
+      var w = cfg.baseHalfWidthPx;
+      return '<polygon points="' +
+          (cx - w) + "," + baseY + " " +
+          (cx + w) + "," + baseY + " " +
+          cx + "," + (baseY - h) +
+        '" fill="rgba(74,74,104,0.45)" stroke="rgba(26,26,46,0.6)" stroke-width="0.9"></polygon>' +
+        '<circle cx="' + cx + '" cy="' + baseY + '" r="' + cfg.baseDotRadiusPx +
+          '" fill="rgba(26,26,46,0.55)"></circle>' +
+        '<text x="' + cx + '" y="' + (baseY + 13) +
+          '" text-anchor="middle" font-size="9" font-weight="700" fill="#8b8ba0">' +
+          powerText(mw) + "</text>";
+    }).join("");
+
+    var svg = el("size-key-spikes");
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+    svg.setAttribute("width", String(width));
+    svg.setAttribute("height", String(height));
+    svg.innerHTML = parts;
+  }
+
   function renderTrack(stop) {
     el("track-now").textContent = stop.label;
     el("slider").value = String(stopIndex);
@@ -783,14 +1042,13 @@
        stretch past Today that the When scene will unlock. */
     el("timeline").style.setProperty("--track-fill",
       "linear-gradient(to right," +
-      " #ffffff 0%, #ffffff " + fillPct + "%," +
-      " rgba(255,255,255,0.30) " + fillPct + "%, rgba(255,255,255,0.30) " + todayPct + "%," +
-      " rgba(255,255,255,0.08) " + todayPct + "%, rgba(255,255,255,0.08) 100%)");
+      " var(--accent) 0%, var(--accent) " + fillPct + "%," +
+      " rgba(26,26,46,0.22) " + fillPct + "%, rgba(26,26,46,0.22) " + todayPct + "%," +
+      " rgba(26,26,46,0.07) " + todayPct + "%, rgba(26,26,46,0.07) 100%)");
   }
 
   function renderTicks() {
     el("track-ticks").innerHTML = STOPS.map(function (stop, i) {
-      /* Only the H1 stops and Today get a printed label; H2 would crowd. */
       var show = stop.isToday || stop.key.endsWith("H1");
       if (!show) return "";
       var pct = STOPS.length > 1 ? (i / (STOPS.length - 1)) * 100 : 0;
@@ -808,192 +1066,13 @@
     node.classList.toggle("is-shown", show);
   }
 
-  /* Additive blending: where two halos overlap the light sums rather than
-     one covering the other, so a cluster reads brighter than its parts. */
-  var ADDITIVE = {
-    blend: true,
-    blendColorOperation: "add",
-    blendColorSrcFactor: "src-alpha",
-    blendColorDstFactor: "one",
-    blendAlphaOperation: "add",
-    blendAlphaSrcFactor: "src-alpha",
-    blendAlphaDstFactor: "one",
-    depthTest: false
-  };
-
-  function siteRadius(site, stop) {
-    var mw = powerAt(site, stop);
-    /* Area proportional to MW means radius proportional to its square root.
-       A site that is not live yet has radius 0, which is also what makes it
-       expand from a point: it is in the layer the whole time, so deck
-       interpolates 0 -> r rather than popping a new circle into place. */
-    return mw > 0 ? CONFIG.map.radiusPerSqrtMW * Math.sqrt(mw) : 0;
-  }
-
-  function alphaFor(site, base) {
-    if (!hoverSite && !pinnedSite) return base;
-    var focus = pinnedSite || hoverSite;
-    return site.name === focus.name ? base : Math.round(base * CONFIG.map.dimAlpha / 0.95);
-  }
-
-  function siteLayers(stop) {
-    var cfg = CONFIG.map;
-    var now = performance.now();
-    var pulseT = now < pulseUntil
-      ? 1 - (pulseUntil - now) / cfg.pulseMs
-      : -1;
-
-    var triggers = {
-      getRadius: stop.key,
-      getFillColor: stop.key + "|" + (hoverSite ? hoverSite.name : "") +
-                    "|" + (pinnedSite ? pinnedSite.name : "")
-    };
-
-    var layers = [
-      /* Soft outer halo. Drawn first so the core sits on top of it. */
-      new deck.ScatterplotLayer({
-        id: "site-halo",
-        data: SITES,
-        pickable: false,
-        radiusUnits: "pixels",
-        radiusMinPixels: 0,
-        getPosition: function (d) { return [d.lon, d.lat]; },
-        getRadius: function (d) { return siteRadius(d, stop) * cfg.haloScale; },
-        getFillColor: function (d) {
-          return hexToRgb(ownerColor(d.owner))
-            .concat(alphaFor(d, Math.round(255 * cfg.haloAlpha)));
-        },
-        parameters: ADDITIVE,
-        transitions: { getRadius: cfg.growMs },
-        updateTriggers: triggers
-      }),
-
-      /* Bright core in the owner colour. */
-      new deck.ScatterplotLayer({
-        id: "site-core",
-        data: SITES,
-        pickable: true,
-        radiusUnits: "pixels",
-        radiusMinPixels: 0,
-        getPosition: function (d) { return [d.lon, d.lat]; },
-        getRadius: function (d) { return siteRadius(d, stop); },
-        getFillColor: function (d) {
-          return hexToRgb(ownerColor(d.owner))
-            .concat(alphaFor(d, Math.round(255 * cfg.coreAlpha)));
-        },
-        parameters: ADDITIVE,
-        transitions: { getRadius: cfg.growMs },
-        updateTriggers: triggers,
-        onHover: onHover,
-        onClick: onClick
-      })
-    ];
-
-    /* The ring a site throws off on the stop it first goes live. */
-    if (pulseT >= 0 && pulseSites.length) {
-      layers.push(new deck.ScatterplotLayer({
-        id: "site-pulse",
-        data: pulseSites,
-        pickable: false,
-        stroked: true,
-        filled: false,
-        radiusUnits: "pixels",
-        lineWidthUnits: "pixels",
-        getPosition: function (d) { return [d.lon, d.lat]; },
-        getRadius: function (d) {
-          var r = siteRadius(d, stop) || 4;
-          return r * (1 + (cfg.pulseScale - 1) * pulseT);
-        },
-        getLineWidth: Math.max(0.6, 2.4 * (1 - pulseT)),
-        getLineColor: function (d) {
-          return hexToRgb(ownerColor(d.owner))
-            .concat(Math.round(235 * (1 - pulseT)));
-        },
-        parameters: ADDITIVE
-      }));
-    }
-
-    return layers;
-  }
-
-  function labelLayers(stop) {
-    var cfg = CONFIG.map;
-    var liveStates = {};
-    liveAt(stop).forEach(function (site) {
-      if (site.state) liveStates[site.state] = true;
-    });
-
-    /* A state whose label would only collide in the northeast is parked
-       offshore, and is shown only once it actually has something to say. */
-    var labels = STATES.filter(function (f) {
-      return f.properties.code &&
-        (!f.properties.offshore || liveStates[f.properties.code]);
-    });
-
-    var leaders = labels.filter(function (f) { return f.properties.offshore; });
-
-    var layers = [];
-
-    if (leaders.length) {
-      layers.push(new deck.LineLayer({
-        id: "state-leaders",
-        data: leaders,
-        widthUnits: "pixels",
-        getWidth: 0.8,
-        getSourcePosition: function (f) { return f.properties.anchor; },
-        getTargetPosition: function (f) { return f.properties.label; },
-        getColor: cfg.leaderColor,
-        updateTriggers: { getSourcePosition: stop.key }
-      }));
-    }
-
-    layers.push(new deck.TextLayer({
-      id: "state-labels",
-      data: labels,
-      pickable: false,
-      characterSet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-      fontWeight: 700,
-      getPosition: function (f) { return f.properties.label; },
-      getText: function (f) { return f.properties.code; },
-      getSize: cfg.stateLabelSize,
-      sizeUnits: "pixels",
-      getColor: function (f) {
-        return liveStates[f.properties.code] ? cfg.stateLabelLive : cfg.stateLabelDim;
-      },
-      getTextAnchor: "middle",
-      getAlignmentBaseline: "center",
-      updateTriggers: { getColor: stop.key, getText: stop.key }
-    }));
-
-    return layers;
-  }
-
-  function allLayers(stop) {
-    return labelLayers(stop).concat(siteLayers(stop));
-  }
-
   function draw() {
     var stop = STOPS[stopIndex];
-    if (deckInstance) deckInstance.setProps({ layers: allLayers(stop) });
     renderCounters(stop);
     renderLegend(stop);
     renderTrack(stop);
     renderHeadline(stop);
     if (pinnedSite) showCard(pinnedSite, true);
-  }
-
-  /* The pulse ring expands and fades over time, so the layer has to be
-     rebuilt each frame while it is alive and then left alone. */
-  function animatePulse() {
-    if (pulseFrame) cancelAnimationFrame(pulseFrame);
-    var tick = function () {
-      if (!deckInstance) { pulseFrame = null; return; }
-      deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
-      if (performance.now() >= pulseUntil) { pulseFrame = null; return; }
-      pulseFrame = requestAnimationFrame(tick);
-    };
-    pulseFrame = requestAnimationFrame(tick);
   }
 
   /* ==========================================================================
@@ -1054,36 +1133,38 @@
     el("site-card").classList.remove("is-pinned");
   }
 
+  function stageOffset() {
+    var rect = el("stage").getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
+  }
+
   function onHover(info) {
     if (pinnedSite) return;
     var previous = hoverSite;
     if (info && info.object) {
-      hoverSite = info.object;
-      lastPointer = { x: info.x + el("stage").getBoundingClientRect().left,
-                      y: info.y + el("stage").getBoundingClientRect().top };
-      showCard(info.object, false);
+      hoverSite = info.object.site;
+      var off = stageOffset();
+      lastPointer = { x: info.x + off.left, y: info.y + off.top };
+      showCard(hoverSite, false);
     } else if (hoverSite) {
       hoverSite = null;
       hideCard();
     }
-    /* The focus changed, so the dimmed/brightened fills have to be rebuilt. */
-    if ((previous && previous.name) !== (hoverSite && hoverSite.name)) {
-      if (deckInstance) deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
-    }
+    if ((previous && previous.name) !== (hoverSite && hoverSite.name)) paint();
   }
 
   function onClick(info) {
     if (info && info.object) {
-      pinnedSite = info.object;
-      lastPointer = { x: info.x + el("stage").getBoundingClientRect().left,
-                      y: info.y + el("stage").getBoundingClientRect().top };
-      showCard(info.object, false);
+      pinnedSite = info.object.site;
+      var off = stageOffset();
+      lastPointer = { x: info.x + off.left, y: info.y + off.top };
+      showCard(pinnedSite, false);
       el("site-card").classList.add("is-pinned");
     } else {
       pinnedSite = null;
       hideCard();
     }
-    if (deckInstance) deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
+    paint();
   }
 
   /* ==========================================================================
@@ -1093,18 +1174,9 @@
     var opts = options || {};
     var clamped = Math.max(0, Math.min(TODAY_INDEX, index));
     if (clamped === stopIndex && !opts.force) return;
-
-    var before = liveAt(STOPS[stopIndex]).map(function (s) { return s.name; });
     stopIndex = clamped;
-    var after = liveAt(STOPS[stopIndex]);
-
-    /* A site pulses on the stop where its IT power first rises above zero. */
-    pulseSites = after.filter(function (s) { return before.indexOf(s.name) === -1; });
-    if (pulseSites.length && !opts.silent) {
-      pulseUntil = performance.now() + CONFIG.map.pulseMs;
-      animatePulse();
-    }
     draw();
+    startAnimation(STOPS[stopIndex], !!opts.silent);
   }
 
   function stopPlaying() {
@@ -1119,7 +1191,7 @@
     playTimer = setInterval(function () {
       if (stopIndex >= TODAY_INDEX) { stopPlaying(); return; }
       goTo(stopIndex + 1);
-    }, 760);
+    }, 1100);
   }
 
   function bindControls() {
@@ -1145,8 +1217,7 @@
       } else if (event.key === "ArrowRight") {
         stopPlaying(); goTo(stopIndex + 1); event.preventDefault();
       } else if (event.key === "Escape") {
-        pinnedSite = null; hoverSite = null; hideCard();
-        if (deckInstance) deckInstance.setProps({ layers: allLayers(STOPS[stopIndex]) });
+        pinnedSite = null; hoverSite = null; hideCard(); paint();
       }
     });
 
@@ -1171,9 +1242,6 @@
     el("stage-status").classList.add("is-hidden");
   }
 
-  /* The camera is derived from the CONUS bounds and the viewport rather than
-     hard-coded, so the contiguous US fills whatever screen it is projected on.
-     Recomputed on resize for the same reason. */
   function fittedView() {
     var stage = el("stage");
     var cfg = CONFIG.map;
@@ -1191,97 +1259,42 @@
     };
   }
 
-  function syncBasemap(view) {
-    if (!mapInstance) return;
-    mapInstance.jumpTo({
-      center: [view.longitude, view.latitude],
-      zoom: view.zoom,
-      bearing: view.bearing || 0,
-      pitch: view.pitch || 0
-    });
+  function applyView(next) {
+    viewState = next;
+    deckInstance.setProps({ viewState: viewState });
+    refreshScale();
+    paint();
   }
 
-  function initMap(states, mask) {
-    var cfg = CONFIG.map;
-    var view = fittedView();
-
-    mapInstance = new maplibregl.Map({
-      container: "map",
-      style: cfg.style,
-      center: [view.longitude, view.latitude],
-      zoom: view.zoom,
-      pitch: view.pitch,
-      bearing: view.bearing,
-      interactive: false,       /* deck.gl owns the camera */
-      attributionControl: false
-    });
-
-    /* The data parses in milliseconds but the basemap needs a style and a
-       round of vector tiles, so hiding the overlay on the data alone shows a
-       black rectangle for a second or two. Wait for the basemap's first paint
-       as well -- but never longer than the fallback, or an unreachable tile
-       CDN would leave the overlay up over a map that is otherwise usable. */
-    mapInstance.once("idle", revealStage);
-    setTimeout(revealStage, 4000);
-
-    mapInstance.on("load", function () {
-      /* A faint wash inside the states, then the outlines, then one dark
-         polygon covering the world with the country punched out of it. Order
-         matters: the mask goes on last so it dims the neighbours and the
-         oceans without touching the US. */
-      mapInstance.addSource("us-states", { type: "geojson", data: states });
-      mapInstance.addLayer({
-        id: "us-states-fill",
-        type: "fill",
-        source: "us-states",
-        paint: { "fill-color": cfg.stateFillColor }
-      });
-      mapInstance.addLayer({
-        id: "us-states-outline",
-        type: "line",
-        source: "us-states",
-        paint: {
-          "line-color": cfg.stateLineColor,
-          "line-width": cfg.stateLineWidth
-        }
-      });
-      mapInstance.addSource("us-mask", { type: "geojson", data: mask });
-      mapInstance.addLayer({
-        id: "us-mask-fill",
-        type: "fill",
-        source: "us-mask",
-        paint: { "fill-color": cfg.maskColor }
-      });
-    });
+  function initDeck() {
+    viewState = fittedView();
 
     deckInstance = new deck.Deck({
       canvas: "deck-canvas",
-      initialViewState: view,
+      viewState: viewState,
       /* Rotation stays off: this scene is a flat, top-down stage. */
       controller: { dragRotate: false, touchRotate: false, keyboard: false },
       layers: [],
-      onViewStateChange: function (params) {
-        syncBasemap(params.viewState);
-        return params.viewState;
-      }
+      /* The page's own off-white shows through; deck paints no surface. */
+      parameters: { clearColor: [0, 0, 0, 0] },
+      onViewStateChange: function (params) { applyView(params.viewState); },
+      onAfterRender: revealStage
     });
 
-    var refit = function () {
-      var next = fittedView();
-      deckInstance.setProps({ initialViewState: next, viewState: undefined });
-      syncBasemap(next);
-    };
+    refreshScale();
+
     var refitTimer = null;
     window.addEventListener("resize", function () {
       clearTimeout(refitTimer);
-      refitTimer = setTimeout(refit, 180);
+      refitTimer = setTimeout(function () { applyView(fittedView()); }, 180);
     });
   }
 
-  function boot(payload, states, mask) {
+  function boot(payload, states) {
     SITES = payload.sites.filter(function (s) {
       return typeof s.lat === "number" && typeof s.lon === "number";
     });
+    STATES = states.features;
     CONFIG.asOf = payload.meta.as_of;
 
     STOPS = buildStops(payload.meta.periods);
@@ -1291,25 +1304,17 @@
     el("counter-sites-label").textContent = CONFIG.labels.sites;
     el("legend-head").textContent = CONFIG.labels.legend;
     el("size-key-head").textContent = CONFIG.labels.sizeKey;
-    el("size-key-circles").innerHTML = CONFIG.sizeKey.map(function (mw) {
-      /* Drawn at exactly the radius the map uses, so the key is a measurement
-         rather than a decoration. */
-      var d = Math.round(2 * CONFIG.map.radiusPerSqrtMW * Math.sqrt(mw));
-      return '<div class="size-key-item">' +
-        '<span class="size-key-disc" style="width:' + d + "px;height:" + d + 'px"></span>' +
-        '<span class="size-key-label">' + escapeHtml(powerText(mw)) + "</span>" +
-      "</div>";
-    }).join("");
     el("track-hint").textContent = CONFIG.labels.dragHint;
     el("footnote").textContent = CONFIG.footnote;
 
     renderTicks();
+    renderSizeKey();
     bindControls();
-    STATES = states.features;
-    initMap(states, mask);
+    initDeck();
 
     stopIndex = 0;
     goTo(0, { force: true, silent: true });
+    setTimeout(revealStage, 3000);
 
     /* A hook for the browser checks, and for the later scenes to read. */
     window.__dcMap = {
@@ -1318,16 +1323,10 @@
       stops: STOPS,
       todayIndex: TODAY_INDEX,
       deck: function () { return deckInstance; },
-      map: function () { return mapInstance; },
-      camera: function () {
-        return {
-          mapPitch: mapInstance.getPitch(),
-          mapZoom: +mapInstance.getZoom().toFixed(3),
-          mapCenter: mapInstance.getCenter().toArray().map(function (n) { return +n.toFixed(3); }),
-          deckView: deckInstance.viewState || (deckInstance.viewManager
-            && deckInstance.viewManager.getViewState())
-        };
-      },
+      camera: function () { return viewState; },
+      scale: function () { return degPerPx; },
+      spikePolygon: spikePolygon,
+      displayedMW: displayedMW,
       goTo: goTo,
       current: function () { return STOPS[stopIndex]; },
       totals: function (index) {
@@ -1342,8 +1341,8 @@
     };
   }
 
-  if (!window.deck || !window.maplibregl) {
-    fail("The map libraries did not load. Check the network connection and reload.");
+  if (!window.deck) {
+    fail("The map library did not load. Check the network connection and reload.");
     return;
   }
 
@@ -1355,17 +1354,21 @@
     fetch(CONFIG.data.states).then(function (r) {
       if (!r.ok) throw new Error("us_states.geojson " + r.status);
       return r.json();
-    }),
-    fetch(CONFIG.data.mask).then(function (r) {
-      if (!r.ok) throw new Error("us_mask.geojson " + r.status);
-      return r.json();
     })
-  ]).then(function (results) {
-    boot(results[0], results[1], results[2]);
-  }).catch(function (error) {
+  ]).catch(function (error) {
     fail("Could not load the site data (" + error.message +
          "). This page reads its JSON over HTTP, so it needs a server rather than a file:// path.");
-  });
+    throw error;
+  }).then(function (results) {
+    /* Separate from the fetch catch above: a render fault must not be
+       reported as a missing file. */
+    try {
+      boot(results[0], results[1]);
+    } catch (error) {
+      console.error(error);
+      fail("The map failed to draw (" + error.message + ").");
+    }
+  }, function () { /* already reported */ });
 })();
 </script>
 </body>
