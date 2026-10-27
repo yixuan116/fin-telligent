@@ -117,24 +117,35 @@ what the land is being built to draw, not what it draws today.
 ## Time to power
 
 JLL, "2026 Global Data Center Outlook". The US national average wait for a grid
-connection is about four years. <https://www.jll.com> Retrieved 2026-10-27.
+connection is about four years, and building the data center itself takes 18 to
+24 months in most US markets. <https://www.jll.com> Retrieved 2026-10-27.
 
-The figure is quoted from Electrical Contractor Magazine, "How Long Does It
+Both figures are quoted from Electrical Contractor Magazine, "How Long Does It
 Take to Power a Data Center?",
 <https://www.ecmag.com/magazine/articles/article-detail/how-long-does-it-take-to-power-a-data-center>,
-which states it as "the national average wait time is four years, according to
-the 2026 JLL Global Data Center Outlook". It was asked for as cited by EC&M;
-EC&M (Electrical Construction & Maintenance, ecmweb.com) is a different title,
-and no page of theirs stating the figure was found, so the magazine that does
-state it is the one cited here. There is no verified deep link to the JLL
-report itself.
+which states the first as "the national average wait time is four years,
+according to the 2026 JLL Global Data Center Outlook". The same article is the
+source for large power transformers taking two to four years from most
+manufacturers.
 
-It is the third of the three bars under the Why there headline. The other two
-are Epoch's own dates, from a site's first dated observation to its first
-operational date: xAI Colossus 1 took 109 days, shown as 4 months, and
-Anthropic-Amazon New Carlisle took 500 days, shown as 16 months.
+They were asked for as cited by EC&M. The article carrying them is in
+Electrical Contractor Magazine (ecmag.com), a different title from EC&M /
+Electrical Construction & Maintenance (ecmweb.com); no ecmweb.com page stating
+them was found, so the magazine that does state them is the one cited here.
+There is no verified deep link to the JLL report itself.
 
-The three are not one stopwatch. JLL measures from the interconnection request
-to the day the utility can deliver the contracted megawatts; Epoch's dates
-measure a build. What the bars share is the question, not the clock, and
-`data/sources.json` says so beside the figures.
+On the page they are the two numbers on the Why there headline view, rounded to
+whole years: "2 yrs" captioned "Build the data center" and "4 yrs" captioned
+"Wait for grid power (US average)". The transformer figure is the second line of
+the card behind the second number.
+
+Two notes on reading them. The two clocks overlap rather than running end to
+end: one is construction, the other is measured from the developer's
+interconnection request to the day the utility can deliver the contracted
+megawatts. And other outlets put large transformers higher, commonly three to
+five years, with Wood Mackenzie's survey averaging 128 weeks for power
+transformers and 143 for generator step-up units; the page quotes the lower,
+more widely reported range.
+
+`data/sources.json` carries the same entries, with the arithmetic and these
+caveats beside the figures.

@@ -122,6 +122,15 @@
   #map, #deck-canvas {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
+    transition: opacity 0.5s ease;
+  }
+  /* The headline view of Why there is a block of type with a map behind it,
+     so the whole map goes quiet: basemap, state lines, state labels and
+     bars all fade together on their two canvases. A view opened from it
+     brings them back. */
+  #stage[data-scene="why"][data-view="headline"] #map,
+  #stage[data-scene="why"][data-view="headline"] #deck-canvas {
+    opacity: 0.1;
   }
   #deck-canvas { z-index: 2; }
   .maplibregl-ctrl-attrib { display: none; }
@@ -263,6 +272,14 @@
   }
 
   /* The line the scene leads with, in the weight the counters had here. */
+  /* The block's parts, measured out from the middle of the stage. Scoped to
+     the scene as well as the view, because the rule below sets the headline
+     where the Where view wants it and the two carry the same weight. */
+  #stage[data-scene="why"][data-view="headline"] #headline { top: calc(50% - 122px); }
+  #stage[data-scene="why"][data-view="headline"] #why-driver { top: calc(50% - 60px); }
+  #stage[data-scene="why"][data-view="headline"] #why-figures { top: calc(50% - 8px); }
+  #stage[data-scene="why"][data-view="headline"] #entry-bar { top: calc(50% + 85px); }
+
   #stage[data-scene="why"] #headline {
     top: 96px;
     max-width: min(760px, calc(100% - 420px));
@@ -285,9 +302,10 @@
   }
 
   /* ---------- time to power ----------
-     The line under the headline and the three bars under that, all of them
-     the headline view's own: a view inside the scene replaces them with its
-     own answer. */
+     One block, centred on the screen: the headline, the driver under it, the
+     two numbers, and the two ways in. Each part is positioned from the middle
+     of the stage rather than from the top, so the block stays centred as a
+     whole and the spacing between its parts is the layout. */
 
   #why-driver {
     position: absolute; z-index: 5;
@@ -303,29 +321,44 @@
   }
   #why-driver.is-shown { opacity: 1; visibility: visible; }
 
-  #time-bars {
+  #why-figures {
     position: absolute; z-index: 5;
-    top: 170px; left: 50%; transform: translateX(-50%);
+    left: 50%; transform: translateX(-50%);
+    display: flex; align-items: flex-start; gap: 64px;
     opacity: 0; visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s;
   }
-  #time-bars.is-shown { opacity: 1; visibility: visible; }
-  .time-row + .time-row { margin-top: 10px; }
-  .time-label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 0.7rem; font-weight: 600; line-height: 1.3;
+  #why-figures.is-shown { opacity: 1; visibility: visible; }
+  .why-figure {
+    font-family: inherit;
+    display: block; min-width: 150px; padding: 0;
+    border: 0; background: none;
+    text-align: center;
     color: var(--stage-text);
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
   }
-  /* Anchored at the left and rounded at the end it grows towards, so the end
-     of the bar reads as the number it stopped at. */
-  .time-fill {
+  .why-number {
     display: block;
-    width: 0; height: 8px;
-    border-radius: 0 4px 4px 0;
-    transition-property: width;
-    transition-timing-function: linear;
+    font-size: 2.25rem; font-weight: 800; line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
+  .why-unit {
+    font-size: 1rem; font-weight: 700;
+    color: var(--stage-text-dim); margin-left: 5px;
+  }
+  .why-caption {
+    display: block; margin-top: 6px;
+    font-size: 0.7rem; font-weight: 600; line-height: 1.35;
+    color: var(--stage-text-dim);
+  }
+  /* The one figure with something behind it says so by being a button that
+     underlines on hover; the other is type. */
+  button.why-figure { cursor: pointer; }
+  button.why-figure:hover .why-number,
+  button.why-figure[aria-expanded="true"] .why-number {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 5px;
   }
 
   /* The one line that arrives under the number when the last group has. */
@@ -679,7 +712,7 @@
 
   /* ---------- site card ---------- */
 
-  #site-card {
+  #site-card, #note-card {
     position: absolute; z-index: 6;
     width: 266px;
     padding: 13px 15px 12px;
@@ -691,6 +724,10 @@
     display: none;
   }
   #site-card.is-pinned { pointer-events: auto; }
+  /* The card behind the grid number: the same card, a little wider, because
+     its two lines are sentences rather than a name and a figure. */
+  #note-card { width: 302px; pointer-events: auto; }
+  #note-card .card-rows { gap: 7px 10px; line-height: 1.45; }
   .card-name { font-size: 0.92rem; font-weight: 800; line-height: 1.25; margin-bottom: 2px; }
   .card-owner {
     display: flex; align-items: center; gap: 6px;
@@ -766,8 +803,14 @@
     #stage[data-scene="why"] #counters { top: 16px; left: 16px; }
     #stage[data-scene="why"] #headline { top: 92px; font-size: 1.5rem; }
     #stage[data-scene="why"] #entry-bar { top: 248px; }
-    #why-driver { top: 126px; font-size: 0.74rem; max-width: calc(100% - 32px); }
-    #time-bars { top: 150px; }
+    #why-driver { font-size: 0.74rem; max-width: calc(100% - 32px); }
+    #why-figures { gap: 28px; }
+    .why-figure { min-width: 120px; }
+    .why-number { font-size: 1.6rem; }
+    #stage[data-scene="why"][data-view="headline"] #headline { top: calc(50% - 88px); }
+    #stage[data-scene="why"][data-view="headline"] #why-driver { top: calc(50% - 49px); }
+    #stage[data-scene="why"][data-view="headline"] #why-figures { top: calc(50% - 12px); }
+    #stage[data-scene="why"][data-view="headline"] #entry-bar { top: calc(50% + 55px); }
     #where-note { top: 126px; max-width: calc(100% - 32px); font-size: 0.74rem; }
   }
 </style>
@@ -827,7 +870,7 @@
     <!-- The headline view's own lines: what drives the choice, and how long
          each way to power takes. -->
     <p id="why-driver"></p>
-    <div id="time-bars"></div>
+    <div id="why-figures"></div>
 
     <div id="entry-bar" role="group" aria-label="Entry points"></div>
 
@@ -883,6 +926,7 @@
     </p>
 
     <div id="site-card" role="dialog" aria-label="Site detail"></div>
+    <div id="note-card" role="dialog" aria-label="Why the wait"></div>
 
     <div id="how-scrim"></div>
     <div id="how-panel" role="dialog" aria-modal="true" aria-labelledby="how-title"></div>
@@ -1120,36 +1164,43 @@
         /* The scene opens on an overview screen: one line, and the two ways
            into it. The map stays where it is, dimmed back to a backdrop. */
         intro: {
-          headline: "Sites need power",
-          driver: "Key driver: time to power",
-          /* Three ways to get power, as long as each one takes. The bars all
-             grow at one speed, so the length of a bar is the wait: the first
-             two are Epoch's own dates, from the first dated row to the first
-             operational date, and the third is the JLL figure for the US
-             grid queue. Checked against data/sites.json: Colossus 1 ran
-             2024-04-24 to 2024-08-11, 109 days; New Carlisle 2024-02-09 to
-             2025-06-23, 500 days. Both sources are in data/sources.json. */
-          timeToPower: {
-            pxPerMonth: 8,
-            msPerMonth: 55,
-            rows: [
-              {
-                label: "Make your own power: xAI Colossus 1, 4 months",
-                months: 4, color: "#17b2c9"
-              },
-              {
-                label: "Connect where power is: Amazon New Carlisle, 16 months",
-                months: 16, color: "#f5c451"
-              },
-              {
-                label: "Wait in the grid queue: US average, about 4 years",
-                months: 48, color: "#f08422"
+          headline: "Sites Need Power",
+          driver: "Key Driver: Time to Power",
+          /* The two clocks a project runs on, side by side: the building and
+             the power. Both are rounded to whole years from the figures in
+             data/sources.json -- an 18 to 24 month build, and the four-year
+             US average wait for a grid connection -- and both count up from
+             zero when the view opens. The second one has the reason behind
+             it on a card. */
+          countMs: 900,
+          figures: [
+            {
+              id: "build",
+              value: 2, unit: "yrs",
+              caption: "Build the data center"
+            },
+            {
+              id: "grid",
+              value: 4, unit: "yrs",
+              caption: "Wait for grid power (US average)",
+              note: {
+                label: "Why the wait",
+                rows: [
+                  {
+                    label: "Waiting for",
+                    text: "new generation, new high-voltage lines and substations"
+                  },
+                  {
+                    label: "Bottleneck",
+                    text: "equipment backlog, large power transformers take 2 to 4 years"
+                  }
+                ]
               }
-            ]
-          },
+            }
+          ],
           entries: [
-            { id: "where", label: "Connect to the grid", ready: true },
-            { id: "ownpower", label: "Make your own power", ready: false }
+            { id: "where", label: "Connect to the Grid", ready: true },
+            { id: "ownpower", label: "Make Your Own Power", ready: false }
           ],
           /* How much of a bar is left while the overview screen is up. */
           barAlpha: 0.2
@@ -1311,6 +1362,9 @@
      group's median the way the counters ease to theirs. */
   var whereAnim = { step: -1, start: 0, frame: null, timer: null };
   var whereNum = { from: 0, to: 0, start: 0 };
+  /* The two numbers on the headline view, counting up from zero together. */
+  var figureAnim = { start: 0, frame: null };
+  var noteOpen = null;          /* which figure's card is open, if any */
   var shown = {};              /* MW currently displayed, per site name */
 
   var el = function (id) { return document.getElementById(id); };
@@ -1851,7 +1905,9 @@
     if (!introCfg()) return;
     if (id === "where" && !METROS) return;
     stopWhere();
+    hideNoteCard();
     viewId = id;
+    syncSceneClass();
     renderEntryBar();
     renderIntroPanel(false);
     if (id === "where") revealNextGroup();
@@ -1864,9 +1920,11 @@
   function clearView() {
     if (!viewId) return;
     stopWhere();
+    hideNoteCard();
     viewId = null;
+    syncSceneClass();
     renderEntryBar();
-    /* Back on the headline view, so the bars run again. */
+    /* Back on the headline view, so the numbers count again. */
     renderIntroPanel(true);
     draw();
     paint();
@@ -1879,53 +1937,123 @@
 
   function introPanelOn() { return !!introCfg() && !viewId; }
 
-  function renderIntroPanel(grow) {
+  function renderIntroPanel(count) {
     var intro = introCfg();
     var on = introPanelOn();
     var driver = el("why-driver");
-    var bars = el("time-bars");
+    var figures = el("why-figures");
 
     driver.classList.toggle("is-shown", on && !!(intro && intro.driver));
-    bars.classList.toggle("is-shown", on && !!(intro && intro.timeToPower));
-    if (!on || !intro) { driver.textContent = ""; bars.innerHTML = ""; return; }
-
-    driver.textContent = intro.driver || "";
-    var cfg = intro.timeToPower;
-    if (!cfg) { bars.innerHTML = ""; return; }
-
-    var longest = cfg.rows.reduce(function (most, row) {
-      return Math.max(most, row.months);
-    }, 0);
-    /* A fixed width, because the block is centred: sizing it to its contents
-       would slide it sideways as the bars grow. */
-    bars.style.width = Math.round(longest * cfg.pxPerMonth) + "px";
-    bars.innerHTML = cfg.rows.map(function (row) {
-      return '<div class="time-row">' +
-        '<span class="time-label">' + escapeHtml(row.label) + "</span>" +
-        '<span class="time-fill" style="background:' + row.color +
-          "; transition-duration:" +
-          Math.round(row.months * cfg.msPerMonth) + 'ms" data-px="' +
-          Math.round(row.months * cfg.pxPerMonth) + '"></span>' +
-      "</div>";
-    }).join("");
-
-    var fills = bars.querySelectorAll(".time-fill");
-    var widen = function () {
-      Array.prototype.forEach.call(fills, function (fill) {
-        fill.style.width = fill.dataset.px + "px";
-      });
-    };
-    if (!grow) {
-      Array.prototype.forEach.call(fills, function (fill) {
-        fill.style.transitionDuration = "0ms";
-      });
-      widen();
+    figures.classList.toggle("is-shown", on && !!(intro && intro.figures));
+    if (!on || !intro) {
+      stopFigures();
+      driver.textContent = "";
+      figures.innerHTML = "";
       return;
     }
-    /* The width is read back before it is set, so the browser has a starting
-       value to animate from rather than collapsing both into one frame. */
-    void bars.offsetWidth;
-    requestAnimationFrame(widen);
+
+    driver.textContent = intro.driver || "";
+    if (!intro.figures) { figures.innerHTML = ""; return; }
+
+    figures.innerHTML = intro.figures.map(function (figure) {
+      /* A figure with a card behind it is a button; the other is type, and
+         saying so in the markup is what keeps the difference honest. */
+      var tag = figure.note ? "button" : "div";
+      return "<" + tag + ' class="why-figure" data-figure="' +
+          escapeHtml(figure.id) + '"' +
+          (figure.note
+            ? ' type="button" aria-expanded="false" aria-label="' +
+              escapeHtml(figure.caption + ". " + figure.note.label) + '"'
+            : "") + ">" +
+        '<span class="why-number">0' +
+          '<span class="why-unit">' + escapeHtml(figure.unit) + "</span>" +
+        "</span>" +
+        '<span class="why-caption">' + escapeHtml(figure.caption) + "</span>" +
+      "</" + tag + ">";
+    }).join("");
+
+    startFigures(count !== false);
+  }
+
+  /* Both numbers count from zero on the same clock, so they arrive together
+     rather than racing. */
+  function startFigures(animate) {
+    stopFigures();
+    if (!animate) { paintFigures(1); return; }
+    var ms = (introCfg() || {}).countMs || 600;
+    figureAnim.start = performance.now();
+    var ends = figureAnim.start + ms;
+    var tick = function () {
+      var now = performance.now();
+      paintFigures(easeOut(Math.min(1, (now - figureAnim.start) / ms)));
+      if (now >= ends) {
+        figureAnim.frame = null;
+        figureAnim.start = 0;
+        paintFigures(1);
+        return;
+      }
+      figureAnim.frame = requestAnimationFrame(tick);
+    };
+    figureAnim.frame = requestAnimationFrame(tick);
+  }
+
+  function stopFigures() {
+    if (figureAnim.frame) {
+      cancelAnimationFrame(figureAnim.frame);
+      figureAnim.frame = null;
+    }
+    figureAnim.start = 0;
+  }
+
+  function paintFigures(eased) {
+    var intro = introCfg();
+    if (!intro || !intro.figures) return;
+    var nodes = el("why-figures").querySelectorAll(".why-number");
+    intro.figures.forEach(function (figure, i) {
+      var node = nodes[i];
+      if (!node) return;
+      node.firstChild.nodeValue = String(Math.round(figure.value * eased));
+    });
+  }
+
+  /* ---------- the card behind a figure ----------
+     The site card's own style, two lines, and any click outside it closes
+     it: the same way the pinned site card lets go. */
+  function figureNote(id) {
+    var intro = introCfg();
+    var found = null;
+    ((intro && intro.figures) || []).forEach(function (figure) {
+      if (figure.id === id && figure.note) found = figure.note;
+    });
+    return found;
+  }
+
+  function showNoteCard(button, note) {
+    var card = el("note-card");
+    card.innerHTML = '<div class="card-rows">' + note.rows.map(function (row) {
+      return '<span class="card-key">' + escapeHtml(row.label) + "</span>" +
+        '<span class="card-val">' + escapeHtml(row.text) + "</span>";
+    }).join("") + "</div>";
+    card.style.display = "block";
+
+    var stage = el("stage").getBoundingClientRect();
+    var anchor = button.getBoundingClientRect();
+    var width = card.offsetWidth;
+    var left = anchor.left - stage.left + anchor.width / 2 - width / 2;
+    card.style.left =
+      Math.max(8, Math.min(left, stage.width - width - 8)) + "px";
+    card.style.top = (anchor.bottom - stage.top + 12) + "px";
+    button.setAttribute("aria-expanded", "true");
+    noteOpen = button.dataset.figure;
+  }
+
+  function hideNoteCard() {
+    if (!noteOpen) return;
+    noteOpen = null;
+    el("note-card").style.display = "none";
+    el("note-card").innerHTML = "";
+    var open = el("why-figures").querySelector('[aria-expanded="true"]');
+    if (open) open.setAttribute("aria-expanded", "false");
   }
 
   function whereLinkLayers() {
@@ -2030,7 +2158,13 @@
 
   /* The stage carries the scene's name, so a scene that wants its panels
      somewhere else can say so in CSS rather than in layout code. */
-  function syncSceneClass() { el("stage").dataset.scene = sceneId; }
+  function syncSceneClass() {
+    var stage = el("stage");
+    stage.dataset.scene = sceneId;
+    /* The headline view is the one with no view open inside it; it is named
+       rather than left blank so CSS can select it. */
+    stage.dataset.view = viewId || "headline";
+  }
 
   /* Every scene has a button, and the one you are in is the one lit. */
   function buttonScenes() {
@@ -2060,6 +2194,7 @@
     sceneId = id;
     /* Whatever view was open belonged to the scene being left. */
     stopWhere();
+    hideNoteCard();
     viewId = null;
     syncSceneClass();
     highlightOwner = null;
@@ -2141,8 +2276,14 @@
             .concat(Math.round(255 * where.litAlpha * dimFactor(site)));
         }
       }
-      /* The overview screen reads as one line over a map, so the bars stay
-         in their owner colours and drop back to a fifth of their weight. */
+      /* On the headline view the whole canvas is faded to a backdrop, so a
+         bar is drawn at its normal weight and the canvas does the fading;
+         dimming it here as well would take it to nothing. */
+      if (!viewId) {
+        return hexToRgb(ownerColor(site.owner)).concat(fillAlphaFor(site));
+      }
+      /* Inside a view, a site that has not been reached yet waits at the
+         backdrop weight on a canvas that is no longer faded. */
       return hexToRgb(ownerColor(site.owner))
         .concat(Math.round(255 * intro.barAlpha * dimFactor(site)));
     }
@@ -2977,6 +3118,7 @@
   }
 
   function onClick(info) {
+    hideNoteCard();
     if (info && info.object) {
       pinnedSite = info.object.site;
       var off = stageOffset();
@@ -3057,6 +3199,24 @@
 
     /* The line the screen leads with is the way back from a view. */
     el("headline").addEventListener("click", function () { clearView(); });
+
+    el("why-figures").addEventListener("click", function (event) {
+      var button = event.target.closest("button.why-figure");
+      if (!button) return;
+      var note = figureNote(button.dataset.figure);
+      if (!note) return;
+      if (noteOpen === button.dataset.figure) { hideNoteCard(); return; }
+      hideNoteCard();
+      showNoteCard(button, note);
+    });
+
+    /* Anywhere else closes it, the map included. */
+    document.addEventListener("click", function (event) {
+      if (!noteOpen) return;
+      if (event.target.closest("#note-card")) return;
+      if (event.target.closest("button.why-figure")) return;
+      hideNoteCard();
+    });
 
     el("beat-bar").addEventListener("click", function (event) {
       var btn = event.target.closest(".beat-btn");
