@@ -731,9 +731,12 @@
       outlineWidthPx: 0.9,
       hoverFadeAlpha: 0.3,      /* other bars while one is hovered */
       ownerFadeAlpha: 0.25,     /* other owners while one is isolated */
-      /* The under-construction outline: no fill, just the owner's colour. */
-      plannedOutlineWidthPx: 1.1,
-      plannedOutlineAlpha: 0.85,
+      /* The under-construction block: a wash of the owner's colour with a
+         thin edge, kept well below the solid built bar so the built part
+         stays the thing you read first. */
+      plannedFillAlpha: 0.15,
+      plannedOutlineAlpha: 0.5,
+      plannedOutlineWidthPx: 1,
 
       /* Bars whose bases land within this many pixels of each other are
          spread sideways so none is hidden behind its neighbour. */
@@ -741,6 +744,7 @@
       collisionVicinityPx: 26,
 
       growMs: 700,
+      scaleMs: 650,             /* easing when a scene changes the bar scale */
 
       stateLabelSize: 11,
       stateLabelDim: [150, 165, 185, 150],
@@ -830,23 +834,12 @@
         },
         statusLabel: "Status",
         hint: "Click an owner in the legend to isolate it",
-        /* The outlines reach 2030, and the tallest is 2,263 MW, which is 349
-           px at the map's own scale -- tall enough to run off the top of a
-           northern state. Asking fitBounds for more headroom does not help:
-           extra padding zooms out as much as it shifts, and bar heights are
-           fixed in pixels, so the bases rise again almost as fast. Instead the
-           whole scene slides down at the same zoom, which buys headroom
-           without shrinking the country.
-
-           It does not buy enough for every bar. At 0.1543 px per MW the
-           largest 2030 site, Microsoft Fairwater Wisconsin at 2,263 MW, needs
-           349 px above a base in the upper Midwest, and that plus the country
-           plus the timeline does not fit the viewport at any single zoom. A
-           70 px shift keeps every bar base clear of the timeline and leaves
-           only that one outline running past the top edge; the alternative
-           would be rescaling this scene, which would break both the stated
-           160 px scale and the size key. */
-        shiftDownPx: 70
+        /* The camera is the opening scene's, unchanged: the same contiguous
+           US, framed the same way, so switching scenes does not move the map
+           under the reader. The outlines reach 2030 instead, which is what
+           the scene's own height scale is for. */
+        pxPerMWFor: "tallest2030",
+        tallestTargetPx: 180
       },
       why:     { ready: false, button: "Why there" },
       chips:   { ready: false, button: "Chips" },
@@ -882,6 +875,9 @@
      short ones, and deck matches transitions by index, which that reordering
      would scramble. */
   var anim = { from: {}, to: {}, start: 0, frame: null };
+  /* The bar scale is per scene and eases between scenes, so entering Who
+     builds visibly compresses the bars rather than swapping them. */
+  var scaleAnim = { from: 0, to: 0, start: 0, frame: null };
   var shown = {};              /* MW currently displayed, per site name */
 
   var el = function (id) { return document.getElementById(id); };
@@ -1038,11 +1034,60 @@
     });
   }
 
+  /* A scene either uses the map's own pixels per MW, or asks for a scale that
+     makes its tallest drawn value land on a target height. Who builds draws
+     2030 totals, which run to 2,263 MW, so it needs its own. */
+  function scenePxPerMW(id) {
+    var cfg = CONFIG.map;
+    var active = CONFIG.scenes[id];
+    if (!active || active.pxPerMWFor !== "tallest2030") return cfg.pxPerMW;
+    var tallest = SITES.reduce(function (max, site) {
+      return Math.max(max, site.it_mw_2030h1);
+    }, 0);
+    return tallest > 0 ? active.tallestTargetPx / tallest : cfg.pxPerMW;
+  }
+
+  function currentPxPerMW() {
+    if (scaleAnim.start === 0) return scaleAnim.to || scenePxPerMW(sceneId);
+    var t = Math.min(1, (performance.now() - scaleAnim.start) / CONFIG.map.scaleMs);
+    return scaleAnim.from + (scaleAnim.to - scaleAnim.from) * easeOut(t);
+  }
+
+  function startScaleAnimation() {
+    var next = scenePxPerMW(sceneId);
+    var now = currentPxPerMW();
+    if (scaleAnim.frame) { cancelAnimationFrame(scaleAnim.frame); scaleAnim.frame = null; }
+    if (Math.abs(next - now) < 1e-9) {
+      scaleAnim.from = scaleAnim.to = next;
+      scaleAnim.start = 0;
+      renderSizeKey();
+      return;
+    }
+    scaleAnim.from = now;
+    scaleAnim.to = next;
+    scaleAnim.start = performance.now();
+    var ends = scaleAnim.start + CONFIG.map.scaleMs;
+    var tick = function () {
+      paint();
+      renderSizeKey();
+      if (performance.now() >= ends) {
+        scaleAnim.frame = null;
+        scaleAnim.start = 0;
+        paint();
+        renderSizeKey();
+        return;
+      }
+      scaleAnim.frame = requestAnimationFrame(tick);
+    };
+    scaleAnim.frame = requestAnimationFrame(tick);
+  }
+
   function barPolygon(site, mw, floorMW) {
     var cfg = CONFIG.map;
     var halfW = (cfg.barWidthPx / 2) * degPerPx.lon;
     var dx = offsetDeg[site.name] || 0;
-    var perMW = cfg.pxPerMW * degPerPx.lon * Math.cos(site.lat * Math.PI / 180);
+    var perMW = currentPxPerMW() * degPerPx.lon *
+                Math.cos(site.lat * Math.PI / 180);
     var left = site.lon + dx - halfW;
     var right = site.lon + dx + halfW;
     /* floorMW lifts the base, which is how the under-construction outline
@@ -1153,7 +1198,7 @@
       goTo(openingStopIndex, { force: true, silent: true });
     }
     syncTimelineLock();
-    applyView(fittedView());
+    startScaleAnimation();
     draw();
     paint();
   }
@@ -1182,6 +1227,18 @@
   function focusName() {
     var focus = pinnedSite || hoverSite;
     return focus ? focus.name : null;
+  }
+
+  /* How much a site is faded right now, as a multiplier, so the solid bar and
+     its under-construction block dim together. */
+  function dimFactor(site) {
+    var cfg = CONFIG.map;
+    var focus = focusName();
+    if (focus) return site.name === focus ? 1 : cfg.hoverFadeAlpha / cfg.fillAlpha;
+    if (highlightOwner) {
+      return site.owner === highlightOwner ? 1 : cfg.ownerFadeAlpha / cfg.fillAlpha;
+    }
+    return 1;
   }
 
   function fillAlphaFor(site) {
@@ -1291,7 +1348,7 @@
         id: "bars-planned",
         data: planned,
         pickable: false,
-        filled: false,
+        filled: true,
         stroked: true,
         extruded: false,
         lineWidthUnits: "pixels",
@@ -1299,10 +1356,13 @@
         getPolygon: function (row) {
           return barPolygon(row.site, row.planned, row.mw);
         },
+        getFillColor: function (row) {
+          return hexToRgb(ownerColor(row.site.owner))
+            .concat(Math.round(255 * cfg.plannedFillAlpha * dimFactor(row.site)));
+        },
         getLineColor: function (row) {
-          var alpha = Math.round(255 * cfg.plannedOutlineAlpha *
-                                 (fillAlphaFor(row.site) / (255 * cfg.fillAlpha)));
-          return hexToRgb(ownerColor(row.site.owner)).concat(alpha);
+          return hexToRgb(ownerColor(row.site.owner))
+            .concat(Math.round(255 * cfg.plannedOutlineAlpha * dimFactor(row.site)));
         },
         getLineWidth: cfg.plannedOutlineWidthPx
       }));
@@ -1435,15 +1495,18 @@
      the map's own bar width, so the key is a measurement, not a decoration. */
   function renderSizeKey() {
     var cfg = CONFIG.map;
+    var perMW = currentPxPerMW();
     var values = CONFIG.sizeKey.slice().sort(function (a, b) { return b - a; });
     var gapX = 64;
     var padX = 22;
-    var baseY = Math.max.apply(null, values) * cfg.pxPerMW + 6;
+    /* Drawn at whatever scale the map is using right now, so the key moves
+       with the scene rather than describing the one it left. */
+    var baseY = Math.max.apply(null, values) * perMW + 6;
     var height = baseY + 16;
     var width = padX * 2 + (values.length - 1) * gapX;
 
     var parts = values.map(function (mw, i) {
-      var h = mw * cfg.pxPerMW;
+      var h = mw * perMW;
       var cx = padX + i * gapX;
       var w = cfg.barWidthPx;
       return '<rect x="' + (cx - w / 2) + '" y="' + (baseY - h) +
@@ -1783,24 +1846,16 @@
   function fittedView() {
     var stage = el("stage");
     var cfg = CONFIG.map;
-    var active = scene();
     var viewport = new deck.WebMercatorViewport({
       width: Math.max(320, stage.clientWidth),
       height: Math.max(320, stage.clientHeight)
     });
+    /* Every scene shares one camera. The bars change scale between scenes,
+       the map does not. */
     var fitted = viewport.fitBounds(cfg.conusBounds, { padding: cfg.fitPadding });
-
-    /* Moving the camera centre north makes the land sit lower on screen. */
-    var latitude = fitted.latitude;
-    var shift = (active && active.shiftDownPx) || 0;
-    if (shift) {
-      var degPerPxLon = 360 / (512 * Math.pow(2, fitted.zoom));
-      latitude += shift * degPerPxLon * Math.cos(fitted.latitude * Math.PI / 180);
-    }
-
     return {
       longitude: fitted.longitude,
-      latitude: latitude,
+      latitude: fitted.latitude,
       zoom: fitted.zoom,
       pitch: cfg.pitch,
       bearing: cfg.bearing
@@ -1922,6 +1977,9 @@
     bindControls();
     initMap(states, mask);
 
+    scaleAnim.from = scaleAnim.to = scenePxPerMW(sceneId);
+    renderSizeKey();
+
     stopIndex = 0;
     goTo(0, { force: true, silent: true });
     setTimeout(revealStage, 3000);
@@ -1950,6 +2008,8 @@
       highlight: function () { return highlightOwner; },
       setHighlight: function (owner) { highlightOwner = owner; draw(); paint(); },
       siteStatus: siteStatus,
+      pxPerMW: currentPxPerMW,
+      scenePxPerMW: scenePxPerMW,
       ownerTotals: ownerTotals,
       current: function () { return STOPS[stopIndex]; },
       totals: function (index) {
@@ -1969,20 +2029,28 @@
     return;
   }
 
+  /* no-cache forces a conditional request rather than a blind cache hit: the
+     file names never change, so a reader who has the page cached would
+     otherwise keep last deploy's data until the max-age expired. An unchanged
+     file still answers 304 and costs nothing. */
+  var fetchData = function (url) {
+    return fetch(url, { cache: "no-cache" });
+  };
+
   Promise.all([
-    fetch(CONFIG.data.sites).then(function (r) {
+    fetchData(CONFIG.data.sites).then(function (r) {
       if (!r.ok) throw new Error("sites.json " + r.status);
       return r.json();
     }),
-    fetch(CONFIG.data.states).then(function (r) {
+    fetchData(CONFIG.data.states).then(function (r) {
       if (!r.ok) throw new Error("us_states.geojson " + r.status);
       return r.json();
     }),
-    fetch(CONFIG.data.mask).then(function (r) {
+    fetchData(CONFIG.data.mask).then(function (r) {
       if (!r.ok) throw new Error("us_mask.geojson " + r.status);
       return r.json();
     }),
-    fetch(CONFIG.data.chiller).then(function (r) {
+    fetchData(CONFIG.data.chiller).then(function (r) {
       if (!r.ok) throw new Error("chiller_rule.json " + r.status);
       return r.json();
     })

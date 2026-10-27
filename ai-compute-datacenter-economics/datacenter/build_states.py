@@ -3,8 +3,8 @@
 Build the Data Center map's cartography from the us-atlas boundary file.
 
 Outputs
-    data/us_states.geojson  state outlines, each carrying its two-letter code
-                            and a label anchor placed inside the state
+    data/us_states.geojson  contiguous state outlines, each carrying its
+                            two-letter code and a label anchor inside the state
     data/us_mask.geojson    the world with the United States punched out, so
                             the page can darken everything outside the country
 
@@ -48,6 +48,12 @@ PRECISION = 4
 # The 50 states plus DC. us-atlas also carries Puerto Rico and the other
 # territories, which have no sites in this dataset.
 TERRITORY_FIPS = {"60", "66", "69", "72", "78"}
+
+# The map frames the contiguous US and nothing else: every tracked site is in
+# it, and leaving Alaska and Hawaii in the file only invites the camera to
+# reveal them at the edges. They are dropped from the outlines, from the label
+# set and from the mask, so the Pacific stays as dark as Canada does.
+NON_CONTIGUOUS_FIPS = {"02", "15"}
 
 STATE_CODES = {
     "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR",
@@ -99,6 +105,10 @@ ANCHOR_OVERRIDES = {
     "AK": (-152.0, 63.5),
     "HI": (-155.5, 19.6),   # Hawaii island, not the channel between islands
 }
+
+# Anything whose centre falls outside this box is not part of the contiguous
+# US and is left under the mask.
+CONTIGUOUS_BBOX = (-128.0, 23.0, -64.0, 51.0)
 
 # The ring the mask is cut out of. Longitudes stay inside the projection's
 # valid range so the fill does not wrap around the globe.
@@ -280,8 +290,17 @@ def build_mask(topology: dict) -> dict:
         # Only the outer ring of each landmass; an inner ring would be a lake,
         # and re-darkening lakes is not worth the geometry at this zoom.
         ring = unwrap_antimeridian(stitch(topology, polygon[0]))
-        if len(ring) >= 4:
-            holes.append(ring)
+        if len(ring) < 4:
+            continue
+        # Alaska and Hawaii stay covered by the mask, so if the camera ever
+        # drifts far enough to include them they read as dark as Canada.
+        lons = [c[0] for c in ring]
+        lats = [c[1] for c in ring]
+        centre = (sum(lons) / len(lons), sum(lats) / len(lats))
+        if not (CONTIGUOUS_BBOX[0] <= centre[0] <= CONTIGUOUS_BBOX[2]
+                and CONTIGUOUS_BBOX[1] <= centre[1] <= CONTIGUOUS_BBOX[3]):
+            continue
+        holes.append(ring)
 
     return {
         "type": "FeatureCollection",
@@ -301,6 +320,7 @@ def main() -> int:
         to_feature(topology, geometry)
         for geometry in geometries
         if geometry.get("id") not in TERRITORY_FIPS
+        and geometry.get("id") not in NON_CONTIGUOUS_FIPS
     ]
     features.sort(key=lambda f: f["properties"]["name"] or "")
 
@@ -338,7 +358,7 @@ def main() -> int:
     missing_code = [f["properties"]["name"] for f in features
                     if not f["properties"]["code"]]
 
-    print(f"states written : {len(features)}  (expected 51: 50 states + DC)")
+    print(f"states written : {len(features)}  (expected 49: the 48 contiguous states + DC)")
     print(f"anchors outside their state : {stray or 'none'}")
     print(f"states with no two-letter code : {missing_code or 'none'}")
     print(f"offshore labels : "
@@ -348,7 +368,7 @@ def main() -> int:
     print(f"output         : {OUT.relative_to(HERE.parent.parent)} "
           f"({OUT.stat().st_size / 1024:.0f} KB)")
 
-    ok = len(features) == 51 and not stray and not missing_code
+    ok = len(features) == 49 and not stray and not missing_code
     print("\nALL CHECKS PASSED" if ok else "\nCHECKS FAILED")
     return 0 if ok else 1
 
