@@ -154,8 +154,14 @@
     color: var(--stage-text-faint);
     cursor: not-allowed;
   }
-  .scene-btn.is-sub { font-size: 0.68rem; padding: 5px 13px; font-weight: 600; }
-  .scene-btn[aria-disabled="true"] { opacity: 0.75; }
+  .scene-btn.is-ready { cursor: pointer; }
+  .scene-btn.is-ready:hover { color: var(--stage-text); border-color: rgba(255, 255, 255, 0.3); }
+  .scene-btn.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+  }
+  .scene-btn[aria-disabled="true"] { opacity: 0.7; }
 
   /* ---------- counters ---------- */
 
@@ -184,20 +190,18 @@
      so it does not read as a fifth scene button next to Who / Where / Why /
      When. */
 
+  /* Sits at the end of the footnote line rather than beside the counters, so
+     the top-left panel carries numbers only. */
   #how-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    margin-top: 11px; padding: 5px 9px 5px 6px;
-    font-family: inherit; font-size: 0.66rem; font-weight: 700;
-    letter-spacing: 0.03em;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.05);
+    font-family: inherit; font-size: inherit; font-weight: 700;
+    padding: 0; margin-left: 2px;
+    border: 0; background: none;
     color: var(--stage-text-dim);
+    text-decoration: underline;
+    text-underline-offset: 2px;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
-  #how-btn:hover { background: rgba(255, 255, 255, 0.13); color: var(--stage-text); }
-  #how-btn svg { display: block; flex-shrink: 0; fill: currentColor; }
+  #how-btn:hover { color: var(--stage-text); }
 
   #how-scrim {
     position: absolute; inset: 0; z-index: 9;
@@ -324,6 +328,29 @@
     transition: opacity 0.25s ease;
   }
   .legend-row.is-zero { opacity: 0.32; }
+  .legend-row.is-pickable { cursor: pointer; border-radius: 4px; }
+  .legend-row.is-pickable:hover { background: rgba(255, 255, 255, 0.07); }
+  .legend-row.is-picked {
+    background: rgba(255, 255, 255, 0.12);
+    opacity: 1;
+  }
+
+  /* Who builds adds a second number per owner, so the row grows a column and
+     the head grows matching captions. */
+  #legend.is-two-col .legend-row {
+    grid-template-columns: 11px 1fr 52px 52px;
+  }
+  /* Scoped to the owner head: #size-key carries a .legend-head of its own and
+     must stay a plain caption rather than becoming a four-column grid. */
+  #legend.is-two-col > #legend-head {
+    display: grid;
+    grid-template-columns: 11px 1fr 52px 52px;
+    gap: 8px;
+    align-items: end;
+  }
+  .legend-head-name { grid-column: 1 / span 2; }
+  .legend-head-col { text-align: right; }
+  .legend-mw-then { color: var(--stage-text); }
   .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
   .legend-name {
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -393,6 +420,15 @@
     margin-bottom: 2px;
   }
   .track-now { font-weight: 800; color: var(--stage-text); font-size: 0.8rem; }
+
+  /* The Who builds scene is a snapshot, so the track is held at Today. */
+  #timeline.is-locked #slider { cursor: not-allowed; opacity: 0.55; }
+  #timeline.is-locked #play { opacity: 0.4; pointer-events: none; }
+  #timeline.is-locked #track-hint::before {
+    content: "\01F512";
+    margin-right: 5px;
+    font-size: 0.8em;
+  }
 
   /* The slider is the primary control, so it gets a real grab handle and a
      generous hit area rather than a hairline. */
@@ -469,6 +505,7 @@
     font-size: 0.64rem; color: var(--stage-text-faint); line-height: 1.45;
   }
   .card-approx { color: #d97e00; font-weight: 700; }
+  .card-status { font-weight: 700; }
 
   /* ---------- footnote ---------- */
 
@@ -554,18 +591,10 @@
     <!-- Scene switches. Only the timeline is wired in this step; the four
          buttons are deliberately visible and inert so the shape of the full
          piece is legible from the first frame. -->
-    <div id="scene-bar" role="group" aria-label="Scenes">
-      <div class="scene-group">
-        <button type="button" class="scene-btn" aria-disabled="true" disabled>Who</button>
-        <button type="button" class="scene-btn is-sub" aria-disabled="true" disabled>For whom</button>
-      </div>
-      <button type="button" class="scene-btn" aria-disabled="true" disabled>Where</button>
-      <button type="button" class="scene-btn" aria-disabled="true" disabled>Why</button>
-      <button type="button" class="scene-btn" aria-disabled="true" disabled>When</button>
-    </div>
+    <!-- Five flat buttons in value-chain order. Filled from CONFIG.scenes so
+         a later step only has to flip its scene's `ready` flag. -->
+    <div id="scene-bar" role="tablist" aria-label="Scenes"></div>
 
-    <!-- The caption sits under the scene buttons rather than over the map, so
-         it never covers Texas or the Midwest. -->
     <p id="headline"></p>
 
     <div id="counters" class="stage-panel">
@@ -577,10 +606,6 @@
         <span class="counter-label" id="counter-sites-label">Sites live</span>
         <span class="counter-value" id="counter-sites">&mdash;</span>
       </div>
-      <button type="button" id="how-btn" aria-haspopup="dialog" aria-expanded="false">
-        <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 14.6A6.6 6.6 0 118 1.4a6.6 6.6 0 010 13.2zM7.1 6.6h1.8v5.6H7.1V6.6zM8 3.3a1 1 0 110 2.1 1 1 0 010-2.1z"></path></svg>
-        <span id="how-btn-label">How we know</span>
-      </button>
     </div>
 
     <div id="legend" class="stage-panel">
@@ -607,7 +632,9 @@
       </div>
     </div>
 
-    <p id="footnote"></p>
+    <p id="footnote"><span id="footnote-text"></span>
+      <button type="button" id="how-btn" aria-haspopup="dialog" aria-expanded="false"><span id="how-btn-label">Data &amp; method</span></button>
+    </p>
 
     <div id="site-card" role="dialog" aria-label="Site detail"></div>
 
@@ -703,6 +730,10 @@
       outlineLighten: 1.35,     /* outline = fill lightened, for a dark stage */
       outlineWidthPx: 0.9,
       hoverFadeAlpha: 0.3,      /* other bars while one is hovered */
+      ownerFadeAlpha: 0.25,     /* other owners while one is isolated */
+      /* The under-construction outline: no fill, just the owner's colour. */
+      plannedOutlineWidthPx: 1.1,
+      plannedOutlineAlpha: 0.85,
 
       /* Bars whose bases land within this many pixels of each other are
          spread sideways so none is hidden behind its neighbour. */
@@ -754,7 +785,8 @@
        is filled from data/chiller_rule.json, which build_sites.py computes
        from Epoch's own chiller measurements. */
     howWeKnow: {
-      button: "How we know",
+      /* The link in the footer; the panel itself still says "How we know". */
+      button: "Data & method",
       title: "How we know",
       headline: "Nobody publishes these numbers. Epoch counted the cooling fans from space.",
       steps: [
@@ -772,13 +804,54 @@
       closeLabel: "Close"
     },
 
+    /* Scenes, in the order Up and Down step through them. The opening scene
+       has no button of its own; the five buttons are the ones after it, in
+       value-chain order. Only the scenes marked ready are reachable -- the
+       rest stay visible and inert until their own step lands. */
+    sceneOrder: ["opening", "who", "why", "chips", "forwhom", "when"],
     scenes: {
-      /* Scene 1. Placeholder wording: edit the two strings here, nothing else. */
-      timeline: {
-        id: "timeline",
+      opening: {
+        ready: true,
         headline: "From 1 site to 60 in five years. 12 GW of frontier AI compute now running in the US.",
         headlineAt: "today"
-      }
+      },
+      who: {
+        ready: true,
+        button: "Who builds",
+        headline: "Google leads today. Oracle leads by 2030.",
+        headlineAlways: true,
+        legendToday: "Today",
+        legend2030: "2030",
+        lockHint: "Fixed at today for this scene",
+        status: {
+          live: "Live",
+          expanding: "Expanding",
+          construction: "Under construction"
+        },
+        statusLabel: "Status",
+        hint: "Click an owner in the legend to isolate it",
+        /* The outlines reach 2030, and the tallest is 2,263 MW, which is 349
+           px at the map's own scale -- tall enough to run off the top of a
+           northern state. Asking fitBounds for more headroom does not help:
+           extra padding zooms out as much as it shifts, and bar heights are
+           fixed in pixels, so the bases rise again almost as fast. Instead the
+           whole scene slides down at the same zoom, which buys headroom
+           without shrinking the country.
+
+           It does not buy enough for every bar. At 0.1543 px per MW the
+           largest 2030 site, Microsoft Fairwater Wisconsin at 2,263 MW, needs
+           349 px above a base in the upper Midwest, and that plus the country
+           plus the timeline does not fit the viewport at any single zoom. A
+           70 px shift keeps every bar base clear of the timeline and leaves
+           only that one outline running past the top edge; the alternative
+           would be rescaling this scene, which would break both the stated
+           160 px scale and the size key. */
+        shiftDownPx: 70
+      },
+      why:     { ready: false, button: "Why there" },
+      chips:   { ready: false, button: "Chips" },
+      forwhom: { ready: false, button: "For whom" },
+      when:    { ready: false, button: "When" }
     },
 
     footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026."
@@ -798,6 +871,9 @@
   var playTimer = null;
   var pinnedSite = null;
   var hoverSite = null;
+  var sceneId = "opening";
+  var highlightOwner = null;   /* set by clicking a legend row in Who builds */
+  var openingStopIndex = 0;    /* remembered so leaving a scene restores it */
   var lastPointer = { x: 0, y: 0 };
   var viewState = null;
 
@@ -962,19 +1038,21 @@
     });
   }
 
-  function barPolygon(site, mw) {
+  function barPolygon(site, mw, floorMW) {
     var cfg = CONFIG.map;
     var halfW = (cfg.barWidthPx / 2) * degPerPx.lon;
     var dx = offsetDeg[site.name] || 0;
-    var heightDeg = mw * cfg.pxPerMW * degPerPx.lon *
-                    Math.cos(site.lat * Math.PI / 180);
+    var perMW = cfg.pxPerMW * degPerPx.lon * Math.cos(site.lat * Math.PI / 180);
     var left = site.lon + dx - halfW;
     var right = site.lon + dx + halfW;
-    var top = site.lat + heightDeg;
+    /* floorMW lifts the base, which is how the under-construction outline
+       starts where the solid bar stops. */
+    var bottom = site.lat + (floorMW || 0) * perMW;
+    var top = site.lat + mw * perMW;
     /* Square top: the two upper corners sit at the same latitude. */
     return [[
-      [left, site.lat],
-      [right, site.lat],
+      [left, bottom],
+      [right, bottom],
       [right, top],
       [left, top]
     ]];
@@ -1030,6 +1108,75 @@
   }
 
   /* ==========================================================================
+     Scenes
+     ========================================================================== */
+  function scene() { return CONFIG.scenes[sceneId]; }
+  function isWho() { return sceneId === "who"; }
+
+  /* The buttons are the scenes after the opening one, so the opening scene
+     shows no button as active. */
+  function buttonScenes() {
+    return CONFIG.sceneOrder.filter(function (id) { return id !== "opening"; });
+  }
+
+  function renderSceneBar() {
+    el("scene-bar").innerHTML = buttonScenes().map(function (id) {
+      var cfg = CONFIG.scenes[id];
+      var classes = "scene-btn" + (cfg.ready ? " is-ready" : "") +
+                    (id === sceneId ? " is-active" : "");
+      return '<button type="button" class="' + classes + '" data-scene="' + id + '"' +
+        (cfg.ready ? '' : ' aria-disabled="true" disabled') +
+        ' aria-selected="' + (id === sceneId ? "true" : "false") + '">' +
+        escapeHtml(cfg.button) + "</button>";
+    }).join("");
+  }
+
+  function setScene(id) {
+    var cfg = CONFIG.scenes[id];
+    if (!cfg || !cfg.ready || id === sceneId) return;
+
+    if (sceneId === "opening") openingStopIndex = stopIndex;
+
+    sceneId = id;
+    highlightOwner = null;
+    pinnedSite = null;
+    hoverSite = null;
+    hideCard();
+    renderSceneBar();
+
+    if (isWho()) {
+      /* The scene is a snapshot of today against 2030, so the timeline is
+         parked at Today and held there. */
+      goTo(TODAY_INDEX, { force: true, silent: true });
+    } else {
+      /* Back to the opening scene exactly where it was left. */
+      goTo(openingStopIndex, { force: true, silent: true });
+    }
+    syncTimelineLock();
+    applyView(fittedView());
+    draw();
+    paint();
+  }
+
+  /* Up and Down walk the order. A scene that is not ready yet stops the walk
+     rather than being skipped, so the reader never lands somewhere blank. */
+  function stepScene(delta) {
+    var order = CONFIG.sceneOrder;
+    var next = order[order.indexOf(sceneId) + delta];
+    if (next && CONFIG.scenes[next] && CONFIG.scenes[next].ready) setScene(next);
+  }
+
+  function syncTimelineLock() {
+    var slider = el("slider");
+    var locked = isWho();
+    slider.disabled = locked;
+    el("timeline").classList.toggle("is-locked", locked);
+    el("track-hint").textContent = locked
+      ? CONFIG.scenes.who.lockHint
+      : CONFIG.labels.dragHint;
+  }
+
+  /* ==========================================================================
      Layers
      ========================================================================== */
   function focusName() {
@@ -1039,10 +1186,20 @@
 
   function fillAlphaFor(site) {
     var cfg = CONFIG.map;
-    var focus = focusName();
     var base = Math.round(255 * cfg.fillAlpha);
-    if (!focus) return base;
-    return site.name === focus ? base : Math.round(255 * cfg.hoverFadeAlpha);
+
+    /* Isolating an owner from the legend and hovering a single bar are two
+       ways of saying "this one"; hovering wins while it is active. */
+    var focus = focusName();
+    if (focus) {
+      return site.name === focus ? base : Math.round(255 * cfg.hoverFadeAlpha);
+    }
+    if (highlightOwner) {
+      return site.owner === highlightOwner
+        ? base
+        : Math.round(255 * cfg.ownerFadeAlpha);
+    }
+    return base;
   }
 
   function stateLabelLayers(stop) {
@@ -1100,50 +1257,86 @@
     return layers;
   }
 
+  function barRows() {
+    /* Each row carries the MW currently on screen and, in the Who builds
+       scene, the 2030 figure the hollow outline reaches. Sorted tallest
+       first so a tall bar is drawn behind the shorter ones in front of it. */
+    var who = isWho();
+    return SITES.map(function (site) {
+      var mw = who ? site.it_mw_as_of : displayedMW(site);
+      return {
+        site: site,
+        mw: mw,
+        planned: who ? site.it_mw_2030h1 : 0
+      };
+    }).filter(function (row) {
+      return row.mw > 0.01 || row.planned > 0.01 ||
+             (anim.to[row.site.name] || 0) > 0;
+    }).sort(function (a, b) {
+      return Math.max(b.mw, b.planned) - Math.max(a.mw, a.planned);
+    });
+  }
+
   function barLayers() {
     var cfg = CONFIG.map;
     var focus = focusName();
+    var rows = barRows();
+    var layers = [];
 
-    /* Each row carries its currently displayed MW, and the list is sorted
-       tallest first so a tall bar is drawn behind the shorter ones in front
-       of it rather than burying them. */
-    var rows = SITES.map(function (site) {
-      return { site: site, mw: displayedMW(site) };
-    }).filter(function (row) {
-      return row.mw > 0.01 || (anim.to[row.site.name] || 0) > 0;
-    }).sort(function (a, b) {
-      return b.mw - a.mw;
-    });
-
-    return [
-      new deck.PolygonLayer({
-        id: "bars",
-        data: rows,
-        pickable: true,
-        filled: true,
+    if (isWho()) {
+      /* The gap between what is running and what is funded. Drawn before the
+         solid bars so a solid bar always sits in front of its own outline. */
+      var planned = rows.filter(function (row) { return row.planned > row.mw + 0.01; });
+      layers.push(new deck.PolygonLayer({
+        id: "bars-planned",
+        data: planned,
+        pickable: false,
+        filled: false,
         stroked: true,
         extruded: false,
         lineWidthUnits: "pixels",
         lineJointRounded: false,
-        getPolygon: function (row) { return barPolygon(row.site, row.mw); },
-        getFillColor: function (row) {
-          return hexToRgb(ownerColor(row.site.owner)).concat(fillAlphaFor(row.site));
+        getPolygon: function (row) {
+          return barPolygon(row.site, row.planned, row.mw);
         },
         getLineColor: function (row) {
-          var isFocus = row.site.name === focus;
-          /* On a dark stage the outline reads as a highlight, so it lightens
-             the fill rather than darkening it. */
-          return lighten(hexToRgb(ownerColor(row.site.owner)),
-                         isFocus ? cfg.outlineLighten * 1.25 : cfg.outlineLighten)
-            .concat(isFocus ? 255 : fillAlphaFor(row.site));
+          var alpha = Math.round(255 * cfg.plannedOutlineAlpha *
+                                 (fillAlphaFor(row.site) / (255 * cfg.fillAlpha)));
+          return hexToRgb(ownerColor(row.site.owner)).concat(alpha);
         },
-        getLineWidth: function (row) {
-          return row.site.name === focus ? cfg.outlineWidthPx * 2.2 : cfg.outlineWidthPx;
-        },
-        onHover: onHover,
-        onClick: onClick
-      })
-    ];
+        getLineWidth: cfg.plannedOutlineWidthPx
+      }));
+    }
+
+    layers.push(new deck.PolygonLayer({
+      id: "bars",
+      data: rows,
+      pickable: true,
+      filled: true,
+      stroked: true,
+      extruded: false,
+      lineWidthUnits: "pixels",
+      lineJointRounded: false,
+      getPolygon: function (row) { return barPolygon(row.site, row.mw); },
+      getFillColor: function (row) {
+        return hexToRgb(ownerColor(row.site.owner)).concat(fillAlphaFor(row.site));
+      },
+      getLineColor: function (row) {
+        var isFocus = row.site.name === focus;
+        /* On a dark stage the outline reads as a highlight, so it lightens
+           the fill rather than darkening it. */
+        return lighten(hexToRgb(ownerColor(row.site.owner)),
+                       isFocus ? cfg.outlineLighten * 1.25 : cfg.outlineLighten)
+          .concat(isFocus ? 255 : fillAlphaFor(row.site));
+      },
+      getLineWidth: function (row) {
+        return row.site.name === focus ? cfg.outlineWidthPx * 2.2 : cfg.outlineWidthPx;
+      },
+      onHover: onHover,
+      onClick: onClick
+    }));
+
+    return layers;
   }
 
   function paint() {
@@ -1169,27 +1362,72 @@
     el("counter-sites").textContent = String(live.length);
   }
 
-  function renderLegend(stop) {
+  function ownerTotals(key, stop) {
     var totals = {};
     Object.keys(CONFIG.ownerColors).forEach(function (owner) { totals[owner] = 0; });
     SITES.forEach(function (site) {
       if (!(site.owner in totals)) totals[site.owner] = 0;
-      totals[site.owner] += powerAt(site, stop);
+      totals[site.owner] += key === "stop" ? powerAt(site, stop) : site[key];
     });
+    return totals;
+  }
 
-    var rows = Object.keys(totals).map(function (owner) {
-      return { owner: owner, mw: totals[owner] };
+  function legendRowHtml(owner, cells, muted) {
+    var classes = "legend-row" + (muted ? " is-zero" : "") +
+      (highlightOwner === owner ? " is-picked" : "") +
+      (isWho() ? " is-pickable" : "");
+    return '<div class="' + classes + '" data-owner="' + escapeHtml(owner) + '">' +
+      '<span class="legend-swatch" style="background:' + ownerColor(owner) + '"></span>' +
+      '<span class="legend-name" title="' + escapeHtml(owner) + '">' +
+        escapeHtml(owner) + "</span>" +
+      cells +
+    "</div>";
+  }
+
+  function renderLegend(stop) {
+    var who = CONFIG.scenes.who;
+
+    if (!isWho()) {
+      el("legend").classList.remove("is-two-col");
+      el("legend-head").textContent = CONFIG.labels.legend;
+      var totals = ownerTotals("stop", stop);
+      var rows = Object.keys(totals).map(function (owner) {
+        return { owner: owner, mw: totals[owner] };
+      }).sort(function (a, b) {
+        return b.mw - a.mw || a.owner.localeCompare(b.owner);
+      });
+      el("legend-rows").innerHTML = rows.map(function (row) {
+        return legendRowHtml(row.owner,
+          '<span class="legend-mw">' +
+            (row.mw > 0 ? escapeHtml(powerText(row.mw)) : "&ndash;") + "</span>",
+          row.mw <= 0);
+      }).join("");
+      return;
+    }
+
+    /* Who builds: today beside 2030, ordered by 2030 because that is the
+       claim the scene is making. */
+    el("legend").classList.add("is-two-col");
+    el("legend-head").innerHTML =
+      '<span class="legend-head-name">' + escapeHtml(CONFIG.labels.legend) + "</span>" +
+      '<span class="legend-head-col">' + escapeHtml(who.legendToday) + "</span>" +
+      '<span class="legend-head-col">' + escapeHtml(who.legend2030) + "</span>";
+
+    var nowT = ownerTotals("it_mw_as_of");
+    var thenT = ownerTotals("it_mw_2030h1");
+    var ranked = Object.keys(thenT).map(function (owner) {
+      return { owner: owner, now: nowT[owner], then: thenT[owner] };
     }).sort(function (a, b) {
-      return b.mw - a.mw || a.owner.localeCompare(b.owner);
+      return b.then - a.then || a.owner.localeCompare(b.owner);
     });
 
-    el("legend-rows").innerHTML = rows.map(function (row) {
-      return '<div class="legend-row' + (row.mw > 0 ? "" : " is-zero") + '">' +
-        '<span class="legend-swatch" style="background:' + ownerColor(row.owner) + '"></span>' +
-        '<span class="legend-name" title="' + escapeHtml(row.owner) + '">' +
-          escapeHtml(row.owner) + "</span>" +
-        '<span class="legend-mw">' + (row.mw > 0 ? escapeHtml(powerText(row.mw)) : "&ndash;") + "</span>" +
-      "</div>";
+    el("legend-rows").innerHTML = ranked.map(function (row) {
+      return legendRowHtml(row.owner,
+        '<span class="legend-mw">' +
+          (row.now > 0 ? escapeHtml(powerText(row.now)) : "&ndash;") + "</span>" +
+        '<span class="legend-mw legend-mw-then">' +
+          (row.then > 0 ? escapeHtml(powerText(row.then)) : "&ndash;") + "</span>",
+        row.then <= 0);
     }).join("");
   }
 
@@ -1251,11 +1489,12 @@
   }
 
   function renderHeadline(stop) {
-    var scene = CONFIG.scenes.timeline;
-    var show = scene.headlineAt === "today" ? stop.isToday : false;
+    var cfg = scene();
     var node = el("headline");
-    node.textContent = scene.headline;
-    node.classList.toggle("is-shown", show);
+    if (!cfg || !cfg.headline) { node.classList.remove("is-shown"); return; }
+    node.textContent = cfg.headline;
+    node.classList.toggle("is-shown",
+      cfg.headlineAlways ? true : (cfg.headlineAt === "today" && stop.isToday));
   }
 
   function draw() {
@@ -1353,6 +1592,7 @@
         '<span class="card-key">' + CONFIG.card.firstOperational + '</span>' +
           '<span class="card-val">' +
             escapeHtml(site.first_operational || CONFIG.card.noneYet) + "</span>" +
+        statusRow(site) +
       "</div>" +
       '<div class="card-note">' +
         (approx
@@ -1364,6 +1604,22 @@
 
     card.style.display = "block";
     if (!keepPosition) positionCard(lastPointer.x, lastPointer.y);
+  }
+
+  /* Only the Who builds scene is about the gap between running and funded,
+     so the status line appears there. */
+  function siteStatus(site) {
+    var text = CONFIG.scenes.who.status;
+    if (site.it_mw_as_of <= 0) return text.construction;
+    if (site.it_mw_2030h1 > site.it_mw_as_of) return text.expanding;
+    return text.live;
+  }
+
+  function statusRow(site) {
+    if (!isWho()) return "";
+    return '<span class="card-key">' + escapeHtml(CONFIG.scenes.who.statusLabel) +
+      "</span>" +
+      '<span class="card-val card-status">' + escapeHtml(siteStatus(site)) + "</span>";
   }
 
   function positionCard(x, y) {
@@ -1467,15 +1723,38 @@
     /* A click anywhere off the panel closes it: the scrim covers the map. */
     el("how-scrim").addEventListener("click", closeHow);
 
+    el("scene-bar").addEventListener("click", function (event) {
+      var btn = event.target.closest(".scene-btn");
+      if (btn && btn.dataset.scene) setScene(btn.dataset.scene);
+    });
+
+    /* Isolating an owner is only meaningful where two numbers per owner are
+       on screen, so it is wired for the Who builds scene alone. */
+    el("legend-rows").addEventListener("click", function (event) {
+      if (!isWho()) return;
+      var row = event.target.closest(".legend-row");
+      if (!row || !row.dataset.owner) return;
+      highlightOwner = highlightOwner === row.dataset.owner ? null : row.dataset.owner;
+      draw();
+      paint();
+    });
+
     /* Up and Down are reserved for switching scenes in a later step. */
     document.addEventListener("keydown", function (event) {
       if (howIsOpen() && event.key !== "Escape") return;
       if (event.key === "ArrowLeft") {
+        if (isWho()) return;
         stopPlaying(); goTo(stopIndex - 1); event.preventDefault();
       } else if (event.key === "ArrowRight") {
+        if (isWho()) return;
         stopPlaying(); goTo(stopIndex + 1); event.preventDefault();
+      } else if (event.key === "ArrowUp") {
+        stepScene(-1); event.preventDefault();
+      } else if (event.key === "ArrowDown") {
+        stepScene(1); event.preventDefault();
       } else if (event.key === "Escape") {
         if (howIsOpen()) { closeHow(); return; }
+        if (highlightOwner) { highlightOwner = null; draw(); paint(); return; }
         pinnedSite = null; hoverSite = null; hideCard(); paint();
       }
     });
@@ -1504,14 +1783,24 @@
   function fittedView() {
     var stage = el("stage");
     var cfg = CONFIG.map;
+    var active = scene();
     var viewport = new deck.WebMercatorViewport({
       width: Math.max(320, stage.clientWidth),
       height: Math.max(320, stage.clientHeight)
     });
     var fitted = viewport.fitBounds(cfg.conusBounds, { padding: cfg.fitPadding });
+
+    /* Moving the camera centre north makes the land sit lower on screen. */
+    var latitude = fitted.latitude;
+    var shift = (active && active.shiftDownPx) || 0;
+    if (shift) {
+      var degPerPxLon = 360 / (512 * Math.pow(2, fitted.zoom));
+      latitude += shift * degPerPxLon * Math.cos(fitted.latitude * Math.PI / 180);
+    }
+
     return {
       longitude: fitted.longitude,
-      latitude: fitted.latitude,
+      latitude: latitude,
       zoom: fitted.zoom,
       pitch: cfg.pitch,
       bearing: cfg.bearing
@@ -1624,8 +1913,9 @@
     el("size-key-head").textContent = CONFIG.labels.sizeKey;
     el("track-hint").textContent = CONFIG.labels.dragHint;
     el("how-btn-label").textContent = CONFIG.howWeKnow.button;
+    renderSceneBar();
     renderHowPanel();
-    el("footnote").textContent = CONFIG.footnote;
+    el("footnote-text").textContent = CONFIG.footnote;
 
     renderTicks();
     renderSizeKey();
@@ -1654,6 +1944,13 @@
       howIsOpen: howIsOpen,
       displayedMW: displayedMW,
       goTo: goTo,
+      setScene: setScene,
+      stepScene: stepScene,
+      sceneId: function () { return sceneId; },
+      highlight: function () { return highlightOwner; },
+      setHighlight: function (owner) { highlightOwner = owner; draw(); paint(); },
+      siteStatus: siteStatus,
+      ownerTotals: ownerTotals,
       current: function () { return STOPS[stopIndex]; },
       totals: function (index) {
         var stop = STOPS[index == null ? stopIndex : index];
