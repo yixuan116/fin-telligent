@@ -168,6 +168,11 @@
     transform: none;
     text-align: left;
   }
+  /* The sources line keeps to the map's side of the column, so the
+     column's edge never runs through it. */
+  #stage[data-scene="why"]:not([data-view="headline"]) #footnote {
+    left: calc(var(--text-col) + 16px);
+  }
   #stage[data-scene="why"]:not([data-view="headline"]) #headline { top: 148px; }
   #stage[data-scene="why"]:not([data-view="headline"]) #own-bars { top: 148px; }
   #stage[data-scene="why"]:not([data-view="headline"]) #where-note { top: 148px; }
@@ -667,6 +672,11 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     color: var(--stage-text);
   }
+  /* Make Your Own Power names three examples, not thirteen owners, so a
+     long name wraps onto a second line rather than being cut. */
+  #stage[data-view="ownpower"] .legend-name {
+    white-space: normal; overflow: visible; line-height: 1.25;
+  }
   .legend-mw {
     font-variant-numeric: tabular-nums;
     color: var(--stage-text-dim); font-weight: 700;
@@ -992,6 +1002,9 @@
     #stage[data-scene="why"]:not([data-view="headline"]) #where-note,
     #stage[data-scene="why"]:not([data-view="headline"]) #own-bars {
       left: 16px; width: calc(100% - 32px);
+    }
+    #stage[data-scene="why"]:not([data-view="headline"]) #footnote {
+      left: 16px;
     }
   }
 </style>
@@ -4269,7 +4282,19 @@
     });
     /* Every scene shares one camera. The bars change scale between scenes,
        the map does not. */
-    var fitted = viewport.fitBounds(cfg.conusBounds, { padding: cfg.fitPadding });
+    /* In a sub-view the map is narrower and the legend would stand over its
+       right edge, so the fit leaves the legend a strip of its own. */
+    var padding = cfg.fitPadding;
+    var legend = el("legend");
+    if (playsBack() && legend.offsetWidth) {
+      padding = {
+        top: padding.top,
+        bottom: padding.bottom,
+        left: padding.left,
+        right: legend.offsetWidth + 2 * padding.right
+      };
+    }
+    var fitted = viewport.fitBounds(cfg.conusBounds, { padding: padding });
     return {
       longitude: fitted.longitude,
       latitude: fitted.latitude,
@@ -4285,6 +4310,7 @@
     if (!mapInstance || !deckInstance) return;
     requestAnimationFrame(function () {
       mapInstance.resize();
+      syncFootnoteSpace();
       applyView(fittedView());
       syncColumnLayout();
     });
