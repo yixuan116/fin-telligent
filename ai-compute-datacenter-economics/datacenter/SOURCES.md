@@ -114,6 +114,25 @@ County's 2.8, which is the "about 180x" on the page. It is a planned peak
 against an average load, so the two are not like for like: the claim is about
 what the land is being built to draw, not what it draws today.
 
+That arithmetic is now also on the page itself, as a clause on the sources
+line, so the comparison is not only defensible in this file.
+
+## Two lines the Where view ends on
+
+Step 6 names one site: "Amazon New Carlisle: 16 months from start to first
+building live, vs about 4 years average grid wait". The 16 months is Epoch's
+own dates for that site, 2024-02-09 to 2025-06-23, which is 500 days; the four
+years is the JLL figure above. The same caveat applies: one is a build, the
+other is a national average queue, so the line compares orders of magnitude
+rather than two measurements of one thing.
+
+A 2025-and-later site's card adds: "This group splits in two: seven sites
+within 53 mi, seven beyond 161 mi." Computed from `data/metros.json`: of the 14
+sites in that group, 7 sit 12.2 to 52.5 mi from their nearest metro of a
+million or more and 7 sit 161.0 to 288.7 mi, with nothing in between, so the
+group's 107 mi median falls in an empty gap. That is why a site in that group
+carries the line and the others do not.
+
 ## Time to power
 
 JLL, "2026 Global Data Center Outlook". The US national average wait for a grid

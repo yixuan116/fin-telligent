@@ -89,7 +89,7 @@
   {
    "id": "same-land-180x",
    "text": "Same land, about 180x the power of 🍊 Orange County",
-   "shown": "Under the number in the Where view of the Why there scene, after the third group.",
+   "shown": "Step 5 of the Where view, as the line under the number, and since this commit also as a clause on the page's own sources line so the comparison carries its arithmetic in public.",
    "basis": [
     "Orange County, California: 792.84 sq mi of land (census-quickfacts-orange-county), about 2.2 GW of average load (cec-orange-county-consumption), so about 2.8 MW per sq mi.",
     "Cumulus campus: about 1,200 acres, which is 1.875 sq mi, with up to 960 MW planned (cumulus-campus), so about 512 MW per sq mi.",
@@ -110,6 +110,27 @@
    "kind": "elapsed time, rounded to whole years",
    "caveat": "See the caveat on jll-time-to-power: the two clocks overlap rather than running end to end.",
    "replaces": "time-to-power-bars, the three growing bars this view used to carry."
+  },
+  {
+   "id": "where-focus-line",
+   "text": "Amazon New Carlisle: 16 months from start to first building live, vs about 4 years average grid wait",
+   "shown": "Step 6 of the Where view, with that site's bar picked out in white.",
+   "basis": [
+    "16 months: Epoch AI's own dates for Anthropic-Amazon New Carlisle, first dated observation 2024-02-09 to first operational 2025-06-23, which is 500 days or 16.4 months (data/sites.json).",
+    "About 4 years: the US average wait for a grid connection (jll-time-to-power)."
+   ],
+   "kind": "elapsed time, on two different clocks",
+   "caveat": "See the caveat on jll-time-to-power. The 16 months is one site's build; the four years is the national average queue, so the line is a comparison of orders of magnitude rather than of two measurements of the same thing. New Carlisle sits 68.8 mi from Chicago, its nearest metro of a million or more, and broke ground in 2024."
+  },
+  {
+   "id": "late-group-clusters",
+   "text": "This group splits in two: seven sites within 53 mi, seven beyond 161 mi.",
+   "shown": "In the card a 2025-and-later site opens in the Where view, under its distance.",
+   "basis": [
+    "Computed from data/metros.json: of the 14 sites that broke ground in 2025 or later, 7 are 12.2 to 52.5 mi from their nearest metro of a million or more and 7 are 161.0 to 288.7 mi, with nothing in between.",
+    "The group's median of 107 mi therefore falls in an empty gap, which is why a site in it carries this line."
+   ],
+   "kind": "distribution of the group behind the median"
   }
  ]
 }

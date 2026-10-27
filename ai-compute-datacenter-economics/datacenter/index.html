@@ -280,6 +280,20 @@
   #stage[data-scene="why"][data-view="headline"] #why-figures { top: calc(50% - 8px); }
   #stage[data-scene="why"][data-view="headline"] #entry-bar { top: calc(50% + 85px); }
 
+  /* Inside a view the entries are sub-tabs: the pill the Price, Own power
+     and Cooling switches used, in the same place under the scene buttons.
+     After the headline rules above, because the two carry equal weight. */
+  #stage[data-scene="why"]:not([data-view="headline"]) #entry-bar {
+    top: 59px;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid var(--stage-border);
+    background: var(--stage-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
   #stage[data-scene="why"] #headline {
     top: 96px;
     max-width: min(760px, calc(100% - 420px));
@@ -758,6 +772,45 @@
   .card-ground-value { font-weight: 700; }
   .card-status { font-weight: 700; }
 
+  /* ---------- playback ----------
+     A view that plays gets the timeline's own panel, in the timeline's own
+     place, and the timeline stands down while it is up: one control on
+     screen at a time. */
+
+  #where-controls {
+    position: absolute; z-index: 5;
+    left: 50%; transform: translateX(-50%);
+    bottom: 44px;
+    display: none;
+    align-items: center; gap: 10px;
+    padding: 9px 12px;
+  }
+  #where-controls.is-shown { display: flex; }
+  .where-btn {
+    font-family: inherit;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em;
+    padding: 7px 15px;
+    border-radius: 999px;
+    border: 1px solid var(--stage-border);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--stage-text);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .where-btn:hover { background: rgba(255, 255, 255, 0.18); }
+  .where-btn[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
+  #where-step {
+    font-size: 0.68rem; font-weight: 700;
+    color: var(--stage-text-dim);
+    font-variant-numeric: tabular-nums;
+    min-width: 42px; text-align: right;
+  }
+  #stage[data-view="where"] #timeline { display: none; }
+
+  /* A legend row that replays its group says so by being a button. */
+  .legend-row.is-replay { cursor: pointer; }
+  .legend-row.is-replay:hover .legend-name { color: var(--stage-text); }
+
   /* ---------- footnote ---------- */
 
   #footnote {
@@ -919,6 +972,14 @@
                aria-label="Timeline position">
         <div class="track-ticks" id="track-ticks"></div>
       </div>
+    </div>
+
+    <div id="where-controls" class="stage-panel" role="group"
+         aria-label="Playback">
+      <button type="button" class="where-btn" id="where-back">Back</button>
+      <button type="button" class="where-btn" id="where-play">Play</button>
+      <button type="button" class="where-btn" id="where-next">Next</button>
+      <span id="where-step"></span>
     </div>
 
     <p id="footnote"><span id="footnote-text"></span>
@@ -1164,7 +1225,7 @@
         /* The scene opens on an overview screen: one line, and the two ways
            into it. The map stays where it is, dimmed back to a backdrop. */
         intro: {
-          headline: "Sites Need Power",
+          headline: "Sites Follow Power",
           driver: "Key Driver: Time to Power",
           /* The two clocks a project runs on, side by side: the building and
              the power. Both are rounded to whole years from the figures in
@@ -1216,7 +1277,12 @@
            same identity, so colour is never the only thing saying which
            group is on screen. */
         where: {
-          stepMs: 1500,            /* between one group and the next */
+          /* The view plays as six steps: the metros, then one step per
+             start-year group, then the land comparison, then the one site
+             that did not wait. Back, Play and Next move through them, and
+             the arrow keys and the space bar do the same. */
+          steps: 6,
+          stepMs: 1500,            /* between one step and the next */
           drawMs: 700,             /* a group's lines drawing out */
           countMs: 600,            /* the number counting to its median */
           litAlpha: 0.9,           /* a revealed site's bar */
@@ -1230,9 +1296,32 @@
           dotRadiusPx: 2.6,
           lineWidthPx: 1,
           lineAlpha: 165,
+          fadeLineAlpha: 55,       /* the other lines on the last step */
           legendHead: "Nearest metro of 1M or more",
-          note: "Same land, about 180x the power of \uD83C\uDF4A Orange County",
-          backHint: "Back to Sites follow power"
+          landNote: "Same land, about 180x the power of \uD83C\uDF4A Orange County",
+          /* The last step: the site that built its own way to power. Its
+             months are Epoch's own dates, 2024-02-09 to 2025-06-23. */
+          focusSite: "Anthropic-Amazon New Carlisle",
+          focusColor: "#f2f5f8",
+          focusNote: "Amazon New Carlisle: 16 months from start to first building live, vs about 4 years average grid wait",
+          backHint: "Back to Sites Follow Power",
+          controls: {
+            back: "Back", next: "Next",
+            play: "Play", pause: "Pause",
+            step: "{at} / {of}"
+          },
+          /* The card a site opens once the sequence has played out. */
+          card: {
+            metro: "Nearest metro of 1M+",
+            distance: "Distance",
+            start: "Broke ground",
+            /* The late group's median sits in a gap between two clusters, so
+               a site in it carries that caveat rather than letting the one
+               number stand for fourteen. */
+            clusterGroup: "late",
+            clusters: "This group splits in two: seven sites within 53 mi, seven beyond 161 mi.",
+            replayHint: "Click a year in the legend to replay that group"
+          }
         },
         /* The views are off the screen for now, and the beats list, the price
            block below it and everything they drive stay here to be taken
@@ -1316,7 +1405,7 @@
       when:    { ready: false, button: "When" }
     },
 
-    footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026. Orange County annual electricity consumption: 19,225 GWh, California Energy Commission, Electricity Consumption Dashboards (energy.ca.gov). 1 GW \u2248 \u00bd Orange County is calculated as 19,225 GWh \u00f7 8,760 hours \u2248 2.2 GW average load."
+    footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026. Orange County annual electricity consumption: 19,225 GWh, California Energy Commission, Electricity Consumption Dashboards (energy.ca.gov). 1 GW \u2248 \u00bd Orange County is calculated as 19,225 GWh \u00f7 8,760 hours \u2248 2.2 GW average load. 180x compares power per square mile: Orange County 792.84 sq mi of land (Census QuickFacts) at about 2.2 GW average load, against the AWS Cumulus campus near Susquehanna, about 1,200 acres and up to 960 MW planned."
   };
 
   /* ==========================================================================
@@ -1360,7 +1449,12 @@
   /* The Where view reveals its groups one after another: `step` is the group
      being revealed, `start` is when it began, and the number eases to that
      group's median the way the counters ease to theirs. */
-  var whereAnim = { step: -1, start: 0, frame: null, timer: null };
+  var whereAnim = {
+    step: 0,                    /* 1 to 6 while the view is up, 0 before */
+    start: 0, frame: null, timer: null,
+    playing: false,
+    solo: null                  /* a group being replayed on its own */
+  };
   var whereNum = { from: 0, to: 0, start: 0 };
   /* The two numbers on the headline view, counting up from zero together. */
   var figureAnim = { start: 0, frame: null };
@@ -1835,13 +1929,53 @@
     return -1;
   }
 
-  /* 0 while a group is still waiting its turn, 1 once its lines have drawn
-     all the way to their metro. */
-  function groupProgress(index) {
-    if (!isWhereView() || index < 0 || index > whereAnim.step) return 0;
-    if (index < whereAnim.step) return 1;
+  /* ---------- the playback ----------
+     Six steps: the metros, then one start-year group each, then the land
+     comparison, then the one site that did not wait for the grid. Back, Play
+     and Next walk them, and so do the arrow keys and the space bar. */
+
+  function whereSteps() { return whereCfg().steps; }
+
+  function drawProgress() {
+    if (!whereAnim.start) return 1;
     var t = (performance.now() - whereAnim.start) / whereCfg().drawMs;
     return Math.max(0, Math.min(1, t));
+  }
+
+  /* 0 while a group is still waiting its turn, 1 once its lines have drawn
+     all the way to their metro. A group replayed on its own is the only one
+     drawn while that lasts. */
+  function groupProgress(index) {
+    if (!isWhereView() || index < 0) return 0;
+    if (whereAnim.solo !== null) {
+      return index === whereAnim.solo ? drawProgress() : 0;
+    }
+    var at = whereAnim.step - 2;
+    if (index > at) return 0;
+    if (index < at) return 1;
+    return drawProgress();
+  }
+
+  /* Which group the number and the label beside it speak for. */
+  function currentGroupIndex() {
+    var groups = whereGroups();
+    if (whereAnim.solo !== null) return whereAnim.solo;
+    return Math.max(0, Math.min(groups.length - 1, whereAnim.step - 2));
+  }
+
+  function showsNumber() {
+    return isWhereView() && (whereAnim.solo !== null || whereAnim.step >= 2);
+  }
+
+  function isFocusSite(site) {
+    return isWhereView() && whereAnim.solo === null &&
+      whereAnim.step >= whereSteps() && site.name === whereCfg().focusSite;
+  }
+
+  /* Once the sequence has played out a site stops being something being
+     shown and becomes something to click. */
+  function whereDone() {
+    return isWhereView() && whereAnim.step >= whereSteps();
   }
 
   function whereNumber() {
@@ -1852,8 +1986,6 @@
   }
 
   function whereSettled() {
-    var groups = whereGroups();
-    if (whereAnim.step < groups.length - 1) return false;
     var cfg = whereCfg();
     return performance.now() >=
       whereAnim.start + Math.max(cfg.drawMs, cfg.countMs);
@@ -1867,34 +1999,138 @@
       whereNum.start = 0;
       renderHeadline(STOPS[stopIndex]);
       paint();
-      /* The line lands once the last number has, not when its group began. */
-      el("where-note").textContent = whereCfg().note;
-      el("where-note").classList.add("is-shown");
       return;
     }
     whereAnim.frame = requestAnimationFrame(whereFrame);
   }
 
-  function revealNextGroup() {
-    var groups = whereGroups();
-    var next = whereAnim.step + 1;
-    if (next >= groups.length) return;
-    whereAnim.step = next;
-    whereAnim.start = performance.now();
-    renderWhereLegend();
-    whereNum.from = whereNumber();
-    whereNum.to = groups[next].median;
-    whereNum.start = whereAnim.start;
+  function startWhereFrame() {
     if (!whereAnim.frame) whereAnim.frame = requestAnimationFrame(whereFrame);
-    if (next + 1 < groups.length) {
-      whereAnim.timer = setTimeout(revealNextGroup, whereCfg().stepMs);
+  }
+
+  /* One line under the number, and which line it is belongs to the step. */
+  function syncWhereNote() {
+    var cfg = whereCfg();
+    var text = "";
+    if (isWhereView() && whereAnim.solo === null) {
+      if (whereAnim.step >= whereSteps()) text = cfg.focusNote;
+      else if (whereAnim.step === whereSteps() - 1) text = cfg.landNote;
     }
+    el("where-note").textContent = text;
+    el("where-note").classList.toggle("is-shown", !!text);
+  }
+
+  function gotoWhereStep(step, manual) {
+    if (!isWhereView()) return;
+    var wanted = Math.max(1, Math.min(whereSteps(), step));
+    if (manual) pauseWhere();
+    whereAnim.solo = null;
+    whereAnim.step = wanted;
+    whereAnim.start = performance.now();
+
+    var groups = whereGroups();
+    var index = wanted - 2;
+    if (index < 0) {
+      whereNum.from = whereNum.to = 0;
+      whereNum.start = 0;
+    } else {
+      /* Past the last group the number stays on the last median, so steps 5
+         and 6 do not blank the figure the groups arrived at. */
+      var target = groups[Math.min(index, groups.length - 1)].median;
+      whereNum.from = whereNumber();
+      whereNum.to = target;
+      whereNum.start = whereAnim.start;
+    }
+
+    syncWhereNote();
+    renderWhereControls();
+    startWhereFrame();
+    draw();
+    paint();
+  }
+
+  /* A group's own row in the legend replays that group, and only it. */
+  function soloWhereGroup(index) {
+    if (!isWhereView()) return;
+    var groups = whereGroups();
+    if (index < 0 || index >= groups.length) return;
+    pauseWhere();
+    whereAnim.solo = index;
+    whereAnim.start = performance.now();
+    whereNum.from = 0;
+    whereNum.to = groups[index].median;
+    whereNum.start = whereAnim.start;
+    syncWhereNote();
+    renderWhereControls();
+    startWhereFrame();
+    draw();
+    paint();
+  }
+
+  function clearWhereTimer() {
+    if (whereAnim.timer) { clearTimeout(whereAnim.timer); whereAnim.timer = null; }
+  }
+
+  function scheduleWhereStep() {
+    clearWhereTimer();
+    if (!whereAnim.playing) return;
+    if (whereAnim.step >= whereSteps()) {
+      whereAnim.playing = false;
+      renderWhereControls();
+      return;
+    }
+    whereAnim.timer = setTimeout(function () {
+      gotoWhereStep(whereAnim.step + 1, false);
+      scheduleWhereStep();
+    }, whereCfg().stepMs);
+  }
+
+  function playWhere() {
+    if (!isWhereView()) return;
+    /* Play at the end starts it over rather than doing nothing. */
+    if (whereAnim.step >= whereSteps() || whereAnim.solo !== null) {
+      gotoWhereStep(1, true);
+    }
+    whereAnim.playing = true;
+    renderWhereControls();
+    scheduleWhereStep();
+  }
+
+  function pauseWhere() {
+    if (!whereAnim.playing) { clearWhereTimer(); return; }
+    whereAnim.playing = false;
+    clearWhereTimer();
+    renderWhereControls();
+  }
+
+  function toggleWherePlay() {
+    if (whereAnim.playing) pauseWhere(); else playWhere();
+  }
+
+  function renderWhereControls() {
+    var bar = el("where-controls");
+    var on = isWhereView();
+    bar.classList.toggle("is-shown", on);
+    if (!on) return;
+    var labels = whereCfg().controls;
+    el("where-play").textContent = whereAnim.playing ? labels.pause : labels.play;
+    el("where-play").setAttribute("aria-pressed",
+      whereAnim.playing ? "true" : "false");
+    el("where-back").setAttribute("aria-disabled",
+      whereAnim.step <= 1 ? "true" : "false");
+    el("where-next").setAttribute("aria-disabled",
+      whereAnim.step >= whereSteps() ? "true" : "false");
+    el("where-step").textContent = labels.step
+      .replace("{at}", String(Math.max(1, whereAnim.step)))
+      .replace("{of}", String(whereSteps()));
   }
 
   function stopWhere() {
-    if (whereAnim.timer) { clearTimeout(whereAnim.timer); whereAnim.timer = null; }
+    clearWhereTimer();
     if (whereAnim.frame) { cancelAnimationFrame(whereAnim.frame); whereAnim.frame = null; }
-    whereAnim.step = -1;
+    whereAnim.step = 0;
+    whereAnim.playing = false;
+    whereAnim.solo = null;
     whereNum.from = whereNum.to = 0;
     whereNum.start = 0;
     el("where-note").classList.remove("is-shown");
@@ -1910,7 +2146,9 @@
     syncSceneClass();
     renderEntryBar();
     renderIntroPanel(false);
-    if (id === "where") revealNextGroup();
+    /* The view opens playing, from the first step. */
+    if (id === "where") { gotoWhereStep(1, true); playWhere(); }
+    renderWhereControls();
     draw();
     paint();
   }
@@ -1924,6 +2162,7 @@
     viewId = null;
     syncSceneClass();
     renderEntryBar();
+    renderWhereControls();
     /* Back on the headline view, so the numbers count again. */
     renderIntroPanel(true);
     draw();
@@ -2069,11 +2308,16 @@
       if (!metro) return;
       /* The line grows from the site towards its metro, so a group arrives
          as a movement rather than as a finished diagram. */
+      var focused = whereAnim.solo === null && whereAnim.step >= whereSteps();
+      var color = isFocusSite(site)
+        ? hexToRgb(cfg.focusColor).concat(cfg.lineAlpha)
+        : hexToRgb(groups[index].color)
+            .concat(focused ? cfg.fadeLineAlpha : cfg.lineAlpha);
       lines.push({
         from: [site.lon, site.lat],
         to: [site.lon + (metro.lon - site.lon) * progress,
              site.lat + (metro.lat - site.lat) * progress],
-        color: hexToRgb(groups[index].color).concat(cfg.lineAlpha)
+        color: color
       });
     });
     return [new deck.LineLayer({
@@ -2133,7 +2377,10 @@
     bar.innerHTML = list.map(function (entry) {
       /* An entry is only live once the data it reads has arrived. */
       var ready = !!entry.ready && (entry.id !== "where" || !!METROS);
-      var classes = "scene-btn" + (ready ? " is-ready" : "") +
+      /* Large and centred while the headline view is up; the sub-tab pill's
+         own segments, under the scene buttons, once a view is open. */
+      var classes = (viewId ? "beat-btn" : "scene-btn") +
+                    (ready ? " is-ready" : "") +
                     (entry.id === viewId ? " is-active" : "");
       return '<button type="button" class="' + classes + '" data-entry="' +
         escapeHtml(entry.id) + '"' +
@@ -2197,6 +2444,7 @@
     hideNoteCard();
     viewId = null;
     syncSceneClass();
+    renderWhereControls();
     highlightOwner = null;
     pinnedSite = null;
     hoverSite = null;
@@ -2269,11 +2517,20 @@
       /* In the Where view a site lights up in its group's colour on the beat
          that group arrives, and waits at the backdrop weight until then. */
       if (isWhereView()) {
+        var where = whereCfg();
+        /* The last step is about one site, so that one goes white and every
+           other lit site steps back to the backdrop weight. */
+        if (isFocusSite(site)) {
+          return hexToRgb(where.focusColor)
+            .concat(Math.round(255 * where.litAlpha * dimFactor(site)));
+        }
         var index = siteGroupIndex(site);
         if (groupProgress(index) > 0) {
-          var where = whereCfg();
+          var lit = (whereAnim.solo === null && whereAnim.step >= whereSteps())
+            ? intro.barAlpha
+            : where.litAlpha;
           return hexToRgb(whereGroups()[index].color)
-            .concat(Math.round(255 * where.litAlpha * dimFactor(site)));
+            .concat(Math.round(255 * lit * dimFactor(site)));
         }
       }
       /* On the headline view the whole canvas is faded to a backdrop, so a
@@ -2624,10 +2881,15 @@
     el("legend").classList.remove("is-two-col");
     el("legend-head").textContent = cfg.legendHead;
     el("legend-rows").innerHTML = whereGroups().map(function (group, i) {
-      /* A group's row lights up on the beat it arrives, which is this call,
-         so it goes by the step rather than by how far its lines have drawn. */
-      var lit = i <= whereAnim.step;
-      return '<div class="legend-row' + (lit ? "" : " is-zero") + '">' +
+      /* A row lights up on the beat its group arrives, which is this call,
+         so it goes by the step rather than by how far the lines have drawn.
+         Every row is a way to replay its own group, lit or not. */
+      var lit = whereAnim.solo === null
+        ? i <= whereAnim.step - 2
+        : i === whereAnim.solo;
+      return '<div class="legend-row is-replay' + (lit ? "" : " is-zero") +
+        '" data-group="' + i + '" title="' +
+        escapeHtml(whereCfg().card.replayHint) + '">' +
         '<span class="legend-swatch" style="background:' + group.color +
           '"></span>' +
         '<span class="legend-name" title="' + escapeHtml(group.label) + '">' +
@@ -2842,9 +3104,8 @@
     /* A view inside it answers with one number, so the line the screen leads
        with becomes that number and the way back out of the view. */
     node.classList.toggle("is-back", !!viewId);
-    if (isWhereView() && whereAnim.step >= 0) {
-      var groups = whereGroups();
-      var group = groups[Math.min(whereAnim.step, groups.length - 1)];
+    if (showsNumber()) {
+      var group = whereGroups()[currentGroupIndex()];
       node.innerHTML =
         '<span class="where-figure">' +
           "<span>" + Math.round(whereNumber()) +
@@ -3054,6 +3315,40 @@
     if (!keepPosition) positionCard(lastPointer.x, lastPointer.y);
   }
 
+  /* The card a site opens in the Where view: where it is, how far that is,
+     and when it broke ground. The late group's median sits in a gap between
+     two clusters, so a site in that group says so. */
+  function showWhereSiteCard(site, keepPosition) {
+    var cfg = whereCfg();
+    var text = cfg.card;
+    var row = whereRow(site);
+    var metro = row ? METRO_BY_CODE[row.metro] : null;
+    var dash = "\u2014";
+    var cluster = (row && row.group === text.clusterGroup)
+      ? '<div class="card-note">' + escapeHtml(text.clusters) + "</div>"
+      : "";
+
+    var card = el("site-card");
+    card.innerHTML =
+      '<div class="card-name">' + escapeHtml(site.name) + "</div>" +
+      '<div class="card-rows">' +
+        '<span class="card-key">' + escapeHtml(text.metro) + "</span>" +
+          '<span class="card-val">' +
+            escapeHtml(metro ? metro.name : dash) + "</span>" +
+        '<span class="card-key">' + escapeHtml(text.distance) + "</span>" +
+          '<span class="card-val">' +
+            escapeHtml(row ? Math.round(row.mi) + " " + cfg.unit : dash) +
+          "</span>" +
+        '<span class="card-key">' + escapeHtml(text.start) + "</span>" +
+          '<span class="card-val">' +
+            escapeHtml(row && row.start_year ? String(row.start_year) : dash) +
+          "</span>" +
+      "</div>" + cluster;
+
+    card.style.display = "block";
+    if (!keepPosition) positionCard(lastPointer.x, lastPointer.y);
+  }
+
   function positionCard(x, y) {
     var card = el("site-card");
     var stage = el("stage").getBoundingClientRect();
@@ -3084,7 +3379,16 @@
      the result does not depend on which of the two fires last. */
   function refreshHoverCard() {
     if (pinnedSite) return;
-    if (hoverSite) { showCard(hoverSite, false); return; }
+    if (hoverSite) {
+      /* One card vocabulary per view: in the Where view a site answers in
+         miles, and only once the sequence has played out. */
+      if (isWhereView()) {
+        if (whereDone()) showWhereSiteCard(hoverSite, false); else hideCard();
+        return;
+      }
+      showCard(hoverSite, false);
+      return;
+    }
     if (hoverState && isPriceView()) { showStateCard(hoverState, false); return; }
     hideCard();
   }
@@ -3119,6 +3423,22 @@
 
   function onClick(info) {
     hideNoteCard();
+    if (isWhereView()) {
+      /* A click on the map is a manual move, so playback stands down. */
+      pauseWhere();
+      if (info && info.object && whereDone()) {
+        pinnedSite = info.object.site;
+        var where = stageOffset();
+        lastPointer = { x: info.x + where.left, y: info.y + where.top };
+        showWhereSiteCard(pinnedSite, false);
+        el("site-card").classList.add("is-pinned");
+      } else {
+        pinnedSite = null;
+        hideCard();
+      }
+      paint();
+      return;
+    }
     if (info && info.object) {
       pinnedSite = info.object.site;
       var off = stageOffset();
@@ -3175,6 +3495,14 @@
 
     el("play").addEventListener("click", togglePlay);
 
+    el("where-back").addEventListener("click", function () {
+      gotoWhereStep(whereAnim.step - 1, true);
+    });
+    el("where-next").addEventListener("click", function () {
+      gotoWhereStep(whereAnim.step + 1, true);
+    });
+    el("where-play").addEventListener("click", toggleWherePlay);
+
     el("how-btn").addEventListener("click", function () {
       if (howIsOpen()) closeHow(); else openHow();
     });
@@ -3191,8 +3519,8 @@
     });
 
     el("entry-bar").addEventListener("click", function (event) {
-      var btn = event.target.closest(".scene-btn");
-      if (!btn || !btn.dataset.entry) return;
+      var btn = event.target.closest("button[data-entry]");
+      if (!btn) return;
       if (btn.dataset.entry === viewId) { clearView(); return; }
       setView(btn.dataset.entry);
     });
@@ -3226,6 +3554,14 @@
     /* Isolating an owner is only meaningful where two numbers per owner are
        on screen, so it is wired for the Who builds scene alone. */
     el("legend-rows").addEventListener("click", function (event) {
+      /* In the Where view a row replays its own group. */
+      if (isWhereView()) {
+        var group = event.target.closest(".legend-row");
+        if (group && group.dataset.group) {
+          soloWhereGroup(Number(group.dataset.group));
+        }
+        return;
+      }
       if (!isWho()) return;
       var row = event.target.closest(".legend-row");
       if (!row || !row.dataset.owner) return;
@@ -3237,6 +3573,18 @@
     /* Up and Down are reserved for switching scenes in a later step. */
     document.addEventListener("keydown", function (event) {
       if (howIsOpen() && event.key !== "Escape") return;
+      /* A view that plays owns the same keys the timeline owns elsewhere. */
+      if (isWhereView()) {
+        if (event.key === "ArrowLeft") {
+          gotoWhereStep(whereAnim.step - 1, true); event.preventDefault(); return;
+        }
+        if (event.key === "ArrowRight") {
+          gotoWhereStep(whereAnim.step + 1, true); event.preventDefault(); return;
+        }
+        if (event.key === " " || event.key === "Spacebar") {
+          toggleWherePlay(); event.preventDefault(); return;
+        }
+      }
       if (event.key === "ArrowLeft") {
         if (locksTimeline()) return;
         stopPlaying(); goTo(stopIndex - 1); event.preventDefault();
@@ -3280,8 +3628,11 @@
        the height alone left the timeline 2px off it. */
     var stage = el("stage").getBoundingClientRect();
     var top = el("footnote").getBoundingClientRect().top;
-    el("timeline").style.bottom =
-      Math.round(stage.bottom - top + FOOTNOTE_GAP) + "px";
+    var bottom = Math.round(stage.bottom - top + FOOTNOTE_GAP) + "px";
+    el("timeline").style.bottom = bottom;
+    /* The playback control takes the timeline's place, so it takes its
+       distance from the sources line too. */
+    el("where-controls").style.bottom = bottom;
   }
 
   var stageRevealed = false;
@@ -3400,6 +3751,18 @@
       /* The basemap below shows through; deck paints no surface of its own. */
       parameters: { clearColor: [0, 0, 0, 0] },
       onViewStateChange: function (params) { applyView(params.viewState); },
+      /* The bars layer answers for clicks that land on a bar; this answers
+         for the ones that do not, which is how a card is let go of in the
+         Where view. Scoped to that view, so every other scene keeps the
+         click behaviour it had. */
+      onClick: function (info) {
+        if (info && info.object) return;
+        if (!isWhereView()) return;
+        pauseWhere();
+        pinnedSite = null;
+        hideCard();
+        paint();
+      },
       onAfterRender: revealStage
     });
 
