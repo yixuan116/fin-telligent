@@ -271,7 +271,7 @@
     font-variant-numeric: tabular-nums;
   }
   #stage[data-scene="why"] #headline.is-back { cursor: pointer; }
-  #stage[data-scene="why"] #entry-bar { top: 178px; }
+  #stage[data-scene="why"] #entry-bar { top: 286px; }
 
   /* The number a view counts to, with the group it belongs to beside it. */
   .where-figure { display: inline-flex; align-items: baseline; gap: 14px; }
@@ -282,6 +282,50 @@
   .where-group {
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em;
     text-transform: uppercase; color: var(--stage-text-dim);
+  }
+
+  /* ---------- time to power ----------
+     The line under the headline and the three bars under that, all of them
+     the headline view's own: a view inside the scene replaces them with its
+     own answer. */
+
+  #why-driver {
+    position: absolute; z-index: 5;
+    top: 142px; left: 50%; transform: translateX(-50%);
+    width: max-content; max-width: calc(100% - 420px);
+    margin: 0;
+    text-align: center;
+    font-size: 0.82rem; font-weight: 600; line-height: 1.4;
+    color: var(--stage-text-dim);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s;
+  }
+  #why-driver.is-shown { opacity: 1; visibility: visible; }
+
+  #time-bars {
+    position: absolute; z-index: 5;
+    top: 170px; left: 50%; transform: translateX(-50%);
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s;
+  }
+  #time-bars.is-shown { opacity: 1; visibility: visible; }
+  .time-row + .time-row { margin-top: 10px; }
+  .time-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.7rem; font-weight: 600; line-height: 1.3;
+    color: var(--stage-text);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
+  }
+  /* Anchored at the left and rounded at the end it grows towards, so the end
+     of the bar reads as the number it stopped at. */
+  .time-fill {
+    display: block;
+    width: 0; height: 8px;
+    border-radius: 0 4px 4px 0;
+    transition-property: width;
+    transition-timing-function: linear;
   }
 
   /* The one line that arrives under the number when the last group has. */
@@ -721,7 +765,9 @@
     #entry-bar { top: 182px; }
     #stage[data-scene="why"] #counters { top: 16px; left: 16px; }
     #stage[data-scene="why"] #headline { top: 92px; font-size: 1.5rem; }
-    #stage[data-scene="why"] #entry-bar { top: 150px; }
+    #stage[data-scene="why"] #entry-bar { top: 248px; }
+    #why-driver { top: 126px; font-size: 0.74rem; max-width: calc(100% - 32px); }
+    #time-bars { top: 150px; }
     #where-note { top: 126px; max-width: calc(100% - 32px); font-size: 0.74rem; }
   }
 </style>
@@ -778,6 +824,11 @@
 
     <!-- The two entries on the Why there overview screen, filled from that
          scene's own `intro` block and shown only while it is up. -->
+    <!-- The headline view's own lines: what drives the choice, and how long
+         each way to power takes. -->
+    <p id="why-driver"></p>
+    <div id="time-bars"></div>
+
     <div id="entry-bar" role="group" aria-label="Entry points"></div>
 
     <!-- The footnote the Where view ends on, under its number. -->
@@ -1069,10 +1120,36 @@
         /* The scene opens on an overview screen: one line, and the two ways
            into it. The map stays where it is, dimmed back to a backdrop. */
         intro: {
-          headline: "Sites follow power",
+          headline: "Sites need power",
+          driver: "Key driver: time to power",
+          /* Three ways to get power, as long as each one takes. The bars all
+             grow at one speed, so the length of a bar is the wait: the first
+             two are Epoch's own dates, from the first dated row to the first
+             operational date, and the third is the JLL figure for the US
+             grid queue. Checked against data/sites.json: Colossus 1 ran
+             2024-04-24 to 2024-08-11, 109 days; New Carlisle 2024-02-09 to
+             2025-06-23, 500 days. Both sources are in data/sources.json. */
+          timeToPower: {
+            pxPerMonth: 8,
+            msPerMonth: 55,
+            rows: [
+              {
+                label: "Make your own power: xAI Colossus 1, 4 months",
+                months: 4, color: "#17b2c9"
+              },
+              {
+                label: "Connect where power is: Amazon New Carlisle, 16 months",
+                months: 16, color: "#f5c451"
+              },
+              {
+                label: "Wait in the grid queue: US average, about 4 years",
+                months: 48, color: "#f08422"
+              }
+            ]
+          },
           entries: [
-            { id: "where", label: "Where", ready: true },
-            { id: "howlong", label: "How long", ready: false }
+            { id: "where", label: "Connect to the grid", ready: true },
+            { id: "ownpower", label: "Make your own power", ready: false }
           ],
           /* How much of a bar is left while the overview screen is up. */
           barAlpha: 0.2
@@ -1776,6 +1853,7 @@
     stopWhere();
     viewId = id;
     renderEntryBar();
+    renderIntroPanel(false);
     if (id === "where") revealNextGroup();
     draw();
     paint();
@@ -1788,8 +1866,66 @@
     stopWhere();
     viewId = null;
     renderEntryBar();
+    /* Back on the headline view, so the bars run again. */
+    renderIntroPanel(true);
     draw();
     paint();
+  }
+
+  /* ---------- the headline view's lines ----------
+     Shown while the scene's overview screen is up and nothing inside it is
+     open. The bars grow at one speed, so each one's duration is its own
+     length: four months arrives in a fifth of the time four years takes. */
+
+  function introPanelOn() { return !!introCfg() && !viewId; }
+
+  function renderIntroPanel(grow) {
+    var intro = introCfg();
+    var on = introPanelOn();
+    var driver = el("why-driver");
+    var bars = el("time-bars");
+
+    driver.classList.toggle("is-shown", on && !!(intro && intro.driver));
+    bars.classList.toggle("is-shown", on && !!(intro && intro.timeToPower));
+    if (!on || !intro) { driver.textContent = ""; bars.innerHTML = ""; return; }
+
+    driver.textContent = intro.driver || "";
+    var cfg = intro.timeToPower;
+    if (!cfg) { bars.innerHTML = ""; return; }
+
+    var longest = cfg.rows.reduce(function (most, row) {
+      return Math.max(most, row.months);
+    }, 0);
+    /* A fixed width, because the block is centred: sizing it to its contents
+       would slide it sideways as the bars grow. */
+    bars.style.width = Math.round(longest * cfg.pxPerMonth) + "px";
+    bars.innerHTML = cfg.rows.map(function (row) {
+      return '<div class="time-row">' +
+        '<span class="time-label">' + escapeHtml(row.label) + "</span>" +
+        '<span class="time-fill" style="background:' + row.color +
+          "; transition-duration:" +
+          Math.round(row.months * cfg.msPerMonth) + 'ms" data-px="' +
+          Math.round(row.months * cfg.pxPerMonth) + '"></span>' +
+      "</div>";
+    }).join("");
+
+    var fills = bars.querySelectorAll(".time-fill");
+    var widen = function () {
+      Array.prototype.forEach.call(fills, function (fill) {
+        fill.style.width = fill.dataset.px + "px";
+      });
+    };
+    if (!grow) {
+      Array.prototype.forEach.call(fills, function (fill) {
+        fill.style.transitionDuration = "0ms";
+      });
+      widen();
+      return;
+    }
+    /* The width is read back before it is set, so the browser has a starting
+       value to animate from rather than collapsing both into one frame. */
+    void bars.offsetWidth;
+    requestAnimationFrame(widen);
   }
 
   function whereLinkLayers() {
@@ -1946,6 +2082,7 @@
     }
     syncTimelineLock();
     startScaleAnimation();
+    renderIntroPanel(true);
     draw();
     paint();
   }

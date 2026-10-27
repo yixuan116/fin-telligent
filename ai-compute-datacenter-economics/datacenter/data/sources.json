@@ -55,6 +55,23 @@
    "used_for": "The campus in the \"same land\" comparison: the Cumulus site next to the Susquehanna plant in Luzerne County, Pennsylvania, bought by AWS from Talen Energy.",
    "also_reported_by": "American Nuclear Society, Nuclear Newswire, \"Amazon buys nuclear-powered data center from Talen\", 2024-03-07 (ans.org). No verified deep link, so the publication and title are recorded rather than a guessed URL.",
    "caveat": "Coverage describes the 960 MW either as AWS's planned power consumption or as the total redundant capacity of the campus's four substations. The page says \"planned\", which is the weaker of the two claims."
+  },
+  {
+   "id": "jll-time-to-power",
+   "title": "2026 Global Data Center Outlook",
+   "publisher": "JLL",
+   "url": "https://www.jll.com",
+   "retrieved": "2026-10-27",
+   "value": "about four years, the US national average wait for a grid connection",
+   "used_for": "The third bar of the time to power comparison on the Why there headline view: \"Wait in the grid queue: US average, about 4 years\", drawn at 48 months.",
+   "as_cited_by": {
+    "publisher": "Electrical Contractor Magazine",
+    "title": "How Long Does It Take to Power a Data Center?",
+    "url": "https://www.ecmag.com/magazine/articles/article-detail/how-long-does-it-take-to-power-a-data-center",
+    "quote_summary": "While it varies by state, the national average wait time is four years, according to the 2026 JLL Global Data Center Outlook.",
+    "note": "The figure was asked for as cited by EC&M; the article carrying it is in Electrical Contractor Magazine (ecmag.com), which is a different title from EC&M / Electrical Construction & Maintenance (ecmweb.com). No ecmweb.com page stating the figure was found, so the magazine that does state it is the one recorded. No verified deep link to the JLL report itself, so the publisher and report name are recorded rather than a guessed URL."
+   },
+   "caveat": "Time to power there is measured from the developer's interconnection request to the date the utility can deliver the contracted megawatts. The two site figures beside it are measured on Epoch's clock instead, from the first dated observation to the first operational date, so the three bars are not the same stopwatch; what they share is the question of how long the power took."
   }
  ],
  "footnotes": [
@@ -69,6 +86,18 @@
    ],
    "kind": "planned capacity against actual consumption",
    "caveat": "A planned peak against an average load, so the two numbers are not like for like; the comparison is of what the land is being built to draw, not of what it draws today."
+  },
+  {
+   "id": "time-to-power-bars",
+   "text": "Make your own power: xAI Colossus 1, 4 months / Connect where power is: Amazon New Carlisle, 16 months / Wait in the grid queue: US average, about 4 years",
+   "shown": "Under the headline of the Why there scene, as three bars that all grow at one speed.",
+   "basis": [
+    "xAI Colossus 1: first dated observation 2024-04-24, first operational 2024-08-11, which is 109 days or 3.6 months, shown as 4 months (Epoch AI, data/sites.json).",
+    "Anthropic-Amazon New Carlisle: 2024-02-09 to 2025-06-23, which is 500 days or 16.4 months, shown as 16 months (Epoch AI, data/sites.json).",
+    "US grid queue: about four years, drawn at 48 months (jll-time-to-power)."
+   ],
+   "kind": "elapsed time, on two different clocks",
+   "caveat": "See the caveat on jll-time-to-power: the first two are build clocks and the third is a queue clock."
   }
  ]
 }

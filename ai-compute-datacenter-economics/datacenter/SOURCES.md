@@ -113,3 +113,28 @@ Not from a dataset, and recorded in full in `data/sources.json`:
 County's 2.8, which is the "about 180x" on the page. It is a planned peak
 against an average load, so the two are not like for like: the claim is about
 what the land is being built to draw, not what it draws today.
+
+## Time to power
+
+JLL, "2026 Global Data Center Outlook". The US national average wait for a grid
+connection is about four years. <https://www.jll.com> Retrieved 2026-10-27.
+
+The figure is quoted from Electrical Contractor Magazine, "How Long Does It
+Take to Power a Data Center?",
+<https://www.ecmag.com/magazine/articles/article-detail/how-long-does-it-take-to-power-a-data-center>,
+which states it as "the national average wait time is four years, according to
+the 2026 JLL Global Data Center Outlook". It was asked for as cited by EC&M;
+EC&M (Electrical Construction & Maintenance, ecmweb.com) is a different title,
+and no page of theirs stating the figure was found, so the magazine that does
+state it is the one cited here. There is no verified deep link to the JLL
+report itself.
+
+It is the third of the three bars under the Why there headline. The other two
+are Epoch's own dates, from a site's first dated observation to its first
+operational date: xAI Colossus 1 took 109 days, shown as 4 months, and
+Anthropic-Amazon New Carlisle took 500 days, shown as 16 months.
+
+The three are not one stopwatch. JLL measures from the interconnection request
+to the day the utility can deliver the contracted megawatts; Epoch's dates
+measure a build. What the bars share is the question, not the clock, and
+`data/sources.json` says so beside the figures.
