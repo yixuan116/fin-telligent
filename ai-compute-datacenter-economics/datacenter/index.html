@@ -163,6 +163,39 @@
   }
   .scene-btn[aria-disabled="true"] { opacity: 0.7; }
 
+  /* ---------- beat switches ----------
+     The views inside a scene. One flat segmented control sitting directly
+     under the scene buttons, shown only by a scene that has beats. */
+
+  #beat-bar {
+    position: absolute; z-index: 5;
+    top: 59px; left: 50%; transform: translateX(-50%);
+    display: none;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid var(--stage-border);
+    background: var(--stage-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  #beat-bar.is-shown { display: flex; gap: 2px; }
+  .beat-btn {
+    font-family: inherit;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+    padding: 5px 15px;
+    border: 0; border-radius: 999px;
+    background: transparent;
+    color: var(--stage-text-faint);
+    cursor: not-allowed;
+  }
+  .beat-btn.is-ready { cursor: pointer; color: var(--stage-text-dim); }
+  .beat-btn.is-ready:hover { color: var(--stage-text); }
+  .beat-btn.is-active {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--stage-text);
+  }
+  .beat-btn[aria-disabled="true"] { opacity: 0.6; }
+
   /* ---------- counters ---------- */
 
   #counters {
@@ -361,6 +394,28 @@
     color: var(--stage-text-dim); font-weight: 700;
   }
 
+  /* The Why there legend: a diverging ramp with the national average marked
+     where it actually falls on the scale, not at a nominal midpoint. */
+  #legend-ramp { display: none; flex-shrink: 0; padding-right: 6px; }
+  #legend-ramp.is-shown {
+    display: block;
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .ramp-bar { position: relative; height: 10px; border-radius: 2px; }
+  .ramp-mark {
+    position: absolute; top: -3px; bottom: -3px; width: 1px;
+    background: rgba(235, 242, 250, 0.85);
+  }
+  .ramp-scale {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 4px;
+    margin-top: 7px;
+    font-size: 0.57rem; font-weight: 700; letter-spacing: 0.03em;
+    color: var(--stage-text-faint);
+  }
+  .ramp-scale-mid { color: var(--stage-text-dim); }
+  .ramp-scale-high { text-align: right; }
+
   /* ---------- caption ----------
      Directly under the scene buttons at the top, not over the map, so it never
      sits on Texas or the Midwest. Smaller than the old overlay card, and with
@@ -505,6 +560,18 @@
     font-size: 0.64rem; color: var(--stage-text-faint); line-height: 1.45;
   }
   .card-approx { color: #d97e00; font-weight: 700; }
+  .card-ground {
+    margin-top: 9px; padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.72rem; line-height: 1.45; color: var(--stage-text);
+  }
+  .card-ground-label {
+    display: block;
+    font-size: 0.57rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+    margin-bottom: 3px;
+  }
+  .card-ground-value { font-weight: 700; }
   .card-status { font-weight: 700; }
 
   /* ---------- footnote ---------- */
@@ -595,6 +662,10 @@
          a later step only has to flip its scene's `ready` flag. -->
     <div id="scene-bar" role="tablist" aria-label="Scenes"></div>
 
+    <!-- The views inside a scene. Why there is the first scene to have any;
+         filled from its own `beats` list, and hidden for scenes without. -->
+    <div id="beat-bar" role="tablist" aria-label="Views"></div>
+
     <p id="headline"></p>
 
     <div id="counters" class="stage-panel">
@@ -610,6 +681,8 @@
 
     <div id="legend" class="stage-panel">
       <div class="legend-head" id="legend-head">Owner</div>
+      <div id="legend-ramp"></div>
+      <div class="legend-head" id="legend-sub-head" hidden>Owner</div>
       <div class="legend-rows" id="legend-rows"></div>
       <div id="size-key">
         <div class="legend-head" id="size-key-head">Bar height = IT power</div>
@@ -665,7 +738,8 @@
       sites: "data/sites.json",
       states: "data/us_states.geojson",
       mask: "data/us_mask.geojson",
-      chiller: "data/chiller_rule.json"
+      chiller: "data/chiller_rule.json",
+      prices: "data/state_prices.json"
     },
 
     /* Owner colours for the dark stage, in two tiers.
@@ -804,6 +878,12 @@
       ruleNote: "Median across {models} air-cooled chiller models of 500 kW and above.",
       exampleLabel: "Example",
       example: "Daikin EWAD 850: 12 fans \u2192 817 kW of cooling.",
+      /* The Why there scene's own method note. Shown in the same panel, so a
+         reader who asks how the price comparison works finds it in one place
+         rather than in a tooltip on the map. */
+      priceLabel: "Power prices",
+      price: "Each site is compared on the industrial electricity price of its own state in the year it broke ground, against the US industrial average of that same year, weighted by the IT power the site reaches in 2030. The commercial sector is a robustness check and gives the same answer. The map itself is shaded on 2025 industrial prices.",
+      priceSource: "Annual average retail prices by state, US Energy Information Administration, Electricity Data Browser.",
       footnote: "All power figures are estimates. Epoch tracks the largest frontier AI sites, about 43% of global AI compute.",
       closeLabel: "Close"
     },
@@ -834,6 +914,11 @@
         },
         statusLabel: "Status",
         hint: "Click an owner in the legend to isolate it",
+        /* Flags rather than scene-name tests: a scene that parks the timeline
+           at Today and draws the gap to 2030 says so here, and the Why there
+           scene says the same without the machinery knowing either name. */
+        lockToToday: true,
+        showPlanned: true,
         /* The camera is the opening scene's, unchanged: the same contiguous
            US, framed the same way, so switching scenes does not move the map
            under the reader. The outlines reach 2030 instead, which is what
@@ -841,7 +926,76 @@
         pxPerMWFor: "tallest2030",
         tallestTargetPx: 180
       },
-      why:     { ready: false, button: "Why there" },
+      /* Why there. Bars behave exactly as in Who builds -- the same camera,
+         the same height scale, the timeline parked at Today -- so the only
+         thing that changes is what the states underneath are coloured by.
+         The caption is computed by build_sites.py, which prints it on every
+         run; see the "Caption for the Why there scene" block in its output. */
+      why: {
+        ready: true,
+        button: "Why there",
+        headline: "About 70% of tracked capacity broke ground where power was cheaper than the US average that year. California, at more than twice the national price, has none.",
+        headlineAlways: true,
+        lockToToday: true,
+        showPlanned: true,
+        lockHint: "Fixed at today for this scene",
+        pxPerMWFor: "tallest2030",
+        tallestTargetPx: 180,
+        /* The three reasons a site lands where it lands. Price is the beat
+           this step builds; the other two stay visible and inert. */
+        beats: [
+          { id: "price", label: "Price", ready: true },
+          { id: "own", label: "Own power", ready: false },
+          { id: "cooling", label: "Cooling", ready: false }
+        ],
+        price: {
+          /* Which year the fill, the labels and the legend speak for. The
+             comparison in the caption and in the hover card is a different
+             thing: each site against its own start year. */
+          year: "2025",
+          sector: "industrial_price",
+
+          /* A diverging scale centred on the national average: cool where
+             power is cheaper than the US, warm where it is pricier, a plain
+             neutral grey at the average itself so the middle of the country
+             does not read as a colour. Held well below the bars in chroma --
+             these are a background the bars stand on. */
+          domain: [0.5, 1.5],
+          colorCheap: "#1b7da4",
+          colorMid: "#454a51",
+          colorPricey: "#b05329",
+          fillAlpha: 0.72,
+          stateLineColor: [152, 176, 208, 95],
+          stateLineWidth: 0.7,
+
+          /* The price printed under each state code. */
+          labelSize: 8.5,
+          labelColor: [168, 184, 206, 215],
+          labelOffset: [0, 11],
+
+          legendHead: "Industrial power price vs US average, 2025",
+          ownerHead: "Owner",
+          rampLow: "50% cheaper",
+          rampHigh: "150% pricier",
+          /* {price} is the US average for the year, from the EIA file. */
+          rampMid: "US avg {price}",
+
+          card: {
+            price: "Industrial price 2025",
+            usAverage: "US average 2025",
+            powerToday: "IT power today",
+            power2030: "IT power 2030",
+            groundLabel: "Price when its sites broke ground",
+            /* {pct} is the MW-weighted gap to the US average of each site's
+               own start year. */
+            cheaper: "{pct}% cheaper than the US average",
+            pricier: "{pct}% pricier than the US average",
+            level: "Level with the US average",
+            noSites: "No tracked sites in this state.",
+            source: "Source: EIA, Epoch AI"
+          }
+        }
+      },
       chips:   { ready: false, button: "Chips" },
       forwhom: { ready: false, button: "For whom" },
       when:    { ready: false, button: "When" }
@@ -856,6 +1010,8 @@
   var SITES = [];
   var STATES = [];
   var CHILLER = null;
+  var PRICES = null;
+  var stateFacts = {};          /* per-state MW and start-year price ratio */
   var STOPS = [];
   var TODAY_INDEX = 0;
   var stopIndex = 0;
@@ -865,6 +1021,8 @@
   var pinnedSite = null;
   var hoverSite = null;
   var sceneId = "opening";
+  var beatId = null;            /* the view inside the scene, where it has any */
+  var hoverState = null;        /* the state under the pointer in the price view */
   var highlightOwner = null;   /* set by clicking a legend row in Who builds */
   var openingStopIndex = 0;    /* remembered so leaving a scene restores it */
   var lastPointer = { x: 0, y: 0 };
@@ -930,6 +1088,103 @@
   /* ==========================================================================
      Timeline model
      ========================================================================== */
+  /* ==========================================================================
+     Electricity prices
+
+     One state's price against the US average of the same year, as a ratio:
+     below 1 means power there is cheaper than the country, above 1 pricier.
+     ========================================================================== */
+  function priceCfg() { return CONFIG.scenes.why.price; }
+
+  function priceTable() {
+    return PRICES ? PRICES[priceCfg().sector] : null;
+  }
+
+  function usPrice(year) {
+    var table = priceTable();
+    if (!table) return null;
+    var value = table.us[year || priceCfg().year];
+    return typeof value === "number" ? value : null;
+  }
+
+  function statePrice(code, year) {
+    var table = priceTable();
+    if (!table || !code) return null;
+    var row = table.states[code];
+    var value = row ? row[year || priceCfg().year] : null;
+    return typeof value === "number" ? value : null;
+  }
+
+  function priceRatio(code, year) {
+    var here = statePrice(code, year);
+    var us = usPrice(year);
+    return here !== null && us ? here / us : null;
+  }
+
+  /* Cents per kWh, printed the way a price is read: one decimal under ten
+     cents, a round number above, where the decimal stops mattering. */
+  function centsText(value) {
+    if (typeof value !== "number") return "\u2014";
+    return (value < 10 ? value.toFixed(1) : String(Math.round(value))) + "\u00a2";
+  }
+
+  function gapPct(ratio) {
+    return Math.round(Math.abs(1 - ratio) * 100);
+  }
+
+  /* The diverging ramp: a cool hue below the national average, a warm one
+     above, and a plain neutral grey at the average itself, so the middle of
+     the country reads as "about average" rather than as a colour. The two
+     halves are interpolated separately, which is what keeps the grey exactly
+     on the average instead of wherever the midpoint of the domain falls. */
+  function priceColor(ratio) {
+    var cfg = priceCfg();
+    if (typeof ratio !== "number") return null;
+    var low = cfg.domain[0];
+    var high = cfg.domain[1];
+    var mid = hexToRgb(cfg.colorMid);
+    var from, to, t;
+    if (ratio <= 1) {
+      from = hexToRgb(cfg.colorCheap);
+      to = mid;
+      t = (Math.max(low, Math.min(1, ratio)) - low) / (1 - low);
+    } else {
+      from = mid;
+      to = hexToRgb(cfg.colorPricey);
+      t = (Math.min(high, ratio) - 1) / (high - 1);
+    }
+    return [0, 1, 2].map(function (i) {
+      return Math.round(from[i] + (to[i] - from[i]) * t);
+    });
+  }
+
+  /* What a state is worth on this map: the MW it holds today and in 2030, and
+     the MW-weighted price its own sites broke ground on, each against the US
+     average of that site's own year rather than against one common year. */
+  function buildStateFacts() {
+    stateFacts = {};
+    SITES.forEach(function (site) {
+      if (!site.state) return;
+      var row = stateFacts[site.state];
+      if (!row) {
+        row = stateFacts[site.state] =
+          { today: 0, then: 0, sites: 0, weighted: 0, weight: 0, groundRatio: null };
+      }
+      row.today += site.it_mw_as_of;
+      row.then += site.it_mw_2030h1;
+      row.sites += 1;
+      var ratio = priceRatio(site.state, String(site.price_year));
+      if (ratio !== null) {
+        row.weighted += site.it_mw_2030h1 * ratio;
+        row.weight += site.it_mw_2030h1;
+      }
+    });
+    Object.keys(stateFacts).forEach(function (code) {
+      var row = stateFacts[code];
+      row.groundRatio = row.weight > 0 ? row.weighted / row.weight : null;
+    });
+  }
+
   function buildStops(periods) {
     var stops = periods.map(function (key) {
       return { key: key, isToday: false, locked: false };
@@ -1158,6 +1413,55 @@
   function scene() { return CONFIG.scenes[sceneId]; }
   function isWho() { return sceneId === "who"; }
 
+  /* Two scenes now park the timeline at Today and draw the gap to 2030, so
+     those behaviours are read off the scene's own flags rather than off its
+     name. */
+  function locksTimeline() { var cfg = scene(); return !!(cfg && cfg.lockToToday); }
+  function showsPlanned() { var cfg = scene(); return !!(cfg && cfg.showPlanned); }
+
+  /* ---------- beats: the views inside a scene ---------- */
+  function beats() { var cfg = scene(); return (cfg && cfg.beats) || []; }
+
+  function firstReadyBeat() {
+    var list = beats();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].ready) return list[i].id;
+    }
+    return null;
+  }
+
+  function isPriceView() {
+    return sceneId === "why" && beatId === "price" && !!PRICES;
+  }
+
+  function renderBeatBar() {
+    var bar = el("beat-bar");
+    var list = beats();
+    bar.classList.toggle("is-shown", list.length > 0);
+    bar.innerHTML = list.map(function (beat) {
+      var classes = "beat-btn" + (beat.ready ? " is-ready" : "") +
+                    (beat.id === beatId ? " is-active" : "");
+      return '<button type="button" class="' + classes + '" data-beat="' +
+        escapeHtml(beat.id) + '"' +
+        (beat.ready ? "" : ' aria-disabled="true" disabled') +
+        ' aria-selected="' + (beat.id === beatId ? "true" : "false") + '">' +
+        escapeHtml(beat.label) + "</button>";
+    }).join("");
+  }
+
+  function setBeat(id) {
+    var found = null;
+    beats().forEach(function (beat) { if (beat.id === id) found = beat; });
+    if (!found || !found.ready || id === beatId) return;
+    beatId = id;
+    hoverState = null;
+    hideCard();
+    renderBeatBar();
+    syncBasemapLayers();
+    draw();
+    paint();
+  }
+
   /* The buttons are the scenes after the opening one, so the opening scene
      shows no button as active. */
   function buttonScenes() {
@@ -1186,10 +1490,14 @@
     highlightOwner = null;
     pinnedSite = null;
     hoverSite = null;
+    hoverState = null;
+    beatId = firstReadyBeat();
     hideCard();
     renderSceneBar();
+    renderBeatBar();
+    syncBasemapLayers();
 
-    if (isWho()) {
+    if (locksTimeline()) {
       /* The scene is a snapshot of today against 2030, so the timeline is
          parked at Today and held there. */
       goTo(TODAY_INDEX, { force: true, silent: true });
@@ -1213,11 +1521,11 @@
 
   function syncTimelineLock() {
     var slider = el("slider");
-    var locked = isWho();
+    var locked = locksTimeline();
     slider.disabled = locked;
     el("timeline").classList.toggle("is-locked", locked);
     el("track-hint").textContent = locked
-      ? CONFIG.scenes.who.lockHint
+      ? (scene().lockHint || CONFIG.labels.dragHint)
       : CONFIG.labels.dragHint;
   }
 
@@ -1259,6 +1567,30 @@
     return base;
   }
 
+  /* The price view's state fill. A deck layer rather than a basemap one, so
+     the states can be hovered; drawn first, which puts it under the bars. */
+  function stateFillLayers() {
+    if (!isPriceView()) return [];
+    var cfg = priceCfg();
+    var alpha = Math.round(255 * cfg.fillAlpha);
+    return [new deck.GeoJsonLayer({
+      id: "state-prices",
+      data: { type: "FeatureCollection", features: STATES },
+      pickable: true,
+      filled: true,
+      stroked: true,
+      lineWidthUnits: "pixels",
+      lineJointRounded: true,
+      getFillColor: function (feature) {
+        var rgb = priceColor(priceRatio(feature.properties.code));
+        return rgb ? rgb.concat(alpha) : [0, 0, 0, 0];
+      },
+      getLineColor: cfg.stateLineColor,
+      getLineWidth: cfg.stateLineWidth,
+      onHover: onStateHover
+    })];
+  }
+
   function stateLabelLayers(stop) {
     var cfg = CONFIG.map;
     var liveStates = {};
@@ -1268,6 +1600,12 @@
 
     /* A state whose label would only collide in the northeast is parked just
        off its own coast, and is shown only once it has something to say. */
+    /* An offshore code is parked out at sea on a leader line, so it is only
+       worth the clutter once it has something to say. Showing all nine in the
+       price view was tried and reverted: the parked positions are spaced for
+       a two-letter code, and a price under each one makes the northeast
+       unreadable. The shading still answers for them, and the hover card
+       gives the number. */
     var labels = STATES.filter(function (f) {
       return f.properties.code &&
         (!f.properties.offshore || liveStates[f.properties.code]);
@@ -1311,6 +1649,33 @@
       updateTriggers: { getColor: stop.key }
     }));
 
+    /* The price under the code, in the same two places the code can be: over
+       the state, or out at the end of a leader line off the coast. */
+    if (isPriceView()) {
+      var price = priceCfg();
+      layers.push(new deck.TextLayer({
+        id: "state-price-labels",
+        data: labels.filter(function (f) {
+          return statePrice(f.properties.code) !== null;
+        }),
+        pickable: false,
+        characterSet: "0123456789.\u00a2",
+        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+        fontWeight: 600,
+        getPosition: function (f) { return f.properties.label; },
+        getText: function (f) { return centsText(statePrice(f.properties.code)); },
+        getSize: price.labelSize,
+        sizeUnits: "pixels",
+        getColor: price.labelColor,
+        getPixelOffset: price.labelOffset,
+        getTextAnchor: "middle",
+        getAlignmentBaseline: "center",
+        fontSettings: { sdf: true, radius: 12 },
+        outlineWidth: cfg.stateLabelOutlineWidth,
+        outlineColor: cfg.stateLabelOutlineColor
+      }));
+    }
+
     return layers;
   }
 
@@ -1318,13 +1683,13 @@
     /* Each row carries the MW currently on screen and, in the Who builds
        scene, the 2030 figure the hollow outline reaches. Sorted tallest
        first so a tall bar is drawn behind the shorter ones in front of it. */
-    var who = isWho();
+    var planned = showsPlanned();
     return SITES.map(function (site) {
-      var mw = who ? site.it_mw_as_of : displayedMW(site);
+      var mw = planned ? site.it_mw_as_of : displayedMW(site);
       return {
         site: site,
         mw: mw,
-        planned: who ? site.it_mw_2030h1 : 0
+        planned: planned ? site.it_mw_2030h1 : 0
       };
     }).filter(function (row) {
       return row.mw > 0.01 || row.planned > 0.01 ||
@@ -1340,7 +1705,7 @@
     var rows = barRows();
     var layers = [];
 
-    if (isWho()) {
+    if (showsPlanned()) {
       /* The gap between what is running and what is funded. Drawn before the
          solid bars so a solid bar always sits in front of its own outline. */
       var planned = rows.filter(function (row) { return row.planned > row.mw + 0.01; });
@@ -1406,7 +1771,9 @@
       /* Bars first, labels second: a state code has to stay readable where a
          bar stands on top of it, so the type is drawn over the bars rather
          than under them. */
-      layers: barLayers().concat(stateLabelLayers(stop))
+      layers: stateFillLayers()
+        .concat(barLayers())
+        .concat(stateLabelLayers(stop))
     });
   }
 
@@ -1444,8 +1811,66 @@
     "</div>";
   }
 
+  /* The Why there legend: the diverging price ramp, with the national
+     average marked where it actually falls on the scale, then the owner
+     swatches, because the bars are still coloured by owner. */
+  function renderPriceLegend() {
+    var cfg = priceCfg();
+    var low = cfg.domain[0];
+    var high = cfg.domain[1];
+    var stops = [];
+    for (var i = 0; i <= 10; i++) {
+      var rgb = priceColor(low + (high - low) * (i / 10));
+      stops.push("rgb(" + rgb.join(",") + ") " + (i * 10) + "%");
+    }
+    var midPct = ((1 - low) / (high - low)) * 100;
+
+    el("legend").classList.remove("is-two-col");
+    el("legend-head").textContent = cfg.legendHead;
+
+    var ramp = el("legend-ramp");
+    ramp.classList.add("is-shown");
+    ramp.innerHTML =
+      '<div class="ramp-bar" style="background:linear-gradient(to right,' +
+          stops.join(",") + ')">' +
+        '<span class="ramp-mark" style="left:' + midPct + '%"></span>' +
+      "</div>" +
+      '<div class="ramp-scale">' +
+        "<span>" + escapeHtml(cfg.rampLow) + "</span>" +
+        '<span class="ramp-scale-mid">' +
+          escapeHtml(cfg.rampMid.replace("{price}", centsText(usPrice()))) +
+        "</span>" +
+        '<span class="ramp-scale-high">' + escapeHtml(cfg.rampHigh) + "</span>" +
+      "</div>";
+
+    var sub = el("legend-sub-head");
+    sub.hidden = false;
+    sub.textContent = cfg.ownerHead;
+
+    var totals = ownerTotals("it_mw_2030h1");
+    var rows = Object.keys(totals).map(function (owner) {
+      return { owner: owner, mw: totals[owner] };
+    }).sort(function (a, b) {
+      return b.mw - a.mw || a.owner.localeCompare(b.owner);
+    });
+    el("legend-rows").innerHTML = rows.map(function (row) {
+      return legendRowHtml(row.owner, "", row.mw <= 0);
+    }).join("");
+  }
+
   function renderLegend(stop) {
     var who = CONFIG.scenes.who;
+
+    /* Every branch below owns the whole panel, so the price ramp and its
+       sub-head are cleared here rather than in each of them. */
+    if (!isPriceView()) {
+      el("legend-ramp").classList.remove("is-shown");
+      el("legend-ramp").innerHTML = "";
+      el("legend-sub-head").hidden = true;
+    } else {
+      renderPriceLegend();
+      return;
+    }
 
     if (!isWho()) {
       el("legend").classList.remove("is-two-col");
@@ -1606,6 +2031,12 @@
         '<span class="how-fact-label">' + escapeHtml(how.exampleLabel) + "</span>" +
         '<span class="how-fact-value">' + escapeHtml(how.example) + "</span>" +
       "</div>" +
+      '<div class="how-fact">' +
+        '<span class="how-fact-label">' + escapeHtml(how.priceLabel) + "</span>" +
+        '<span class="how-fact-value">' + escapeHtml(how.price) +
+          '<span class="how-fact-note">' + escapeHtml(how.priceSource) +
+          "</span></span>" +
+      "</div>" +
       '<p class="how-footnote">' + escapeHtml(how.footnote) + "</p>";
 
     el("how-close").addEventListener("click", closeHow);
@@ -1679,10 +2110,56 @@
   }
 
   function statusRow(site) {
-    if (!isWho()) return "";
+    if (!showsPlanned()) return "";
     return '<span class="card-key">' + escapeHtml(CONFIG.scenes.who.statusLabel) +
       "</span>" +
       '<span class="card-val card-status">' + escapeHtml(siteStatus(site)) + "</span>";
+  }
+
+  /* The state card in the price view. Same card element, different content:
+     what power costs there now, and what it cost the sites that chose it. */
+  function showStateCard(feature, keepPosition) {
+    var text = priceCfg().card;
+    var code = feature.properties.code;
+    var facts = stateFacts[code];
+    var here = statePrice(code);
+    var us = usPrice();
+
+    var ground;
+    if (!facts || !facts.sites || facts.groundRatio === null) {
+      ground = escapeHtml(text.noSites);
+    } else {
+      var ratio = facts.groundRatio;
+      var pct = gapPct(ratio);
+      var line = pct === 0
+        ? text.level
+        : (ratio < 1 ? text.cheaper : text.pricier).replace("{pct}", String(pct));
+      ground = '<span class="card-ground-value">' + escapeHtml(line) + "</span>";
+    }
+
+    var card = el("site-card");
+    card.innerHTML =
+      '<div class="card-name">' + escapeHtml(feature.properties.name) + "</div>" +
+      '<div class="card-rows">' +
+        '<span class="card-key">' + escapeHtml(text.price) + "</span>" +
+          '<span class="card-val">' + escapeHtml(centsText(here)) + "</span>" +
+        '<span class="card-key">' + escapeHtml(text.usAverage) + "</span>" +
+          '<span class="card-val">' + escapeHtml(centsText(us)) + "</span>" +
+        '<span class="card-key">' + escapeHtml(text.powerToday) + "</span>" +
+          '<span class="card-val">' +
+            escapeHtml(facts ? powerText(facts.today) : powerText(0)) + "</span>" +
+        '<span class="card-key">' + escapeHtml(text.power2030) + "</span>" +
+          '<span class="card-val">' +
+            escapeHtml(facts ? powerText(facts.then) : powerText(0)) + "</span>" +
+      "</div>" +
+      '<div class="card-ground">' +
+        '<span class="card-ground-label">' + escapeHtml(text.groundLabel) + "</span>" +
+        ground +
+      "</div>" +
+      '<div class="card-note">' + escapeHtml(text.source) + "</div>";
+
+    card.style.display = "block";
+    if (!keepPosition) positionCard(lastPointer.x, lastPointer.y);
   }
 
   function positionCard(x, y) {
@@ -1708,6 +2185,18 @@
     return { left: rect.left, top: rect.top };
   }
 
+  /* Two pickable layers now sit under the pointer -- a bar and the state it
+     stands on -- and deck tells each of them separately when it is entered
+     and left. Which card is showing is therefore decided from both pieces of
+     state at the end of either handler, not from the event that arrived, so
+     the result does not depend on which of the two fires last. */
+  function refreshHoverCard() {
+    if (pinnedSite) return;
+    if (hoverSite) { showCard(hoverSite, false); return; }
+    if (hoverState && isPriceView()) { showStateCard(hoverState, false); return; }
+    hideCard();
+  }
+
   function onHover(info) {
     if (pinnedSite) return;
     var previous = hoverSite;
@@ -1715,12 +2204,25 @@
       hoverSite = info.object.site;
       var off = stageOffset();
       lastPointer = { x: info.x + off.left, y: info.y + off.top };
-      showCard(hoverSite, false);
-    } else if (hoverSite) {
+    } else {
       hoverSite = null;
-      hideCard();
     }
+    refreshHoverCard();
     if ((previous && previous.name) !== (hoverSite && hoverSite.name)) paint();
+  }
+
+  /* Hovering a state only ever changes the card: the fill stays as it is, so
+     there is nothing to repaint. */
+  function onStateHover(info) {
+    if (pinnedSite) return;
+    if (info && info.object) {
+      hoverState = info.object;
+      var off = stageOffset();
+      lastPointer = { x: info.x + off.left, y: info.y + off.top };
+    } else {
+      hoverState = null;
+    }
+    refreshHoverCard();
   }
 
   function onClick(info) {
@@ -1791,6 +2293,11 @@
       if (btn && btn.dataset.scene) setScene(btn.dataset.scene);
     });
 
+    el("beat-bar").addEventListener("click", function (event) {
+      var btn = event.target.closest(".beat-btn");
+      if (btn && btn.dataset.beat) setBeat(btn.dataset.beat);
+    });
+
     /* Isolating an owner is only meaningful where two numbers per owner are
        on screen, so it is wired for the Who builds scene alone. */
     el("legend-rows").addEventListener("click", function (event) {
@@ -1806,10 +2313,10 @@
     document.addEventListener("keydown", function (event) {
       if (howIsOpen() && event.key !== "Escape") return;
       if (event.key === "ArrowLeft") {
-        if (isWho()) return;
+        if (locksTimeline()) return;
         stopPlaying(); goTo(stopIndex - 1); event.preventDefault();
       } else if (event.key === "ArrowRight") {
-        if (isWho()) return;
+        if (locksTimeline()) return;
         stopPlaying(); goTo(stopIndex + 1); event.preventDefault();
       } else if (event.key === "ArrowUp") {
         stepScene(-1); event.preventDefault();
@@ -1818,7 +2325,7 @@
       } else if (event.key === "Escape") {
         if (howIsOpen()) { closeHow(); return; }
         if (highlightOwner) { highlightOwner = null; draw(); paint(); return; }
-        pinnedSite = null; hoverSite = null; hideCard(); paint();
+        pinnedSite = null; hoverSite = null; hoverState = null; hideCard(); paint();
       }
     });
 
@@ -1877,6 +2384,16 @@
     paint();
   }
 
+  /* The price view paints the states itself, in deck, so they can be hovered.
+     The basemap's own wash and outlines would sit underneath and muddy the
+     fill, so they are switched off while that view is up. */
+  function syncBasemapLayers() {
+    if (!mapInstance || !mapInstance.getLayer("us-states-fill")) return;
+    var visibility = isPriceView() ? "none" : "visible";
+    mapInstance.setLayoutProperty("us-states-fill", "visibility", visibility);
+    mapInstance.setLayoutProperty("us-states-outline", "visibility", visibility);
+  }
+
   function initMap(states, mask) {
     var cfg = CONFIG.map;
     viewState = fittedView();
@@ -1928,6 +2445,9 @@
         source: "us-mask",
         paint: { "fill-color": cfg.maskColor }
       });
+      /* The style can finish loading after a scene change, so the wash is
+         reconciled with whatever scene is up by the time it does. */
+      syncBasemapLayers();
     });
 
     deckInstance = new deck.Deck({
@@ -1951,13 +2471,15 @@
     });
   }
 
-  function boot(payload, states, mask, chiller) {
+  function boot(payload, states, mask, chiller, prices) {
     SITES = payload.sites.filter(function (s) {
       return typeof s.lat === "number" && typeof s.lon === "number";
     });
     STATES = states.features;
     CHILLER = chiller;
+    PRICES = prices;
     CONFIG.asOf = payload.meta.as_of;
+    buildStateFacts();
 
     STOPS = buildStops(payload.meta.periods);
     TODAY_INDEX = STOPS.findIndex(function (s) { return s.isToday; });
@@ -1969,6 +2491,7 @@
     el("track-hint").textContent = CONFIG.labels.dragHint;
     el("how-btn-label").textContent = CONFIG.howWeKnow.button;
     renderSceneBar();
+    renderBeatBar();
     renderHowPanel();
     el("footnote-text").textContent = CONFIG.footnote;
 
@@ -1997,6 +2520,27 @@
       barPolygon: barPolygon,
       offsets: function () { return offsetDeg; },
       chiller: function () { return CHILLER; },
+      prices: function () { return PRICES; },
+      stateFacts: function () { return stateFacts; },
+      statePrice: statePrice,
+      usPrice: usPrice,
+      priceRatio: priceRatio,
+      priceColor: priceColor,
+      beat: function () { return beatId; },
+      setBeat: setBeat,
+      isPriceView: isPriceView,
+      hoverStateByCode: function (code) {
+        var found = null;
+        STATES.forEach(function (f) {
+          if (f.properties.code === code) found = f;
+        });
+        if (!found) return null;
+        hoverState = found;
+        hoverSite = null;
+        pinnedSite = null;
+        refreshHoverCard();
+        return found.properties.name;
+      },
       openHow: openHow,
       closeHow: closeHow,
       howIsOpen: howIsOpen,
@@ -2053,6 +2597,10 @@
     fetchData(CONFIG.data.chiller).then(function (r) {
       if (!r.ok) throw new Error("chiller_rule.json " + r.status);
       return r.json();
+    }),
+    fetchData(CONFIG.data.prices).then(function (r) {
+      if (!r.ok) throw new Error("state_prices.json " + r.status);
+      return r.json();
     })
   ]).catch(function (error) {
     fail("Could not load the site data (" + error.message +
@@ -2062,7 +2610,7 @@
     /* Separate from the fetch catch above: a render fault must not be
        reported as a missing file. */
     try {
-      boot(results[0], results[1], results[2], results[3]);
+      boot(results[0], results[1], results[2], results[3], results[4]);
     } catch (error) {
       console.error(error);
       fail("The map failed to draw (" + error.message + ").");

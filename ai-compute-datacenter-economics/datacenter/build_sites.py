@@ -16,6 +16,9 @@ Outputs
     data/sites.json                 US sites only, ready for the map
     data/chiller_rule.json          median kW of cooling per chiller fan, the
                                     number behind the "How we know" panel
+    data/state_prices.json          EIA annual average retail electricity
+                                    prices by state, industrial and
+                                    commercial, plus industrial sales
     data/geocode_cache.json         Nominatim responses, committed so a rerun
                                     is deterministic and needs no network
 
@@ -54,6 +57,7 @@ TIMELINES_CSV = DATA / "data_center_timelines.csv"
 CHILLERS_CSV = DATA / "data_center_chillers.csv"
 OUT_JSON = DATA / "sites.json"
 OUT_CHILLER = DATA / "chiller_rule.json"
+OUT_PRICES = DATA / "state_prices.json"
 GEOCODE_CACHE = DATA / "geocode_cache.json"
 
 COUNTRY = "United States"
@@ -191,6 +195,77 @@ ADDRESS_FIXES: dict[str, dict[str, str]] = {
 CHILLER_MIN_KW = 500.0
 CHILLER_TYPE = "Air-cooled"
 CHILLER_DISPLAY_ROUNDING = 5
+
+
+# ---------------------------------------------------------------------------
+# Electricity prices (EIA)
+# ---------------------------------------------------------------------------
+# The Electricity Data Browser's own JSON endpoint. topic 7 is the average
+# retail price, topic 5 the retail sales volume; endsec picks the sector
+# (2 industrial, 4 commercial). agg=1,0 and geo=vvvvvvvvvvvvo are the browser's
+# own "all states, by state" selectors, copied from the page's network tab.
+EIA_ENDPOINT = (
+    "https://www.eia.gov/electricity/data/browser/data/index.php"
+    "?method=getAggregateData&topic={topic}&agg=1,0&geo=vvvvvvvvvvvvo"
+    "&endsec={endsec}&ids=&freq=A&rtype=s"
+)
+EIA_TABLES = {
+    "industrial_price": {"topic": 7, "endsec": 2, "units": "cents per kWh"},
+    "commercial_price": {"topic": 7, "endsec": 4, "units": "cents per kWh"},
+    # Sales are not shown on the page. They are the denominator of the
+    # baseline the QA output prints: how much industrial load, rather than how
+    # many states, sits in cheaper-than-average states in the first place.
+    "industrial_sales": {"topic": 5, "endsec": 2, "units": "million kWh"},
+}
+# The browser nests its rows; a US total sits at level 3 and the states at 5.
+EIA_US_LEVEL = 3
+EIA_STATE_LEVEL = 5
+
+PRICE_YEARS = list(range(2018, 2026))
+# Ground is broken before the year's price is published, so a 2026 start is
+# priced at the last year that has one.
+PRICE_LATEST_YEAR = 2025
+# Which MW figure weights the comparison: the capacity each site is heading
+# for, not the slice of it that happens to be energised today.
+PRICE_WEIGHT_KEY = "it_mw_2030h1"
+
+# The baseline is over the 48 contiguous states, which is what the map draws;
+# DC is a city and would count as a state in a per-state share.
+BASELINE_YEARS = list(range(2021, 2026))
+BASELINE_EXCLUDE = {"AK", "HI", "DC"}
+BASELINE_STATE_COUNT = 48
+
+# Values read off the EIA browser by hand. A mismatch means the endpoint,
+# the sector or the revision changed, and the build stops rather than
+# publishing numbers nobody checked.
+PRICE_SPOT_CHECKS = [
+    ("industrial_price", "US", 2021, 7.18),
+    ("industrial_price", "US", 2022, 8.32),
+    ("industrial_price", "US", 2023, 8.04),
+    ("industrial_price", "US", 2024, 8.13),
+    ("industrial_price", "US", 2025, 8.51),
+    ("industrial_price", "TX", 2024, 6.12),
+    ("industrial_price", "CA", 2024, 21.53),
+]
+
+# What 2b is expected to come out at, so a data revision is visible rather
+# than silently rewriting the caption on screen.
+EXPECTED_PRICE_QA = {
+    "industrial_price": {"cheaper_share": 69.8, "ratio": 0.88},
+    "commercial_price": {"cheaper_share": 87.2, "ratio": 0.85},
+}
+PRICE_SHARE_TOLERANCE = 0.3   # percentage points
+PRICE_RATIO_TOLERANCE = 0.01
+
+# The caption the page shows, assembled here so it cannot drift from the
+# numbers. {share} is 2b's industrial share rounded to the nearest 10.
+CAPTION_TEMPLATE = (
+    "About {share}% of tracked capacity broke ground where power was cheaper "
+    "than the US average that year. {state}, at more than twice the national "
+    "price, has none."
+)
+CAPTION_STATE = "California"
+CAPTION_STATE_CODE = "CA"
 
 
 # US IT power and live-site counts the build is checked against. "Live" means
@@ -491,6 +566,165 @@ def chiller_rule() -> dict:
     }
 
 
+def fetch_eia_table(key: str) -> dict:
+    """One EIA browser table, flattened to {state code: {year: value}}."""
+    spec = EIA_TABLES[key]
+    url = EIA_ENDPOINT.format(topic=spec["topic"], endsec=spec["endsec"])
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    print(f"  fetching {key} ...", file=sys.stderr)
+    with urllib.request.urlopen(request, timeout=90) as response:
+        raw = json.load(response)
+
+    states: dict[str, dict[str, float]] = {}
+    us: dict[str, float] = {}
+    for row in raw["TABLEDATA"]["ROWS"]:
+        # SERIES_ID looks like ELEC.PRICE.TX-IND.A, so the geography is the
+        # part of the third segment before the sector suffix.
+        code = row["SERIES_ID"].split(".")[2].split("-")[0]
+        values = {}
+        for year in PRICE_YEARS:
+            value = row["DATA"].get(str(year))
+            if isinstance(value, (int, float)):
+                values[str(year)] = value
+        if row["LEVEL"] == EIA_STATE_LEVEL:
+            states[code] = values
+        elif row["LEVEL"] == EIA_US_LEVEL and code == "US":
+            us = values
+
+    return {"url": url, "units": spec["units"], "us": us, "states": states}
+
+
+def prices_complete(payload: dict) -> bool:
+    """True only if every table carries every state and every year.
+
+    A half-written cache is worse than no cache: it would quietly drop a
+    state's sites out of the comparison, so an incomplete file is refetched.
+    """
+    years = {str(y) for y in PRICE_YEARS}
+    for key in EIA_TABLES:
+        table = payload.get(key)
+        if not isinstance(table, dict):
+            return False
+        if not years.issubset(table.get("us", {})):
+            return False
+        states = table.get("states") or {}
+        if len(states) < 50:
+            return False
+        for values in states.values():
+            if not years.issubset(values):
+                return False
+    return True
+
+
+def load_prices(refresh: bool) -> dict:
+    """State electricity prices, downloaded once and then read from disk.
+
+    The file is committed, so a rerun is deterministic and offline, the same
+    deal as the geocode cache. --refresh-prices re-downloads it.
+    """
+    if not refresh and OUT_PRICES.exists():
+        payload = json.loads(OUT_PRICES.read_text())
+        if prices_complete(payload):
+            payload["_from_cache"] = True
+            return payload
+        print("  state_prices.json is incomplete, refetching", file=sys.stderr)
+
+    tables = {key: fetch_eia_table(key) for key in EIA_TABLES}
+    payload = {
+        "meta": {
+            "source": "US Energy Information Administration, Electricity Data "
+                      "Browser: average retail price of electricity and retail "
+                      "sales of electricity, annual, by state",
+            "retrieved": AS_OF.isoformat(),
+            "years": [str(y) for y in PRICE_YEARS],
+            "urls": {key: tables[key]["url"] for key in tables},
+            "units": {key: tables[key]["units"] for key in tables},
+            "sectors": {"industrial": "endsec=2", "commercial": "endsec=4"},
+        },
+    }
+    for key, table in tables.items():
+        payload[key] = {
+            "units": table["units"],
+            "us": table["us"],
+            "states": table["states"],
+        }
+    payload["_from_cache"] = False
+    return payload
+
+
+def price_spot_check(prices: dict) -> list[str]:
+    """Empty when every hand-checked value still matches."""
+    problems = []
+    for key, code, year, want in PRICE_SPOT_CHECKS:
+        table = prices[key]
+        got = (table["us"] if code == "US"
+               else table["states"].get(code, {})).get(str(year))
+        if got is None or abs(got - want) > 0.005:
+            problems.append(f"{key} {code} {year}: expected {want}, got {got}")
+    return problems
+
+
+def price_for(prices: dict, sector: str, code: str | None, year: int) -> float | None:
+    table = prices.get(sector)
+    if not table or not code:
+        return None
+    return table["states"].get(code, {}).get(str(year))
+
+
+def price_analysis(sites: list[dict], prices: dict, sector: str) -> dict:
+    """2b for one sector: the cheap-power share and the weighted price ratio.
+
+    Each site is compared with the national average of its own start year, so
+    a 2022 ground-breaking is judged against 2022 prices rather than today's.
+    """
+    cheap_mw = 0.0
+    total_mw = 0.0
+    weighted = 0.0
+    missing = []
+    for site in sites:
+        year = site["price_year"]
+        state_price = price_for(prices, sector, site["state"], year)
+        us_price = prices[sector]["us"].get(str(year))
+        mw = site[PRICE_WEIGHT_KEY]
+        if state_price is None or us_price is None:
+            missing.append(f"{site['name']} ({site['state']}, {year})")
+            continue
+        total_mw += mw
+        weighted += mw * state_price / us_price
+        if state_price < us_price:
+            cheap_mw += mw
+    return {
+        "cheaper_share": (cheap_mw / total_mw * 100) if total_mw else 0.0,
+        "ratio": (weighted / total_mw) if total_mw else 0.0,
+        "cheap_mw": cheap_mw,
+        "total_mw": total_mw,
+        "missing": missing,
+    }
+
+
+def price_baseline(prices: dict) -> list[dict]:
+    """Context for 2b: where industrial load sits anyway, cheap or not."""
+    price = prices["industrial_price"]
+    sales = prices["industrial_sales"]
+    conus = sorted(c for c in price["states"] if c not in BASELINE_EXCLUDE)
+    rows = []
+    for year in BASELINE_YEARS:
+        y = str(year)
+        us = price["us"][y]
+        cheaper = [c for c in conus if price["states"][c][y] < us]
+        sales_cheap = sum(sales["states"][c][y] for c in cheaper)
+        sales_all = sum(sales["states"][c][y] for c in conus)
+        rows.append({
+            "year": year,
+            "us_price": us,
+            "states": len(conus),
+            "cheaper_states": len(cheaper),
+            "state_share": len(cheaper) / len(conus) * 100 if conus else 0.0,
+            "sales_share": sales_cheap / sales_all * 100 if sales_all else 0.0,
+        })
+    return rows
+
+
 def read_us_sites() -> list[dict]:
     with SITES_CSV.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
@@ -529,6 +763,15 @@ def value_asof(rows: list[tuple[dt.date, float, float]], when: dt.date) -> float
             break
         current = it_mw
     return current
+
+
+def first_dated(rows: list[tuple[dt.date, float, float]]) -> dt.date | None:
+    """The earliest dated observation, which is when the site broke ground.
+
+    Epoch's first row for a site is nearly always land clearing, so this is
+    the closest thing the dataset has to a start date.
+    """
+    return rows[0][0] if rows else None
 
 
 def first_operational(rows: list[tuple[dt.date, float, float]]) -> str | None:
@@ -610,6 +853,7 @@ def build(refresh: bool) -> dict:
             )
 
         rows_for_site = timelines.get(name, [])
+        start = first_dated(rows_for_site)
         it_by_period = {
             label: round(value_asof(rows_for_site, when), 1)
             for label, when in periods
@@ -635,6 +879,13 @@ def build(refresh: bool) -> dict:
                 "address": address or None,
                 "project": strip_tag(row["Project"])[0] or None,
                 "project_confidence": strip_tag(row["Project"])[1],
+                "start_date": start.isoformat() if start else None,
+                "start_year": start.year if start else None,
+                # The year the site's power price is read at. Ground is broken
+                # before that year's average is published, so a start past the
+                # last published year is priced at that year.
+                "price_year": (min(start.year, PRICE_LATEST_YEAR)
+                               if start else None),
                 "first_operational": first_operational(rows_for_site),
                 "it_mw_by_period": it_by_period,
                 "it_mw_as_of": round(value_asof(rows_for_site, AS_OF), 1),
@@ -680,7 +931,7 @@ def period_totals(sites: list[dict], label: str) -> tuple[float, int]:
     return sum(values), sum(1 for v in values if v > 0)
 
 
-def report(payload: dict) -> bool:
+def report(payload: dict, prices: dict) -> bool:
     sites = payload["sites"]
     manual_log = payload["_manual_log"]
     chiller = payload["_chiller"]
@@ -740,6 +991,84 @@ def report(payload: dict) -> bool:
     print(f"  median kW/fan : {chiller['kw_per_fan_median']}  "
           f"(shown as {chiller['kw_per_fan_display']})")
     print(f"  IQR kW/fan    : {chiller['kw_per_fan_q1']} .. {chiller['kw_per_fan_q3']}")
+
+    print("\n=== Sites by start year (first dated row, usually land clearing) ===")
+    by_start: dict[int | None, int] = defaultdict(int)
+    for site in sites:
+        by_start[site["start_year"]] += 1
+    for year in sorted(k for k in by_start if k is not None):
+        print(f"  {year}  {by_start[year]:>3} sites")
+    if None in by_start:
+        print(f"  (no date) {by_start[None]:>3} sites")
+        ok = False
+
+    print("\n=== Why there: power price when each site broke ground ===")
+    print(f"  weight        : {PRICE_WEIGHT_KEY} (MW the site reaches by 2030H1)")
+    print(f"  price year    : the site's start year, capped at {PRICE_LATEST_YEAR}")
+    print(f"{'Sector':<14}{'Cheaper share':>15}{'Expected':>10}"
+          f"{'Ratio':>9}{'Expected':>10}  Check")
+    for sector in ("industrial_price", "commercial_price"):
+        result = price_analysis(sites, prices, sector)
+        want = EXPECTED_PRICE_QA[sector]
+        share_ok = abs(result["cheaper_share"] - want["cheaper_share"]) <= PRICE_SHARE_TOLERANCE
+        ratio_ok = abs(result["ratio"] - want["ratio"]) <= PRICE_RATIO_TOLERANCE
+        if not (share_ok and ratio_ok) or result["missing"]:
+            ok = False
+        print(f"{sector.split('_')[0].title():<14}"
+              f"{result['cheaper_share']:>14.1f}%{want['cheaper_share']:>9.1f}%"
+              f"{result['ratio']:>9.3f}{want['ratio']:>10.2f}  "
+              f"{'PASS' if share_ok and ratio_ok else 'FAIL'}")
+        if result["missing"]:
+            print(f"  FAIL: no price for {len(result['missing'])} sites: "
+                  f"{', '.join(result['missing'])}")
+    industrial = price_analysis(sites, prices, "industrial_price")
+    print(f"  cheap-power MW: {fmt_mw(industrial['cheap_mw'])} of "
+          f"{fmt_mw(industrial['total_mw'])} tracked by 2030H1")
+
+    print("\n=== Baseline for context (not shown on the page) ===")
+    print("  Where industrial load sits anyway, cheaper-than-average states only:")
+    print(f"{'Year':<7}{'US price':>10}{'States':>9}{'of':>4}"
+          f"{'Share':>9}{'Sales share':>13}")
+    for row in price_baseline(prices):
+        print(f"{row['year']:<7}{row['us_price']:>9.2f}c"
+              f"{row['cheaper_states']:>9}{row['states']:>4}"
+              f"{row['state_share']:>8.1f}%{row['sales_share']:>12.1f}%")
+    if any(row["states"] != BASELINE_STATE_COUNT for row in price_baseline(prices)):
+        print(f"  FAIL: expected {BASELINE_STATE_COUNT} contiguous states")
+        ok = False
+
+    print("\n=== Caption for the Why there scene (keep CONFIG in step) ===")
+    ca_mw = sum(s["it_mw_2030h1"] for s in sites
+                if s["state"] == CAPTION_STATE_CODE)
+    ca_price = price_for(prices, "industrial_price", CAPTION_STATE_CODE,
+                         PRICE_LATEST_YEAR)
+    us_price = prices["industrial_price"]["us"][str(PRICE_LATEST_YEAR)]
+    ca_ratio = ca_price / us_price if us_price else 0.0
+    caption = CAPTION_TEMPLATE.format(
+        share=int(round(industrial["cheaper_share"] / 10.0) * 10),
+        state=CAPTION_STATE,
+    )
+    print(f"  {caption}")
+    print(f"  {CAPTION_STATE_CODE} {PRICE_LATEST_YEAR}: {ca_price}c vs US "
+          f"{us_price}c = {ca_ratio:.2f}x, tracked 2030H1 capacity "
+          f"{fmt_mw(ca_mw)}")
+    if ca_ratio <= 2.0:
+        print("  FAIL: the caption says 'more than twice' and it no longer is")
+        ok = False
+    if ca_mw > 0:
+        print("  FAIL: the caption says 'has none' and there is now capacity")
+        ok = False
+
+    print("\n=== Electricity prices ===")
+    meta = prices["meta"]
+    print(f"  retrieved     : {meta['retrieved']}  "
+          f"({'from cache' if prices.get('_from_cache') else 'downloaded'})")
+    print(f"  years         : {meta['years'][0]} to {meta['years'][-1]}")
+    for key in EIA_TABLES:
+        table = prices[key]
+        print(f"  {key:<17}{len(table['states'])} states, "
+              f"US {PRICE_LATEST_YEAR} = {table['us'][str(PRICE_LATEST_YEAR)]} "
+              f"{table['units']}")
 
     print("\n=== Geocode precision ===")
     precisions: dict[str, int] = defaultdict(int)
@@ -805,17 +1134,32 @@ def main() -> int:
         "--refresh-geocode", action="store_true",
         help="retry addresses whose cached lookup previously found nothing",
     )
+    parser.add_argument(
+        "--refresh-prices", action="store_true",
+        help="re-download the EIA price and sales tables",
+    )
     args = parser.parse_args()
 
+    prices = load_prices(refresh=args.refresh_prices)
+    problems = price_spot_check(prices)
+    if problems:
+        print("EIA spot check failed; nothing was written:", file=sys.stderr)
+        for line in problems:
+            print(f"  {line}", file=sys.stderr)
+        return 2
+
     payload = build(refresh=args.refresh_geocode)
-    ok = report(payload)
+    ok = report(payload, prices)
 
     out = {"meta": payload["meta"], "sites": payload["sites"]}
     OUT_JSON.write_text(json.dumps(out, indent=1) + "\n")
     OUT_CHILLER.write_text(json.dumps(payload["_chiller"], indent=1) + "\n")
+    out_prices = {k: v for k, v in prices.items() if not k.startswith("_")}
+    OUT_PRICES.write_text(json.dumps(out_prices, indent=1) + "\n")
     print(f"\nWrote {OUT_JSON.relative_to(HERE.parent.parent)} "
           f"({OUT_JSON.stat().st_size / 1024:.0f} KB)")
     print(f"Wrote {OUT_CHILLER.relative_to(HERE.parent.parent)}")
+    print(f"Wrote {OUT_PRICES.relative_to(HERE.parent.parent)}")
     print(f"Wrote {GEOCODE_CACHE.relative_to(HERE.parent.parent)}")
 
     print("\nALL CHECKS PASSED" if ok else "\nCHECKS FAILED")

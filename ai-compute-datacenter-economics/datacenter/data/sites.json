@@ -52,6 +52,9 @@
    "address": "55001 Larrison Blvd, New Carlisle, IN 46552",
    "project": "Project Rainier",
    "project_confidence": "confident",
+   "start_date": "2024-02-09",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2025-06-23",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -107,6 +110,9 @@
    "address": "5420 Tulane Rd, Memphis, TN 38109",
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-02-28",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2025-10-19",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -158,6 +164,9 @@
    "address": "1435 Hwy 54 W, Fayetteville, GA 30214",
    "project": "Microsoft AI WAN",
    "project_confidence": "confident",
+   "start_date": "2023-04-09",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2025-10-14",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -205,6 +214,9 @@
    "address": "1 Community Cir, New Albany, OH 43054",
    "project": "Prometheus",
    "project_confidence": "confident",
+   "start_date": "2022-04-14",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2025-10-14",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -252,6 +264,9 @@
    "address": "5502 Spinks Rd, Abilene, TX 79601",
    "project": "Stargate",
    "project_confidence": "confident",
+   "start_date": "2024-05-31",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2025-09-26",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -303,6 +318,9 @@
    "address": "4800 90th St, Mount Pleasant, WI 53403",
    "project": "Microsoft AI WAN",
    "project_confidence": "confident",
+   "start_date": "2023-07-14",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2026-04-16",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -350,6 +368,9 @@
    "address": "4581 Webb St, Pryor, OK 74361",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-07-19",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2024-07-19",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -397,6 +418,9 @@
    "address": "3231 Riverport Rd, Memphis, TN 38109",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-04-24",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2024-08-11",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -444,6 +468,9 @@
    "address": "1101 Beech Rd SW, New Albany, OH 43054",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-04-20",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2024-04-20",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -491,6 +518,9 @@
    "address": "5076 S High St, Columbus, OH 43207",
    "project": null,
    "project_confidence": null,
+   "start_date": "2021-10-01",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2024-04-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -538,6 +568,9 @@
    "address": "Amazon Data Services Inc, Madison Mega Site Nissan Parkway and Highway 22 Canton, Mississippi Madison County",
    "project": "Project Rainier",
    "project_confidence": "speculative",
+   "start_date": "2023-10-02",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2025-06-23",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -585,6 +618,9 @@
    "address": "8171 Jim Christal Rd, Denton, TX 76207",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-11-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2025-05-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -632,6 +668,9 @@
    "address": "13001 Rollins Ford Road, Bristow, VA 20136",
    "project": null,
    "project_confidence": null,
+   "start_date": "2021-07-01",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2024-04-29",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -674,6 +713,9 @@
    "address": "6000 Technology Blvd, Sandston, VA 23150",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-10-01",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2024-01-29",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -721,6 +763,9 @@
    "address": "10410 Bunge Ave, Council Bluffs, IA 51503",
    "project": null,
    "project_confidence": null,
+   "start_date": "2022-09-06",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2024-11-19",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -768,6 +813,9 @@
    "address": "11110 State St, Omaha, NE 68142",
    "project": null,
    "project_confidence": null,
+   "start_date": "2021-11-25",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2024-04-08",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -815,6 +863,9 @@
    "address": "14651-15249 Gold Coast Rd 68138 Papillion Nebraska, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2020-03-04",
+   "start_year": 2020,
+   "price_year": 2020,
    "first_operational": "2023-01-23",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -862,6 +913,9 @@
    "address": "1626 County Line Road Ridgeland, Mississippi",
    "project": "Project Rainier",
    "project_confidence": "speculative",
+   "start_date": "2024-02-24",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-05-15",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -904,6 +958,9 @@
    "address": "13360 Miller Rd NW",
    "project": null,
    "project_confidence": null,
+   "start_date": "2022-07-01",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2024-12-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -955,6 +1012,9 @@
    "address": "14250 W Broadway Rd, Goodyear, AZ 85338",
    "project": null,
    "project_confidence": null,
+   "start_date": "2021-06-21",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2023-04-24",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1002,6 +1062,9 @@
    "address": "5855 SW Kerry St, Cumming, IA 50061",
    "project": null,
    "project_confidence": null,
+   "start_date": "2018-12-18",
+   "start_year": 2018,
+   "price_year": 2018,
    "first_operational": "2021-01-01",
    "it_mw_by_period": {
     "2021H1": 48.0,
@@ -1044,6 +1107,9 @@
    "address": null,
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-07-01",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2025-07-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1091,6 +1157,9 @@
    "address": "4755 NE Huffman St, Hillsboro, OR 97124",
    "project": null,
    "project_confidence": null,
+   "start_date": "2021-04-01",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2023-08-02",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1133,6 +1202,9 @@
    "address": "6030\u20136070 Technology Blvd, Sandston, VA 23150",
    "project": null,
    "project_confidence": null,
+   "start_date": "2022-04-01",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2025-02-04",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1180,6 +1252,9 @@
    "address": "500 8th St, Jeffersonville, IN 47130, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-02-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-06-04",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1227,6 +1302,9 @@
    "address": "1772-2396 145th St, Rosemount, MN 55068, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-05-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-06-19",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1274,6 +1352,9 @@
    "address": "2310 Eberhardt Rd, Temple, TX 76504",
    "project": null,
    "project_confidence": null,
+   "start_date": "2022-04-01",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2025-12-09",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1321,6 +1402,9 @@
    "address": null,
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-08-30",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2023-08-30",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1363,6 +1447,9 @@
    "address": "3500 River Rd, The Dalles, OR",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-05-21",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2025-03-07",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1410,6 +1497,9 @@
    "address": "Co Rd 42, Montgomery, AL 36105, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-03-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-06-18",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1457,6 +1547,9 @@
    "address": "Cheyenne, WY 82007, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-04-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-07-25",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1504,6 +1597,9 @@
    "address": "601 Kuna Mora Rd,  Kuna ID 83634",
    "project": null,
    "project_confidence": null,
+   "start_date": "2022-07-01",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2026-06-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1551,6 +1647,9 @@
    "address": "5400 Prosperity Dr NW, Toney, AL",
    "project": null,
    "project_confidence": null,
+   "start_date": "2021-12-13",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2026-03-04",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1593,6 +1692,9 @@
    "address": "3525\u20133543 Portugee Rd, Sandston, VA 23150",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-04-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-02-13",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1635,6 +1737,9 @@
    "address": "5475 Cloud Ct, Lincoln, NE 68514",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-07-01",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2026-05-12",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1677,6 +1782,9 @@
    "address": "105 Whiley Rd, Lancaster, OH 43130",
    "project": null,
    "project_confidence": null,
+   "start_date": "2021-10-01",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2024-01-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1724,6 +1832,9 @@
    "address": "1275 N Community Cir, Eagle Mountain, UT 84005",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-10-01",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2025-12-07",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1771,6 +1882,9 @@
    "address": "984 County Road 112, Afton, TX 79220",
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-05-31",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2026-08-30",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1818,6 +1932,9 @@
    "address": "4250 Messenger Lp, Los Lunas, NM 87031",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-07-24",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-03-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1865,6 +1982,9 @@
    "address": "1125 Electron Ave, Berwick, PA 18603",
    "project": "Project Rainier",
    "project_confidence": "speculative",
+   "start_date": "2021-07-01",
+   "start_year": 2021,
+   "price_year": 2021,
    "first_operational": "2025-09-09",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1907,6 +2027,9 @@
    "address": null,
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-01-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-08-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1949,6 +2072,9 @@
    "address": "3250 Railport Parkway, Midlothian, TX 76065",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-11-28",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2026-04-19",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -1996,6 +2122,9 @@
    "address": "1 Meta Lp, Gallatin, TN 37066",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-09-11",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2026-08-24",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2038,6 +2167,9 @@
    "address": "9590 Hornbaker Rd, Manassas, VA 20109",
    "project": null,
    "project_confidence": null,
+   "start_date": "2019-10-19",
+   "start_year": 2019,
+   "price_year": 2019,
    "first_operational": "2024-10-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2085,6 +2217,9 @@
    "address": "1401 Meadowville Technology Parkway, Chester, VA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-09-18",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2024-01-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2132,6 +2267,9 @@
    "address": "14436-14998 Fairview Rd, Springfield, NE 68059, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-08-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-08-02",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2174,6 +2312,9 @@
    "address": "42575 Arcola Blvd, Sterling, VA 20166",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-10-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-06-16",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2216,6 +2357,9 @@
    "address": "330 Austin Blvd, Red Oak, TX 75154",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-04-30",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2025-08-25",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2258,6 +2402,9 @@
    "address": "15000 Lambda Drive, San Antonio, TX 78245",
    "project": null,
    "project_confidence": null,
+   "start_date": "2018-12-28",
+   "start_year": 2018,
+   "price_year": 2018,
    "first_operational": "2024-05-24",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2305,6 +2452,9 @@
    "address": "7601 State Hwy 105, Trenton, SC 29847, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-05-30",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-08-07",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2352,6 +2502,9 @@
    "address": "9685 87th Ave SE, Ellendale, ND 58436",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-10-31",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2025-10-27",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2399,6 +2552,9 @@
    "address": "155 Palmer Ln, Marble, NC 28905",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-06-25",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-03-13",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2441,6 +2597,9 @@
    "address": "2950 S. Litchfield Road",
    "project": null,
    "project_confidence": null,
+   "start_date": "2022-10-30",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2026-05-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2488,6 +2647,9 @@
    "address": "7725 Lake Rd, Barker, NY 14012",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-10-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2025-10-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2535,6 +2697,9 @@
    "address": "3963 S Lincoln Ave, Vineland, New Jersey",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-05-31",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-04-15",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2577,6 +2742,9 @@
    "address": "3545 Wiseman Boulevard, San Antonio, TX 78251",
    "project": null,
    "project_confidence": null,
+   "start_date": "2022-02-18",
+   "start_year": 2022,
+   "price_year": 2022,
    "first_operational": "2024-07-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2624,6 +2792,9 @@
    "address": "7725 Lake Rd, Barker, NY 14012",
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-06-11",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2026-05-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2666,6 +2837,9 @@
    "address": "14720 Omicron Dr, San Antonio, TX 78245",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-12-15",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2026-02-15",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2713,6 +2887,9 @@
    "address": "2205 Industrial South Rd, Dalton, GA, 30721",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-06-03",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-02-20",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2760,6 +2937,9 @@
    "address": "1025 Jefferson Street NW, Atlanta, GA 30318",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-01-23",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2025-02-20",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2807,6 +2987,9 @@
    "address": null,
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-09-18",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2026-12-30",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2854,6 +3037,9 @@
    "address": "216 Greenfield Rd, Lancaster, PA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-07-15",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2027-06-30",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2901,6 +3087,9 @@
    "address": "1525 W 43rd St S, Muskogee, OK 74401, USA",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-11-18",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-12-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2948,6 +3137,9 @@
    "address": "5502 Spinks Rd, Abilene, TX 79601",
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-11-02",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2027-09-17",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -2995,6 +3187,9 @@
    "address": "10001 Lima Rd, Claude, TX 79019",
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-05-19",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2027-03-15",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3042,6 +3237,9 @@
    "address": "5800 EDGEWOOD RD SW CEDAR RAPIDS, IA 52404",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-06-14",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-12-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3089,6 +3287,9 @@
    "address": "6015 Adams Center Road, Fort Wayne, IN 46806",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-04-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2026-12-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3136,6 +3337,9 @@
    "address": "12356 Middleton Pike, Bowling Green, OH 43402",
    "project": null,
    "project_confidence": null,
+   "start_date": "2024-11-01",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2027-02-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3183,6 +3387,9 @@
    "address": "Holly Ridge, LA 71269",
    "project": "Hyperion",
    "project_confidence": "confident",
+   "start_date": "2024-12-20",
+   "start_year": 2024,
+   "price_year": 2024,
    "first_operational": "2028-01-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3230,6 +3437,9 @@
    "address": "2300 Hallock Young Rd, Warren, OH 44481",
    "project": "Stargate",
    "project_confidence": "confident",
+   "start_date": "2025-10-12",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2027-03-01",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3277,6 +3487,9 @@
    "address": null,
    "project": "Stargate",
    "project_confidence": "confident",
+   "start_date": "2025-12-04",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2028-12-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3324,6 +3537,9 @@
    "address": null,
    "project": "Stargate",
    "project_confidence": "confident",
+   "start_date": "2025-09-27",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": null,
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3371,6 +3587,9 @@
    "address": null,
    "project": "Stargate",
    "project_confidence": "confident",
+   "start_date": "2025-10-01",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2028-12-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3418,6 +3637,9 @@
    "address": "175 Private Road 1604, Abilene, TX 79601, Shackelford County",
    "project": "Stargate",
    "project_confidence": "confident",
+   "start_date": "2025-08-01",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2027-08-15",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3465,6 +3687,9 @@
    "address": null,
    "project": "Stargate",
    "project_confidence": "confident",
+   "start_date": "2026-01-02",
+   "start_year": 2026,
+   "price_year": 2025,
    "first_operational": "2028-12-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3507,6 +3732,9 @@
    "address": "6200 76th Ave SW, Fairfax, IA 52228",
    "project": null,
    "project_confidence": null,
+   "start_date": "2025-01-17",
+   "start_year": 2025,
+   "price_year": 2025,
    "first_operational": "2026-11-15",
    "it_mw_by_period": {
     "2021H1": 0.0,
@@ -3554,6 +3782,9 @@
    "address": "652 E Hyperscale Way, Eagle Mountain, UT 84013",
    "project": null,
    "project_confidence": null,
+   "start_date": "2023-10-01",
+   "start_year": 2023,
+   "price_year": 2023,
    "first_operational": "2026-12-31",
    "it_mw_by_period": {
     "2021H1": 0.0,
