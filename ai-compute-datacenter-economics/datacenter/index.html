@@ -415,6 +415,11 @@
   }
   .ramp-scale-mid { color: var(--stage-text-dim); }
   .ramp-scale-high { text-align: right; }
+  .ramp-note {
+    margin-top: 6px;
+    font-size: 0.57rem; font-weight: 700; letter-spacing: 0.03em;
+    color: var(--stage-text-faint);
+  }
 
   /* ---------- caption ----------
      Directly under the scene buttons at the top, not over the map, so it never
@@ -955,16 +960,33 @@
           year: "2025",
           sector: "industrial_price",
 
-          /* A diverging scale centred on the national average: cool where
-             power is cheaper than the US, warm where it is pricier, a plain
-             neutral grey at the average itself so the middle of the country
-             does not read as a colour. Held well below the bars in chroma --
-             these are a background the bars stand on. */
+          /* One colour story per view. The state fill is the only thing
+             carrying meaning here, so the bars drop to a single neutral and
+             the owner palette comes back the moment the view is left. The
+             bars also stop being a before-and-after: one solid bar per site
+             at the capacity it reaches in 2030, which is what the price
+             comparison is weighted by. */
+          barColor: "#eef3f9",
+          barAlpha: 0.8,
+          barOutline: false,
+
+          /* A diverging scale centred on the national average: teal where
+             power is cheaper, orange where it is pricier, each deepening as
+             the gap grows. Within this much of the average either way the
+             fill is a flat neutral grey -- "about average" is a plateau, not
+             a point, so a state two cents off is not painted as though it
+             were ten. */
+          neutralBand: 0.05,
           domain: [0.5, 1.5],
-          colorCheap: "#1b7da4",
-          colorMid: "#454a51",
-          colorPricey: "#b05329",
+          colorCheap: "#17b2c9",
+          colorMid: "#4a4e55",
+          colorPricey: "#f08422",
           fillAlpha: 0.72,
+
+          /* The bars are light here, so a code standing on one needs a
+             heavier halo than it does over the basemap alone. */
+          labelOutlineWidth: 4.5,
+          labelOutlineColor: [4, 7, 11, 245],
           stateLineColor: [152, 176, 208, 95],
           stateLineWidth: 0.7,
 
@@ -974,8 +996,9 @@
           labelOffset: [0, 11],
 
           legendHead: "Industrial power price vs US average, 2025",
-          ownerHead: "Owner",
           rampLow: "50% cheaper",
+          /* Names the grey plateau, which is otherwise just an absence. */
+          rampNote: "Grey: within 5% of the US average",
           rampHigh: "150% pricier",
           /* {price} is the US average for the year, from the EIA file. */
           rampMid: "US avg {price}",
@@ -1132,29 +1155,28 @@
     return Math.round(Math.abs(1 - ratio) * 100);
   }
 
-  /* The diverging ramp: a cool hue below the national average, a warm one
-     above, and a plain neutral grey at the average itself, so the middle of
-     the country reads as "about average" rather than as a colour. The two
-     halves are interpolated separately, which is what keeps the grey exactly
-     on the average instead of wherever the midpoint of the domain falls. */
+  /* The diverging ramp. Inside the neutral band the fill is flat grey; from
+     the edge of that band outwards it runs to teal on the cheap side and to
+     orange on the dear one, deepening with the gap. Each half is interpolated
+     from the grey rather than across the whole domain, so neither hue leaks
+     into the other and the plateau has a real edge. */
   function priceColor(ratio) {
     var cfg = priceCfg();
     if (typeof ratio !== "number") return null;
-    var low = cfg.domain[0];
-    var high = cfg.domain[1];
+    var band = cfg.neutralBand;
     var mid = hexToRgb(cfg.colorMid);
-    var from, to, t;
-    if (ratio <= 1) {
-      from = hexToRgb(cfg.colorCheap);
-      to = mid;
-      t = (Math.max(low, Math.min(1, ratio)) - low) / (1 - low);
+    if (Math.abs(ratio - 1) <= band) return mid;
+
+    var to, t;
+    if (ratio < 1) {
+      to = hexToRgb(cfg.colorCheap);
+      t = (1 - band - Math.max(cfg.domain[0], ratio)) / (1 - band - cfg.domain[0]);
     } else {
-      from = mid;
       to = hexToRgb(cfg.colorPricey);
-      t = (Math.min(high, ratio) - 1) / (high - 1);
+      t = (Math.min(cfg.domain[1], ratio) - 1 - band) / (cfg.domain[1] - 1 - band);
     }
     return [0, 1, 2].map(function (i) {
-      return Math.round(from[i] + (to[i] - from[i]) * t);
+      return Math.round(mid[i] + (to[i] - mid[i]) * t);
     });
   }
 
@@ -1417,7 +1439,12 @@
      those behaviours are read off the scene's own flags rather than off its
      name. */
   function locksTimeline() { var cfg = scene(); return !!(cfg && cfg.lockToToday); }
-  function showsPlanned() { var cfg = scene(); return !!(cfg && cfg.showPlanned); }
+  /* The price view draws one solid bar per site instead, so the built /
+     under-construction split is off there even though its scene asks for it. */
+  function showsPlanned() {
+    var cfg = scene();
+    return !!(cfg && cfg.showPlanned) && !isPriceView();
+  }
 
   /* ---------- beats: the views inside a scene ---------- */
   function beats() { var cfg = scene(); return (cfg && cfg.beats) || []; }
@@ -1549,6 +1576,18 @@
     return 1;
   }
 
+  /* One colour story per view. In the price view every bar is the same soft
+     neutral, because the state underneath is what is being read; everywhere
+     else a bar is its owner's colour. */
+  function barFill(site) {
+    if (isPriceView()) {
+      var price = priceCfg();
+      return hexToRgb(price.barColor)
+        .concat(Math.round(255 * price.barAlpha * dimFactor(site)));
+    }
+    return hexToRgb(ownerColor(site.owner)).concat(fillAlphaFor(site));
+  }
+
   function fillAlphaFor(site) {
     var cfg = CONFIG.map;
     var base = Math.round(255 * cfg.fillAlpha);
@@ -1593,6 +1632,8 @@
 
   function stateLabelLayers(stop) {
     var cfg = CONFIG.map;
+    var priceView = isPriceView();
+    var price = priceCfg();
     var liveStates = {};
     liveAt(stop).forEach(function (site) {
       if (site.state) liveStates[site.state] = true;
@@ -1644,15 +1685,20 @@
       /* A signed-distance font lets the glyphs carry a dark outline, which is
          what keeps OH, VA, AZ, MS and AL legible against a bar behind them. */
       fontSettings: { sdf: true, radius: 12 },
-      outlineWidth: cfg.stateLabelOutlineWidth,
-      outlineColor: cfg.stateLabelOutlineColor,
-      updateTriggers: { getColor: stop.key }
+      outlineWidth: priceView ? price.labelOutlineWidth : cfg.stateLabelOutlineWidth,
+      outlineColor: priceView ? price.labelOutlineColor : cfg.stateLabelOutlineColor,
+      updateTriggers: {
+        getColor: stop.key,
+        /* The halo differs between views, and deck would otherwise keep the
+           one it compiled the glyphs with. */
+        outlineWidth: priceView,
+        outlineColor: priceView
+      }
     }));
 
     /* The price under the code, in the same two places the code can be: over
        the state, or out at the end of a leader line off the coast. */
-    if (isPriceView()) {
-      var price = priceCfg();
+    if (priceView) {
       layers.push(new deck.TextLayer({
         id: "state-price-labels",
         data: labels.filter(function (f) {
@@ -1671,8 +1717,8 @@
         getTextAnchor: "middle",
         getAlignmentBaseline: "center",
         fontSettings: { sdf: true, radius: 12 },
-        outlineWidth: cfg.stateLabelOutlineWidth,
-        outlineColor: cfg.stateLabelOutlineColor
+        outlineWidth: price.labelOutlineWidth,
+        outlineColor: price.labelOutlineColor
       }));
     }
 
@@ -1684,8 +1730,14 @@
        scene, the 2030 figure the hollow outline reaches. Sorted tallest
        first so a tall bar is drawn behind the shorter ones in front of it. */
     var planned = showsPlanned();
+    var flat = isPriceView();
     return SITES.map(function (site) {
-      var mw = planned ? site.it_mw_as_of : displayedMW(site);
+      /* The price view asks one question of every site -- where did this
+         capacity choose to land -- so it draws the whole 2030 figure as one
+         bar rather than splitting it into running and funded. */
+      var mw = flat ? site.it_mw_2030h1
+             : planned ? site.it_mw_as_of
+             : displayedMW(site);
       return {
         site: site,
         mw: mw,
@@ -1738,14 +1790,14 @@
       data: rows,
       pickable: true,
       filled: true,
-      stroked: true,
+      /* No outline in the price view: a lightened edge on a bar that is
+         already near-white only thickens it. */
+      stroked: !isPriceView(),
       extruded: false,
       lineWidthUnits: "pixels",
       lineJointRounded: false,
       getPolygon: function (row) { return barPolygon(row.site, row.mw); },
-      getFillColor: function (row) {
-        return hexToRgb(ownerColor(row.site.owner)).concat(fillAlphaFor(row.site));
-      },
+      getFillColor: function (row) { return barFill(row.site); },
       getLineColor: function (row) {
         var isFocus = row.site.name === focus;
         /* On a dark stage the outline reads as a highlight, so it lightens
@@ -1811,17 +1863,22 @@
     "</div>";
   }
 
-  /* The Why there legend: the diverging price ramp, with the national
-     average marked where it actually falls on the scale, then the owner
-     swatches, because the bars are still coloured by owner. */
+  /* The Why there legend is the diverging price ramp and nothing else. The
+     bars in this view are one neutral colour, so there is no owner key to
+     give: the only thing on the map carrying a colour is the state fill, and
+     this is the key to it. The ramp is sampled from priceColor itself, so the
+     flat grey band in the middle is the same band the map uses rather than a
+     drawing of one. */
   function renderPriceLegend() {
     var cfg = priceCfg();
     var low = cfg.domain[0];
     var high = cfg.domain[1];
+    var steps = 20;
     var stops = [];
-    for (var i = 0; i <= 10; i++) {
-      var rgb = priceColor(low + (high - low) * (i / 10));
-      stops.push("rgb(" + rgb.join(",") + ") " + (i * 10) + "%");
+    for (var i = 0; i <= steps; i++) {
+      var pct = (i / steps) * 100;
+      var rgb = priceColor(low + (high - low) * (i / steps));
+      stops.push("rgb(" + rgb.join(",") + ") " + pct.toFixed(1) + "%");
     }
     var midPct = ((1 - low) / (high - low)) * 100;
 
@@ -1841,21 +1898,11 @@
           escapeHtml(cfg.rampMid.replace("{price}", centsText(usPrice()))) +
         "</span>" +
         '<span class="ramp-scale-high">' + escapeHtml(cfg.rampHigh) + "</span>" +
-      "</div>";
+      "</div>" +
+      '<div class="ramp-note">' + escapeHtml(cfg.rampNote) + "</div>";
 
-    var sub = el("legend-sub-head");
-    sub.hidden = false;
-    sub.textContent = cfg.ownerHead;
-
-    var totals = ownerTotals("it_mw_2030h1");
-    var rows = Object.keys(totals).map(function (owner) {
-      return { owner: owner, mw: totals[owner] };
-    }).sort(function (a, b) {
-      return b.mw - a.mw || a.owner.localeCompare(b.owner);
-    });
-    el("legend-rows").innerHTML = rows.map(function (row) {
-      return legendRowHtml(row.owner, "", row.mw <= 0);
-    }).join("");
+    el("legend-sub-head").hidden = true;
+    el("legend-rows").innerHTML = "";
   }
 
   function renderLegend(stop) {
@@ -2071,7 +2118,11 @@
     card.innerHTML =
       '<div class="card-name">' + escapeHtml(site.name) + "</div>" +
       '<div class="card-owner">' +
-        '<span class="legend-swatch" style="background:' + ownerColor(site.owner) + '"></span>' +
+        /* The swatch is a key to the bar's colour, so it goes where the bars
+           are not owner-coloured; the name stays either way. */
+        (isPriceView() ? "" :
+          '<span class="legend-swatch" style="background:' +
+            ownerColor(site.owner) + '"></span>') +
         escapeHtml(site.owner) +
       "</div>" +
       '<div class="card-rows">' +
