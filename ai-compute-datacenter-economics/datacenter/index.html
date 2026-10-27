@@ -451,6 +451,19 @@
     flex-shrink: 0;
   }
   #size-key-bars { display: block; margin-top: 2px; }
+  /* One line under the scale, at the panel's own caption size and colour.
+     It has to stay on one line to read as a single comparison, so it is set
+     nowrap rather than left to break after the fraction. */
+  #size-key-note {
+    margin-top: 7px;
+    /* The scale's own 6px gutter is given back: the line needs the panel's
+       full width to stay on one line, and it measures 207px against the
+       206px the gutter would leave it. */
+    margin-right: -6px;
+    font-size: 0.6rem; line-height: 1.4;
+    color: var(--stage-text-dim);
+    white-space: nowrap;
+  }
 
   /* ---------- timeline ---------- */
 
@@ -691,6 +704,7 @@
       <div id="size-key">
         <div class="legend-head" id="size-key-head">Bar height = IT power</div>
         <svg id="size-key-bars" aria-hidden="true"></svg>
+        <div id="size-key-note"></div>
       </div>
     </div>
 
@@ -838,6 +852,9 @@
       sites: "Sites live",
       legend: "Owner",
       sizeKey: "Bar height = IT power",
+      /* What a gigawatt is, in something a reader already has a size for.
+         The arithmetic behind the half is in the footnote. */
+      sizeKeyNote: "1 GW \u2248 \u00bd \uD83C\uDF4A Orange County\u2019s electricity use",
       dragHint: "Drag, or use the left and right arrow keys",
       todayStop: "Today"
     },
@@ -1026,7 +1043,7 @@
       when:    { ready: false, button: "When" }
     },
 
-    footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026."
+    footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026. Orange County annual electricity consumption: 19,225 GWh, California Energy Commission, Electricity Consumption Dashboards (energy.ca.gov). 1 GW \u2248 \u00bd Orange County is calculated as 19,225 GWh \u00f7 8,760 hours \u2248 2.2 GW average load."
   };
 
   /* ==========================================================================
@@ -2411,6 +2428,22 @@
       '<div style="max-width:420px">' + escapeHtml(message) + "</div>";
   }
 
+  /* The sources line at the bottom is long enough to wrap, and how far it
+     wraps depends on the viewport, so the timeline is parked above whatever
+     height it actually comes out at rather than above a guessed one. Both are
+     positioned from the bottom of the stage, so without this the second line
+     of the sources would be drawn over the timeline panel. */
+  var FOOTNOTE_GAP = 12;
+  function syncFootnoteSpace() {
+    /* Measured from where the line actually starts rather than from its own
+       height: it is a <p>, so its margins sit outside the height and reading
+       the height alone left the timeline 2px off it. */
+    var stage = el("stage").getBoundingClientRect();
+    var top = el("footnote").getBoundingClientRect().top;
+    el("timeline").style.bottom =
+      Math.round(stage.bottom - top + FOOTNOTE_GAP) + "px";
+  }
+
   var stageRevealed = false;
   function revealStage() {
     if (stageRevealed) return;
@@ -2535,7 +2568,10 @@
     var refitTimer = null;
     window.addEventListener("resize", function () {
       clearTimeout(refitTimer);
-      refitTimer = setTimeout(function () { applyView(fittedView()); }, 180);
+      refitTimer = setTimeout(function () {
+        syncFootnoteSpace();
+        applyView(fittedView());
+      }, 180);
     });
   }
 
@@ -2556,12 +2592,14 @@
     el("counter-sites-label").textContent = CONFIG.labels.sites;
     el("legend-head").textContent = CONFIG.labels.legend;
     el("size-key-head").textContent = CONFIG.labels.sizeKey;
+    el("size-key-note").textContent = CONFIG.labels.sizeKeyNote;
     el("track-hint").textContent = CONFIG.labels.dragHint;
     el("how-btn-label").textContent = CONFIG.howWeKnow.button;
     renderSceneBar();
     renderBeatBar();
     renderHowPanel();
     el("footnote-text").textContent = CONFIG.footnote;
+    syncFootnoteSpace();
 
     renderTicks();
     renderSizeKey();

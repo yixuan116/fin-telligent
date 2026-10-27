@@ -1,8 +1,8 @@
 # Sources
 
-Every number on the Data Center page comes from one of these. Each is fetched
-by a script in this folder and cached under `data/`, so a rerun is offline and
-deterministic.
+Every number on the Data Center page comes from one of these. All but the last
+are fetched by a script in this folder and cached under `data/`, so a rerun is
+offline and deterministic.
 
 ## Data center sites, power and timelines
 
@@ -57,3 +57,15 @@ states plus DC) and `data/us_mask.geojson`.
 
 CARTO `dark-matter-nolabels`, token-free, over OpenStreetMap data.
 <https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json>
+
+## Orange County electricity consumption
+
+California Energy Commission, Electricity Consumption Dashboards.
+<https://www.energy.ca.gov> Public domain. Retrieved 2026-10-27.
+
+Orange County consumed 19,225 GWh in a year. Over 8,760 hours that is a 2.2 GW
+average load, so 1 GW is a little under half the county. The page states the
+figure as "1 GW is about half of Orange County's electricity use"; the
+arithmetic is on the page's own sources line. This is the only number on the
+page that is not from Epoch AI or the EIA, and nothing is computed from it --
+it is there to give a gigawatt a size a reader already holds.
