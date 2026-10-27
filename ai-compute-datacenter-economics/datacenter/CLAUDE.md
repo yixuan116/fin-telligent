@@ -22,7 +22,21 @@ anywhere; paths resolve from the script file, not from `cwd`:
 - `data/geocode_cache.json` — Nominatim responses, committed so a rerun is
   deterministic and makes no network calls. Delete it to re-geocode.
 
-Every source, with its URL and retrieval date, is listed in `SOURCES.md`.
+`build_metros.py` is the second script. It reads `data/sites.json` and writes
+`data/metros.json`: the 56 metropolitan statistical areas of a million people
+or more (Census population estimates, vintage 2025), each metro's Gazetteer
+internal point, every site's nearest one with the great-circle distance in
+miles, and the median per start-year group (2023 and earlier, 2024, 2025 and
+later), which is what the Where view counts to. The metro list is cached in
+the output and reused, so a rerun makes no network calls; `--refresh`
+re-downloads it, and a wrong or truncated download fails the spot checks
+before anything is written. Distances are recomputed from `sites.json` on
+every run, so a change there lands without a download.
+
+Every source, with its URL and retrieval date, is listed in `SOURCES.md`;
+`data/sources.json` carries the same entries for the Why there scene in
+machine-readable form, including the figures behind the land comparison the
+Where view ends on, with their arithmetic and caveats.
 
 Two things the script will not do silently: a geocode hit that lands outside
 the address's own state is rejected and retried at a coarser level, and every

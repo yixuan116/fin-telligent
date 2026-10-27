@@ -1,0 +1,74 @@
+{
+ "note": "Machine-readable record of the sources behind the Why there scene and the figures quoted with it. SOURCES.md carries the same entries in prose, with the rest of the page's sources.",
+ "updated": "2026-10-27",
+ "sources": [
+  {
+   "id": "census-msa-population",
+   "title": "Annual Resident Population Estimates for Metropolitan and Micropolitan Statistical Areas and Their Geographic Components, vintage 2025",
+   "publisher": "US Census Bureau, Population Estimates Program",
+   "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv",
+   "landing_page": "https://www.census.gov/data/tables/time-series/demo/popest/2020s-total-metro-and-micro-statistical-areas.html",
+   "retrieved": "2026-10-27",
+   "license": "public domain",
+   "used_for": "Which metropolitan statistical areas have a population of 1,000,000 or more. The POPESTIMATE2025 column of the CBSA total rows, excluding metropolitan divisions and county components: 387 metropolitan statistical areas, 56 of them at a million or more.",
+   "built_by": "build_metros.py into data/metros.json"
+  },
+  {
+   "id": "census-gazetteer-cbsa",
+   "title": "2025 Gazetteer Files, core based statistical areas",
+   "publisher": "US Census Bureau, Geography Division",
+   "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_cbsa_national.zip",
+   "landing_page": "https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.html",
+   "retrieved": "2026-10-27",
+   "license": "public domain",
+   "used_for": "Each metro's location: the INTPTLAT and INTPTLONG internal point of its CBSA. Distances on the page are great-circle miles from a site to that point, so they measure the metro as a whole rather than its downtown.",
+   "built_by": "build_metros.py into data/metros.json"
+  },
+  {
+   "id": "census-quickfacts-orange-county",
+   "title": "QuickFacts, Orange County, California: land area in square miles",
+   "publisher": "US Census Bureau",
+   "url": "https://www.census.gov/quickfacts",
+   "retrieved": "2026-10-27",
+   "license": "public domain",
+   "value": "792.84 square miles",
+   "used_for": "The land area behind the \"same land\" comparison.",
+   "cross_check": "The 2025 county Gazetteer file gives 793.249 square miles of land for Orange County, California, a 0.05 percent difference."
+  },
+  {
+   "id": "cec-orange-county-consumption",
+   "title": "Electricity Consumption Dashboards",
+   "publisher": "California Energy Commission",
+   "url": "https://www.energy.ca.gov",
+   "retrieved": "2026-10-26",
+   "value": "19,225 GWh a year, which is about 2.2 GW of average load (19,225 / 8,760)",
+   "used_for": "Orange County's electricity use, already quoted in the page footnote and in the bar-scale note."
+  },
+  {
+   "id": "cumulus-campus",
+   "title": "AWS acquires data center campus connected to Susquehanna nuclear station",
+   "publisher": "Power Engineering",
+   "url": "https://www.power-eng.com/nuclear/aws-acquires-data-center-campus-connected-to-susquehanna-nuclear-station/",
+   "published": "2024-03-06",
+   "retrieved": "2026-10-27",
+   "value": "about 1,200 acres, up to 960 MW planned",
+   "used_for": "The campus in the \"same land\" comparison: the Cumulus site next to the Susquehanna plant in Luzerne County, Pennsylvania, bought by AWS from Talen Energy.",
+   "also_reported_by": "American Nuclear Society, Nuclear Newswire, \"Amazon buys nuclear-powered data center from Talen\", 2024-03-07 (ans.org). No verified deep link, so the publication and title are recorded rather than a guessed URL.",
+   "caveat": "Coverage describes the 960 MW either as AWS's planned power consumption or as the total redundant capacity of the campus's four substations. The page says \"planned\", which is the weaker of the two claims."
+  }
+ ],
+ "footnotes": [
+  {
+   "id": "same-land-180x",
+   "text": "Same land, about 180x the power of 🍊 Orange County",
+   "shown": "Under the number in the Where view of the Why there scene, after the third group.",
+   "basis": [
+    "Orange County, California: 792.84 sq mi of land (census-quickfacts-orange-county), about 2.2 GW of average load (cec-orange-county-consumption), so about 2.8 MW per sq mi.",
+    "Cumulus campus: about 1,200 acres, which is 1.875 sq mi, with up to 960 MW planned (cumulus-campus), so about 512 MW per sq mi.",
+    "512 / 2.8 is about 185, read on the page as about 180x."
+   ],
+   "kind": "planned capacity against actual consumption",
+   "caveat": "A planned peak against an average load, so the two numbers are not like for like; the comparison is of what the land is being built to draw, not of what it draws today."
+  }
+ ]
+}

@@ -69,3 +69,47 @@ figure as "1 GW is about half of Orange County's electricity use"; the
 arithmetic is on the page's own sources line. This is the only number on the
 page that is not from Epoch AI or the EIA, and nothing is computed from it --
 it is there to give a gigawatt a size a reader already holds.
+
+## Metro areas, for the Where view
+
+US Census Bureau, public domain. Retrieved 2026-10-27. Both files are also
+recorded, with the columns used, in `data/sources.json`.
+
+- Population Estimates Program, metropolitan and micropolitan statistical area
+  totals, vintage 2025 —
+  <https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv>
+  The `POPESTIMATE2025` column of the CBSA total rows decides which metros
+  clear a million people: 387 metropolitan statistical areas, 56 of them at a
+  million or more.
+- 2025 Gazetteer, core based statistical areas —
+  <https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_cbsa_national.zip>
+  `INTPTLAT` and `INTPTLONG` give each metro's internal point, which is the
+  location distances are measured to.
+
+Built by `build_metros.py` into `data/metros.json`: the 56 metros, each site's
+nearest one, the great-circle distance in miles, and the median per start-year
+group. The distance is to the metro as a whole rather than to its downtown,
+because an internal point sits inside the whole CBSA; a metro that spans six
+counties is therefore "nearer" from the side it sprawls towards.
+
+## The land comparison under the number
+
+Not from a dataset, and recorded in full in `data/sources.json`:
+
+- Orange County, California, 792.84 sq mi of land, US Census Bureau
+  QuickFacts, <https://www.census.gov/quickfacts>, retrieved 2026-10-27. The
+  2025 county Gazetteer file gives 793.249 sq mi, a 0.05% difference.
+- About 2.2 GW of average load, from the California Energy Commission figure
+  above.
+- The Cumulus campus next to the Susquehanna plant in Luzerne County,
+  Pennsylvania: about 1,200 acres, up to 960 MW planned. Power Engineering,
+  "AWS acquires data center campus connected to Susquehanna nuclear station",
+  2024-03-06,
+  <https://www.power-eng.com/nuclear/aws-acquires-data-center-campus-connected-to-susquehanna-nuclear-station/>,
+  also reported by the American Nuclear Society's Nuclear Newswire,
+  2024-03-07.
+
+1,200 acres is 1.875 sq mi, so 960 MW is about 512 MW per sq mi against Orange
+County's 2.8, which is the "about 180x" on the page. It is a planned peak
+against an average load, so the two are not like for like: the claim is about
+what the land is being built to draw, not what it draws today.

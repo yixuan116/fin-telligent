@@ -1,0 +1,973 @@
+{
+ "meta": {
+  "generated_by": "ai-compute-datacenter-economics/datacenter/build_metros.py",
+  "retrieved": "2026-10-27",
+  "population_vintage": "2025",
+  "gazetteer_vintage": "2025",
+  "population_column": "POPESTIMATE2025",
+  "threshold": 1000000,
+  "metro_count": 56,
+  "site_count": 77,
+  "distance": "great-circle miles from the site to the metro's Gazetteer internal point",
+  "urls": {
+   "population": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv",
+   "gazetteer": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_cbsa_national.zip"
+  },
+  "license": "public domain (US Census Bureau)"
+ },
+ "metros": [
+  {
+   "code": "35620",
+   "name": "New York-Newark-Jersey City, NY-NJ",
+   "pop": 20112448,
+   "lat": 40.735425,
+   "lon": -73.80773
+  },
+  {
+   "code": "31080",
+   "name": "Los Angeles-Long Beach-Anaheim, CA",
+   "pop": 12844441,
+   "lat": 34.108703,
+   "lon": -118.182753
+  },
+  {
+   "code": "16980",
+   "name": "Chicago-Naperville-Elgin, IL-IN",
+   "pop": 9434123,
+   "lat": 41.75878,
+   "lon": -87.841887
+  },
+  {
+   "code": "19100",
+   "name": "Dallas-Fort Worth-Arlington, TX",
+   "pop": 8477157,
+   "lat": 32.849171,
+   "lon": -96.970489
+  },
+  {
+   "code": "26420",
+   "name": "Houston-Pasadena-The Woodlands, TX",
+   "pop": 7904627,
+   "lat": 29.801005,
+   "lon": -95.34262
+  },
+  {
+   "code": "12060",
+   "name": "Atlanta-Sandy Springs-Roswell, GA",
+   "pop": 6482182,
+   "lat": 33.732402,
+   "lon": -84.392848
+  },
+  {
+   "code": "47900",
+   "name": "Washington-Arlington-Alexandria, DC-VA-MD-WV",
+   "pop": 6465724,
+   "lat": 38.829787,
+   "lon": -77.495684
+  },
+  {
+   "code": "33100",
+   "name": "Miami-Fort Lauderdale-West Palm Beach, FL",
+   "pop": 6391072,
+   "lat": 26.101828,
+   "lon": -80.478755
+  },
+  {
+   "code": "37980",
+   "name": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD",
+   "pop": 6329118,
+   "lat": 39.894958,
+   "lon": -75.311982
+  },
+  {
+   "code": "38060",
+   "name": "Phoenix-Mesa-Chandler, AZ",
+   "pop": 5228938,
+   "lat": 33.185765,
+   "lon": -112.067862
+  },
+  {
+   "code": "14460",
+   "name": "Boston-Cambridge-Newton, MA-NH",
+   "pop": 5034221,
+   "lat": 42.517606,
+   "lon": -71.021993
+  },
+  {
+   "code": "40140",
+   "name": "Riverside-San Bernardino-Ontario, CA",
+   "pop": 4769007,
+   "lat": 34.538459,
+   "lon": -116.134544
+  },
+  {
+   "code": "41860",
+   "name": "San Francisco-Oakland-Fremont, CA",
+   "pop": 4630041,
+   "lat": 37.773718,
+   "lon": -122.274432
+  },
+  {
+   "code": "19820",
+   "name": "Detroit-Warren-Dearborn, MI",
+   "pop": 4390913,
+   "lat": 42.721848,
+   "lon": -83.200846
+  },
+  {
+   "code": "42660",
+   "name": "Seattle-Tacoma-Bellevue, WA",
+   "pop": 4161883,
+   "lat": 47.490552,
+   "lon": -121.833977
+  },
+  {
+   "code": "33460",
+   "name": "Minneapolis-St. Paul-Bloomington, MN-WI",
+   "pop": 3790295,
+   "lat": 45.096664,
+   "lon": -93.275361
+  },
+  {
+   "code": "45300",
+   "name": "Tampa-St. Petersburg-Clearwater, FL",
+   "pop": 3418895,
+   "lat": 28.120541,
+   "lon": -82.525188
+  },
+  {
+   "code": "41740",
+   "name": "San Diego-Chula Vista-Carlsbad, CA",
+   "pop": 3282248,
+   "lat": 33.023604,
+   "lon": -116.776117
+  },
+  {
+   "code": "19740",
+   "name": "Denver-Aurora-Centennial, CO",
+   "pop": 3092037,
+   "lat": 39.434789,
+   "lon": -104.901073
+  },
+  {
+   "code": "36740",
+   "name": "Orlando-Kissimmee-Sanford, FL",
+   "pop": 2957672,
+   "lat": 28.434398,
+   "lon": -81.35606
+  },
+  {
+   "code": "16740",
+   "name": "Charlotte-Concord-Gastonia, NC-SC",
+   "pop": 2938830,
+   "lat": 35.166342,
+   "lon": -80.797285
+  },
+  {
+   "code": "12580",
+   "name": "Baltimore-Columbia-Towson, MD",
+   "pop": 2857781,
+   "lat": 39.304361,
+   "lon": -76.549501
+  },
+  {
+   "code": "41180",
+   "name": "St. Louis, MO-IL",
+   "pop": 2814421,
+   "lat": 38.740211,
+   "lon": -90.345825
+  },
+  {
+   "code": "41700",
+   "name": "San Antonio-New Braunfels, TX",
+   "pop": 2813140,
+   "lat": 29.43306,
+   "lon": -98.606973
+  },
+  {
+   "code": "12420",
+   "name": "Austin-Round Rock-San Marcos, TX",
+   "pop": 2620945,
+   "lat": 30.249744,
+   "lon": -97.649842
+  },
+  {
+   "code": "38900",
+   "name": "Portland-Vancouver-Hillsboro, OR-WA",
+   "pop": 2542282,
+   "lat": 45.600622,
+   "lon": -122.484378
+  },
+  {
+   "code": "40900",
+   "name": "Sacramento-Roseville-Folsom, CA",
+   "pop": 2477274,
+   "lat": 38.790272,
+   "lon": -121.005643
+  },
+  {
+   "code": "38300",
+   "name": "Pittsburgh, PA",
+   "pop": 2421992,
+   "lat": 40.471332,
+   "lon": -79.863986
+  },
+  {
+   "code": "29820",
+   "name": "Las Vegas-Henderson-North Las Vegas, NV",
+   "pop": 2407226,
+   "lat": 36.21413,
+   "lon": -115.014398
+  },
+  {
+   "code": "17140",
+   "name": "Cincinnati, OH-KY-IN",
+   "pop": 2312858,
+   "lat": 39.078595,
+   "lon": -84.463535
+  },
+  {
+   "code": "28140",
+   "name": "Kansas City, MO-KS",
+   "pop": 2270682,
+   "lat": 38.931857,
+   "lon": -94.443841
+  },
+  {
+   "code": "18140",
+   "name": "Columbus, OH",
+   "pop": 2242028,
+   "lat": 39.968562,
+   "lon": -82.835911
+  },
+  {
+   "code": "26900",
+   "name": "Indianapolis-Carmel-Greenwood, IN",
+   "pop": 2205695,
+   "lat": 39.790533,
+   "lon": -86.12426
+  },
+  {
+   "code": "34980",
+   "name": "Nashville-Davidson--Murfreesboro--Franklin, TN",
+   "pop": 2197416,
+   "lat": 36.091577,
+   "lon": -86.72298
+  },
+  {
+   "code": "17410",
+   "name": "Cleveland, OH",
+   "pop": 2165775,
+   "lat": 41.667548,
+   "lon": -81.43052
+  },
+  {
+   "code": "41940",
+   "name": "San Jose-Sunnyvale-Santa Clara, CA",
+   "pop": 1984473,
+   "lat": 36.908472,
+   "lon": -121.371372
+  },
+  {
+   "code": "47260",
+   "name": "Virginia Beach-Chesapeake-Norfolk, VA-NC",
+   "pop": 1797213,
+   "lat": 36.837289,
+   "lon": -76.391849
+  },
+  {
+   "code": "27260",
+   "name": "Jacksonville, FL",
+   "pop": 1785500,
+   "lat": 30.234138,
+   "lon": -81.756058
+  },
+  {
+   "code": "39300",
+   "name": "Providence-Warwick, RI-MA",
+   "pop": 1708161,
+   "lat": 41.70684,
+   "lon": -71.286687
+  },
+  {
+   "code": "39580",
+   "name": "Raleigh-Cary, NC",
+   "pop": 1595720,
+   "lat": 35.756746,
+   "lon": -78.460441
+  },
+  {
+   "code": "33340",
+   "name": "Milwaukee-Waukesha, WI",
+   "pop": 1575010,
+   "lat": 42.912643,
+   "lon": -87.862312
+  },
+  {
+   "code": "36420",
+   "name": "Oklahoma City, OK",
+   "pop": 1512813,
+   "lat": 35.430968,
+   "lon": -97.506966
+  },
+  {
+   "code": "31140",
+   "name": "Louisville/Jefferson County, KY-IN",
+   "pop": 1402509,
+   "lat": 38.224363,
+   "lon": -85.701989
+  },
+  {
+   "code": "40060",
+   "name": "Richmond, VA",
+   "pop": 1389338,
+   "lat": 37.412237,
+   "lon": -77.44372
+  },
+  {
+   "code": "32820",
+   "name": "Memphis, TN-MS-AR",
+   "pop": 1341412,
+   "lat": 35.010307,
+   "lon": -89.820503
+  },
+  {
+   "code": "41620",
+   "name": "Salt Lake City-Murray, UT",
+   "pop": 1308377,
+   "lat": 40.572887,
+   "lon": -112.953253
+  },
+  {
+   "code": "23420",
+   "name": "Fresno, CA",
+   "pop": 1203383,
+   "lat": 36.879404,
+   "lon": -119.668488
+  },
+  {
+   "code": "13820",
+   "name": "Birmingham, AL",
+   "pop": 1197766,
+   "lat": 33.462372,
+   "lon": -86.814338
+  },
+  {
+   "code": "24340",
+   "name": "Grand Rapids-Wyoming-Kentwood, MI",
+   "pop": 1183645,
+   "lat": 42.979841,
+   "lon": -85.715614
+  },
+  {
+   "code": "25540",
+   "name": "Hartford-West Hartford-East Hartford, CT",
+   "pop": 1171426,
+   "lat": 41.688038,
+   "lon": -72.545112
+  },
+  {
+   "code": "15380",
+   "name": "Buffalo-Cheektowaga, NY",
+   "pop": 1155653,
+   "lat": 43.044371,
+   "lon": -78.777335
+  },
+  {
+   "code": "46060",
+   "name": "Tucson, AZ",
+   "pop": 1074685,
+   "lat": 32.128038,
+   "lon": -111.783657
+  },
+  {
+   "code": "46140",
+   "name": "Tulsa, OK",
+   "pop": 1069273,
+   "lat": 36.254442,
+   "lon": -96.177298
+  },
+  {
+   "code": "40380",
+   "name": "Rochester, NY",
+   "pop": 1056149,
+   "lat": 43.184718,
+   "lon": -77.556558
+  },
+  {
+   "code": "24860",
+   "name": "Greenville-Anderson-Greer, SC",
+   "pop": 1014101,
+   "lat": 34.683709,
+   "lon": -82.413423
+  },
+  {
+   "code": "36540",
+   "name": "Omaha, NE-IA",
+   "pop": 1009836,
+   "lat": 41.290459,
+   "lon": -95.99997
+  }
+ ],
+ "groups": [
+  {
+   "id": "early",
+   "label": "2023 and earlier",
+   "count": 36,
+   "median_mi": 21.4
+  },
+  {
+   "id": "y2024",
+   "label": "2024",
+   "count": 27,
+   "median_mi": 58.8
+  },
+  {
+   "id": "late",
+   "label": "2025 and later",
+   "count": 14,
+   "median_mi": 106.8
+  }
+ ],
+ "sites": {
+  "Anthropic-Amazon New Carlisle": {
+   "metro": "16980",
+   "mi": 68.8,
+   "group": "y2024",
+   "state": "IN",
+   "start_year": 2024
+  },
+  "Colossus 2": {
+   "metro": "32820",
+   "mi": 12.2,
+   "group": "late",
+   "state": "TN",
+   "start_year": 2025
+  },
+  "Microsoft Fairwater Atlanta": {
+   "metro": "12060",
+   "mi": 21.2,
+   "group": "early",
+   "state": "GA",
+   "start_year": 2023
+  },
+  "Meta Prometheus": {
+   "metro": "18140",
+   "mi": 7.8,
+   "group": "early",
+   "state": "OH",
+   "start_year": 2022
+  },
+  "OpenAI Stargate Abilene": {
+   "metro": "19100",
+   "mi": 166.4,
+   "group": "y2024",
+   "state": "TX",
+   "start_year": 2024
+  },
+  "Microsoft Fairwater Wisconsin": {
+   "metro": "33340",
+   "mi": 16.5,
+   "group": "early",
+   "state": "WI",
+   "start_year": 2023
+  },
+  "Google Pryor (North)": {
+   "metro": "46140",
+   "mi": 47.2,
+   "group": "y2024",
+   "state": "OK",
+   "start_year": 2024
+  },
+  "Colossus 1": {
+   "metro": "32820",
+   "mi": 15.7,
+   "group": "y2024",
+   "state": "TN",
+   "start_year": 2024
+  },
+  "Google New Albany": {
+   "metro": "18140",
+   "mi": 8.2,
+   "group": "y2024",
+   "state": "OH",
+   "start_year": 2024
+  },
+  "Google Columbus": {
+   "metro": "18140",
+   "mi": 11.6,
+   "group": "early",
+   "state": "OH",
+   "start_year": 2021
+  },
+  "Amazon Madison Mega Site": {
+   "metro": "32820",
+   "mi": 166.1,
+   "group": "early",
+   "state": "MS",
+   "start_year": 2023
+  },
+  "CoreWeave Denton TX": {
+   "metro": "19100",
+   "mi": 28.2,
+   "group": "y2024",
+   "state": "TX",
+   "start_year": 2024
+  },
+  "Google Bristow": {
+   "metro": "47900",
+   "mi": 6.9,
+   "group": "early",
+   "state": "VA",
+   "start_year": 2021
+  },
+  "QTS Richmond 1": {
+   "metro": "40060",
+   "mi": 12.0,
+   "group": "early",
+   "state": "VA",
+   "start_year": 2023
+  },
+  "Google Council Bluffs (East)": {
+   "metro": "36540",
+   "mi": 13.6,
+   "group": "early",
+   "state": "IA",
+   "start_year": 2022
+  },
+  "Google Omaha": {
+   "metro": "36540",
+   "mi": 4.1,
+   "group": "early",
+   "state": "NE",
+   "start_year": 2021
+  },
+  "Google Papillion": {
+   "metro": "36540",
+   "mi": 13.0,
+   "group": "early",
+   "state": "NE",
+   "start_year": 2020
+  },
+  "Amazon Ridgeland": {
+   "metro": "32820",
+   "mi": 181.6,
+   "group": "y2024",
+   "state": "MS",
+   "start_year": 2024
+  },
+  "AWS New Albany": {
+   "metro": "18140",
+   "mi": 7.9,
+   "group": "early",
+   "state": "OH",
+   "start_year": 2022
+  },
+  "Microsoft Goodyear": {
+   "metro": "38060",
+   "mi": 23.1,
+   "group": "early",
+   "state": "AZ",
+   "start_year": 2021
+  },
+  "Microsoft Project Osmium": {
+   "metro": "36540",
+   "mi": 116.1,
+   "group": "early",
+   "state": "IA",
+   "start_year": 2018
+  },
+  "Google Mesa": {
+   "metro": "38060",
+   "mi": 20.9,
+   "group": "early",
+   "state": "AZ",
+   "start_year": 2023
+  },
+  "Meta-QTS Hillsboro 2": {
+   "metro": "38900",
+   "mi": 21.7,
+   "group": "early",
+   "state": "OR",
+   "start_year": 2021
+  },
+  "QTS Richmond 2": {
+   "metro": "40060",
+   "mi": 12.3,
+   "group": "early",
+   "state": "VA",
+   "start_year": 2022
+  },
+  "Meta Jeffersonville": {
+   "metro": "31140",
+   "mi": 4.3,
+   "group": "y2024",
+   "state": "IN",
+   "start_year": 2024
+  },
+  "Meta Rosemount": {
+   "metro": "33460",
+   "mi": 26.1,
+   "group": "y2024",
+   "state": "MN",
+   "start_year": 2024
+  },
+  "Meta Temple": {
+   "metro": "12420",
+   "mi": 62.9,
+   "group": "early",
+   "state": "TX",
+   "start_year": 2022
+  },
+  "Google Storey County": {
+   "metro": "40900",
+   "mi": 92.2,
+   "group": "early",
+   "state": "NV",
+   "start_year": 2023
+  },
+  "Google The Dalles": {
+   "metro": "38900",
+   "mi": 62.0,
+   "group": "early",
+   "state": "OR",
+   "start_year": 2023
+  },
+  "Meta Montgomery": {
+   "metro": "13820",
+   "mi": 85.5,
+   "group": "y2024",
+   "state": "AL",
+   "start_year": 2024
+  },
+  "Meta Cheyenne": {
+   "metro": "19740",
+   "mi": 117.9,
+   "group": "y2024",
+   "state": "WY",
+   "start_year": 2024
+  },
+  "Meta Kuna": {
+   "metro": "41620",
+   "mi": 267.3,
+   "group": "early",
+   "state": "ID",
+   "start_year": 2022
+  },
+  "Meta Huntsville": {
+   "metro": "34980",
+   "mi": 82.5,
+   "group": "early",
+   "state": "AL",
+   "start_year": 2021
+  },
+  "QTS Richmond 3": {
+   "metro": "40060",
+   "mi": 11.5,
+   "group": "y2024",
+   "state": "VA",
+   "start_year": 2024
+  },
+  "Google Lincoln": {
+   "metro": "36540",
+   "mi": 42.8,
+   "group": "early",
+   "state": "NE",
+   "start_year": 2023
+  },
+  "Google Lancaster": {
+   "metro": "18140",
+   "mi": 18.6,
+   "group": "early",
+   "state": "OH",
+   "start_year": 2021
+  },
+  "Meta Eagle Mountain": {
+   "metro": "41620",
+   "mi": 53.2,
+   "group": "early",
+   "state": "UT",
+   "start_year": 2023
+  },
+  "Coreweave Helios": {
+   "metro": "36420",
+   "mi": 219.8,
+   "group": "late",
+   "state": "TX",
+   "start_year": 2025
+  },
+  "Meta Los Lunas": {
+   "metro": "38060",
+   "mi": 323.2,
+   "group": "y2024",
+   "state": "NM",
+   "start_year": 2024
+  },
+  "AWS Berwick": {
+   "metro": "37980",
+   "mi": 93.0,
+   "group": "early",
+   "state": "PA",
+   "start_year": 2021
+  },
+  "Google Kansas City East": {
+   "metro": "28140",
+   "mi": 13.7,
+   "group": "y2024",
+   "state": "MO",
+   "start_year": 2024
+  },
+  "Google Midlothian": {
+   "metro": "19100",
+   "mi": 28.7,
+   "group": "early",
+   "state": "TX",
+   "start_year": 2023
+  },
+  "Meta Gallatin": {
+   "metro": "34980",
+   "mi": 24.7,
+   "group": "early",
+   "state": "TN",
+   "start_year": 2023
+  },
+  "STACK Infrastructure NVA02": {
+   "metro": "47900",
+   "mi": 6.2,
+   "group": "early",
+   "state": "VA",
+   "start_year": 2019
+  },
+  "CoreWeave Chester VA": {
+   "metro": "40060",
+   "mi": 4.4,
+   "group": "early",
+   "state": "VA",
+   "start_year": 2023
+  },
+  "Meta Sarpy": {
+   "metro": "36540",
+   "mi": 14.8,
+   "group": "y2024",
+   "state": "NE",
+   "start_year": 2024
+  },
+  "Google Arcola": {
+   "metro": "47900",
+   "mi": 10.7,
+   "group": "y2024",
+   "state": "VA",
+   "start_year": 2024
+  },
+  "Google Red Oak": {
+   "metro": "19100",
+   "mi": 23.8,
+   "group": "early",
+   "state": "TX",
+   "start_year": 2023
+  },
+  "Microsoft SAT40": {
+   "metro": "41700",
+   "mi": 4.9,
+   "group": "early",
+   "state": "TX",
+   "start_year": 2018
+  },
+  "Meta Aiken": {
+   "metro": "24860",
+   "mi": 76.7,
+   "group": "y2024",
+   "state": "SC",
+   "start_year": 2024
+  },
+  "CoreWeave Ellendale ND": {
+   "metro": "33460",
+   "mi": 263.7,
+   "group": "early",
+   "state": "ND",
+   "start_year": 2023
+  },
+  "CoreWeave Marble NC": {
+   "metro": "24860",
+   "mi": 91.8,
+   "group": "y2024",
+   "state": "NC",
+   "start_year": 2024
+  },
+  "Stream Phoenix": {
+   "metro": "38060",
+   "mi": 23.4,
+   "group": "early",
+   "state": "AZ",
+   "start_year": 2022
+  },
+  "Core42 Lake Mariner": {
+   "metro": "15380",
+   "mi": 23.4,
+   "group": "y2024",
+   "state": "NY",
+   "start_year": 2024
+  },
+  "Microsoft-Nebius New Jersey": {
+   "metro": "37980",
+   "mi": 35.8,
+   "group": "y2024",
+   "state": "NJ",
+   "start_year": 2024
+  },
+  "Microsoft SAT14": {
+   "metro": "41700",
+   "mi": 6.1,
+   "group": "early",
+   "state": "TX",
+   "start_year": 2022
+  },
+  "Anthropic Lake Mariner": {
+   "metro": "15380",
+   "mi": 23.4,
+   "group": "late",
+   "state": "NY",
+   "start_year": 2025
+  },
+  "Vantage TX1": {
+   "metro": "41700",
+   "mi": 11.1,
+   "group": "early",
+   "state": "TX",
+   "start_year": 2023
+  },
+  "CoreWeave Dalton 1 & 2": {
+   "metro": "12060",
+   "mi": 74.9,
+   "group": "y2024",
+   "state": "GA",
+   "start_year": 2024
+  },
+  "xAI QTS Atlanta": {
+   "metro": "12060",
+   "mi": 3.5,
+   "group": "y2024",
+   "state": "GA",
+   "start_year": 2024
+  },
+  "Anthropic Barber Lake": {
+   "metro": "19100",
+   "mi": 228.7,
+   "group": "late",
+   "state": "TX",
+   "start_year": 2025
+  },
+  "CoreWeave Lancaster Greenfield site": {
+   "metro": "37980",
+   "mi": 51.1,
+   "group": "late",
+   "state": "PA",
+   "start_year": 2025
+  },
+  "CoreWeave Muskogee OK": {
+   "metro": "46140",
+   "mi": 58.8,
+   "group": "y2024",
+   "state": "OK",
+   "start_year": 2024
+  },
+  "Crusoe Abilene Expansion": {
+   "metro": "19100",
+   "mi": 166.4,
+   "group": "late",
+   "state": "TX",
+   "start_year": 2025
+  },
+  "Goodnight": {
+   "metro": "36420",
+   "mi": 220.5,
+   "group": "late",
+   "state": "TX",
+   "start_year": 2025
+  },
+  "Google Cedar Rapids": {
+   "metro": "16980",
+   "mi": 199.7,
+   "group": "y2024",
+   "state": "IA",
+   "start_year": 2024
+  },
+  "Google Fort Wayne": {
+   "metro": "26900",
+   "mi": 102.6,
+   "group": "y2024",
+   "state": "IN",
+   "start_year": 2024
+  },
+  "Meta Bowling Green": {
+   "metro": "19820",
+   "mi": 95.8,
+   "group": "y2024",
+   "state": "OH",
+   "start_year": 2024
+  },
+  "Meta Hyperion": {
+   "metro": "32820",
+   "mi": 204.0,
+   "group": "y2024",
+   "state": "LA",
+   "start_year": 2024
+  },
+  "OpenAI Stargate Lordstown": {
+   "metro": "17410",
+   "mi": 43.1,
+   "group": "late",
+   "state": "OH",
+   "start_year": 2025
+  },
+  "OpenAI Stargate Michigan": {
+   "metro": "19820",
+   "mi": 52.5,
+   "group": "late",
+   "state": "MI",
+   "start_year": 2025
+  },
+  "OpenAI Stargate Milam": {
+   "metro": "12420",
+   "mi": 52.5,
+   "group": "late",
+   "state": "TX",
+   "start_year": 2025
+  },
+  "OpenAI Stargate New Mexico": {
+   "metro": "46060",
+   "mi": 288.7,
+   "group": "late",
+   "state": "NM",
+   "start_year": 2025
+  },
+  "OpenAI Stargate Shackelford": {
+   "metro": "19100",
+   "mi": 161.0,
+   "group": "late",
+   "state": "TX",
+   "start_year": 2025
+  },
+  "OpenAI Stargate Wisconsin": {
+   "metro": "33340",
+   "mi": 32.9,
+   "group": "late",
+   "state": "WI",
+   "start_year": 2026
+  },
+  "QTS Cedar Rapids": {
+   "metro": "16980",
+   "mi": 201.5,
+   "group": "late",
+   "state": "IA",
+   "start_year": 2025
+  },
+  "QTS Eagle Mountain": {
+   "metro": "41620",
+   "mi": 52.7,
+   "group": "early",
+   "state": "UT",
+   "start_year": 2023
+  }
+ }
+}

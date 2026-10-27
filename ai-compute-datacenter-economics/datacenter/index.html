@@ -181,22 +181,17 @@
   #beat-bar.is-shown { display: flex; gap: 2px; }
 
   /* ---------- entry buttons ----------
-     The two ways into Why there, on its overview screen. Same chrome as the
-     view switches above, because they are the same kind of control; they sit
-     under the one line the screen says rather than under the scene buttons. */
+     The two ways into Why there, on its overview screen. They are the scene
+     buttons' own control, at the scene buttons' size, because that is what
+     they are: a way into something, not a switch between views of it. */
 
   #entry-bar {
     position: absolute; z-index: 5;
     top: 198px; left: 50%; transform: translateX(-50%);
     display: none;
-    padding: 3px;
-    border-radius: 999px;
-    border: 1px solid var(--stage-border);
-    background: var(--stage-panel);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    align-items: stretch; gap: 8px;
   }
-  #entry-bar.is-shown { display: flex; gap: 2px; }
+  #entry-bar.is-shown { display: flex; }
   .beat-btn {
     font-family: inherit;
     font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
@@ -245,6 +240,65 @@
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
   }
   .counter-value .unit { font-size: 1.1rem; font-weight: 700; color: var(--stage-text-dim); margin-left: 4px; }
+
+  /* ---------- Why there: the numbers step aside ----------
+     The scene leads with one line, so the counters hand the middle of the
+     screen to it and go back to the corner, small and stacked, counting the
+     same way they count anywhere else. */
+
+  #stage[data-scene="why"] #counters {
+    top: 16px; left: 16px;
+    transform: none;
+    display: block;
+    gap: 0;
+  }
+  #stage[data-scene="why"] .counter { min-width: 0; text-align: left; }
+  #stage[data-scene="why"] .counter + .counter { margin-top: 7px; }
+  #stage[data-scene="why"] .counter-label {
+    font-size: 0.55rem; margin-bottom: 1px;
+  }
+  #stage[data-scene="why"] .counter-value { font-size: 1.15rem; }
+  #stage[data-scene="why"] .counter-value .unit {
+    font-size: 0.7rem; margin-left: 3px;
+  }
+
+  /* The line the scene leads with, in the weight the counters had here. */
+  #stage[data-scene="why"] #headline {
+    top: 96px;
+    max-width: min(760px, calc(100% - 420px));
+    font-size: 2.5rem; font-weight: 800; line-height: 1.05;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  #stage[data-scene="why"] #headline.is-back { cursor: pointer; }
+  #stage[data-scene="why"] #entry-bar { top: 178px; }
+
+  /* The number a view counts to, with the group it belongs to beside it. */
+  .where-figure { display: inline-flex; align-items: baseline; gap: 14px; }
+  .where-unit {
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--stage-text-dim); margin-left: 4px;
+  }
+  .where-group {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+  }
+
+  /* The one line that arrives under the number when the last group has. */
+  #where-note {
+    position: absolute; z-index: 5;
+    top: 146px; left: 50%; transform: translateX(-50%);
+    width: max-content;
+    max-width: min(620px, calc(100% - 420px));
+    margin: 0;
+    text-align: center;
+    font-size: 0.82rem; font-weight: 600; line-height: 1.45;
+    color: var(--stage-text);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.9s ease, visibility 0.9s;
+  }
+  #where-note.is-shown { opacity: 1; visibility: visible; }
 
   /* ---------- how we know ----------
      A quiet link under the counters. It is deliberately small and un-pilled
@@ -665,6 +719,10 @@
     /* No legend at this width, so the caption may use the full column. */
     #headline { top: 150px; max-width: calc(100% - 32px); font-size: 0.74rem; }
     #entry-bar { top: 182px; }
+    #stage[data-scene="why"] #counters { top: 16px; left: 16px; }
+    #stage[data-scene="why"] #headline { top: 92px; font-size: 1.5rem; }
+    #stage[data-scene="why"] #entry-bar { top: 150px; }
+    #where-note { top: 126px; max-width: calc(100% - 32px); font-size: 0.74rem; }
   }
 </style>
 </head>
@@ -721,6 +779,9 @@
     <!-- The two entries on the Why there overview screen, filled from that
          scene's own `intro` block and shown only while it is up. -->
     <div id="entry-bar" role="group" aria-label="Entry points"></div>
+
+    <!-- The footnote the Where view ends on, under its number. -->
+    <p id="where-note"></p>
 
     <p id="headline"></p>
 
@@ -800,7 +861,8 @@
       states: "data/us_states.geojson",
       mask: "data/us_mask.geojson",
       chiller: "data/chiller_rule.json",
-      prices: "data/state_prices.json"
+      prices: "data/state_prices.json",
+      metros: "data/metros.json"
     },
 
     /* Owner colours for the dark stage, in two tiers.
@@ -1009,11 +1071,40 @@
         intro: {
           headline: "Sites follow power",
           entries: [
-            { id: "where", label: "Where" },
-            { id: "howlong", label: "How long" }
+            { id: "where", label: "Where", ready: true },
+            { id: "howlong", label: "How long", ready: false }
           ],
           /* How much of a bar is left while the overview screen is up. */
           barAlpha: 0.2
+        },
+        /* How far the capacity sits from the nearest metro of a million
+           people or more, by the year it broke ground. The medians, the
+           metro list and each site's nearest metro are all computed by
+           build_metros.py into data/metros.json; the groups and their order
+           are the data's, and only the colours are set here.
+
+           Cool to warm, in the order the groups arrive, so the ramp reads as
+           the sequence it is; the year label beside the number carries the
+           same identity, so colour is never the only thing saying which
+           group is on screen. */
+        where: {
+          stepMs: 1500,            /* between one group and the next */
+          drawMs: 700,             /* a group's lines drawing out */
+          countMs: 600,            /* the number counting to its median */
+          litAlpha: 0.9,           /* a revealed site's bar */
+          unit: "mi",
+          groups: [
+            { color: "#17b2c9" },
+            { color: "#f5c451" },
+            { color: "#f08422" }
+          ],
+          dotColor: [242, 245, 248, 215],
+          dotRadiusPx: 2.6,
+          lineWidthPx: 1,
+          lineAlpha: 165,
+          legendHead: "Nearest metro of 1M or more",
+          note: "Same land, about 180x the power of \uD83C\uDF4A Orange County",
+          backHint: "Back to Sites follow power"
         },
         /* The views are off the screen for now, and the beats list, the price
            block below it and everything they drive stay here to be taken
@@ -1107,6 +1198,9 @@
   var STATES = [];
   var CHILLER = null;
   var PRICES = null;
+  var METROS = null;            /* metro areas of a million people or more */
+  var METRO_BY_CODE = {};
+  var viewId = null;            /* the view open inside an overview screen */
   var stateFacts = {};          /* per-state MW and start-year price ratio */
   var STOPS = [];
   var TODAY_INDEX = 0;
@@ -1135,6 +1229,11 @@
   /* The three numbers in the corner ease as well, so a move reads as a change
      rather than a swap and the year ticks forward with the bars. */
   var countAnim = { from: null, to: null, start: 0, frame: null };
+  /* The Where view reveals its groups one after another: `step` is the group
+     being revealed, `start` is when it began, and the number eases to that
+     group's median the way the counters ease to theirs. */
+  var whereAnim = { step: -1, start: 0, frame: null, timer: null };
+  var whereNum = { from: 0, to: 0, start: 0 };
   var shown = {};              /* MW currently displayed, per site name */
 
   var el = function (id) { return document.getElementById(id); };
@@ -1568,6 +1667,178 @@
      neither has anything to say about where the timeline is. */
   function flatBars() { return isPriceView() || !!introCfg(); }
 
+  /* ---------- the Where view ----------
+     How far each site sits from the nearest metro of a million people or
+     more, revealed one start-year group at a time. */
+
+  function whereCfg() { return CONFIG.scenes.why.where; }
+
+  function isWhereView() { return viewId === "where" && !!METROS; }
+
+  /* The groups are the data's own, in the data's order; the config says only
+     what colour each one wears. */
+  function whereGroups() {
+    if (!METROS) return [];
+    var colors = whereCfg().groups;
+    return METROS.groups.map(function (group, i) {
+      return {
+        id: group.id,
+        label: group.label,
+        median: group.median_mi,
+        count: group.count,
+        color: (colors[i] || colors[colors.length - 1]).color
+      };
+    });
+  }
+
+  function whereRow(site) {
+    return (METROS && METROS.sites[site.name]) || null;
+  }
+
+  function siteGroupIndex(site) {
+    var row = whereRow(site);
+    if (!row) return -1;
+    for (var i = 0; i < METROS.groups.length; i++) {
+      if (METROS.groups[i].id === row.group) return i;
+    }
+    return -1;
+  }
+
+  /* 0 while a group is still waiting its turn, 1 once its lines have drawn
+     all the way to their metro. */
+  function groupProgress(index) {
+    if (!isWhereView() || index < 0 || index > whereAnim.step) return 0;
+    if (index < whereAnim.step) return 1;
+    var t = (performance.now() - whereAnim.start) / whereCfg().drawMs;
+    return Math.max(0, Math.min(1, t));
+  }
+
+  function whereNumber() {
+    if (whereNum.start === 0) return whereNum.to;
+    var t = Math.min(1,
+      (performance.now() - whereNum.start) / whereCfg().countMs);
+    return whereNum.from + (whereNum.to - whereNum.from) * easeOut(t);
+  }
+
+  function whereSettled() {
+    var groups = whereGroups();
+    if (whereAnim.step < groups.length - 1) return false;
+    var cfg = whereCfg();
+    return performance.now() >=
+      whereAnim.start + Math.max(cfg.drawMs, cfg.countMs);
+  }
+
+  function whereFrame() {
+    renderHeadline(STOPS[stopIndex]);
+    paint();
+    if (whereSettled()) {
+      whereAnim.frame = null;
+      whereNum.start = 0;
+      renderHeadline(STOPS[stopIndex]);
+      paint();
+      /* The line lands once the last number has, not when its group began. */
+      el("where-note").textContent = whereCfg().note;
+      el("where-note").classList.add("is-shown");
+      return;
+    }
+    whereAnim.frame = requestAnimationFrame(whereFrame);
+  }
+
+  function revealNextGroup() {
+    var groups = whereGroups();
+    var next = whereAnim.step + 1;
+    if (next >= groups.length) return;
+    whereAnim.step = next;
+    whereAnim.start = performance.now();
+    renderWhereLegend();
+    whereNum.from = whereNumber();
+    whereNum.to = groups[next].median;
+    whereNum.start = whereAnim.start;
+    if (!whereAnim.frame) whereAnim.frame = requestAnimationFrame(whereFrame);
+    if (next + 1 < groups.length) {
+      whereAnim.timer = setTimeout(revealNextGroup, whereCfg().stepMs);
+    }
+  }
+
+  function stopWhere() {
+    if (whereAnim.timer) { clearTimeout(whereAnim.timer); whereAnim.timer = null; }
+    if (whereAnim.frame) { cancelAnimationFrame(whereAnim.frame); whereAnim.frame = null; }
+    whereAnim.step = -1;
+    whereNum.from = whereNum.to = 0;
+    whereNum.start = 0;
+    el("where-note").classList.remove("is-shown");
+    el("where-note").textContent = "";
+  }
+
+  function setView(id) {
+    if (!introCfg()) return;
+    if (id === "where" && !METROS) return;
+    stopWhere();
+    viewId = id;
+    renderEntryBar();
+    if (id === "where") revealNextGroup();
+    draw();
+    paint();
+  }
+
+  /* The way back out of a view, from the headline, from the entry button
+     that opened it, or from the scene button above them. */
+  function clearView() {
+    if (!viewId) return;
+    stopWhere();
+    viewId = null;
+    renderEntryBar();
+    draw();
+    paint();
+  }
+
+  function whereLinkLayers() {
+    if (!isWhereView()) return [];
+    var cfg = whereCfg();
+    var groups = whereGroups();
+    var lines = [];
+    SITES.forEach(function (site) {
+      var index = siteGroupIndex(site);
+      var progress = groupProgress(index);
+      if (progress <= 0) return;
+      var metro = METRO_BY_CODE[whereRow(site).metro];
+      if (!metro) return;
+      /* The line grows from the site towards its metro, so a group arrives
+         as a movement rather than as a finished diagram. */
+      lines.push({
+        from: [site.lon, site.lat],
+        to: [site.lon + (metro.lon - site.lon) * progress,
+             site.lat + (metro.lat - site.lat) * progress],
+        color: hexToRgb(groups[index].color).concat(cfg.lineAlpha)
+      });
+    });
+    return [new deck.LineLayer({
+      id: "metro-links",
+      data: lines,
+      pickable: false,
+      widthUnits: "pixels",
+      getWidth: cfg.lineWidthPx,
+      getSourcePosition: function (d) { return d.from; },
+      getTargetPosition: function (d) { return d.to; },
+      getColor: function (d) { return d.color; }
+    })];
+  }
+
+  function whereDotLayers() {
+    if (!isWhereView()) return [];
+    var cfg = whereCfg();
+    return [new deck.ScatterplotLayer({
+      id: "metro-dots",
+      data: METROS.metros,
+      pickable: false,
+      stroked: false,
+      radiusUnits: "pixels",
+      getRadius: cfg.dotRadiusPx,
+      getPosition: function (metro) { return [metro.lon, metro.lat]; },
+      getFillColor: cfg.dotColor
+    })];
+  }
+
   function renderBeatBar() {
     var bar = el("beat-bar");
     var cfg = scene();
@@ -1596,8 +1867,14 @@
     var list = (intro && intro.entries) || [];
     bar.classList.toggle("is-shown", list.length > 0);
     bar.innerHTML = list.map(function (entry) {
-      return '<button type="button" class="beat-btn" data-entry="' +
-        escapeHtml(entry.id) + '" aria-disabled="true" disabled>' +
+      /* An entry is only live once the data it reads has arrived. */
+      var ready = !!entry.ready && (entry.id !== "where" || !!METROS);
+      var classes = "scene-btn" + (ready ? " is-ready" : "") +
+                    (entry.id === viewId ? " is-active" : "");
+      return '<button type="button" class="' + classes + '" data-entry="' +
+        escapeHtml(entry.id) + '"' +
+        (ready ? "" : ' aria-disabled="true" disabled') +
+        ' aria-pressed="' + (entry.id === viewId ? "true" : "false") + '">' +
         escapeHtml(entry.label) + "</button>";
     }).join("");
   }
@@ -1614,6 +1891,10 @@
     draw();
     paint();
   }
+
+  /* The stage carries the scene's name, so a scene that wants its panels
+     somewhere else can say so in CSS rather than in layout code. */
+  function syncSceneClass() { el("stage").dataset.scene = sceneId; }
 
   /* Every scene has a button, and the one you are in is the one lit. */
   function buttonScenes() {
@@ -1641,6 +1922,10 @@
     if (!locksTimeline()) freeStopIndex = stopIndex;
 
     sceneId = id;
+    /* Whatever view was open belonged to the scene being left. */
+    stopWhere();
+    viewId = null;
+    syncSceneClass();
     highlightOwner = null;
     pinnedSite = null;
     hoverSite = null;
@@ -1708,9 +1993,19 @@
      else a bar is its owner's colour. */
   function barFill(site) {
     var intro = introCfg();
-    /* The overview screen reads as one line over a map, so the bars stay in
-       their owner colours and drop back to a fifth of their weight. */
     if (intro) {
+      /* In the Where view a site lights up in its group's colour on the beat
+         that group arrives, and waits at the backdrop weight until then. */
+      if (isWhereView()) {
+        var index = siteGroupIndex(site);
+        if (groupProgress(index) > 0) {
+          var where = whereCfg();
+          return hexToRgb(whereGroups()[index].color)
+            .concat(Math.round(255 * where.litAlpha * dimFactor(site)));
+        }
+      }
+      /* The overview screen reads as one line over a map, so the bars stay
+         in their owner colours and drop back to a fifth of their weight. */
       return hexToRgb(ownerColor(site.owner))
         .concat(Math.round(255 * intro.barAlpha * dimFactor(site)));
     }
@@ -1959,7 +2254,9 @@
          bar stands on top of it, so the type is drawn over the bars rather
          than under them. */
       layers: stateFillLayers()
+        .concat(whereLinkLayers())
         .concat(barLayers())
+        .concat(whereDotLayers())
         .concat(stateLabelLayers(stop))
     });
   }
@@ -2041,6 +2338,30 @@
     countAnim.frame = requestAnimationFrame(tick);
   }
 
+  /* One row per group, each carrying the median the number counted to.
+     Re-rendered when a group arrives, not every frame: nothing in it moves
+     between those beats. */
+  function renderWhereLegend() {
+    var cfg = whereCfg();
+    el("legend").classList.remove("is-two-col");
+    el("legend-head").textContent = cfg.legendHead;
+    el("legend-rows").innerHTML = whereGroups().map(function (group, i) {
+      /* A group's row lights up on the beat it arrives, which is this call,
+         so it goes by the step rather than by how far its lines have drawn. */
+      var lit = i <= whereAnim.step;
+      return '<div class="legend-row' + (lit ? "" : " is-zero") + '">' +
+        '<span class="legend-swatch" style="background:' + group.color +
+          '"></span>' +
+        '<span class="legend-name" title="' + escapeHtml(group.label) + '">' +
+          escapeHtml(group.label) + "</span>" +
+        '<span class="legend-mw">' +
+          (lit ? Math.round(group.median) + " " + escapeHtml(cfg.unit)
+               : "&ndash;") +
+        "</span>" +
+      "</div>";
+    }).join("");
+  }
+
   function ownerTotals(key, stop) {
     var totals = {};
     Object.keys(CONFIG.ownerColors).forEach(function (owner) { totals[owner] = 0; });
@@ -2116,6 +2437,13 @@
       el("legend-sub-head").hidden = true;
     } else {
       renderPriceLegend();
+      return;
+    }
+
+    /* The bars are coloured by group in the Where view, so the panel keys
+       the groups rather than the owners it would otherwise contradict. */
+    if (isWhereView() && whereAnim.step >= 0) {
+      renderWhereLegend();
       return;
     }
 
@@ -2232,6 +2560,27 @@
     /* The overview screen speaks for its scene while it is up; the caption
        the scene's own views carry waits below it. */
     var intro = introCfg();
+
+    /* A view inside it answers with one number, so the line the screen leads
+       with becomes that number and the way back out of the view. */
+    node.classList.toggle("is-back", !!viewId);
+    if (isWhereView() && whereAnim.step >= 0) {
+      var groups = whereGroups();
+      var group = groups[Math.min(whereAnim.step, groups.length - 1)];
+      node.innerHTML =
+        '<span class="where-figure">' +
+          "<span>" + Math.round(whereNumber()) +
+            '<span class="where-unit">' + escapeHtml(whereCfg().unit) +
+            "</span>" +
+          "</span>" +
+          '<span class="where-group">' + escapeHtml(group.label) + "</span>" +
+        "</span>";
+      node.title = whereCfg().backHint;
+      node.classList.add("is-shown");
+      return;
+    }
+    node.title = "";
+
     var lines = intro
       ? [intro.headline]
       : (cfg && (cfg.headlineLines ||
@@ -2555,8 +2904,22 @@
 
     el("scene-bar").addEventListener("click", function (event) {
       var btn = event.target.closest(".scene-btn");
-      if (btn && btn.dataset.scene) setScene(btn.dataset.scene);
+      if (!btn || !btn.dataset.scene) return;
+      /* The button of the scene you are already in is the way back out of a
+         view inside it, and does nothing when there is none. */
+      if (btn.dataset.scene === sceneId) { clearView(); return; }
+      setScene(btn.dataset.scene);
     });
+
+    el("entry-bar").addEventListener("click", function (event) {
+      var btn = event.target.closest(".scene-btn");
+      if (!btn || !btn.dataset.entry) return;
+      if (btn.dataset.entry === viewId) { clearView(); return; }
+      setView(btn.dataset.entry);
+    });
+
+    /* The line the screen leads with is the way back from a view. */
+    el("headline").addEventListener("click", function () { clearView(); });
 
     el("beat-bar").addEventListener("click", function (event) {
       var btn = event.target.closest(".beat-btn");
@@ -2755,13 +3118,16 @@
     });
   }
 
-  function boot(payload, states, mask, chiller, prices) {
+  function boot(payload, states, mask, chiller, prices, metros) {
     SITES = payload.sites.filter(function (s) {
       return typeof s.lat === "number" && typeof s.lon === "number";
     });
     STATES = states.features;
     CHILLER = chiller;
     PRICES = prices;
+    METROS = metros;
+    METRO_BY_CODE = {};
+    METROS.metros.forEach(function (metro) { METRO_BY_CODE[metro.code] = metro; });
     CONFIG.asOf = payload.meta.as_of;
     buildStateFacts();
 
@@ -2776,6 +3142,7 @@
     el("size-key-note").textContent = CONFIG.labels.sizeKeyNote;
     el("track-hint").textContent = CONFIG.labels.dragHint;
     el("how-btn-label").textContent = CONFIG.howWeKnow.button;
+    syncSceneClass();
     renderSceneBar();
     renderBeatBar();
     renderHowPanel();
@@ -2808,6 +3175,12 @@
       offsets: function () { return offsetDeg; },
       chiller: function () { return CHILLER; },
       prices: function () { return PRICES; },
+      metros: function () { return METROS; },
+      view: function () { return viewId; },
+      whereStep: function () { return whereAnim.step; },
+      whereGroups: whereGroups,
+      setView: setView,
+      clearView: clearView,
       stateFacts: function () { return stateFacts; },
       statePrice: statePrice,
       usPrice: usPrice,
@@ -2888,6 +3261,10 @@
     fetchData(CONFIG.data.prices).then(function (r) {
       if (!r.ok) throw new Error("state_prices.json " + r.status);
       return r.json();
+    }),
+    fetchData(CONFIG.data.metros).then(function (r) {
+      if (!r.ok) throw new Error("metros.json " + r.status);
+      return r.json();
     })
   ]).catch(function (error) {
     fail("Could not load the site data (" + error.message +
@@ -2897,7 +3274,8 @@
     /* Separate from the fetch catch above: a render fault must not be
        reported as a missing file. */
     try {
-      boot(results[0], results[1], results[2], results[3], results[4]);
+      boot(results[0], results[1], results[2], results[3], results[4],
+           results[5]);
     } catch (error) {
       console.error(error);
       fail("The map failed to draw (" + error.message + ").");
