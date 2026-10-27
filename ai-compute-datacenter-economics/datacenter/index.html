@@ -179,6 +179,24 @@
     -webkit-backdrop-filter: blur(10px);
   }
   #beat-bar.is-shown { display: flex; gap: 2px; }
+
+  /* ---------- entry buttons ----------
+     The two ways into Why there, on its overview screen. Same chrome as the
+     view switches above, because they are the same kind of control; they sit
+     under the one line the screen says rather than under the scene buttons. */
+
+  #entry-bar {
+    position: absolute; z-index: 5;
+    top: 198px; left: 50%; transform: translateX(-50%);
+    display: none;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid var(--stage-border);
+    background: var(--stage-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  #entry-bar.is-shown { display: flex; gap: 2px; }
   .beat-btn {
     font-family: inherit;
     font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
@@ -646,6 +664,7 @@
     .scene-btn { font-size: 0.74rem; padding: 7px 13px; }
     /* No legend at this width, so the caption may use the full column. */
     #headline { top: 150px; max-width: calc(100% - 32px); font-size: 0.74rem; }
+    #entry-bar { top: 182px; }
   }
 </style>
 </head>
@@ -698,6 +717,10 @@
     <!-- The views inside a scene. Why there is the first scene to have any;
          filled from its own `beats` list, and hidden for scenes without. -->
     <div id="beat-bar" role="tablist" aria-label="Views"></div>
+
+    <!-- The two entries on the Why there overview screen, filled from that
+         scene's own `intro` block and shown only while it is up. -->
+    <div id="entry-bar" role="group" aria-label="Entry points"></div>
 
     <p id="headline"></p>
 
@@ -981,6 +1004,21 @@
         lockHint: "Fixed at today for this scene",
         pxPerMWFor: "tallest2030",
         tallestTargetPx: 180,
+        /* The scene opens on an overview screen: one line, and the two ways
+           into it. The map stays where it is, dimmed back to a backdrop. */
+        intro: {
+          headline: "Sites follow power",
+          entries: [
+            { id: "where", label: "Where" },
+            { id: "howlong", label: "How long" }
+          ],
+          /* How much of a bar is left while the overview screen is up. */
+          barAlpha: 0.2
+        },
+        /* The views are off the screen for now, and the beats list, the price
+           block below it and everything they drive stay here to be taken
+           apart and reused by the two entries above. */
+        beatsHidden: true,
         /* The three reasons a site lands where it lands. Price is the beat
            this step builds; the other two stay visible and inert. */
         beats: [
@@ -1493,7 +1531,7 @@
      view draws one solid bar per site instead and so switches it off too. */
   function showsPlanned() {
     var cfg = scene();
-    if (!cfg || !cfg.showPlanned || isPriceView()) return false;
+    if (!cfg || !cfg.showPlanned || flatBars()) return false;
     return !!(STOPS.length && STOPS[stopIndex] && STOPS[stopIndex].isToday);
   }
 
@@ -1501,6 +1539,10 @@
   function beats() { var cfg = scene(); return (cfg && cfg.beats) || []; }
 
   function firstReadyBeat() {
+    var cfg = scene();
+    /* A scene whose views are hidden opens on its overview screen instead,
+       so no view is entered and nothing a view draws is reached. */
+    if (cfg && cfg.beatsHidden) return null;
     var list = beats();
     for (var i = 0; i < list.length; i++) {
       if (list[i].ready) return list[i].id;
@@ -1512,9 +1554,26 @@
     return sceneId === "why" && beatId === "price" && !!PRICES;
   }
 
+  /* The overview screen a scene opens on while its views are hidden: there is
+     no view to be in, so the scene says one line with the map dimmed behind
+     it. */
+  function introCfg() {
+    var cfg = scene();
+    return (cfg && cfg.beatsHidden && cfg.intro && !beatId) ? cfg.intro : null;
+  }
+
+  /* One solid bar per site at its 2030 figure, rather than the timeline's own
+     value with the gap to 2030 outlined. The price view asks one question of
+     every site, and the overview screen is only using the bars as a backdrop;
+     neither has anything to say about where the timeline is. */
+  function flatBars() { return isPriceView() || !!introCfg(); }
+
   function renderBeatBar() {
     var bar = el("beat-bar");
-    var list = beats();
+    var cfg = scene();
+    /* `beats` is left intact on a scene that hides its views, so the list and
+       everything it drives stay available to be reused. */
+    var list = (cfg && cfg.beatsHidden) ? [] : beats();
     bar.classList.toggle("is-shown", list.length > 0);
     bar.innerHTML = list.map(function (beat) {
       var classes = "beat-btn" + (beat.ready ? " is-ready" : "") +
@@ -1524,6 +1583,22 @@
         (beat.ready ? "" : ' aria-disabled="true" disabled') +
         ' aria-selected="' + (beat.id === beatId ? "true" : "false") + '">' +
         escapeHtml(beat.label) + "</button>";
+    }).join("");
+    renderEntryBar();
+  }
+
+  /* The overview screen's entries. Styled as the view switches are, and
+     inert in the same way the views that are not built yet are, so neither
+     one promises something that is not there. */
+  function renderEntryBar() {
+    var bar = el("entry-bar");
+    var intro = introCfg();
+    var list = (intro && intro.entries) || [];
+    bar.classList.toggle("is-shown", list.length > 0);
+    bar.innerHTML = list.map(function (entry) {
+      return '<button type="button" class="beat-btn" data-entry="' +
+        escapeHtml(entry.id) + '" aria-disabled="true" disabled>' +
+        escapeHtml(entry.label) + "</button>";
     }).join("");
   }
 
@@ -1632,6 +1707,13 @@
      neutral, because the state underneath is what is being read; everywhere
      else a bar is its owner's colour. */
   function barFill(site) {
+    var intro = introCfg();
+    /* The overview screen reads as one line over a map, so the bars stay in
+       their owner colours and drop back to a fifth of their weight. */
+    if (intro) {
+      return hexToRgb(ownerColor(site.owner))
+        .concat(Math.round(255 * intro.barAlpha * dimFactor(site)));
+    }
     if (isPriceView()) {
       var price = priceCfg();
       return hexToRgb(price.barColor)
@@ -1782,7 +1864,7 @@
        scene, the 2030 figure the hollow outline reaches. Sorted tallest
        first so a tall bar is drawn behind the shorter ones in front of it. */
     var planned = showsPlanned();
-    var flat = isPriceView();
+    var flat = flatBars();
     return SITES.map(function (site) {
       /* The solid bar is always the timeline's own value, eased, so sliding
          into Today grows into the outline rather than snapping to it. The
@@ -1842,9 +1924,10 @@
       data: rows,
       pickable: true,
       filled: true,
-      /* No outline in the price view: a lightened edge on a bar that is
-         already near-white only thickens it. */
-      stroked: !isPriceView(),
+      /* No outline where the bars are drawn flat: a lightened edge on a bar
+         that is already near-white only thickens it, and one at full weight
+         on a bar dimmed to a backdrop would be all that was left of it. */
+      stroked: !flatBars(),
       extruded: false,
       lineWidthUnits: "pixels",
       lineJointRounded: false,
@@ -2146,14 +2229,21 @@
     /* A scene gives either one line or several; both arrive and leave as one
        caption, so a scene that has something in two sentences does not have
        to say it in one. */
-    var lines = cfg && (cfg.headlineLines ||
-                        (cfg.headline ? [cfg.headline] : null));
+    /* The overview screen speaks for its scene while it is up; the caption
+       the scene's own views carry waits below it. */
+    var intro = introCfg();
+    var lines = intro
+      ? [intro.headline]
+      : (cfg && (cfg.headlineLines ||
+                 (cfg.headline ? [cfg.headline] : null)));
     if (!lines) { node.classList.remove("is-shown"); node.innerHTML = ""; return; }
     node.innerHTML = lines.map(function (line) {
       return '<span class="headline-line">' + escapeHtml(line) + "</span>";
     }).join("");
     node.classList.toggle("is-shown",
-      cfg.headlineAlways ? true : (cfg.headlineAt === "today" && stop.isToday));
+      (intro || cfg.headlineAlways)
+        ? true
+        : (cfg.headlineAt === "today" && stop.isToday));
   }
 
   function draw(instant) {
