@@ -168,3 +168,51 @@ more widely reported range.
 
 `data/sources.json` carries the same entries, with the arithmetic and these
 caveats beside the figures.
+
+## Make your own power, and the last step of Connect to the Grid
+
+Step 7 of Connect to the Grid compares two sites on Epoch's own clock, first
+dated observation to first operational: Amazon New Carlisle, 2024-02-09 to
+2025-06-23, 500 days, shown as 16 months; Google Council Bluffs East,
+2022-09-06 to 2024-11-19, 805 days, shown as 26 months. Unlike the earlier
+steps this one compares like with like. What the dates cannot carry is why.
+
+The Make Your Own Power view rests on the same Epoch dates for its two
+finished examples, and on four outside sources for what is behind them. Each
+card carries its own numbered citations; the full entries, with the caveats
+below, are in `data/sources.json`.
+
+- **Colossus 1, temporary turbines.** Action News 5, "xAI begins removal of
+  temporary gas turbines", 2025-05-06,
+  <https://www.actionnews5.com/2025/05/06/xai-begins-removal-temporary-gas-turbines>,
+  with Cleanview's Colossus report,
+  <https://cleanview.co/reports/behind-the-meter-data-centers/full-report/colossus>.
+  Simplified on the card: the site also ran on Tesla Megapacks and some MLGW
+  supply, and the first substation came online in spring 2025, after the four
+  months Epoch's dates cover.
+- **Stargate Abilene, substation and gas.** Epoch AI's directory page,
+  <https://epoch.ai/data/ai-data-centers/directory/openai-stargate-abilene>,
+  for the 200 MW substation built in 2022 and expanded in 2024; Cleanview's
+  Stargate Abilene report,
+  <https://cleanview.co/reports/behind-the-meter-data-centers/full-report/stargate-abilene>,
+  for the on-site gas and the December 2024 turbine order. Turbine counts
+  differ by source (5 installed, 10 permitted, 29 reported ordered) and Crusoe
+  has said they are for backup; the card claims the order date and the
+  existence of on-site gas, not a count or a duty cycle.
+- **Haskell County, Google and Intersect.** Cleary Gottlieb, "Alphabet
+  Completes $4.75 Billion Acquisition of Intersect Power", 2026-03-12,
+  <https://www.clearygottlieb.com/news-and-insights/news-listing/alphabet-completes-4-75-billion-acquisition-of-intersect-power>.
+  The marker sits at the county's own internal point from the 2025 county
+  Gazetteer file (GEOID 48207, 33.175964, -99.730774), not at the site, which
+  is why the card says the location is shown at county level.
+- **A turbine ordered today.** GE Vernova's Q2 2026 earnings call transcript,
+  2026-07-22,
+  <https://www.gevernova.com/sites/default/files/gev_webcast_transcript_07222026.pdf>.
+  The company gave slot availability, not a delivery date: mostly sold out
+  through 2030, with more than half of 2031's 30 GW expected under contract by
+  the end of 2026. "Arrives around 2031" follows from that rather than being
+  quoted, and the page says "around" for that reason.
+
+The three examples are not the same kind of thing: two are finished builds
+with their own power on site, the third is a company purchase whose site is
+still under construction. The view says so by giving the third no bar.

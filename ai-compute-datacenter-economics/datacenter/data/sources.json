@@ -83,6 +83,70 @@
    "used_for": "The second line of the card behind \"4 yrs\": \"Bottleneck: equipment backlog, large power transformers take 2 to 4 years\".",
    "note": "Asked for as cited by EC&M. The article carrying these figures is in Electrical Contractor Magazine (ecmag.com), which is a different title from EC&M / Electrical Construction & Maintenance (ecmweb.com); no ecmweb.com page stating them was found, so the magazine that does state them is the one recorded.",
    "caveat": "Other outlets put large units higher, commonly three to five years, and Wood Mackenzie's survey averages run 128 weeks for power transformers and 143 for generator step-up units. The page quotes the lower, more widely reported range and says \"2 to 4 years\"."
+  },
+  {
+   "id": "epoch-abilene-directory",
+   "title": "AI data centers, directory: OpenAI Stargate Abilene",
+   "publisher": "Epoch AI",
+   "url": "https://epoch.ai/data/ai-data-centers/directory/openai-stargate-abilene",
+   "retrieved": "2026-10-27",
+   "license": "CC-BY 4.0",
+   "value": "a 200 MW substation built in 2022 and expanded in 2024, enough to power both buildings; the larger 1 GW substation is not complete",
+   "used_for": "The first half of the Stargate Abilene card in Make Your Own Power: \"Existing 200 MW substation\"."
+  },
+  {
+   "id": "cleanview-abilene",
+   "title": "Behind-the-meter data centers, full report: Stargate Abilene",
+   "publisher": "Cleanview",
+   "url": "https://cleanview.co/reports/behind-the-meter-data-centers/full-report/stargate-abilene",
+   "retrieved": "2026-10-27",
+   "value": "on-site gas generation, with turbines ordered from GE Vernova in December 2024",
+   "used_for": "The second half of the same card: \"plus an on-site gas plant; turbines ordered December 2024\".",
+   "caveat": "Turbine counts differ by source: Cleanview lists a December 2024 order from GE Vernova and 5 LM2500XPRESS units installed alongside Solar Titan 350s, a 29-unit order is reported elsewhere, and permits at the site cover 10. Crusoe has said the turbines are for backup power despite permits allowing continuous use. The card claims the order date and the existence of on-site gas, not a count or a duty cycle."
+  },
+  {
+   "id": "colossus-temporary-turbines",
+   "title": "xAI begins removal of temporary gas turbines",
+   "publisher": "Action News 5",
+   "url": "https://www.actionnews5.com/2025/05/06/xai-begins-removal-temporary-gas-turbines",
+   "published": "2025-05-06",
+   "retrieved": "2026-10-27",
+   "value": "temporary gas turbines ran at Colossus until the MLGW substations were ready; removal began May 2025, with the rest staying until the second substation was finished",
+   "used_for": "The Colossus 1 card in Make Your Own Power: \"Ran on temporary gas turbines until grid substations were ready\".",
+   "also_reported_by": "Cleanview, behind-the-meter data centers: Colossus, https://cleanview.co/reports/behind-the-meter-data-centers/full-report/colossus",
+   "caveat": "Simplified: the site also ran on Tesla Megapacks and some MLGW supply during that period, and the first substation came online in spring 2025, after the four months Epoch's dates cover. The claim is about what carried the site to first power, not that turbines were its only source."
+  },
+  {
+   "id": "cleary-intersect",
+   "title": "Alphabet Completes $4.75 Billion Acquisition of Intersect Power",
+   "publisher": "Cleary Gottlieb",
+   "url": "https://www.clearygottlieb.com/news-and-insights/news-listing/alphabet-completes-4-75-billion-acquisition-of-intersect-power",
+   "published": "2026-03-12",
+   "retrieved": "2026-10-27",
+   "value": "$4.75 billion in cash plus assumed debt, closed March 2026; the first announced co-located data center and power site is under construction in Haskell County, Texas",
+   "used_for": "The Haskell County marker card in Make Your Own Power, and the marker's existence.",
+   "caveat": "Intersect's existing operating assets in Texas and its California assets were not part of the acquisition, and Intersect continues to operate under its own brand."
+  },
+  {
+   "id": "census-gazetteer-counties",
+   "title": "2025 Gazetteer Files, counties",
+   "publisher": "US Census Bureau, Geography Division",
+   "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_counties_national.zip",
+   "retrieved": "2026-10-27",
+   "license": "public domain",
+   "value": "Haskell County, Texas (GEOID 48207), internal point 33.175964, -99.730774, 903.133 sq mi of land",
+   "used_for": "Where the Haskell County marker is drawn. It is the county's internal point, not the site's location, which is why the card says the location is shown at county level."
+  },
+  {
+   "id": "gev-turbine-leadtime",
+   "title": "Q2 2026 earnings call transcript",
+   "publisher": "GE Vernova",
+   "url": "https://www.gevernova.com/sites/default/files/gev_webcast_transcript_07222026.pdf",
+   "published": "2026-07-22",
+   "retrieved": "2026-10-27",
+   "value": "mostly sold out through 2030, and expecting more than half of the 30 GW of 2031 production slots to be under contract by the end of 2026",
+   "used_for": "The card behind the closing line of Make Your Own Power: \"A large gas turbine ordered today arrives around 2031\".",
+   "caveat": "This is an inference, not a quote. The company gave slot availability, not a delivery date: with 2030 largely sold, a new order lands in 2031 or later. The page says \"around 2031\" rather than naming a date. The call was also reported by trade outlets; the company's own transcript is cited here instead."
   }
  ],
  "footnotes": [
@@ -131,6 +195,30 @@
     "The group's median of 107 mi therefore falls in an empty gap, which is why a site in it carries this line."
    ],
    "kind": "distribution of the group behind the median"
+  },
+  {
+   "id": "where-step-seven",
+   "text": "Amazon New Carlisle, 2024: 16 months / Google Council Bluffs East, 2022: 26 months / Same grid, the right site cuts the wait",
+   "shown": "Step 7 of the Connect to the Grid view, with both sites picked out in white.",
+   "basis": [
+    "Both rows are Epoch's own dates, first dated observation to first operational: New Carlisle 2024-02-09 to 2025-06-23, 500 days or 16.4 months; Council Bluffs East 2022-09-06 to 2024-11-19, 805 days or 26.4 months (data/sites.json).",
+    "Council Bluffs East sits 14 mi from Omaha, its nearest metro of a million or more; New Carlisle 68.8 mi from Chicago (data/metros.json)."
+   ],
+   "kind": "elapsed time, both on Epoch's clock",
+   "caveat": "Unlike the earlier steps, this one compares like with like: two sites, the same measurement, the same source. What it cannot show is why, since the dates carry no reason for the gap."
+  },
+  {
+   "id": "ownpower-examples",
+   "text": "xAI Colossus 1: about 4 months / Oracle Stargate Abilene: 16 months / Google + Intersect: under construction",
+   "shown": "The three steps of Make Your Own Power, as bars and as legend rows, each with a card behind it.",
+   "basis": [
+    "Colossus 1: 2024-04-24 to 2024-08-11, 109 days or 3.6 months, shown as about 4 months (Epoch AI, data/sites.json).",
+    "Stargate Abilene: 2024-05-31 to 2025-09-26, 483 days or 15.9 months, shown as 16 months (Epoch AI, data/sites.json).",
+    "Haskell County: no duration, because the site is under construction (cleary-intersect).",
+    "Bar lengths are those durations at one pixel scale and one speed, so a bar's length is the wait."
+   ],
+   "kind": "elapsed time, all on Epoch's clock",
+   "caveat": "The three are not the same kind of thing: two are finished builds with their own power on site, the third is a company purchase whose site has not been built. The view says so by giving the third no bar."
   }
  ]
 }

@@ -390,6 +390,64 @@
     transition: opacity 0.9s ease, visibility 0.9s;
   }
   #where-note.is-shown { opacity: 1; visibility: visible; }
+  /* A step that compares two sites says so in rows, with its point under
+     them; one that has a card behind it says so by being clickable. */
+  .note-row {
+    display: block;
+    font-variant-numeric: tabular-nums;
+  }
+  .note-line {
+    display: block; margin-top: 7px;
+    color: var(--stage-text-dim); font-weight: 600;
+  }
+  #where-note.is-clickable { pointer-events: auto; cursor: pointer; }
+  #where-note.is-clickable:hover { text-decoration: underline;
+    text-decoration-thickness: 1px; text-underline-offset: 4px; }
+
+  /* ---------- make your own power ----------
+     One row per example: how long it took, drawn at one speed so the length
+     of a bar is the wait, and a label that names it. The third has no bar,
+     because it has not finished. */
+
+  #own-bars {
+    position: absolute; z-index: 5;
+    top: 156px; left: 50%; transform: translateX(-50%);
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s;
+  }
+  #own-bars.is-shown { opacity: 1; visibility: visible; }
+  .own-row + .own-row { margin-top: 12px; }
+  .own-row.is-waiting { opacity: 0.35; }
+  .own-label {
+    display: block; margin-bottom: 4px;
+    font-size: 0.72rem; font-weight: 600; line-height: 1.3;
+    color: var(--stage-text);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
+  }
+  .own-fill {
+    display: block;
+    width: 0; height: 8px;
+    border-radius: 0 4px 4px 0;
+    transition-property: width;
+    transition-timing-function: linear;
+  }
+
+  /* ---------- citations ----------
+     A raised number after a claim, and the list it points at along the
+     bottom of the same card, so a card carries its own sources. */
+  .card-cite {
+    font-size: 0.56rem; font-weight: 800;
+    vertical-align: super; line-height: 0;
+    color: var(--stage-text-dim);
+    margin-left: 2px;
+  }
+  .card-sources {
+    margin-top: 9px; padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.6rem; line-height: 1.5; color: var(--stage-text-faint);
+  }
+  .card-source { display: block; }
+  .card-source-n { font-weight: 800; margin-right: 4px; }
 
   /* ---------- how we know ----------
      A quiet link under the counters. It is deliberately small and un-pilled
@@ -805,7 +863,11 @@
     font-variant-numeric: tabular-nums;
     min-width: 42px; text-align: right;
   }
-  #stage[data-view="where"] #timeline { display: none; }
+  #stage[data-view="where"] #timeline,
+  #stage[data-view="ownpower"] #timeline { display: none; }
+
+  /* This view's own places for the shared line and its bars. */
+  #stage[data-view="ownpower"] #where-note { top: 262px; }
 
   /* A legend row that replays its group says so by being a button. */
   .legend-row.is-replay { cursor: pointer; }
@@ -865,6 +927,8 @@
     #stage[data-scene="why"][data-view="headline"] #why-figures { top: calc(50% - 12px); }
     #stage[data-scene="why"][data-view="headline"] #entry-bar { top: calc(50% + 55px); }
     #where-note { top: 126px; max-width: calc(100% - 32px); font-size: 0.74rem; }
+    #own-bars { top: 150px; }
+    #stage[data-view="ownpower"] #where-note { top: 250px; }
   }
 </style>
 </head>
@@ -928,6 +992,7 @@
     <div id="entry-bar" role="group" aria-label="Entry points"></div>
 
     <!-- The footnote the Where view ends on, under its number. -->
+    <div id="own-bars"></div>
     <p id="where-note"></p>
 
     <p id="headline"></p>
@@ -1261,7 +1326,7 @@
           ],
           entries: [
             { id: "where", label: "Connect to the Grid", ready: true },
-            { id: "ownpower", label: "Make Your Own Power", ready: false }
+            { id: "ownpower", label: "Make Your Own Power", ready: true }
           ],
           /* How much of a bar is left while the overview screen is up. */
           barAlpha: 0.2
@@ -1281,7 +1346,8 @@
              start-year group, then the land comparison, then the one site
              that did not wait. Back, Play and Next move through them, and
              the arrow keys and the space bar do the same. */
-          steps: 6,
+          steps: 7,
+          focusFrom: 6,            /* from here on, one or two sites carry it */
           stepMs: 1500,            /* between one step and the next */
           drawMs: 700,             /* a group's lines drawing out */
           countMs: 600,            /* the number counting to its median */
@@ -1304,6 +1370,23 @@
           focusSite: "Anthropic-Amazon New Carlisle",
           focusColor: "#f2f5f8",
           focusNote: "Amazon New Carlisle: 16 months from start to first building live, vs about 4 years average grid wait",
+          /* The last step puts a second site beside the first. Both rows are
+             Epoch's own dates, start to first operational: New Carlisle ran
+             2024-02-09 to 2025-06-23, 500 days; Council Bluffs East
+             2022-09-06 to 2024-11-19, 805 days. */
+          compare: {
+            rows: [
+              {
+                site: "Anthropic-Amazon New Carlisle",
+                label: "Amazon New Carlisle, 2024: 16 months"
+              },
+              {
+                site: "Google Council Bluffs (East)",
+                label: "Google Council Bluffs East, 2022: 26 months"
+              }
+            ],
+            line: "Same grid, the right site cuts the wait"
+          },
           backHint: "Back to Sites Follow Power",
           controls: {
             back: "Back", next: "Next",
@@ -1322,6 +1405,89 @@
             clusters: "This group splits in two: seven sites within 53 mi, seven beyond 161 mi.",
             replayHint: "Click a year in the legend to replay that group"
           }
+        },
+        /* Make your own power: the three ways round the queue, in the order
+           they get you there. Turbines on site, a substation that was already
+           built, and buying the power developer outright. Every duration is
+           Epoch's own start-to-live dates, read from sites.json at run time
+           rather than written out here; the sources behind each card are in
+           data/sources.json and SOURCES.md. */
+        ownpower: {
+          steps: 4,
+          stepMs: 1700,
+          barMs: 900,              /* a time bar growing out */
+          pxPerMonth: 16,
+          litAlpha: 0.95,
+          dimAlpha: 0.12,          /* every site that is not an example */
+          unit: "months",
+          legendHead: "Build your own",
+          markerRadiusPx: 6,
+          markerLineWidthPx: 1.6,
+          examples: [
+            {
+              id: "colossus",
+              name: "Colossus 1",
+              site: "Colossus 1",
+              label: "xAI Colossus 1: about 4 months",
+              legend: "about 4 months",
+              color: "#17b2c9",
+              note: {
+                text: "Ran on temporary gas turbines until grid substations were ready",
+                sources: [
+                  "Action News 5, xAI begins removal of temporary gas turbines, 2025-05-06",
+                  "Cleanview, behind-the-meter data centers: Colossus",
+                  "Epoch AI, site timeline (CC-BY)"
+                ]
+              }
+            },
+            {
+              id: "abilene",
+              name: "Stargate Abilene",
+              site: "OpenAI Stargate Abilene",
+              label: "Oracle Stargate Abilene: 16 months",
+              legend: "16 months",
+              color: "#f5c451",
+              note: {
+                text: "Existing 200 MW substation plus an on-site gas plant; turbines ordered December 2024",
+                sources: [
+                  "Epoch AI, data center directory: OpenAI Stargate Abilene",
+                  "Cleanview, behind-the-meter data centers: Stargate Abilene",
+                  "Epoch AI, site timeline (CC-BY)"
+                ]
+              }
+            },
+            {
+              id: "haskell",
+              name: "Google + Intersect",
+              /* Not an Epoch site: a county, drawn at the county's own
+                 internal point, which is why the card says so. */
+              marker: {
+                name: "Haskell County, Texas",
+                lat: 33.175964,
+                lon: -99.730774
+              },
+              label: "Google + Intersect: under construction",
+              legend: "under construction",
+              color: "#f08422",
+              note: {
+                text: "Alphabet bought power developer Intersect for $4.75B (closed March 2026) to build power plants alongside data centers. Location shown at county level.",
+                sources: [
+                  "Cleary Gottlieb, Alphabet Completes $4.75 Billion Acquisition of Intersect Power, 2026-03-12",
+                  "US Census Bureau, 2025 Gazetteer, county internal point for Haskell County, TX"
+                ]
+              }
+            }
+          ],
+          closing: {
+            line: "First to lock in power equipment, first to go live",
+            note: {
+              text: "A large gas turbine ordered today arrives around 2031 (GE Vernova, Q2 2026 earnings call)",
+              sources: [
+                "GE Vernova, Q2 2026 earnings call transcript, 2026-07-22"
+              ]
+            }
+          },
+          card: { start: "Broke ground", live: "First building live" }
         },
         /* The views are off the screen for now, and the beats list, the price
            block below it and everything they drive stay here to be taken
@@ -1899,6 +2065,12 @@
   function whereCfg() { return CONFIG.scenes.why.where; }
 
   function isWhereView() { return viewId === "where" && !!METROS; }
+  function ownCfg() { return CONFIG.scenes.why.ownpower; }
+  function isOwnView() { return viewId === "ownpower"; }
+  /* The two views that play. Everything the control bar does reads the open
+     view's own step count from here. */
+  function playsBack() { return isWhereView() || isOwnView(); }
+  function playCfg() { return isOwnView() ? ownCfg() : whereCfg(); }
 
   /* The groups are the data's own, in the data's order; the config says only
      what colour each one wears. */
@@ -1934,12 +2106,29 @@
      comparison, then the one site that did not wait for the grid. Back, Play
      and Next walk them, and so do the arrow keys and the space bar. */
 
-  function whereSteps() { return whereCfg().steps; }
+  function whereSteps() { return playCfg().steps; }
 
   function drawProgress() {
     if (!whereAnim.start) return 1;
     var t = (performance.now() - whereAnim.start) / whereCfg().drawMs;
     return Math.max(0, Math.min(1, t));
+  }
+
+  /* Epoch's own clock for a site: the first dated observation to the first
+     operational date, in months. */
+  function monthsFor(site) {
+    if (!site || !site.start_date || !site.first_operational) return 0;
+    var from = Date.parse(site.start_date);
+    var to = Date.parse(site.first_operational);
+    if (!(to > from)) return 0;
+    return (to - from) / 86400000 / 30.44;
+  }
+
+  function siteByName(name) {
+    for (var i = 0; i < SITES.length; i++) {
+      if (SITES[i].name === name) return SITES[i];
+    }
+    return null;
   }
 
   /* 0 while a group is still waiting its turn, 1 once its lines have drawn
@@ -1967,9 +2156,26 @@
     return isWhereView() && (whereAnim.solo !== null || whereAnim.step >= 2);
   }
 
+  /* Which sites the last steps are about: one at step 6, two at step 7. */
+  function focusNames() {
+    if (!isWhereView() || whereAnim.solo !== null) return [];
+    var cfg = whereCfg();
+    if (whereAnim.step >= cfg.steps) {
+      return cfg.compare.rows.map(function (row) { return row.site; });
+    }
+    if (whereAnim.step >= cfg.focusFrom) return [cfg.focusSite];
+    return [];
+  }
+
   function isFocusSite(site) {
+    return focusNames().indexOf(site.name) !== -1;
+  }
+
+  /* True once the view has stopped showing every group and is making a point
+     about one or two of them. */
+  function focusing() {
     return isWhereView() && whereAnim.solo === null &&
-      whereAnim.step >= whereSteps() && site.name === whereCfg().focusSite;
+      whereAnim.step >= whereCfg().focusFrom;
   }
 
   /* Once the sequence has played out a site stops being something being
@@ -2008,38 +2214,60 @@
     if (!whereAnim.frame) whereAnim.frame = requestAnimationFrame(whereFrame);
   }
 
-  /* One line under the number, and which line it is belongs to the step. */
+  /* What goes under the number, and which it is belongs to the step. */
   function syncWhereNote() {
-    var cfg = whereCfg();
-    var text = "";
+    var node = el("where-note");
+    var html = "";
+    var clickable = false;
+
     if (isWhereView() && whereAnim.solo === null) {
-      if (whereAnim.step >= whereSteps()) text = cfg.focusNote;
-      else if (whereAnim.step === whereSteps() - 1) text = cfg.landNote;
+      var cfg = whereCfg();
+      if (whereAnim.step >= cfg.steps) {
+        /* Two sites on the same grid, with the point under them. */
+        html = cfg.compare.rows.map(function (row) {
+          return '<span class="note-row">' + escapeHtml(row.label) + "</span>";
+        }).join("") +
+          '<span class="note-line">' + escapeHtml(cfg.compare.line) + "</span>";
+      } else if (whereAnim.step === cfg.steps - 1) {
+        html = escapeHtml(cfg.focusNote);
+      } else if (whereAnim.step === cfg.steps - 2) {
+        html = escapeHtml(cfg.landNote);
+      }
+    } else if (isOwnView() && whereAnim.step >= ownCfg().steps) {
+      /* The closing line has a card behind it, so it says so. */
+      html = escapeHtml(ownCfg().closing.line);
+      clickable = true;
     }
-    el("where-note").textContent = text;
-    el("where-note").classList.toggle("is-shown", !!text);
+
+    node.innerHTML = html;
+    node.classList.toggle("is-shown", !!html);
+    node.classList.toggle("is-clickable", clickable);
   }
 
   function gotoWhereStep(step, manual) {
-    if (!isWhereView()) return;
+    if (!playsBack()) return;
     var wanted = Math.max(1, Math.min(whereSteps(), step));
     if (manual) pauseWhere();
     whereAnim.solo = null;
     whereAnim.step = wanted;
     whereAnim.start = performance.now();
 
-    var groups = whereGroups();
-    var index = wanted - 2;
-    if (index < 0) {
-      whereNum.from = whereNum.to = 0;
-      whereNum.start = 0;
-    } else {
-      /* Past the last group the number stays on the last median, so steps 5
-         and 6 do not blank the figure the groups arrived at. */
-      var target = groups[Math.min(index, groups.length - 1)].median;
-      whereNum.from = whereNumber();
-      whereNum.to = target;
-      whereNum.start = whereAnim.start;
+    if (isWhereView()) {
+      var groups = whereGroups();
+      var index = wanted - 2;
+      if (index < 0) {
+        whereNum.from = whereNum.to = 0;
+        whereNum.start = 0;
+      } else {
+        /* Past the last group the number stays on the last median, so the
+           closing steps do not blank the figure the groups arrived at. */
+        var target = groups[Math.min(index, groups.length - 1)].median;
+        whereNum.from = whereNumber();
+        whereNum.to = target;
+        whereNum.start = whereAnim.start;
+      }
+    } else if (isOwnView()) {
+      syncOwnBars();
     }
 
     syncWhereNote();
@@ -2086,7 +2314,7 @@
   }
 
   function playWhere() {
-    if (!isWhereView()) return;
+    if (!playsBack()) return;
     /* Play at the end starts it over rather than doing nothing. */
     if (whereAnim.step >= whereSteps() || whereAnim.solo !== null) {
       gotoWhereStep(1, true);
@@ -2109,10 +2337,10 @@
 
   function renderWhereControls() {
     var bar = el("where-controls");
-    var on = isWhereView();
+    var on = playsBack();
     bar.classList.toggle("is-shown", on);
     if (!on) return;
-    var labels = whereCfg().controls;
+    var labels = whereCfg().controls;   /* one wording for both views */
     el("where-play").textContent = whereAnim.playing ? labels.pause : labels.play;
     el("where-play").setAttribute("aria-pressed",
       whereAnim.playing ? "true" : "false");
@@ -2142,12 +2370,17 @@
     if (id === "where" && !METROS) return;
     stopWhere();
     hideNoteCard();
+    /* A card belongs to the view it was opened in. */
+    pinnedSite = null;
+    hoverSite = null;
+    hideCard();
     viewId = id;
     syncSceneClass();
     renderEntryBar();
     renderIntroPanel(false);
-    /* The view opens playing, from the first step. */
-    if (id === "where") { gotoWhereStep(1, true); playWhere(); }
+    /* Both views open playing, from their first step. */
+    renderOwnBars();
+    if (playsBack()) { gotoWhereStep(1, true); playWhere(); }
     renderWhereControls();
     draw();
     paint();
@@ -2159,10 +2392,14 @@
     if (!viewId) return;
     stopWhere();
     hideNoteCard();
+    pinnedSite = null;
+    hoverSite = null;
+    hideCard();
     viewId = null;
     syncSceneClass();
     renderEntryBar();
     renderWhereControls();
+    renderOwnBars();
     /* Back on the headline view, so the numbers count again. */
     renderIntroPanel(true);
     draw();
@@ -2308,7 +2545,7 @@
       if (!metro) return;
       /* The line grows from the site towards its metro, so a group arrives
          as a movement rather than as a finished diagram. */
-      var focused = whereAnim.solo === null && whereAnim.step >= whereSteps();
+      var focused = focusing();
       var color = isFocusSite(site)
         ? hexToRgb(cfg.focusColor).concat(cfg.lineAlpha)
         : hexToRgb(groups[index].color)
@@ -2330,6 +2567,204 @@
       getTargetPosition: function (d) { return d.to; },
       getColor: function (d) { return d.color; }
     })];
+  }
+
+  /* ---------- make your own power ----------
+     Three examples, one per step, then the line they add up to. Two of them
+     are Epoch sites with a duration; the third is a county with a marker and
+     no duration, because it has not finished. */
+
+  function ownExamples() { return ownCfg().examples; }
+
+  function ownRevealed(index) { return isOwnView() && whereAnim.step >= index + 1; }
+
+  function ownMonths(example) {
+    return example.site ? monthsFor(siteByName(example.site)) : 0;
+  }
+
+  function ownExampleForSite(site) {
+    var found = null;
+    ownExamples().forEach(function (example, i) {
+      if (example.site === site.name && ownRevealed(i)) found = example;
+    });
+    return found;
+  }
+
+  function ownExampleName(example) {
+    return example.name || (example.marker ? example.marker.name : example.site);
+  }
+
+  /* Built once, when the view opens: every bar starts at nothing and is let
+     out on the step its example arrives. */
+  function renderOwnBars() {
+    var bars = el("own-bars");
+    var on = isOwnView();
+    bars.classList.toggle("is-shown", on);
+    if (!on) { bars.innerHTML = ""; bars.style.width = ""; return; }
+
+    var own = ownCfg();
+    var longest = 0;
+    ownExamples().forEach(function (example) {
+      longest = Math.max(longest, ownMonths(example));
+    });
+    /* One speed for every bar, so four months arrives while sixteen is still
+       going, and a fixed width because the block is centred. */
+    var msPerMonth = longest ? own.barMs / longest : 0;
+    bars.style.width = Math.round(longest * own.pxPerMonth) + "px";
+    bars.innerHTML = ownExamples().map(function (example) {
+      var months = ownMonths(example);
+      var fill = months
+        ? '<span class="own-fill" style="background:' + example.color +
+          "; transition-duration:" + Math.round(months * msPerMonth) +
+          'ms" data-px="' + Math.round(months * own.pxPerMonth) + '"></span>'
+        : "";
+      return '<div class="own-row is-waiting" data-example="' +
+        escapeHtml(example.id) + '">' +
+        '<span class="own-label">' + escapeHtml(example.label) + "</span>" +
+        fill +
+      "</div>";
+    }).join("");
+    syncOwnBars();
+  }
+
+  function syncOwnBars() {
+    var rows = el("own-bars").querySelectorAll(".own-row");
+    ownExamples().forEach(function (example, i) {
+      var row = rows[i];
+      if (!row) return;
+      var out = ownRevealed(i);
+      row.classList.toggle("is-waiting", !out);
+      var fill = row.querySelector(".own-fill");
+      if (fill) fill.style.width = out ? fill.dataset.px + "px" : "0px";
+    });
+  }
+
+  /* One row per example, with what it took, lit as its step arrives. */
+  function renderOwnLegend() {
+    var own = ownCfg();
+    el("legend").classList.remove("is-two-col");
+    el("legend-head").textContent = own.legendHead;
+    el("legend-rows").innerHTML = ownExamples().map(function (example, i) {
+      var name = ownExampleName(example);
+      return '<div class="legend-row' + (ownRevealed(i) ? "" : " is-zero") +
+        '" data-example="' + escapeHtml(example.id) + '">' +
+        '<span class="legend-swatch" style="background:' + example.color +
+          '"></span>' +
+        '<span class="legend-name" title="' + escapeHtml(name) + '">' +
+          escapeHtml(name) + "</span>" +
+        '<span class="legend-mw">' + escapeHtml(example.legend) + "</span>" +
+      "</div>";
+    }).join("");
+  }
+
+  /* The county marker, drawn at the county's own internal point. */
+  function ownMarkerLayers() {
+    if (!isOwnView()) return [];
+    var own = ownCfg();
+    var points = [];
+    ownExamples().forEach(function (example, i) {
+      if (example.marker && ownRevealed(i)) points.push(example);
+    });
+    if (!points.length) return [];
+    return [new deck.ScatterplotLayer({
+      id: "own-markers",
+      data: points,
+      pickable: true,
+      stroked: true,
+      filled: true,
+      radiusUnits: "pixels",
+      lineWidthUnits: "pixels",
+      getRadius: own.markerRadiusPx,
+      getLineWidth: own.markerLineWidthPx,
+      getPosition: function (example) {
+        return [example.marker.lon, example.marker.lat];
+      },
+      getFillColor: function (example) {
+        return hexToRgb(example.color).concat(215);
+      },
+      getLineColor: [242, 245, 248, 235],
+      onClick: onMarkerClick
+    })];
+  }
+
+  /* ---------- citations ----------
+     A raised number after the claim, and the list it points at along the
+     bottom of the same card. */
+  function citeHtml(sources) {
+    return sources.map(function (source, i) {
+      return '<span class="card-cite">' + (i + 1) + "</span>";
+    }).join("");
+  }
+
+  function sourcesHtml(sources) {
+    return '<div class="card-sources">' + sources.map(function (source, i) {
+      return '<span class="card-source">' +
+        '<span class="card-source-n">' + (i + 1) + "</span>" +
+        escapeHtml(source) + "</span>";
+    }).join("") + "</div>";
+  }
+
+  function claimHtml(note) {
+    return '<div class="card-ground">' + escapeHtml(note.text) +
+      citeHtml(note.sources) + "</div>";
+  }
+
+  function showOwnSiteCard(site, example, keepPosition) {
+    var text = ownCfg().card;
+    var card = el("site-card");
+    card.innerHTML =
+      '<div class="card-name">' + escapeHtml(site.name) + "</div>" +
+      claimHtml(example.note) +
+      '<div class="card-rows">' +
+        '<span class="card-key">' + escapeHtml(text.start) + "</span>" +
+          '<span class="card-val">' +
+            escapeHtml(site.start_date || "\u2014") + "</span>" +
+        '<span class="card-key">' + escapeHtml(text.live) + "</span>" +
+          '<span class="card-val">' +
+            escapeHtml(site.first_operational || "\u2014") + "</span>" +
+      "</div>" +
+      sourcesHtml(example.note.sources);
+    card.style.display = "block";
+    if (!keepPosition) positionCard(lastPointer.x, lastPointer.y);
+  }
+
+  function showMarkerCard(example) {
+    var card = el("site-card");
+    card.innerHTML =
+      '<div class="card-name">' + escapeHtml(example.marker.name) + "</div>" +
+      claimHtml(example.note) +
+      sourcesHtml(example.note.sources);
+    card.style.display = "block";
+    positionCard(lastPointer.x, lastPointer.y);
+  }
+
+  function onMarkerClick(info) {
+    if (!info || !info.object) return false;
+    pauseWhere();
+    hideNoteCard();
+    pinnedSite = null;
+    var off = stageOffset();
+    lastPointer = { x: info.x + off.left, y: info.y + off.top };
+    showMarkerCard(info.object);
+    el("site-card").classList.add("is-pinned");
+    return true;
+  }
+
+  /* The card behind the closing line, anchored under it. */
+  function showClosingCard() {
+    var note = ownCfg().closing.note;
+    var card = el("note-card");
+    card.innerHTML = claimHtml(note) + sourcesHtml(note.sources);
+    card.style.display = "block";
+
+    var stage = el("stage").getBoundingClientRect();
+    var anchor = el("where-note").getBoundingClientRect();
+    var width = card.offsetWidth;
+    var left = anchor.left - stage.left + anchor.width / 2 - width / 2;
+    card.style.left =
+      Math.max(8, Math.min(left, stage.width - width - 8)) + "px";
+    card.style.top = (anchor.bottom - stage.top + 12) + "px";
+    noteOpen = "closing";
   }
 
   function whereDotLayers() {
@@ -2445,6 +2880,7 @@
     viewId = null;
     syncSceneClass();
     renderWhereControls();
+    renderOwnBars();
     highlightOwner = null;
     pinnedSite = null;
     hoverSite = null;
@@ -2516,6 +2952,18 @@
     if (intro) {
       /* In the Where view a site lights up in its group's colour on the beat
          that group arrives, and waits at the backdrop weight until then. */
+      if (isOwnView()) {
+        var own = ownCfg();
+        var example = ownExampleForSite(site);
+        /* The examples carry the view, so every other site steps right back
+           rather than competing with them. */
+        if (example) {
+          return hexToRgb(example.color)
+            .concat(Math.round(255 * own.litAlpha * dimFactor(site)));
+        }
+        return hexToRgb(ownerColor(site.owner))
+          .concat(Math.round(255 * own.dimAlpha * dimFactor(site)));
+      }
       if (isWhereView()) {
         var where = whereCfg();
         /* The last step is about one site, so that one goes white and every
@@ -2526,9 +2974,7 @@
         }
         var index = siteGroupIndex(site);
         if (groupProgress(index) > 0) {
-          var lit = (whereAnim.solo === null && whereAnim.step >= whereSteps())
-            ? intro.barAlpha
-            : where.litAlpha;
+          var lit = focusing() ? intro.barAlpha : where.litAlpha;
           return hexToRgb(whereGroups()[index].color)
             .concat(Math.round(255 * lit * dimFactor(site)));
         }
@@ -2792,6 +3238,7 @@
         .concat(whereLinkLayers())
         .concat(barLayers())
         .concat(whereDotLayers())
+        .concat(ownMarkerLayers())
         .concat(stateLabelLayers(stop))
     });
   }
@@ -2986,6 +3433,7 @@
       renderWhereLegend();
       return;
     }
+    if (isOwnView()) { renderOwnLegend(); return; }
 
     if (!isWho()) {
       el("legend").classList.remove("is-two-col");
@@ -3386,6 +3834,9 @@
         if (whereDone()) showWhereSiteCard(hoverSite, false); else hideCard();
         return;
       }
+      /* Make your own power answers on a click, not on a hover: the cards
+         there are three claims, not sixty readings. */
+      if (isOwnView()) { hideCard(); return; }
       showCard(hoverSite, false);
       return;
     }
@@ -3423,6 +3874,23 @@
 
   function onClick(info) {
     hideNoteCard();
+    if (isOwnView()) {
+      pauseWhere();
+      var example = info && info.object
+        ? ownExampleForSite(info.object.site) : null;
+      if (example) {
+        pinnedSite = info.object.site;
+        var at = stageOffset();
+        lastPointer = { x: info.x + at.left, y: info.y + at.top };
+        showOwnSiteCard(pinnedSite, example, false);
+        el("site-card").classList.add("is-pinned");
+      } else {
+        pinnedSite = null;
+        hideCard();
+      }
+      paint();
+      return;
+    }
     if (isWhereView()) {
       /* A click on the map is a manual move, so playback stands down. */
       pauseWhere();
@@ -3528,6 +3996,14 @@
     /* The line the screen leads with is the way back from a view. */
     el("headline").addEventListener("click", function () { clearView(); });
 
+    el("where-note").addEventListener("click", function () {
+      if (!el("where-note").classList.contains("is-clickable")) return;
+      pauseWhere();
+      if (noteOpen === "closing") { hideNoteCard(); return; }
+      hideNoteCard();
+      showClosingCard();
+    });
+
     el("why-figures").addEventListener("click", function (event) {
       var button = event.target.closest("button.why-figure");
       if (!button) return;
@@ -3543,6 +4019,7 @@
       if (!noteOpen) return;
       if (event.target.closest("#note-card")) return;
       if (event.target.closest("button.why-figure")) return;
+      if (event.target.closest("#where-note")) return;
       hideNoteCard();
     });
 
@@ -3757,8 +4234,9 @@
          click behaviour it had. */
       onClick: function (info) {
         if (info && info.object) return;
-        if (!isWhereView()) return;
+        if (!playsBack()) return;
         pauseWhere();
+        hideNoteCard();
         pinnedSite = null;
         hideCard();
         paint();
