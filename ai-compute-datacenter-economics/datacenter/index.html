@@ -687,6 +687,10 @@
 
     <div id="counters" class="stage-panel">
       <div class="counter">
+        <span class="counter-label" id="counter-year-label">Year</span>
+        <span class="counter-value" id="counter-year">&mdash;</span>
+      </div>
+      <div class="counter">
         <span class="counter-label" id="counter-power-label">IT power</span>
         <span class="counter-value" id="counter-power">&mdash;</span>
       </div>
@@ -837,6 +841,7 @@
 
       growMs: 700,
       scaleMs: 650,             /* easing when a scene changes the bar scale */
+      countMs: 600,             /* easing on the three numbers in the corner */
 
       stateLabelSize: 11,
       stateLabelDim: [150, 165, 185, 150],
@@ -848,6 +853,7 @@
     },
 
     labels: {
+      year: "Year",
       power: "IT power",
       sites: "Sites live",
       legend: "Owner",
@@ -920,14 +926,8 @@
       who: {
         ready: true,
         button: "Who builds",
-        /* Two lines, and they arrive together when the timeline reaches
-           Today: the scale first, then the claim the scene is making. Before
-           Today there is no caption, so the map is read on its own. */
-        headlineLines: [
-          "From 1 site to 60 in five years.",
-          "Google leads today. Oracle leads by 2030."
-        ],
-        headlineAt: "today",
+        /* No caption: the counters carry the year and the totals, and the map
+           is read on its own. */
         legendToday: "Today",
         legend2030: "2030",
         status: {
@@ -1078,6 +1078,9 @@
   /* The bar scale is per scene and eases between scenes, so entering Who
      builds visibly compresses the bars rather than swapping them. */
   var scaleAnim = { from: 0, to: 0, start: 0, frame: null };
+  /* The three numbers in the corner ease as well, so a move reads as a change
+     rather than a swap and the year ticks forward with the bars. */
+  var countAnim = { from: null, to: null, start: 0, frame: null };
   var shown = {};              /* MW currently displayed, per site name */
 
   var el = function (id) { return document.getElementById(id); };
@@ -1093,6 +1096,12 @@
   function powerText(mw) {
     var p = splitPower(mw);
     return p.value + " " + p.unit;
+  }
+
+  /* Today is a point inside the download year, so it reads as that year
+     rather than as the next H1 stop after it. */
+  function stopYear(stop) {
+    return stop.isToday ? CONFIG.asOf.slice(0, 4) : stop.key.slice(0, 4);
   }
 
   function stopLabel(stop) {
@@ -1859,13 +1868,78 @@
   /* ==========================================================================
      Panels
      ========================================================================== */
-  function renderCounters(stop) {
+  function countsAt(stop) {
     var live = liveAt(stop);
-    var total = live.reduce(function (sum, s) { return sum + powerAt(s, stop); }, 0);
-    var p = splitPower(total);
+    return {
+      year: Number(stopYear(stop)),
+      power: live.reduce(function (sum, s) { return sum + powerAt(s, stop); }, 0),
+      sites: live.length
+    };
+  }
+
+  function sameCounts(a, b) {
+    return a.year === b.year && a.power === b.power && a.sites === b.sites;
+  }
+
+  /* What is on screen right now: the eased point between from and to, or the
+     target once the easing has finished. */
+  function displayedCounts() {
+    if (!countAnim.to) return null;
+    if (countAnim.start === 0) return countAnim.to;
+    var t = Math.min(1, (performance.now() - countAnim.start) / CONFIG.map.countMs);
+    var e = easeOut(t);
+    var from = countAnim.from;
+    var to = countAnim.to;
+    return {
+      year: from.year + (to.year - from.year) * e,
+      power: from.power + (to.power - from.power) * e,
+      sites: from.sites + (to.sites - from.sites) * e
+    };
+  }
+
+  function paintCounters() {
+    var v = displayedCounts();
+    if (!v) return;
+    var p = splitPower(v.power);
+    el("counter-year").textContent = String(Math.round(v.year));
     el("counter-power").innerHTML =
       escapeHtml(p.value) + '<span class="unit">' + p.unit + "</span>";
-    el("counter-sites").textContent = String(live.length);
+    el("counter-sites").textContent = String(Math.round(v.sites));
+  }
+
+  function renderCounters(stop, instant) {
+    var next = countsAt(stop);
+    /* Already heading there: leave the easing that is running alone, so the
+       repeated draws a scene or legend click makes do not restart it. */
+    if (!instant && countAnim.to && sameCounts(next, countAnim.to)) return;
+
+    var current = displayedCounts();
+    if (countAnim.frame) { cancelAnimationFrame(countAnim.frame); countAnim.frame = null; }
+    countAnim.to = next;
+
+    if (instant || !current) {
+      countAnim.from = next;
+      countAnim.start = 0;
+      paintCounters();
+      return;
+    }
+
+    /* From whatever is on screen rather than from the last target, so a move
+       made mid-ease carries on from where the numbers actually are. */
+    countAnim.from = current;
+    countAnim.start = performance.now();
+    var ends = countAnim.start + CONFIG.map.countMs;
+    var tick = function () {
+      paintCounters();
+      if (performance.now() >= ends) {
+        countAnim.frame = null;
+        countAnim.start = 0;
+        paintCounters();
+        return;
+      }
+      countAnim.frame = requestAnimationFrame(tick);
+    };
+    countAnim.frame = requestAnimationFrame(tick);
   }
 
   function ownerTotals(key, stop) {
@@ -2066,9 +2140,9 @@
       cfg.headlineAlways ? true : (cfg.headlineAt === "today" && stop.isToday));
   }
 
-  function draw() {
+  function draw(instant) {
     var stop = STOPS[stopIndex];
-    renderCounters(stop);
+    renderCounters(stop, instant);
     renderLegend(stop);
     renderTrack(stop);
     renderHeadline(stop);
@@ -2332,7 +2406,7 @@
     var clamped = Math.max(0, Math.min(TODAY_INDEX, index));
     if (clamped === stopIndex && !opts.force) return;
     stopIndex = clamped;
-    draw();
+    draw(!!opts.silent);
     startAnimation(STOPS[stopIndex], !!opts.silent);
   }
 
@@ -2588,6 +2662,7 @@
     STOPS = buildStops(payload.meta.periods);
     TODAY_INDEX = STOPS.findIndex(function (s) { return s.isToday; });
 
+    el("counter-year-label").textContent = CONFIG.labels.year;
     el("counter-power-label").textContent = CONFIG.labels.power;
     el("counter-sites-label").textContent = CONFIG.labels.sites;
     el("legend-head").textContent = CONFIG.labels.legend;
