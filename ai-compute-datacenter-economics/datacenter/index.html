@@ -119,19 +119,66 @@
     color: var(--stage-text);
   }
 
+  /* Both canvases live in one box, because deck sets its own canvas to
+     100% of whatever contains it: moving the box is the only way to move
+     the map without fighting an inline style. */
+  #map-area {
+    position: absolute; inset: 0;
+    transition: opacity 0.5s ease;
+  }
   #map, #deck-canvas {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
-    transition: opacity 0.5s ease;
+  }
+
+  /* ---------- the text column ----------
+     A view inside Why there reads as a column of text with a map beside it,
+     so the two stop sharing one space: the column takes the left of the
+     stage on the page's own background, and both canvases move over to fill
+     what is left. Everything the view has to say lives in the column, which
+     is why nothing it says lands on a state label any more. */
+
+  #stage { --text-col: 30%; }
+
+  #text-column {
+    position: absolute; z-index: 4;
+    top: 0; bottom: 0; left: 0;
+    width: var(--text-col);
+    display: none;
+    background: var(--stage-bg);
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  #stage[data-scene="why"]:not([data-view="headline"]) #text-column {
+    display: block;
+  }
+  #stage[data-scene="why"]:not([data-view="headline"]) #map-area {
+    left: var(--text-col);
+    width: calc(100% - var(--text-col));
+  }
+
+  /* Every piece of a view's text is laid out against the column, stacked
+     from the top; the gaps between them are measured in script, because a
+     label that wraps changes where the next one starts. */
+  #stage[data-scene="why"]:not([data-view="headline"]) #headline,
+  #stage[data-scene="why"]:not([data-view="headline"]) #where-note,
+  #stage[data-scene="why"]:not([data-view="headline"]) #own-bars {
+    left: 28px;
+    width: calc(var(--text-col) - 56px);
+    max-width: none;
+    transform: none;
+    text-align: left;
+  }
+  #stage[data-scene="why"]:not([data-view="headline"]) #headline { top: 148px; }
+  #stage[data-scene="why"]:not([data-view="headline"]) #own-bars { top: 148px; }
+  #stage[data-scene="why"]:not([data-view="headline"]) #where-note { top: 148px; }
+  #stage[data-scene="why"]:not([data-view="headline"]) .where-figure {
+    flex-wrap: wrap; gap: 4px 14px;
   }
   /* The headline view of Why there is a block of type with a map behind it,
      so the whole map goes quiet: basemap, state lines, state labels and
      bars all fade together on their two canvases. A view opened from it
      brings them back. */
-  #stage[data-scene="why"][data-view="headline"] #map,
-  #stage[data-scene="why"][data-view="headline"] #deck-canvas {
-    opacity: 0.1;
-  }
+  #stage[data-scene="why"][data-view="headline"] #map-area { opacity: 0.1; }
   #deck-canvas { z-index: 2; }
   .maplibregl-ctrl-attrib { display: none; }
 
@@ -929,6 +976,23 @@
     #where-note { top: 126px; max-width: calc(100% - 32px); font-size: 0.74rem; }
     #own-bars { top: 150px; }
     #stage[data-view="ownpower"] #where-note { top: 250px; }
+    /* No room for a column beside the map at this width, so it goes above
+       it and the map takes what is left below. */
+    #stage[data-scene="why"]:not([data-view="headline"]) #text-column {
+      top: 0; bottom: auto; left: 0;
+      width: 100%; height: 46%;
+      border-right: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    #stage[data-scene="why"]:not([data-view="headline"]) #map-area {
+      left: 0; width: 100%;
+      top: 46%; height: 54%;
+    }
+    #stage[data-scene="why"]:not([data-view="headline"]) #headline,
+    #stage[data-scene="why"]:not([data-view="headline"]) #where-note,
+    #stage[data-scene="why"]:not([data-view="headline"]) #own-bars {
+      left: 16px; width: calc(100% - 32px);
+    }
   }
 </style>
 </head>
@@ -970,8 +1034,11 @@
   </nav>
 
   <main id="stage">
-    <div id="map"></div>
-    <canvas id="deck-canvas"></canvas>
+    <div id="text-column"></div>
+    <div id="map-area">
+      <div id="map"></div>
+      <canvas id="deck-canvas"></canvas>
+    </div>
 
     <!-- Five flat buttons in value-chain order, one per scene, filled from
          CONFIG.scenes so a later step only has to flip its scene's `ready`
@@ -1566,9 +1633,12 @@
           }
         }
       },
-      chips:   { ready: false, button: "Chips" },
-      forwhom: { ready: false, button: "For whom" },
-      when:    { ready: false, button: "When" }
+      /* Still here, with their place in the order kept, and off the top
+         bar: `shown: false` takes the button away without taking the scene
+         out of the file. */
+      chips:   { ready: false, shown: false, button: "Chips" },
+      forwhom: { ready: false, shown: false, button: "For whom" },
+      when:    { ready: false, shown: false, button: "When" }
     },
 
     footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026. Orange County annual electricity consumption: 19,225 GWh, California Energy Commission, Electricity Consumption Dashboards (energy.ca.gov). 1 GW \u2248 \u00bd Orange County is calculated as 19,225 GWh \u00f7 8,760 hours \u2248 2.2 GW average load. 180x compares power per square mile: Orange County 792.84 sq mi of land (Census QuickFacts) at about 2.2 GW average load, against the AWS Cumulus campus near Susquehanna, about 1,200 acres and up to 960 MW planned."
@@ -2153,7 +2223,12 @@
   }
 
   function showsNumber() {
-    return isWhereView() && (whereAnim.solo !== null || whereAnim.step >= 2);
+    if (!isWhereView()) return false;
+    if (whereAnim.solo !== null) return true;
+    /* The closing steps are about two named sites, not about a median, so
+       the big number and its group label step aside for them. */
+    if (whereAnim.step >= whereCfg().focusFrom) return false;
+    return whereAnim.step >= 2;
   }
 
   /* Which sites the last steps are about: one at step 6, two at step 7. */
@@ -2274,6 +2349,7 @@
     renderWhereControls();
     startWhereFrame();
     draw();
+    syncColumnLayout();
     paint();
   }
 
@@ -2292,6 +2368,7 @@
     renderWhereControls();
     startWhereFrame();
     draw();
+    syncColumnLayout();
     paint();
   }
 
@@ -2383,6 +2460,9 @@
     if (playsBack()) { gotoWhereStep(1, true); playWhere(); }
     renderWhereControls();
     draw();
+    syncColumnLayout();
+    /* The map has a narrower box now, so it is refit into it. */
+    resizeMapArea();
     paint();
   }
 
@@ -2403,6 +2483,8 @@
     /* Back on the headline view, so the numbers count again. */
     renderIntroPanel(true);
     draw();
+    syncColumnLayout();
+    resizeMapArea();
     paint();
   }
 
@@ -2410,6 +2492,40 @@
      Shown while the scene's overview screen is up and nothing inside it is
      open. The bars grow at one speed, so each one's duration is its own
      length: four months arrives in a fifth of the time four years takes. */
+
+  /* Where the column's first line starts, and the gap between the pieces
+     under it. Measured rather than fixed, because a label that wraps in a
+     narrow column changes where the next piece begins. */
+  var COLUMN_TOP = 148;
+  var COLUMN_GAP = 20;
+
+  function syncColumnLayout() {
+    var headline = el("headline");
+    var note = el("where-note");
+    var bars = el("own-bars");
+    if (!playsBack()) {
+      headline.style.top = "";
+      note.style.top = "";
+      bars.style.top = "";
+      return;
+    }
+
+    var at = COLUMN_TOP;
+    var place = function (node, shown) {
+      if (!shown) return;
+      node.style.top = Math.round(at) + "px";
+      at += node.getBoundingClientRect().height + COLUMN_GAP;
+    };
+
+    if (isOwnView()) {
+      bars.style.top = "";
+      place(bars, true);
+    } else {
+      bars.style.top = "";
+      place(headline, showsNumber());
+    }
+    place(note, note.classList.contains("is-shown"));
+  }
 
   function introPanelOn() { return !!introCfg() && !viewId; }
 
@@ -2608,15 +2724,19 @@
       longest = Math.max(longest, ownMonths(example));
     });
     /* One speed for every bar, so four months arrives while sixteen is still
-       going, and a fixed width because the block is centred. */
+       going. The scale is the configured one unless the column is narrower
+       than that, in which case the longest bar sets it. */
     var msPerMonth = longest ? own.barMs / longest : 0;
-    bars.style.width = Math.round(longest * own.pxPerMonth) + "px";
+    var room = bars.clientWidth || 0;
+    var pxPerMonth = (room && longest && longest * own.pxPerMonth > room)
+      ? (room - 2) / longest
+      : own.pxPerMonth;
     bars.innerHTML = ownExamples().map(function (example) {
       var months = ownMonths(example);
       var fill = months
         ? '<span class="own-fill" style="background:' + example.color +
           "; transition-duration:" + Math.round(months * msPerMonth) +
-          'ms" data-px="' + Math.round(months * own.pxPerMonth) + '"></span>'
+          'ms" data-px="' + Math.round(months * pxPerMonth) + '"></span>'
         : "";
       return '<div class="own-row is-waiting" data-example="' +
         escapeHtml(example.id) + '">' +
@@ -2848,9 +2968,13 @@
     stage.dataset.view = viewId || "headline";
   }
 
-  /* Every scene has a button, and the one you are in is the one lit. */
+  /* Every scene that is shown has a button, and the one you are in is the
+     one lit. A scene can stand down without leaving the file. */
   function buttonScenes() {
-    return CONFIG.sceneOrder;
+    return CONFIG.sceneOrder.filter(function (id) {
+      var cfg = CONFIG.scenes[id];
+      return !!cfg && cfg.shown !== false;
+    });
   }
 
   function renderSceneBar() {
@@ -2909,7 +3033,7 @@
   /* Up and Down walk the order. A scene that is not ready yet stops the walk
      rather than being skipped, so the reader never lands somewhere blank. */
   function stepScene(delta) {
-    var order = CONFIG.sceneOrder;
+    var order = buttonScenes();
     var next = order[order.indexOf(sceneId) + delta];
     if (next && CONFIG.scenes[next] && CONFIG.scenes[next].ready) setScene(next);
   }
@@ -3568,6 +3692,15 @@
     }
     node.title = "";
 
+    /* Inside a view this line is the view's own; with nothing to put here it
+       stays empty, because the scene's headline belongs to the headline
+       view and not to what opens from it. */
+    if (viewId) {
+      node.classList.remove("is-shown");
+      node.innerHTML = "";
+      return;
+    }
+
     var lines = intro
       ? [intro.headline]
       : (cfg && (cfg.headlineLines ||
@@ -3815,8 +3948,12 @@
     el("site-card").classList.remove("is-pinned");
   }
 
+  /* Deck reports a pointer in canvas coordinates, and a card is placed in
+     stage coordinates, so this is the canvas's own offset rather than the
+     stage's: in a view that gives the left of the screen to a column of
+     text, the two are no longer the same point. */
   function stageOffset() {
-    var rect = el("stage").getBoundingClientRect();
+    var rect = el("deck-canvas").getBoundingClientRect();
     return { left: rect.left, top: rect.top };
   }
 
@@ -4120,11 +4257,15 @@
   }
 
   function fittedView() {
+    /* The canvas, not the stage: a view that gives part of the screen to a
+       column of text leaves the map a narrower box, and the camera has to
+       fit the box the map actually has. */
+    var canvas = el("deck-canvas");
     var stage = el("stage");
     var cfg = CONFIG.map;
     var viewport = new deck.WebMercatorViewport({
-      width: Math.max(320, stage.clientWidth),
-      height: Math.max(320, stage.clientHeight)
+      width: Math.max(320, canvas.clientWidth || stage.clientWidth),
+      height: Math.max(320, canvas.clientHeight || stage.clientHeight)
     });
     /* Every scene shares one camera. The bars change scale between scenes,
        the map does not. */
@@ -4136,6 +4277,17 @@
       pitch: cfg.pitch,
       bearing: cfg.bearing
     };
+  }
+
+  /* The canvases change size when a view opens or closes, so the basemap is
+     told and the camera is refit once the new box exists. */
+  function resizeMapArea() {
+    if (!mapInstance || !deckInstance) return;
+    requestAnimationFrame(function () {
+      mapInstance.resize();
+      applyView(fittedView());
+      syncColumnLayout();
+    });
   }
 
   function applyView(next) {
@@ -4251,7 +4403,10 @@
       clearTimeout(refitTimer);
       refitTimer = setTimeout(function () {
         syncFootnoteSpace();
+        if (mapInstance) mapInstance.resize();
         applyView(fittedView());
+        renderOwnBars();
+        syncColumnLayout();
       }, 180);
     });
   }
