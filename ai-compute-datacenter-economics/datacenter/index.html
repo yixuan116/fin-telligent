@@ -198,25 +198,35 @@
 
   /* ---------- counters ---------- */
 
+  /* The three numbers are the headline of the screen, so they sit in the
+     middle under the scene buttons where the caption used to be, with no
+     panel behind them. Pointer events pass through: the numbers float over
+     the map, and a bar or a state under them stays hoverable. */
+
   #counters {
     position: absolute; z-index: 5;
-    top: 16px; left: 16px;
-    padding: 12px 16px 11px;
-    min-width: 168px;
+    top: 100px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: flex-start; gap: 24px;
+    pointer-events: none;
   }
-  .counter + .counter { margin-top: 9px; }
+  /* Even columns, so the row holds still while the numbers count: the power
+     value is three characters at one stop and six at another, and a row sized
+     to its contents would slide sideways on every move. */
+  .counter { text-align: center; min-width: 128px; }
   .counter-label {
     display: block;
     font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
     text-transform: uppercase; color: var(--stage-text-dim);
     margin-bottom: 2px;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
   }
   .counter-value {
     display: block;
-    font-size: 1.6rem; font-weight: 800; line-height: 1.05;
+    font-size: 2.5rem; font-weight: 800; line-height: 1.05;
     font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 0, 0, 0.7);
   }
-  .counter-value .unit { font-size: 0.8rem; font-weight: 700; color: var(--stage-text-dim); margin-left: 3px; }
+  .counter-value .unit { font-size: 1.1rem; font-weight: 700; color: var(--stage-text-dim); margin-left: 4px; }
 
   /* ---------- how we know ----------
      A quiet link under the counters. It is deliberately small and un-pilled
@@ -428,7 +438,9 @@
 
   #headline {
     position: absolute; z-index: 5;
-    top: 96px; left: 50%; transform: translateX(-50%);
+    /* Below the counters, which now hold the spot under the scene buttons
+       that this caption used to have. */
+    top: 166px; left: 50%; transform: translateX(-50%);
     width: max-content;
     max-width: min(560px, calc(100% - 420px));
     margin: 0;
@@ -624,8 +636,12 @@
 
   @media (max-width: 900px) {
     #legend { display: none; }
-    #counters { padding: 9px 12px 8px; min-width: 136px; }
-    .counter-value { font-size: 1.25rem; }
+    /* The scene buttons move to the bottom at this width, so the numbers
+       take the top of the screen rather than leaving it empty. */
+    #counters { top: 16px; gap: 10px; }
+    .counter { min-width: 92px; }
+    .counter-value { font-size: 1.7rem; }
+    .counter-value .unit { font-size: 0.85rem; }
     #scene-bar { top: auto; bottom: 150px; }
     .scene-btn { font-size: 0.74rem; padding: 7px 13px; }
     /* No legend at this width, so the caption may use the full column. */
@@ -685,7 +701,7 @@
 
     <p id="headline"></p>
 
-    <div id="counters" class="stage-panel">
+    <div id="counters">
       <div class="counter">
         <span class="counter-label" id="counter-year-label">Year</span>
         <span class="counter-value" id="counter-year">&mdash;</span>
