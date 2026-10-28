@@ -92,34 +92,22 @@ group. The distance is to the metro as a whole rather than to its downtown,
 because an internal point sits inside the whole CBSA; a metro that spans six
 counties is therefore "nearer" from the side it sprawls towards.
 
-## The land comparison under the number
+## Orange County's land area
 
-Not from a dataset, and recorded in full in `data/sources.json`:
+Orange County, California, 792.84 sq mi of land, US Census Bureau QuickFacts,
+<https://www.census.gov/quickfacts>, retrieved 2026-10-27. The 2025 county
+Gazetteer file gives 793.249 sq mi, a 0.05% difference.
 
-- Orange County, California, 792.84 sq mi of land, US Census Bureau
-  QuickFacts, <https://www.census.gov/quickfacts>, retrieved 2026-10-27. The
-  2025 county Gazetteer file gives 793.249 sq mi, a 0.05% difference.
-- About 2.2 GW of average load, from the California Energy Commission figure
-  above.
-- The Cumulus campus next to the Susquehanna plant in Luzerne County,
-  Pennsylvania: about 1,200 acres, up to 960 MW planned. Power Engineering,
-  "AWS acquires data center campus connected to Susquehanna nuclear station",
-  2024-03-06,
-  <https://www.power-eng.com/nuclear/aws-acquires-data-center-campus-connected-to-susquehanna-nuclear-station/>,
-  also reported by the American Nuclear Society's Nuclear Newswire,
-  2024-03-07.
-
-1,200 acres is 1.875 sq mi, so 960 MW is about 512 MW per sq mi against Orange
-County's 2.8, which is the "about 180x" on the page. It is a planned peak
-against an average load, so the two are not like for like: the claim is about
-what the land is being built to draw, not what it draws today.
-
-That arithmetic is now also on the page itself, as a clause on the sources
-line, so the comparison is not only defensible in this file.
+This was the land behind a "same land, about 180x the power" comparison with
+the AWS Cumulus campus. That line is no longer on the page, and neither is the
+footer clause that carried its arithmetic, so the Cumulus entry has been
+removed from `data/sources.json` with it. The land area is kept here, and in
+that file, as the counterpart to the Orange County load figure above, which is
+still what "1 GW is about half of Orange County" rests on.
 
 ## Two lines the Where view ends on
 
-Step 6 names one site: "Amazon New Carlisle: 16 months from start to first
+Step 5 names one site: "Amazon New Carlisle: 16 months from start to first
 building live, vs about 4 years average grid wait". The 16 months is Epoch's
 own dates for that site, 2024-02-09 to 2025-06-23, which is 500 days; the four
 years is the JLL figure above. The same caveat applies: one is a build, the
@@ -171,7 +159,7 @@ caveats beside the figures.
 
 ## Make your own power, and the last step of Connect to the Grid
 
-Step 7 of Connect to the Grid compares two sites on Epoch's own clock, first
+Step 6, the last of Connect to the Grid, compares two sites on Epoch's own clock, first
 dated observation to first operational: Amazon New Carlisle, 2024-02-09 to
 2025-06-23, 500 days, shown as 16 months; Google Council Bluffs East,
 2022-09-06 to 2024-11-19, 805 days, shown as 26 months. Unlike the earlier

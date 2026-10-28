@@ -160,6 +160,7 @@
      from the top; the gaps between them are measured in script, because a
      label that wraps changes where the next one starts. */
   #stage[data-scene="why"]:not([data-view="headline"]) #headline,
+  #stage[data-scene="why"]:not([data-view="headline"]) #where-kicker,
   #stage[data-scene="why"]:not([data-view="headline"]) #where-note,
   #stage[data-scene="why"]:not([data-view="headline"]) #own-bars {
     left: 28px;
@@ -442,6 +443,17 @@
     transition: opacity 0.9s ease, visibility 0.9s;
   }
   #where-note.is-shown { opacity: 1; visibility: visible; }
+
+  /* The small label over the number, in the page's own label style. */
+  #where-kicker {
+    position: absolute; z-index: 5;
+    margin: 0;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s;
+  }
+  #where-kicker.is-shown { opacity: 1; visibility: visible; }
   /* A step that compares two sites says so in rows, with its point under
      them; one that has a card behind it says so by being clickable. */
   .note-row {
@@ -999,6 +1011,7 @@
       top: 46%; height: 54%;
     }
     #stage[data-scene="why"]:not([data-view="headline"]) #headline,
+    #stage[data-scene="why"]:not([data-view="headline"]) #where-kicker,
     #stage[data-scene="why"]:not([data-view="headline"]) #where-note,
     #stage[data-scene="why"]:not([data-view="headline"]) #own-bars {
       left: 16px; width: calc(100% - 32px);
@@ -1072,6 +1085,7 @@
     <div id="entry-bar" role="group" aria-label="Entry points"></div>
 
     <!-- The footnote the Where view ends on, under its number. -->
+    <p id="where-kicker"></p>
     <div id="own-bars"></div>
     <p id="where-note"></p>
 
@@ -1426,25 +1440,29 @@
              start-year group, then the land comparison, then the one site
              that did not wait. Back, Play and Next move through them, and
              the arrow keys and the space bar do the same. */
-          steps: 7,
-          focusFrom: 6,            /* from here on, one or two sites carry it */
+          steps: 6,
+          focusFrom: 5,            /* from here on, one or two sites carry it */
           stepMs: 1500,            /* between one step and the next */
           drawMs: 700,             /* a group's lines drawing out */
           countMs: 600,            /* the number counting to its median */
           litAlpha: 0.9,           /* a revealed site's bar */
           unit: "mi",
+          /* Cool to warm in the order the groups arrive, and the wording
+             that goes beside the number. The legend keeps the data's own
+             shorter labels, which is all the room a row there has. */
           groups: [
-            { color: "#17b2c9" },
-            { color: "#f5c451" },
-            { color: "#f08422" }
+            { color: "#17b2c9", label: "Median, sites started 2023 and earlier" },
+            { color: "#f5c451", label: "Median, sites started 2024" },
+            { color: "#f08422", label: "Median, sites started 2025 and later" }
           ],
+          /* What the number is, said once above it. */
+          kicker: "Distance to the nearest big city",
           dotColor: [242, 245, 248, 215],
           dotRadiusPx: 2.6,
           lineWidthPx: 1,
           lineAlpha: 165,
           fadeLineAlpha: 55,       /* the other lines on the last step */
           legendHead: "Nearest metro of 1M or more",
-          landNote: "Same land, about 180x the power of \uD83C\uDF4A Orange County",
           /* The last step: the site that built its own way to power. Its
              months are Epoch's own dates, 2024-02-09 to 2025-06-23. */
           focusSite: "Anthropic-Amazon New Carlisle",
@@ -1654,7 +1672,7 @@
       when:    { ready: false, shown: false, button: "When" }
     },
 
-    footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026. Orange County annual electricity consumption: 19,225 GWh, California Energy Commission, Electricity Consumption Dashboards (energy.ca.gov). 1 GW \u2248 \u00bd Orange County is calculated as 19,225 GWh \u00f7 8,760 hours \u2248 2.2 GW average load. 180x compares power per square mile: Orange County 792.84 sq mi of land (Census QuickFacts) at about 2.2 GW average load, against the AWS Cumulus campus near Susquehanna, about 1,200 acres and up to 960 MW planned."
+    footnote: "84% of tracked frontier AI capacity is in the US. IT power is the power available to chips. Data: Epoch AI (CC-BY), downloaded Oct 26, 2026. Orange County annual electricity consumption: 19,225 GWh, California Energy Commission, Electricity Consumption Dashboards (energy.ca.gov). 1 GW \u2248 \u00bd Orange County is calculated as 19,225 GWh \u00f7 8,760 hours \u2248 2.2 GW average load."
   };
 
   /* ==========================================================================
@@ -2161,12 +2179,16 @@
     if (!METROS) return [];
     var colors = whereCfg().groups;
     return METROS.groups.map(function (group, i) {
+      var cfg = colors[i] || colors[colors.length - 1];
       return {
         id: group.id,
+        /* The data's own label for the legend, the longer wording for
+           beside the number, where there is room to say what it is. */
         label: group.label,
+        numberLabel: cfg.label || group.label,
         median: group.median_mi,
         count: group.count,
-        color: (colors[i] || colors[colors.length - 1]).color
+        color: cfg.color
       };
     });
   }
@@ -2318,8 +2340,6 @@
           '<span class="note-line">' + escapeHtml(cfg.compare.line) + "</span>";
       } else if (whereAnim.step === cfg.steps - 1) {
         html = escapeHtml(cfg.focusNote);
-      } else if (whereAnim.step === cfg.steps - 2) {
-        html = escapeHtml(cfg.landNote);
       }
     } else if (isOwnView() && whereAnim.step >= ownCfg().steps) {
       /* The closing line has a card behind it, so it says so. */
@@ -2514,27 +2534,31 @@
 
   function syncColumnLayout() {
     var headline = el("headline");
+    var kicker = el("where-kicker");
     var note = el("where-note");
     var bars = el("own-bars");
     if (!playsBack()) {
       headline.style.top = "";
+      kicker.style.top = "";
       note.style.top = "";
       bars.style.top = "";
       return;
     }
 
     var at = COLUMN_TOP;
-    var place = function (node, shown) {
+    var place = function (node, shown, gap) {
       if (!shown) return;
       node.style.top = Math.round(at) + "px";
-      at += node.getBoundingClientRect().height + COLUMN_GAP;
+      at += node.getBoundingClientRect().height +
+        (gap === undefined ? COLUMN_GAP : gap);
     };
 
+    bars.style.top = "";
     if (isOwnView()) {
-      bars.style.top = "";
       place(bars, true);
     } else {
-      bars.style.top = "";
+      /* The label sits right on top of the number it names. */
+      place(kicker, showsNumber(), 5);
       place(headline, showsNumber());
     }
     place(note, note.classList.contains("is-shown"));
@@ -3679,6 +3703,11 @@
   function renderHeadline(stop) {
     var cfg = scene();
     var node = el("headline");
+
+    /* What the number is, said once above it, and only while it is up. */
+    var kicker = el("where-kicker");
+    kicker.textContent = isWhereView() ? (whereCfg().kicker || "") : "";
+    kicker.classList.toggle("is-shown", showsNumber());
     /* A scene gives either one line or several; both arrive and leave as one
        caption, so a scene that has something in two sentences does not have
        to say it in one. */
@@ -3697,7 +3726,8 @@
             '<span class="where-unit">' + escapeHtml(whereCfg().unit) +
             "</span>" +
           "</span>" +
-          '<span class="where-group">' + escapeHtml(group.label) + "</span>" +
+          '<span class="where-group">' + escapeHtml(group.numberLabel) +
+          "</span>" +
         "</span>";
       node.title = whereCfg().backHint;
       node.classList.add("is-shown");

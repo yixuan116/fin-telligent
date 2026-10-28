@@ -32,8 +32,9 @@
    "retrieved": "2026-10-27",
    "license": "public domain",
    "value": "792.84 square miles",
-   "used_for": "The land area behind the \"same land\" comparison.",
-   "cross_check": "The 2025 county Gazetteer file gives 793.249 square miles of land for Orange County, California, a 0.05 percent difference."
+   "used_for": "Was the land area behind the \"same land\" comparison, which is no longer on the page.",
+   "cross_check": "The 2025 county Gazetteer file gives 793.249 square miles of land for Orange County, California, a 0.05 percent difference.",
+   "status": "Not currently quoted anywhere on the page. Kept as the counterpart to the Orange County load figure, which is still used by the bar-scale note and the sources line; delete it if the land area is not coming back."
   },
   {
    "id": "cec-orange-county-consumption",
@@ -43,18 +44,6 @@
    "retrieved": "2026-10-26",
    "value": "19,225 GWh a year, which is about 2.2 GW of average load (19,225 / 8,760)",
    "used_for": "Orange County's electricity use, already quoted in the page footnote and in the bar-scale note."
-  },
-  {
-   "id": "cumulus-campus",
-   "title": "AWS acquires data center campus connected to Susquehanna nuclear station",
-   "publisher": "Power Engineering",
-   "url": "https://www.power-eng.com/nuclear/aws-acquires-data-center-campus-connected-to-susquehanna-nuclear-station/",
-   "published": "2024-03-06",
-   "retrieved": "2026-10-27",
-   "value": "about 1,200 acres, up to 960 MW planned",
-   "used_for": "The campus in the \"same land\" comparison: the Cumulus site next to the Susquehanna plant in Luzerne County, Pennsylvania, bought by AWS from Talen Energy.",
-   "also_reported_by": "American Nuclear Society, Nuclear Newswire, \"Amazon buys nuclear-powered data center from Talen\", 2024-03-07 (ans.org). No verified deep link, so the publication and title are recorded rather than a guessed URL.",
-   "caveat": "Coverage describes the 960 MW either as AWS's planned power consumption or as the total redundant capacity of the campus's four substations. The page says \"planned\", which is the weaker of the two claims."
   },
   {
    "id": "jll-time-to-power",
@@ -151,18 +140,6 @@
  ],
  "footnotes": [
   {
-   "id": "same-land-180x",
-   "text": "Same land, about 180x the power of 🍊 Orange County",
-   "shown": "Step 5 of the Where view, as the line under the number, and since this commit also as a clause on the page's own sources line so the comparison carries its arithmetic in public.",
-   "basis": [
-    "Orange County, California: 792.84 sq mi of land (census-quickfacts-orange-county), about 2.2 GW of average load (cec-orange-county-consumption), so about 2.8 MW per sq mi.",
-    "Cumulus campus: about 1,200 acres, which is 1.875 sq mi, with up to 960 MW planned (cumulus-campus), so about 512 MW per sq mi.",
-    "512 / 2.8 is about 185, read on the page as about 180x."
-   ],
-   "kind": "planned capacity against actual consumption",
-   "caveat": "A planned peak against an average load, so the two numbers are not like for like; the comparison is of what the land is being built to draw, not of what it draws today."
-  },
-  {
    "id": "time-to-power-numbers",
    "text": "2 yrs, Build the data center / 4 yrs, Wait for grid power (US average)",
    "shown": "The headline view of the Why there scene, as two numbers that count up from zero. The second one opens a card: \"Waiting for: new generation, new high-voltage lines and substations\" and \"Bottleneck: equipment backlog, large power transformers take 2 to 4 years\".",
@@ -178,7 +155,7 @@
   {
    "id": "where-focus-line",
    "text": "Amazon New Carlisle: 16 months from start to first building live, vs about 4 years average grid wait",
-   "shown": "Step 6 of the Where view, with that site's bar picked out in white.",
+   "shown": "Step 5 of the Connect to the Grid view, with that site's bar picked out in white.",
    "basis": [
     "16 months: Epoch AI's own dates for Anthropic-Amazon New Carlisle, first dated observation 2024-02-09 to first operational 2025-06-23, which is 500 days or 16.4 months (data/sites.json).",
     "About 4 years: the US average wait for a grid connection (jll-time-to-power)."
@@ -189,7 +166,7 @@
   {
    "id": "late-group-clusters",
    "text": "This group splits in two: seven sites within 53 mi, seven beyond 161 mi.",
-   "shown": "In the card a 2025-and-later site opens in the Where view, under its distance.",
+   "shown": "In the card a 2025-and-later site opens in the Connect to the Grid view, under its distance.",
    "basis": [
     "Computed from data/metros.json: of the 14 sites that broke ground in 2025 or later, 7 are 12.2 to 52.5 mi from their nearest metro of a million or more and 7 are 161.0 to 288.7 mi, with nothing in between.",
     "The group's median of 107 mi therefore falls in an empty gap, which is why a site in it carries this line."
@@ -197,9 +174,9 @@
    "kind": "distribution of the group behind the median"
   },
   {
-   "id": "where-step-seven",
+   "id": "where-comparison-step",
    "text": "Amazon New Carlisle, 2024: 16 months / Google Council Bluffs East, 2022: 26 months / Same grid, the right site cuts the wait",
-   "shown": "Step 7 of the Connect to the Grid view, with both sites picked out in white.",
+   "shown": "Step 6, the last of the Connect to the Grid view, with both sites picked out in white.",
    "basis": [
     "Both rows are Epoch's own dates, first dated observation to first operational: New Carlisle 2024-02-09 to 2025-06-23, 500 days or 16.4 months; Council Bluffs East 2022-09-06 to 2024-11-19, 805 days or 26.4 months (data/sites.json).",
     "Council Bluffs East sits 14 mi from Omaha, its nearest metro of a million or more; New Carlisle 68.8 mi from Chicago (data/metros.json)."
