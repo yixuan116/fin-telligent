@@ -488,6 +488,14 @@
     text-transform: uppercase; color: var(--stage-text-dim);
   }
   #own-bars .card-sources { margin-top: 13px; }
+  /* The column is the key now, so each row wears its own colour. */
+  .own-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 7px;
+    vertical-align: 1px;
+  }
   .own-label {
     display: block; margin-bottom: 4px;
     font-size: 0.72rem; font-weight: 600; line-height: 1.3;
@@ -759,6 +767,11 @@
     flex-shrink: 0;
   }
   #size-key-bars { display: block; margin-top: 2px; }
+  /* With no list above it the key is the panel, so it drops the rule that
+     used to separate it from the rows. */
+  #stage[data-view="ownpower"] #size-key {
+    margin-top: 0; padding-top: 0; border-top: 0;
+  }
   /* One line under the scale, at the panel's own caption size and colour.
      It has to stay on one line to read as a single comparison, so it is set
      nowrap rather than left to break after the fraction. */
@@ -1526,10 +1539,7 @@
           unit: "months",
           legendHead: "Build your own",
           /* What the bars measure, said once above them. */
-          kicker: "Build time: construction start to first building live",
-          /* What was live on the day the first building was, appended to a
-             label from the site's own row in Epoch's timeline. */
-          liveSuffix: ", {power} live",
+          kicker: "Time to first power: construction start to first building live",
           /* Not a site: the wait these builds went round, on the same scale
              and in grey, so the comparison is the length of the bar. */
           benchmark: {
@@ -1549,7 +1559,10 @@
               id: "colossus",
               name: "Colossus 1",
               site: "Colossus 1",
-              label: "xAI Colossus 1: about 4 months",
+              /* Both figures are Epoch's own: 2024-04-24 to 2024-08-11 is
+                 3.6 months, and 35 MW was live on that row. */
+              labelTemplate: "xAI Colossus 1, own power: {months} months, {power}",
+              label: "xAI Colossus 1, own power",
               legend: "about 4 months",
               color: "#17b2c9",
               note: {
@@ -1565,11 +1578,14 @@
               id: "abilene",
               name: "Stargate Abilene",
               site: "OpenAI Stargate Abilene",
+              /* On the map and in its card, not in the column: the grid
+                 queue takes the row under Colossus instead. */
+              column: false,
               label: "Oracle Stargate Abilene: 16 months",
               legend: "16 months",
               color: "#f5c451",
               note: {
-                text: "Existing 200 MW substation plus an on-site gas plant; turbines ordered December 2024",
+                text: "Existing 200 MW substation plus an on-site gas plant; turbines ordered December 2024. Started May 2024, first building live Sep 2025 (16 months, 105 MW). First phase ran on the campus\u2019s existing substation, with an on-site gas plant alongside.",
                 sources: [
                   "Epoch AI, data center directory: OpenAI Stargate Abilene",
                   "Cleanview, behind-the-meter data centers: Stargate Abilene",
@@ -2772,7 +2788,11 @@
     var mark = ownCfg().benchmark;
     var rows = [];
     ownExamples().forEach(function (example, i) {
-      rows.push({ example: example, index: i, months: ownMonths(example) });
+      /* A site can be on the map without a row of its own; the benchmark
+         still takes the place, and the step, of the one it sits under. */
+      if (example.column !== false) {
+        rows.push({ example: example, index: i, months: ownMonths(example) });
+      }
       if (mark && mark.after === example.id) {
         rows.push({ example: mark, index: i, months: mark.months, mark: true });
       }
@@ -2783,10 +2803,12 @@
   /* A site's label carries what was live the day it first was. */
   function ownLabel(example) {
     var site = example.site ? siteByName(example.site) : null;
-    var mw = site && site.it_mw_first_operational;
-    if (!mw) return example.label;
-    return example.label +
-      ownCfg().liveSuffix.replace("{power}", powerText(mw));
+    if (!example.labelTemplate || !site) return example.label;
+    /* The months and the power come from Epoch's own rows, so the label is
+       the data rather than a copy of it. */
+    return example.labelTemplate
+      .replace("{months}", monthsFor(site).toFixed(1))
+      .replace("{power}", powerText(site.it_mw_first_operational || 0));
   }
 
   function ownExampleName(example) {
@@ -2827,7 +2849,10 @@
           : escapeHtml(ownLabel(example));
         return '<div class="own-row is-waiting" data-example="' +
           escapeHtml(example.id) + '">' +
-          '<span class="own-label">' + label + "</span>" +
+          '<span class="own-label">' +
+            '<span class="own-dot" style="background:' + example.color +
+              '"></span>' + label +
+          "</span>" +
           fill +
         "</div>";
       }).join("") +
@@ -2848,21 +2873,13 @@
   }
 
   /* One row per example, with what it took, lit as its step arrives. */
+  /* Nothing: the column on the left carries its own key, a dot per row, so
+     the panel is left with the bar-height scale alone. */
   function renderOwnLegend() {
-    var own = ownCfg();
     el("legend").classList.remove("is-two-col");
-    el("legend-head").textContent = own.legendHead;
-    el("legend-rows").innerHTML = ownExamples().map(function (example, i) {
-      var name = ownExampleName(example);
-      return '<div class="legend-row' + (ownRevealed(i) ? "" : " is-zero") +
-        '" data-example="' + escapeHtml(example.id) + '">' +
-        '<span class="legend-swatch" style="background:' + example.color +
-          '"></span>' +
-        '<span class="legend-name" title="' + escapeHtml(name) + '">' +
-          escapeHtml(name) + "</span>" +
-        '<span class="legend-mw">' + escapeHtml(example.legend) + "</span>" +
-      "</div>";
-    }).join("");
+    el("legend-head").hidden = true;
+    el("legend-head").textContent = "";
+    el("legend-rows").innerHTML = "";
   }
 
   /* The county marker, drawn at the county's own internal point. */
@@ -3630,6 +3647,7 @@
 
     /* Every branch below owns the whole panel, so the price ramp and its
        sub-head are cleared here rather than in each of them. */
+    el("legend-head").hidden = false;
     if (!isPriceView()) {
       el("legend-ramp").classList.remove("is-shown");
       el("legend-ramp").innerHTML = "";
