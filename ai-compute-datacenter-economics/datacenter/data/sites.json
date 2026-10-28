@@ -56,6 +56,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2025-06-23",
+   "it_mw_first_operational": 398.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -114,6 +115,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2025-10-19",
+   "it_mw_first_operational": 239.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -168,6 +170,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2025-10-14",
+   "it_mw_first_operational": 321.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -218,6 +221,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2025-10-14",
+   "it_mw_first_operational": 76.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -268,6 +272,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2025-09-26",
+   "it_mw_first_operational": 105.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -322,6 +327,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2026-04-16",
+   "it_mw_first_operational": 369.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -372,6 +378,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2024-07-19",
+   "it_mw_first_operational": 53.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -422,6 +429,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2024-08-11",
+   "it_mw_first_operational": 35.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -472,6 +480,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2024-04-20",
+   "it_mw_first_operational": 67.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -522,6 +531,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2024-04-01",
+   "it_mw_first_operational": 65.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -572,6 +582,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2025-06-23",
+   "it_mw_first_operational": 284.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -622,6 +633,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2025-05-31",
+   "it_mw_first_operational": 8.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -672,6 +684,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2024-04-29",
+   "it_mw_first_operational": 87.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -717,6 +730,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2024-01-29",
+   "it_mw_first_operational": 47.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -767,6 +781,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2024-11-19",
+   "it_mw_first_operational": 79.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -817,6 +832,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2024-04-08",
+   "it_mw_first_operational": 79.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -867,6 +883,7 @@
    "start_year": 2020,
    "price_year": 2020,
    "first_operational": "2023-01-23",
+   "it_mw_first_operational": 79.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -917,6 +934,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-05-15",
+   "it_mw_first_operational": 228.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -962,6 +980,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2024-12-01",
+   "it_mw_first_operational": 113.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1016,6 +1035,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2023-04-24",
+   "it_mw_first_operational": 40.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1066,6 +1086,7 @@
    "start_year": 2018,
    "price_year": 2018,
    "first_operational": "2021-01-01",
+   "it_mw_first_operational": 48.0,
    "it_mw_by_period": {
     "2021H1": 48.0,
     "2021H2": 48.0,
@@ -1111,6 +1132,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2025-07-01",
+   "it_mw_first_operational": 90.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1161,6 +1183,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2023-08-02",
+   "it_mw_first_operational": 45.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1206,6 +1229,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2025-02-04",
+   "it_mw_first_operational": 72.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1256,6 +1280,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-06-04",
+   "it_mw_first_operational": 178.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1306,6 +1331,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-06-19",
+   "it_mw_first_operational": 178.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1356,6 +1382,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2025-12-09",
+   "it_mw_first_operational": 152.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1406,6 +1433,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2023-08-30",
+   "it_mw_first_operational": 81.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1451,6 +1479,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2025-03-07",
+   "it_mw_first_operational": 77.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1501,6 +1530,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-06-18",
+   "it_mw_first_operational": 153.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1551,6 +1581,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-07-25",
+   "it_mw_first_operational": 152.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1601,6 +1632,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2026-06-01",
+   "it_mw_first_operational": 152.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1651,6 +1683,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2026-03-04",
+   "it_mw_first_operational": 78.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1696,6 +1729,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-02-13",
+   "it_mw_first_operational": 48.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1741,6 +1775,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2026-05-12",
+   "it_mw_first_operational": 141.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1786,6 +1821,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2024-01-01",
+   "it_mw_first_operational": 68.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1836,6 +1872,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2025-12-07",
+   "it_mw_first_operational": 133.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1886,6 +1923,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2026-08-30",
+   "it_mw_first_operational": 132.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1936,6 +1974,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-03-01",
+   "it_mw_first_operational": 87.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -1986,6 +2025,7 @@
    "start_year": 2021,
    "price_year": 2021,
    "first_operational": "2025-09-09",
+   "it_mw_first_operational": 47.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2031,6 +2071,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-08-01",
+   "it_mw_first_operational": 105.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2076,6 +2117,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2026-04-19",
+   "it_mw_first_operational": 69.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2126,6 +2168,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2026-08-24",
+   "it_mw_first_operational": 87.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2171,6 +2214,7 @@
    "start_year": 2019,
    "price_year": 2019,
    "first_operational": "2024-10-01",
+   "it_mw_first_operational": 85.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2221,6 +2265,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2024-01-31",
+   "it_mw_first_operational": 18.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2271,6 +2316,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-08-02",
+   "it_mw_first_operational": 80.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2316,6 +2362,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-06-16",
+   "it_mw_first_operational": 77.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2361,6 +2408,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2025-08-25",
+   "it_mw_first_operational": 77.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2406,6 +2454,7 @@
    "start_year": 2018,
    "price_year": 2018,
    "first_operational": "2024-05-24",
+   "it_mw_first_operational": 47.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2456,6 +2505,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-08-07",
+   "it_mw_first_operational": 69.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2506,6 +2556,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2025-10-27",
+   "it_mw_first_operational": 50.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2556,6 +2607,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-03-13",
+   "it_mw_first_operational": 36.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2601,6 +2653,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2026-05-01",
+   "it_mw_first_operational": 64.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2651,6 +2704,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2025-10-01",
+   "it_mw_first_operational": 16.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2701,6 +2755,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-04-15",
+   "it_mw_first_operational": 50.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2746,6 +2801,7 @@
    "start_year": 2022,
    "price_year": 2022,
    "first_operational": "2024-07-01",
+   "it_mw_first_operational": 19.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2796,6 +2852,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2026-05-31",
+   "it_mw_first_operational": 42.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2841,6 +2898,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2026-02-15",
+   "it_mw_first_operational": 32.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2891,6 +2949,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-02-20",
+   "it_mw_first_operational": 28.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2941,6 +3000,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2025-02-20",
+   "it_mw_first_operational": 17.3,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -2991,6 +3051,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2026-12-30",
+   "it_mw_first_operational": 168.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3041,6 +3102,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2027-06-30",
+   "it_mw_first_operational": 92.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3091,6 +3153,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-12-31",
+   "it_mw_first_operational": 70.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3141,6 +3204,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2027-09-17",
+   "it_mw_first_operational": 336.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3191,6 +3255,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2027-03-15",
+   "it_mw_first_operational": 103.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3241,6 +3306,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-12-31",
+   "it_mw_first_operational": 87.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3291,6 +3357,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2026-12-01",
+   "it_mw_first_operational": 173.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3341,6 +3408,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2027-02-01",
+   "it_mw_first_operational": 86.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3391,6 +3459,7 @@
    "start_year": 2024,
    "price_year": 2024,
    "first_operational": "2028-01-01",
+   "it_mw_first_operational": 1632.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3441,6 +3510,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2027-03-01",
+   "it_mw_first_operational": 214.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3491,6 +3561,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2028-12-31",
+   "it_mw_first_operational": 988.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3541,6 +3612,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": null,
+   "it_mw_first_operational": null,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3591,6 +3663,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2028-12-31",
+   "it_mw_first_operational": 1750.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3641,6 +3714,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2027-08-15",
+   "it_mw_first_operational": 140.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3691,6 +3765,7 @@
    "start_year": 2026,
    "price_year": 2025,
    "first_operational": "2028-12-31",
+   "it_mw_first_operational": 902.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3736,6 +3811,7 @@
    "start_year": 2025,
    "price_year": 2025,
    "first_operational": "2026-11-15",
+   "it_mw_first_operational": 448.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,
@@ -3786,6 +3862,7 @@
    "start_year": 2023,
    "price_year": 2023,
    "first_operational": "2026-12-31",
+   "it_mw_first_operational": 203.0,
    "it_mw_by_period": {
     "2021H1": 0.0,
     "2021H2": 0.0,

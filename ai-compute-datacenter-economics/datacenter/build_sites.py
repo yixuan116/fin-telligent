@@ -781,6 +781,20 @@ def first_operational(rows: list[tuple[dt.date, float, float]]) -> str | None:
     return None
 
 
+def it_mw_at_first_operational(
+    rows: list[tuple[dt.date, float, float]]
+) -> float | None:
+    """IT power on the row where the first building came online.
+
+    Not carried forward from an earlier row: the question is what was live
+    on the day the site first was, which is the figure on that row.
+    """
+    for _date, it_mw, buildings in rows:
+        if buildings > 0:
+            return round(it_mw, 1)
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Build
 # ---------------------------------------------------------------------------
@@ -887,6 +901,8 @@ def build(refresh: bool) -> dict:
                 "price_year": (min(start.year, PRICE_LATEST_YEAR)
                                if start else None),
                 "first_operational": first_operational(rows_for_site),
+                "it_mw_first_operational":
+                    it_mw_at_first_operational(rows_for_site),
                 "it_mw_by_period": it_by_period,
                 "it_mw_as_of": round(value_asof(rows_for_site, AS_OF), 1),
                 "it_mw_2030h1": it_by_period["2030H1"],

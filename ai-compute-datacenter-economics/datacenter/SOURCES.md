@@ -166,7 +166,12 @@ dated observation to first operational: Amazon New Carlisle, 2024-02-09 to
 steps this one compares like with like. What the dates cannot carry is why.
 
 The Make Your Own Power view rests on the same Epoch dates for its two
-finished examples, and on four outside sources for what is behind them. Each
+finished examples, each labelled with the IT power on its own first
+operational row: Colossus 1 went live 2024-08-11 with 35 MW, Stargate Abilene
+2025-09-26 with 105 MW. That is what was live the day the first building was,
+not what the site reached later; Colossus 1 was at 139 MW three weeks after
+its 35. The grey bar beside them is the JLL four-year grid queue above, drawn
+at 48 months on the same scale. Four outside sources stand behind the rest. Each
 card carries its own numbered citations; the full entries, with the caveats
 below, are in `data/sources.json`.
 

@@ -482,6 +482,12 @@
   #own-bars.is-shown { opacity: 1; visibility: visible; }
   .own-row + .own-row { margin-top: 12px; }
   .own-row.is-waiting { opacity: 0.35; }
+  .own-kicker {
+    display: block; margin-bottom: 11px;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--stage-text-dim);
+  }
+  #own-bars .card-sources { margin-top: 13px; }
   .own-label {
     display: block; margin-bottom: 4px;
     font-size: 0.72rem; font-weight: 600; line-height: 1.3;
@@ -1519,6 +1525,23 @@
           dimAlpha: 0.12,          /* every site that is not an example */
           unit: "months",
           legendHead: "Build your own",
+          /* What the bars measure, said once above them. */
+          kicker: "Build time: construction start to first building live",
+          /* What was live on the day the first building was, appended to a
+             label from the site's own row in Epoch's timeline. */
+          liveSuffix: ", {power} live",
+          /* Not a site: the wait these builds went round, on the same scale
+             and in grey, so the comparison is the length of the bar. */
+          benchmark: {
+            id: "queue",
+            after: "abilene",
+            label: "Wait in the grid queue: US average, about 4 years",
+            months: 48,
+            color: "#5c6572",
+            sources: [
+              "JLL, 2026 Global Data Center Outlook, as cited by Electrical Contractor Magazine"
+            ]
+          },
           markerRadiusPx: 6,
           markerLineWidthPx: 1.6,
           examples: [
@@ -1564,7 +1587,7 @@
                 lat: 33.175964,
                 lon: -99.730774
               },
-              label: "Google + Intersect: under construction",
+              label: "Google + Intersect: no live date yet",
               legend: "under construction",
               color: "#f08422",
               note: {
@@ -2743,6 +2766,29 @@
     return found;
   }
 
+  /* The examples in order, with the benchmark slotted under the one it is
+     there to measure. It shares that example's step, so it arrives with it. */
+  function ownRows() {
+    var mark = ownCfg().benchmark;
+    var rows = [];
+    ownExamples().forEach(function (example, i) {
+      rows.push({ example: example, index: i, months: ownMonths(example) });
+      if (mark && mark.after === example.id) {
+        rows.push({ example: mark, index: i, months: mark.months, mark: true });
+      }
+    });
+    return rows;
+  }
+
+  /* A site's label carries what was live the day it first was. */
+  function ownLabel(example) {
+    var site = example.site ? siteByName(example.site) : null;
+    var mw = site && site.it_mw_first_operational;
+    if (!mw) return example.label;
+    return example.label +
+      ownCfg().liveSuffix.replace("{power}", powerText(mw));
+  }
+
   function ownExampleName(example) {
     return example.name || (example.marker ? example.marker.name : example.site);
   }
@@ -2756,10 +2802,9 @@
     if (!on) { bars.innerHTML = ""; bars.style.width = ""; return; }
 
     var own = ownCfg();
+    var rows = ownRows();
     var longest = 0;
-    ownExamples().forEach(function (example) {
-      longest = Math.max(longest, ownMonths(example));
-    });
+    rows.forEach(function (row) { longest = Math.max(longest, row.months); });
     /* One speed for every bar, so four months arrives while sixteen is still
        going. The scale is the configured one unless the column is narrower
        than that, in which case the longest bar sets it. */
@@ -2768,30 +2813,36 @@
     var pxPerMonth = (room && longest && longest * own.pxPerMonth > room)
       ? (room - 2) / longest
       : own.pxPerMonth;
-    bars.innerHTML = ownExamples().map(function (example) {
-      var months = ownMonths(example);
-      var fill = months
-        ? '<span class="own-fill" style="background:' + example.color +
-          "; transition-duration:" + Math.round(months * msPerMonth) +
-          'ms" data-px="' + Math.round(months * pxPerMonth) + '"></span>'
-        : "";
-      return '<div class="own-row is-waiting" data-example="' +
-        escapeHtml(example.id) + '">' +
-        '<span class="own-label">' + escapeHtml(example.label) + "</span>" +
-        fill +
-      "</div>";
-    }).join("");
+    bars.innerHTML =
+      '<span class="own-kicker">' + escapeHtml(own.kicker) + "</span>" +
+      rows.map(function (row) {
+        var example = row.example;
+        var fill = row.months
+          ? '<span class="own-fill" style="background:' + example.color +
+            "; transition-duration:" + Math.round(row.months * msPerMonth) +
+            'ms" data-px="' + Math.round(row.months * pxPerMonth) + '"></span>'
+          : "";
+        var label = row.mark
+          ? escapeHtml(example.label) + citeHtml(example.sources)
+          : escapeHtml(ownLabel(example));
+        return '<div class="own-row is-waiting" data-example="' +
+          escapeHtml(example.id) + '">' +
+          '<span class="own-label">' + label + "</span>" +
+          fill +
+        "</div>";
+      }).join("") +
+      (own.benchmark ? sourcesHtml(own.benchmark.sources) : "");
     syncOwnBars();
   }
 
   function syncOwnBars() {
-    var rows = el("own-bars").querySelectorAll(".own-row");
-    ownExamples().forEach(function (example, i) {
-      var row = rows[i];
-      if (!row) return;
-      var out = ownRevealed(i);
-      row.classList.toggle("is-waiting", !out);
-      var fill = row.querySelector(".own-fill");
+    var nodes = el("own-bars").querySelectorAll(".own-row");
+    ownRows().forEach(function (row, i) {
+      var node = nodes[i];
+      if (!node) return;
+      var out = ownRevealed(row.index);
+      node.classList.toggle("is-waiting", !out);
+      var fill = node.querySelector(".own-fill");
       if (fill) fill.style.width = out ? fill.dataset.px + "px" : "0px";
     });
   }

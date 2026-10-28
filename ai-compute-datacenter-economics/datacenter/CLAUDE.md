@@ -11,9 +11,9 @@ anywhere; paths resolve from the script file, not from `cwd`:
 - `data/data_centers.csv`, `data/data_center_timelines.csv` — copied from the
   Epoch download. CC-BY 4.0, cited in `data/EPOCH_LICENSE.md`.
 - `data/sites.json` — 77 US sites: name, owner, users, state, lat/lon, the
-  half-year IT-power series 2021H1 to 2030H1, the first operational date, and
-  the start date (the first dated row Epoch has, usually land clearing) with
-  the year its power price is read at.
+  half-year IT-power series 2021H1 to 2030H1, the first operational date with
+  the IT power on that row, and the start date (the first dated row Epoch has,
+  usually land clearing) with the year its power price is read at.
 - `data/state_prices.json` — EIA annual average retail electricity prices by
   state, industrial and commercial, 2018 to 2025, plus industrial sales. Also
   committed, so a rerun makes no network calls; `--refresh-prices`

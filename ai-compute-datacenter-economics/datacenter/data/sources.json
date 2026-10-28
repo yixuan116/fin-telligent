@@ -52,7 +52,7 @@
    "url": "https://www.jll.com",
    "retrieved": "2026-10-27",
    "value": "about four years, the US national average wait for a grid connection; 18 to 24 months to build the data center itself in most US markets",
-   "used_for": "The two numbers on the Why there headline view: \"4 yrs\" captioned \"Wait for grid power (US average)\", and \"2 yrs\" captioned \"Build the data center\", which is 18 to 24 months rounded to a whole year.",
+   "used_for": "The two numbers on the Why there headline view: \"4 yrs\" captioned \"Wait for grid power (US average)\", and \"2 yrs\" captioned \"Build the data center\", which is 18 to 24 months rounded to a whole year. Also the grey benchmark bar in Make Your Own Power, \"Wait in the grid queue: US average, about 4 years\", drawn at 48 months on the same scale as the two build times beside it.",
    "as_cited_by": {
     "publisher": "Electrical Contractor Magazine",
     "title": "How Long Does It Take to Power a Data Center?",
@@ -186,16 +186,17 @@
   },
   {
    "id": "ownpower-examples",
-   "text": "xAI Colossus 1: about 4 months / Oracle Stargate Abilene: 16 months / Google + Intersect: under construction",
+   "text": "xAI Colossus 1: about 4 months, 35 MW live / Oracle Stargate Abilene: 16 months, 105 MW live / Wait in the grid queue: US average, about 4 years / Google + Intersect: no live date yet",
    "shown": "The three steps of Make Your Own Power, as bars and as legend rows, each with a card behind it.",
    "basis": [
-    "Colossus 1: 2024-04-24 to 2024-08-11, 109 days or 3.6 months, shown as about 4 months (Epoch AI, data/sites.json).",
-    "Stargate Abilene: 2024-05-31 to 2025-09-26, 483 days or 15.9 months, shown as 16 months (Epoch AI, data/sites.json).",
-    "Haskell County: no duration, because the site is under construction (cleary-intersect).",
+    "Colossus 1: 2024-04-24 to 2024-08-11, 109 days or 3.6 months, shown as about 4 months, with 35.0 MW of IT power on the row where its first building came online (Epoch AI, data/sites.json, field it_mw_first_operational).",
+    "Stargate Abilene: 2024-05-31 to 2025-09-26, 483 days or 15.9 months, shown as 16 months, with 105.0 MW live on that row (Epoch AI, data/sites.json).",
+    "The grid queue benchmark: about four years, drawn at 48 months (jll-time-to-power).",
+    "Haskell County: no duration and no live date, because the site is under construction (cleary-intersect).",
     "Bar lengths are those durations at one pixel scale and one speed, so a bar's length is the wait."
    ],
    "kind": "elapsed time, all on Epoch's clock",
-   "caveat": "The three are not the same kind of thing: two are finished builds with their own power on site, the third is a company purchase whose site has not been built. The view says so by giving the third no bar."
+   "caveat": "The live figure is what was on the site's own first-operational row, not what it reached later: Colossus 1 was at 139 MW three weeks after its 35. The three examples are also not the same kind of thing, and the benchmark is a national average queue rather than a build, which is why it is grey and not a site."
   }
  ]
 }
