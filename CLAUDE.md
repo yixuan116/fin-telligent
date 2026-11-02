@@ -11,6 +11,7 @@ and is a single `index.html` with its HTML, CSS and JS inline; no build step.
 - `hardware-build-to-sell/` — hardware build-to-sell indicators.
 - `retail-expansion-analytics/` — retail store expansion analysis.
 - `finance-business-partnering/` — business partnering story bank; loads `data/public.yaml` plus an optional gitignored `data/private.yaml`, so it needs a local server rather than `file://`.
+- `pii-redaction/` — PII redaction benchmark scatter, cost or speed against leak rate. Everything on screen comes from its own `data.json`, which it fetches, so it needs a local server rather than `file://`; the page edits that config and copies it back out, so a new run is a data change rather than a code change.
 - `scripts/` + `data/` — the daily Nimble price refresh feeding the Shopping Cart; run from the repo root.
 
 The repo is English only, templates included.

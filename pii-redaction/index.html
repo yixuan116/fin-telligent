@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PII Redaction Benchmark &middot; fin-telligent</title>
+<meta name="description" content="A live scatter of PII redaction systems: run cost or speed against leak rate, with an editable best zone, an editable results table and a 2x PNG export.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --card-bg: #f7f7f8;
+    --card-border: #e8e8ea;
+    --border: #e5e5e8;
+    --field-bg: #ffffff;
+    --text-primary: #1a1a1c;
+    --text-secondary: #55555b;
+    --text-muted: #8a8a90;
+    --shadow: rgba(20, 20, 25, 0.07);
+
+    --accent: #2a78d6;
+    --accent-soft: rgba(42, 120, 214, 0.12);
+    --neutral: #9aa0a8;
+    --zone: rgba(12, 163, 12, 0.10);
+    --zone-line: rgba(12, 163, 12, 0.55);
+    --zone-text: #2f7a2f;
+    --grid-line: rgba(20, 20, 25, 0.09);
+    --axis-text: #6c6c74;
+    --danger: #c0392b;
+
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0c0e;
+      --card-bg: #151518;
+      --card-border: #2a2a2e;
+      --border: #29292d;
+      --field-bg: #1c1c20;
+      --text-primary: #f2f2f3;
+      --text-secondary: #b7b7bc;
+      --text-muted: #85858c;
+      --shadow: rgba(0, 0, 0, 0.4);
+
+      --accent: #68a6f2;
+      --accent-soft: rgba(104, 166, 242, 0.16);
+      --neutral: #7e848d;
+      --zone: rgba(80, 200, 120, 0.12);
+      --zone-line: rgba(80, 200, 120, 0.5);
+      --zone-text: #7fcf96;
+      --grid-line: rgba(255, 255, 255, 0.09);
+      --axis-text: #9a9aa2;
+      --danger: #e8705f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding: 32px 16px 64px; }
+
+  .app { max-width: 820px; margin: 0 auto; }
+
+  header.hero { margin-bottom: 24px; }
+  header.hero p.eyebrow {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-secondary);
+    margin: 0 0 10px;
+  }
+  header.hero h1 {
+    font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em;
+    margin: 0 0 6px; line-height: 1.25;
+  }
+  header.hero p.lede {
+    margin: 0; font-size: 0.92rem; line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+
+  /* The chart keeps a fixed height so the canvas never collapses to nothing
+     while its container is being laid out, and so the PNG is the same shape
+     on every screen. */
+  .chart-frame { position: relative; height: 420px; }
+  @media (max-width: 600px) { .chart-frame { height: 340px; } }
+
+  #footnote-line {
+    margin: 14px 2px 0;
+    font-size: 0.74rem; line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  #status {
+    margin: 10px 2px 0;
+    font-size: 0.76rem; line-height: 1.5;
+    color: var(--danger);
+  }
+  #status:empty { display: none; }
+
+  h2.section {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  /* ---------- forms ---------- */
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .field { display: block; min-width: 0; }
+  .field > span {
+    display: block; margin-bottom: 5px;
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  input[type="text"], input[type="number"], textarea {
+    width: 100%;
+    font-family: inherit; font-size: 0.86rem;
+    color: var(--text-primary);
+    background: var(--field-bg);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 10px;
+  }
+  textarea {
+    font-family: var(--mono); font-size: 0.76rem; line-height: 1.5;
+    resize: vertical; min-height: 128px;
+  }
+  input:focus, textarea:focus {
+    outline: 2px solid var(--accent-soft);
+    border-color: var(--accent);
+  }
+
+  button {
+    font-family: inherit; font-size: 0.8rem; font-weight: 600;
+    color: var(--text-primary);
+    background: var(--field-bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--text-muted); }
+  button.primary {
+    background: var(--accent); border-color: var(--accent); color: #ffffff;
+  }
+  button.primary:hover { filter: brightness(1.06); }
+
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .row + .row { margin-top: 14px; }
+  .hint {
+    font-size: 0.74rem; line-height: 1.5; color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* ---------- systems table ---------- */
+
+  .table-scroll { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+  table { border-collapse: collapse; width: 100%; min-width: 440px; }
+  th {
+    text-align: left; padding: 0 8px 8px 0;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  td { padding: 4px 8px 4px 0; vertical-align: middle; }
+  td:last-child, th:last-child { padding-right: 0; text-align: right; }
+  th.col-num, td.col-num { width: 104px; }
+  th.col-flag, td.col-flag { width: 82px; text-align: center; }
+  td.col-flag { text-align: center; }
+  th.col-act, td.col-act { width: 40px; }
+
+  input[type="radio"] { accent-color: var(--accent); cursor: pointer; }
+
+  button.icon {
+    padding: 4px 10px; border-radius: 8px;
+    color: var(--text-muted); line-height: 1.2;
+  }
+  button.icon:hover { color: var(--danger); border-color: var(--danger); }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  footer.page {
+    margin-top: 28px;
+    font-size: 0.74rem; line-height: 1.6; color: var(--text-muted);
+  }
+  footer.page a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="hero">
+    <p class="eyebrow">fin-telligent &middot; PII redaction benchmark</p>
+    <h1 id="page-title">PII redaction benchmark</h1>
+    <p class="lede">Run cost or speed against how much personal data leaks through. Lower left is better. Edit the numbers below and the chart redraws; copy the JSON back into <code>data.json</code> when a run is final.</p>
+  </header>
+
+  <section class="card">
+    <div class="chart-frame"><canvas id="chart"></canvas></div>
+    <p id="footnote-line"></p>
+    <p id="status" role="status"></p>
+  </section>
+
+  <section class="card">
+    <h2 class="section">Chart setup</h2>
+    <div class="grid">
+      <label class="field">
+        <span>Title</span>
+        <input type="text" id="in-title" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>X axis title</span>
+        <input type="text" id="in-xlabel" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>Y axis title</span>
+        <input type="text" id="in-ylabel" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>Best zone, x at most</span>
+        <input type="number" id="in-zone-x" step="any" min="0" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>Best zone, y at most</span>
+        <input type="number" id="in-zone-y" step="any" min="0" autocomplete="off">
+      </label>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <label class="field" style="flex:1 1 100%">
+        <span>Footnote</span>
+        <input type="text" id="in-footnote" autocomplete="off">
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="section">Systems</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th class="col-num" id="th-x">X</th>
+            <th class="col-num" id="th-y">Y</th>
+            <th class="col-flag">Highlight</th>
+            <th class="col-act"><span class="sr-only">Delete</span></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button type="button" id="btn-add">Add row</button>
+      <p class="hint">One point per system. Highlight marks the system the chart is arguing for.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="section">Data</h2>
+    <div class="row">
+      <button type="button" class="primary" id="btn-copy">Copy JSON</button>
+      <button type="button" id="btn-png">Download PNG</button>
+      <button type="button" id="btn-reset">Reload data.json</button>
+    </div>
+    <div class="row">
+      <label class="field" style="flex:1 1 100%">
+        <span>Paste JSON to replace the dataset</span>
+        <textarea id="paste" spellcheck="false" placeholder='{"title": "...", "systems": [...]}'></textarea>
+      </label>
+    </div>
+    <div class="row">
+      <button type="button" id="btn-apply">Apply pasted JSON</button>
+      <p class="hint">Same shape as <code>data.json</code>. Copy JSON puts the current chart back in that shape.</p>
+    </div>
+  </section>
+
+  <footer class="page">
+    <p>No keys, no API calls: the page reads <code>data.json</code> from this folder and nothing else. Chart.js 4.4.1, pinned. Part of <a href="https://github.com/yixuan116/fin-telligent">fin-telligent</a>.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* The shape every part of the page reads and writes. A run that changes
+     what the x axis measures, or renames the systems, is a change to this
+     object and to nothing else: the labels, the zone and the table all come
+     from here, so the planned switch to cost per 1,000 docs needs no code. */
+  var DEFAULTS = {
+    title: "PII redaction benchmark",
+    xLabel: "X",
+    yLabel: "Y",
+    bestZone: { xMax: 0, yMax: 0 },
+    footnote: "",
+    systems: []
+  };
+
+  var state = clone(DEFAULTS);
+  var chart = null;
+
+  var el = function (id) { return document.getElementById(id); };
+
+  function clone(value) { return JSON.parse(JSON.stringify(value)); }
+
+  function num(value, fallback) {
+    var parsed = typeof value === "number" ? value : parseFloat(value);
+    return isFinite(parsed) ? parsed : fallback;
+  }
+
+  function token(name) {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(name).trim();
+  }
+
+  /* ----------------------------------------------------------------------
+     Reading a dataset
+
+     Anything may be missing or the wrong type: the file is meant to be
+     hand-edited and pasted into, so every field is coerced and the rest of
+     the page can assume the shape it wants.
+     ---------------------------------------------------------------------- */
+  function normalise(raw) {
+    if (!raw || typeof raw !== "object") throw new Error("Not an object.");
+    var zone = raw.bestZone && typeof raw.bestZone === "object" ? raw.bestZone : {};
+    var systems = Array.isArray(raw.systems) ? raw.systems : [];
+
+    var clean = systems.map(function (system) {
+      if (!system || typeof system !== "object") return null;
+      return {
+        name: String(system.name == null ? "" : system.name),
+        x: num(system.x, 0),
+        y: num(system.y, 0),
+        highlight: !!system.highlight
+      };
+    }).filter(Boolean);
+
+    /* One highlight at most: the chart gives it the accent, and two accents
+       would be two arguments. */
+    var seen = false;
+    clean.forEach(function (system) {
+      if (system.highlight && seen) system.highlight = false;
+      if (system.highlight) seen = true;
+    });
+
+    return {
+      title: String(raw.title == null ? DEFAULTS.title : raw.title),
+      xLabel: String(raw.xLabel == null ? DEFAULTS.xLabel : raw.xLabel),
+      yLabel: String(raw.yLabel == null ? DEFAULTS.yLabel : raw.yLabel),
+      bestZone: { xMax: num(zone.xMax, 0), yMax: num(zone.yMax, 0) },
+      footnote: String(raw.footnote == null ? "" : raw.footnote),
+      systems: clean
+    };
+  }
+
+  /* data.json is fetched rather than inlined so there is one copy of the
+     numbers. It is a same-origin file, so this needs a server: over file://
+     the fetch fails and the page says so and waits for a paste. */
+  function load() {
+    say("");
+    return fetch("data.json", { cache: "no-cache" })
+      .then(function (response) {
+        if (!response.ok) throw new Error("data.json " + response.status);
+        return response.json();
+      })
+      .then(function (raw) {
+        state = normalise(raw);
+        syncInputs();
+        renderRows();
+        draw();
+      })
+      .catch(function (error) {
+        say("Could not read data.json (" + error.message +
+            "). Serve this folder over HTTP, or paste the JSON below.");
+        syncInputs();
+        renderRows();
+        draw();
+      });
+  }
+
+  function say(message) { el("status").textContent = message; }
+
+  /* ----------------------------------------------------------------------
+     The chart
+     ---------------------------------------------------------------------- */
+
+  /* The lower left corner, drawn under the points so a point never hides
+     behind it, and clipped to the plot so it cannot run over the axes. */
+  var bestZonePlugin = {
+    id: "bestZone",
+    beforeDatasetsDraw: function (c) {
+      var zone = state.bestZone;
+      if (!(zone.xMax > 0) || !(zone.yMax > 0)) return;
+
+      var area = c.chartArea;
+      var ctx = c.ctx;
+      var right = Math.min(c.scales.x.getPixelForValue(zone.xMax), area.right);
+      var top = Math.max(c.scales.y.getPixelForValue(zone.yMax), area.top);
+      var left = c.scales.x.getPixelForValue(0);
+      var bottom = c.scales.y.getPixelForValue(0);
+      if (!(right > left) || !(bottom > top)) return;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(area.left, area.top, area.right - area.left, area.bottom - area.top);
+      ctx.clip();
+
+      ctx.fillStyle = token("--zone");
+      ctx.fillRect(left, top, right - left, bottom - top);
+
+      ctx.strokeStyle = token("--zone-line");
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(right, bottom);
+      ctx.lineTo(right, top);
+      ctx.lineTo(left, top);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.fillStyle = token("--zone-text");
+      ctx.font = "600 11px " + token("--font");
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("Best zone", left + 8, top + 7);
+      ctx.restore();
+    }
+  };
+
+  /* A name beside every point. Labels sit to the right until the point is
+     near the right edge, where they would be cut off, and flip to the left
+     instead. */
+  var labelPlugin = {
+    id: "pointLabels",
+    afterDatasetsDraw: function (c) {
+      var meta = c.getDatasetMeta(0);
+      var ctx = c.ctx;
+      var area = c.chartArea;
+      ctx.save();
+      ctx.font = "600 11px " + token("--font");
+      ctx.textBaseline = "middle";
+
+      meta.data.forEach(function (point, i) {
+        var system = state.systems[i];
+        if (!system || !system.name) return;
+        var radius = system.highlight ? 9 : 6;
+        var width = ctx.measureText(system.name).width;
+        var toLeft = point.x + radius + 8 + width > area.right;
+
+        ctx.fillStyle = system.highlight
+          ? token("--accent") : token("--text-secondary");
+        ctx.textAlign = toLeft ? "right" : "left";
+        ctx.fillText(
+          system.name,
+          toLeft ? point.x - radius - 8 : point.x + radius + 8,
+          point.y
+        );
+      });
+      ctx.restore();
+    }
+  };
+
+  function headroom(values, zoneMax) {
+    var most = values.reduce(function (a, b) { return Math.max(a, b); }, 0);
+    most = Math.max(most, zoneMax || 0);
+    return most > 0 ? most * 1.12 : 10;
+  }
+
+  function chartConfig() {
+    var accent = token("--accent");
+    var neutral = token("--neutral");
+    var grid = token("--grid-line");
+    var axis = token("--axis-text");
+    var font = token("--font");
+
+    return {
+      type: "scatter",
+      data: {
+        datasets: [{
+          data: state.systems.map(function (s) { return { x: s.x, y: s.y }; }),
+          pointRadius: function (ctx) {
+            var s = state.systems[ctx.dataIndex];
+            return s && s.highlight ? 9 : 6;
+          },
+          pointHoverRadius: function (ctx) {
+            var s = state.systems[ctx.dataIndex];
+            return s && s.highlight ? 11 : 8;
+          },
+          pointBackgroundColor: function (ctx) {
+            var s = state.systems[ctx.dataIndex];
+            return s && s.highlight ? accent : neutral;
+          },
+          pointBorderColor: "transparent"
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        /* Fixed rather than read from the screen, so the export is 2x
+           whatever the reader's display happens to be. */
+        devicePixelRatio: 2,
+        animation: false,
+        layout: { padding: { top: 10, right: 16, bottom: 2, left: 2 } },
+        scales: {
+          x: {
+            type: "linear",
+            min: 0,
+            suggestedMax: headroom(
+              state.systems.map(function (s) { return s.x; }),
+              state.bestZone.xMax
+            ),
+            title: {
+              display: !!state.xLabel, text: state.xLabel,
+              color: axis, font: { family: font, size: 12, weight: "600" }
+            },
+            ticks: { color: axis, font: { family: font, size: 11 } },
+            grid: { color: grid, drawTicks: false },
+            border: { color: grid }
+          },
+          y: {
+            type: "linear",
+            min: 0,
+            suggestedMax: headroom(
+              state.systems.map(function (s) { return s.y; }),
+              state.bestZone.yMax
+            ),
+            title: {
+              display: !!state.yLabel, text: state.yLabel,
+              color: axis, font: { family: font, size: 12, weight: "600" }
+            },
+            ticks: { color: axis, font: { family: font, size: 11 } },
+            grid: { color: grid, drawTicks: false },
+            border: { color: grid }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            displayColors: false,
+            callbacks: {
+              title: function (items) {
+                var s = state.systems[items[0].dataIndex];
+                return s ? s.name : "";
+              },
+              label: function (item) {
+                return state.xLabel + ": " + item.parsed.x + "  |  " +
+                       state.yLabel + ": " + item.parsed.y;
+              }
+            }
+          }
+        }
+      },
+      plugins: [bestZonePlugin, labelPlugin]
+    };
+  }
+
+  function draw() {
+    document.title = state.title + " · fin-telligent";
+    el("page-title").textContent = state.title;
+    el("footnote-line").textContent = state.footnote;
+    el("th-x").textContent = state.xLabel || "X";
+    el("th-y").textContent = state.yLabel || "Y";
+
+    /* Rebuilt rather than mutated: the axis titles, the scales and the
+       colours all change together, and a theme change rewrites every one
+       of them. */
+    if (chart) chart.destroy();
+    chart = new Chart(el("chart"), chartConfig());
+  }
+
+  /* ----------------------------------------------------------------------
+     The table
+     ---------------------------------------------------------------------- */
+  function renderRows() {
+    var body = el("rows");
+    body.innerHTML = "";
+
+    state.systems.forEach(function (system, i) {
+      var tr = document.createElement("tr");
+
+      tr.appendChild(cell(field("text", system.name, function (value) {
+        state.systems[i].name = value;
+        draw();
+      })));
+
+      /* "-" and "1." are states on the way to a number, so a value that does
+         not parse leaves the point where it is rather than dropping it on
+         the origin for a keystroke. */
+      tr.appendChild(cell(field("number", system.x, function (value) {
+        var parsed = parseFloat(value);
+        if (!isFinite(parsed)) return;
+        state.systems[i].x = parsed;
+        draw();
+      }), "col-num"));
+
+      tr.appendChild(cell(field("number", system.y, function (value) {
+        var parsed = parseFloat(value);
+        if (!isFinite(parsed)) return;
+        state.systems[i].y = parsed;
+        draw();
+      }), "col-num"));
+
+      /* A radio rather than a checkbox: one system carries the argument, and
+         the control should say so before the reader tries two. */
+      var flag = document.createElement("input");
+      flag.type = "radio";
+      flag.name = "highlight";
+      flag.checked = !!system.highlight;
+      flag.setAttribute("aria-label", "Highlight " + (system.name || "row " + (i + 1)));
+      flag.addEventListener("change", function () {
+        state.systems.forEach(function (other, j) { other.highlight = i === j; });
+        draw();
+      });
+      tr.appendChild(cell(flag, "col-flag"));
+
+      var remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "icon";
+      remove.textContent = "×";
+      remove.title = "Delete row";
+      remove.setAttribute("aria-label", "Delete " + (system.name || "row " + (i + 1)));
+      remove.addEventListener("click", function () {
+        state.systems.splice(i, 1);
+        renderRows();
+        draw();
+      });
+      tr.appendChild(cell(remove, "col-act"));
+
+      body.appendChild(tr);
+    });
+  }
+
+  function cell(child, className) {
+    var td = document.createElement("td");
+    if (className) td.className = className;
+    td.appendChild(child);
+    return td;
+  }
+
+  function field(type, value, onChange) {
+    var input = document.createElement("input");
+    input.type = type;
+    if (type === "number") input.step = "any";
+    input.value = value;
+    input.autocomplete = "off";
+    /* On input, not on change: the chart is the feedback for the edit. */
+    input.addEventListener("input", function () { onChange(input.value); });
+    return input;
+  }
+
+  /* ----------------------------------------------------------------------
+     Setup fields
+     ---------------------------------------------------------------------- */
+  function syncInputs() {
+    el("in-title").value = state.title;
+    el("in-xlabel").value = state.xLabel;
+    el("in-ylabel").value = state.yLabel;
+    el("in-zone-x").value = state.bestZone.xMax;
+    el("in-zone-y").value = state.bestZone.yMax;
+    el("in-footnote").value = state.footnote;
+  }
+
+  function bindSetup() {
+    bind("in-title", function (v) { state.title = v; });
+    bind("in-xlabel", function (v) { state.xLabel = v; });
+    bind("in-ylabel", function (v) { state.yLabel = v; });
+    /* An empty box means no zone; a half-typed one means wait. */
+    bind("in-zone-x", function (v) { state.bestZone.xMax = zoneValue(v, state.bestZone.xMax); });
+    bind("in-zone-y", function (v) { state.bestZone.yMax = zoneValue(v, state.bestZone.yMax); });
+    bind("in-footnote", function (v) { state.footnote = v; });
+  }
+
+  function zoneValue(raw, current) {
+    if (String(raw).trim() === "") return 0;
+    var parsed = parseFloat(raw);
+    return isFinite(parsed) ? parsed : current;
+  }
+
+  function bind(id, apply) {
+    el(id).addEventListener("input", function () {
+      apply(el(id).value);
+      draw();
+    });
+  }
+
+  /* ----------------------------------------------------------------------
+     In and out
+     ---------------------------------------------------------------------- */
+  function asJson() {
+    return JSON.stringify({
+      title: state.title,
+      xLabel: state.xLabel,
+      yLabel: state.yLabel,
+      bestZone: { xMax: state.bestZone.xMax, yMax: state.bestZone.yMax },
+      footnote: state.footnote,
+      systems: state.systems.map(function (s) {
+        var out = { name: s.name, x: s.x, y: s.y };
+        if (s.highlight) out.highlight = true;
+        return out;
+      })
+    }, null, 2);
+  }
+
+  function applyPasted() {
+    var text = el("paste").value.trim();
+    if (!text) { say("Nothing pasted yet."); return; }
+    var parsed;
+    try {
+      parsed = normalise(JSON.parse(text));
+    } catch (error) {
+      say("That JSON did not parse: " + error.message);
+      return;
+    }
+    state = parsed;
+    say("");
+    syncInputs();
+    renderRows();
+    draw();
+  }
+
+  function copyJson() {
+    var text = asJson();
+    var done = function () { say(""); flash("btn-copy", "Copied"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  /* Without the clipboard API the JSON still has to be reachable, so it goes
+     into the paste box for the reader to copy by hand. */
+  function fallbackCopy(text) {
+    el("paste").value = text;
+    el("paste").select();
+    say("Clipboard is not available here. The JSON is in the box below, selected.");
+  }
+
+  function flash(id, message) {
+    var button = el(id);
+    var original = button.textContent;
+    button.textContent = message;
+    setTimeout(function () { button.textContent = original; }, 1400);
+  }
+
+  /* ----------------------------------------------------------------------
+     PNG
+
+     The chart's own canvas is already a 2x backing store, so the export
+     copies it pixel for pixel and draws the title and the footnote around
+     it at the same scale. Opaque background: this goes into a doc, not onto
+     a page that supplies one.
+     ---------------------------------------------------------------------- */
+  var SCALE = 2;
+
+  function wrap(ctx, text, maxWidth) {
+    if (!text) return [];
+    var words = text.split(/\s+/);
+    var lines = [];
+    var line = "";
+    words.forEach(function (word) {
+      var next = line ? line + " " + word : word;
+      if (ctx.measureText(next).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = next;
+      }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function downloadPng() {
+    var source = chart.canvas;
+    var pad = 28 * SCALE;
+    var titleSize = 17 * SCALE;
+    var footSize = 11 * SCALE;
+    var titleLead = Math.round(titleSize * 1.35);
+    var footLead = Math.round(footSize * 1.5);
+    var width = source.width + pad * 2;
+
+    var measure = document.createElement("canvas").getContext("2d");
+    var font = token("--font");
+    measure.font = "800 " + titleSize + "px " + font;
+    var titleLines = wrap(measure, state.title, width - pad * 2);
+    measure.font = "400 " + footSize + "px " + font;
+    var footLines = wrap(measure, state.footnote, width - pad * 2);
+
+    var titleBlock = titleLines.length ? titleLines.length * titleLead + 14 * SCALE : 0;
+    var footBlock = footLines.length ? footLines.length * footLead + 12 * SCALE : 0;
+
+    var out = document.createElement("canvas");
+    out.width = width;
+    out.height = pad * 2 + titleBlock + source.height + footBlock;
+    var ctx = out.getContext("2d");
+
+    ctx.fillStyle = token("--card-bg") || token("--bg");
+    ctx.fillRect(0, 0, out.width, out.height);
+
+    var y = pad;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = token("--text-primary");
+    ctx.font = "800 " + titleSize + "px " + font;
+    titleLines.forEach(function (line) {
+      ctx.fillText(line, pad, y);
+      y += titleLead;
+    });
+    if (titleLines.length) y += 14 * SCALE;
+
+    ctx.drawImage(source, pad, y);
+    y += source.height;
+
+    if (footLines.length) {
+      y += 12 * SCALE;
+      ctx.fillStyle = token("--text-muted");
+      ctx.font = "400 " + footSize + "px " + font;
+      footLines.forEach(function (line) {
+        ctx.fillText(line, pad, y);
+        y += footLead;
+      });
+    }
+
+    var link = document.createElement("a");
+    link.download = slug(state.title || "pii-redaction-benchmark") + ".png";
+    link.href = out.toDataURL("image/png");
+    link.click();
+  }
+
+  function slug(text) {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "").slice(0, 60) || "chart";
+  }
+
+  /* ----------------------------------------------------------------------
+     Boot
+     ---------------------------------------------------------------------- */
+  bindSetup();
+  el("btn-add").addEventListener("click", function () {
+    state.systems.push({ name: "", x: 0, y: 0, highlight: false });
+    renderRows();
+    draw();
+    var inputs = el("rows").querySelectorAll("tr:last-child input");
+    if (inputs.length) inputs[0].focus();
+  });
+  el("btn-apply").addEventListener("click", applyPasted);
+  el("btn-copy").addEventListener("click", copyJson);
+  el("btn-png").addEventListener("click", downloadPng);
+  el("btn-reset").addEventListener("click", function () {
+    el("paste").value = "";
+    load();
+  });
+
+  /* Chart.js reads its colours once, at build time, so a theme change has to
+     rebuild it rather than wait for the next edit. */
+  var dark = window.matchMedia("(prefers-color-scheme: dark)");
+  var onTheme = function () { draw(); };
+  if (dark.addEventListener) dark.addEventListener("change", onTheme);
+  else if (dark.addListener) dark.addListener(onTheme);
+
+  load();
+})();
+</script>
+</body>
+</html>

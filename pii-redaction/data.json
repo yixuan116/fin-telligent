@@ -1,0 +1,14 @@
+{
+  "title": "Open-model smoke test: speed vs leak (lower left is better)",
+  "xLabel": "Seconds for 20 rows",
+  "yLabel": "Leak proxy, 1 minus recall (%)",
+  "bestZone": {"xMax": 25, "yMax": 13},
+  "footnote": "20 rows, concurrency 8; glm averaged over 2 runs; nemotron-lightning excluded (7/20 timeouts).",
+  "systems": [
+    {"name": "glm-5p3-flash", "x": 17, "y": 9.9, "highlight": true},
+    {"name": "minimax-m3p1-flash", "x": 8, "y": 17.8},
+    {"name": "gpt-oss-120b", "x": 7, "y": 22.4},
+    {"name": "qwen3p8-max", "x": 89, "y": 22.4},
+    {"name": "deepseek-v4p1-flash", "x": 40, "y": 28.0}
+  ]
+}
