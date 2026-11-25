@@ -274,16 +274,6 @@ if(S.checks){for(const [d,ids] of Object.entries(S.checks)){S.vals[d]=S.vals[d]|
 delete S.habits;delete S.checks;
 if(S.settings.weekend===undefined)S.settings.weekend=true;
 S.tasks=S.tasks||{};
-if(!S.m5){const id='launch';if(!S.canvases.some(c=>c.id===id)){S.canvases.push({id,name:'Launch',type:'tasks'});
- const g=(group,arr)=>arr.map(t=>({id:++S.seq,group,text:t,done:false}));
- S.tasks[id]=[...g('Accounts',['Cloudflare: register, add fin-telligent.com, switch nameservers at Spaceship','GitHub: personal-agent folder in the fintelligent repo','Pick the subdomain name','Anthropic Console: API key with a $2 monthly cap']),
-  ...g('Build with Claude Code',['Prototype to production: Calendar, daily fields, tri-state checks, cloud database','Private link login, add to iPhone home screen','Chat box on Haiku, model swappable by config','Reminders by push notification','Claude connector endpoint','Deploy to the subdomain']),
-  ...g('Go live',['Check on Mac and iPhone, allow notifications','Add the connector in Claude: Customize, Connectors','Run alongside the paper planner until Dec 31','Go fully digital on Jan 1']),
-  ...g('Next',['Shopping List canvas','Weight curve and dinner analysis','Shared events and invite links','Finance canvas'])]}S.m5=true}
-if(!S.m6){Object.values(S.tasks).forEach(L=>L.forEach(t=>{if(t.text==='GitHub: private repo a-and-y, clone into VS Code')t.text='GitHub: personal-agent folder in the fintelligent repo'}));S.m6=true}
-if(!S.m7){Object.values(S.tasks).forEach(L=>L.forEach(t=>{if(t.text.startsWith('Cloudflare: register'))t.done=true}));S.m7=true}
-if(!S.m8){Object.values(S.tasks).forEach(L=>L.forEach(t=>{if(t.done&&!t.doneAt)t.doneAt=key(today)}));S.m8=true}
-if(!S.m9){Object.values(S.tasks).forEach(L=>L.forEach(t=>{if(/^\w+: shared events and his private link$/.test(t.text))t.text='Shared events and invite links'}));S.m9=true}
 if(!S.m4){S.msgs=[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence, a voice note or a screenshot works.'}];S.m4=true}
 let view={y:today.getFullYear(),m:today.getMonth()},sel=key(today),editing=null,pendingImg=null,sheet=false;
 const save=()=>{try{localStorage.setItem('shsf-proto',JSON.stringify(S))}catch(e){}};
