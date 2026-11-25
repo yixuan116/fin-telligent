@@ -1,0 +1,14 @@
+{
+  "name": "personal-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "invite": "node scripts/invite.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:schema": "wrangler d1 execute personal-agent-db --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.168.0"
+  }
+}

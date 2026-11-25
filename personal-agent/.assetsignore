@@ -1,0 +1,11 @@
+# Everything here is the app's source or its tooling, not something to serve.
+worker.js
+wrangler.toml
+schema.sql
+package.json
+package-lock.json
+scripts/
+node_modules/
+.assetsignore
+.dev.vars
+.wrangler/

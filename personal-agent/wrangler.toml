@@ -1,0 +1,14 @@
+name = "personal-agent"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+# The folder itself is the site. .assetsignore keeps the Worker, the schema
+# and the tooling out of what gets uploaded.
+[assets]
+directory = "./"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "personal-agent-db"
+database_id = "PLACEHOLDER_SET_BY_WRANGLER_D1_CREATE"

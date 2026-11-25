@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Personal Agent</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Agent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fcfcfa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101114" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -37,7 +46,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 @keyframes roll{to{transform:translateX(-50%)}}
 
 /* top bar */
-.top{display:flex;align-items:center;gap:28px;padding:18px max(4vw,18px) 0;border-bottom:1px solid var(--rule)}
+.top{display:flex;align-items:center;gap:28px;padding:calc(18px + env(safe-area-inset-top)) max(4vw,18px) 0;border-bottom:1px solid var(--rule)}
 .mark{font:500 24px/1 var(--fd,"Cormorant Garamond"),serif;letter-spacing:.01em;padding-bottom:14px;white-space:nowrap}
 .mark{cursor:text;outline:none;min-width:1ch}
 .mark{position:relative}.mark:empty{width:26px;margin-right:-10px}
@@ -96,6 +105,9 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .fd:last-of-type{border-bottom:1px solid var(--rule)}
 .fd>span{color:var(--soft);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fd input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue);justify-self:start}
+.fd .tri{width:30px;height:30px;border:1px solid var(--rule);border-radius:7px;display:grid;place-items:center;font-size:15px;line-height:1;color:var(--soft);justify-self:start}
+.fd .tri.good{color:var(--blue);border-color:var(--blue)}
+.fd .tri.bad{color:var(--ink);border-color:var(--ink)}
 .fd input[type=number],.fd input[type=text],.fd input[type=time]{border:0;border-bottom:1px solid transparent;background:none;font-size:16px;padding:4px 0;outline:none;width:100%}
 .fd input:focus{border-bottom-color:var(--blue)}
 .fd .rg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.fd .rg input{width:7.6em}.fd .rg em{font-style:normal;color:var(--soft);font-size:13px;white-space:nowrap}
@@ -150,6 +162,8 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 /* chat dock */
 .dock{border-top:1px solid var(--ink);background:var(--paper);height:var(--dockh,clamp(190px,27dvh,300px));display:grid;grid-template-rows:1fr auto}
 .msgs{overflow:auto;padding:16px max(4vw,18px) 6px;display:flex;flex-direction:column;gap:10px}
+.sync{margin:0;padding:4px max(4vw,18px) 0;font-size:12.5px;color:var(--soft)}
+.sync[hidden]{display:none}
 .m{max-width:min(620px,85%);font-size:15px;line-height:1.5;animation:in .35s ease}
 .m.me{align-self:flex-end;background:var(--wash);padding:8px 14px;border-radius:14px 14px 3px 14px}
 .m.ai{align-self:flex-start;color:var(--ink)}
@@ -207,6 +221,7 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 
  <section class="dock" id="dock" aria-label="Conversation">
   <div class="msgs" id="msgs" aria-live="polite"></div>
+  <p class="sync" id="sync" role="status" hidden></p>
   <form class="bar" id="form">
    <label class="clip" title="Attach an image" aria-label="Attach an image">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l9.2-9.2a3.7 3.7 0 015.2 5.2l-9.2 9.2a1.8 1.8 0 01-2.6-2.6l8.5-8.5"/></svg>
@@ -261,22 +276,67 @@ const seed=()=>({
  msgs:[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence or a screenshot works.'}],
  seq:10
 });
+/* Everything a stored state needs before the page can draw it: defaults for
+   settings added since it was written, and the older shapes carried
+   forward. Runs on whatever arrives, from the cache or from the server. */
+function prepare(){
+ S.settings=Object.assign({name:'Personal Agent',theme:'',themeLabel:'',weekStart:'mon',ticker:true,speed:'normal'},S.settings||{});
+ S.msgs=(S.msgs||[]).filter(m=>!m.wait);
+ if(S.settings.shTime===undefined)S.settings.shTime=false;
+ if(S.settings.showTheme===undefined)S.settings.showTheme=false;
+ if(!S.m3){if(!S.settings.name)S.settings.name='Personal Agent';S.m3=true}
+ S.fields=S.fields||(S.habits||[]).map(h=>({id:h.id,name:h.name,type:'check'}));S.vals=S.vals||{};
+ if(S.checks){for(const [d,ids] of Object.entries(S.checks)){S.vals[d]=S.vals[d]||{};ids.forEach(id=>S.vals[d][id]=true)}}
+ delete S.habits;delete S.checks;
+ if(S.settings.weekend===undefined)S.settings.weekend=true;
+ S.tasks=S.tasks||{};
+ if(!S.m4){S.msgs=[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence, a voice note or a screenshot works.'}];S.m4=true}
+ S.seq=S.seq||10;
+}
+
+const CACHE='shsf-proto';
 let S;
-try{S=JSON.parse(localStorage.getItem('shsf-proto'))}catch(e){}
+/* The cache paints the page at once; the server is the record and arrives a
+   moment later. */
+try{S=JSON.parse(localStorage.getItem(CACHE))}catch(e){}
 if(!S||!S.canvases)S=seed();
-S.settings=Object.assign({name:'Personal Agent',theme:'',themeLabel:'',weekStart:'mon',ticker:true,speed:'normal'},S.settings||{});
-S.msgs=S.msgs.filter(m=>!m.wait);
-if(S.settings.shTime===undefined)S.settings.shTime=false;
-if(S.settings.showTheme===undefined)S.settings.showTheme=false;
-if(!S.m3){if(!S.settings.name)S.settings.name='Personal Agent';S.m3=true}
-S.fields=S.fields||(S.habits||[]).map(h=>({id:h.id,name:h.name,type:'check'}));S.vals=S.vals||{};
-if(S.checks){for(const [d,ids] of Object.entries(S.checks)){S.vals[d]=S.vals[d]||{};ids.forEach(id=>S.vals[d][id]=true)}}
-delete S.habits;delete S.checks;
-if(S.settings.weekend===undefined)S.settings.weekend=true;
-S.tasks=S.tasks||{};
-if(!S.m4){S.msgs=[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence, a voice note or a screenshot works.'}];S.m4=true}
+prepare();
 let view={y:today.getFullYear(),m:today.getMonth()},sel=key(today),editing=null,pendingImg=null,sheet=false;
-const save=()=>{try{localStorage.setItem('shsf-proto',JSON.stringify(S))}catch(e){}};
+
+/* ---- sync ----
+   A write lands in the cache at once and on the server on a lazy timer, so
+   ticking a box is not a round trip. With no session, or no network, the
+   cache is the whole story and nothing is lost: the next good save carries
+   the state up as it stands. */
+let online=false,pending=false,sending=false,timer=null;
+const cache=()=>{try{localStorage.setItem(CACHE,JSON.stringify(S))}catch(e){}};
+const note=t=>{const n=$('#sync');n.textContent=t||'';n.hidden=!t};
+const save=()=>{cache();if(online)queue()};
+function queue(){pending=true;clearTimeout(timer);timer=setTimeout(push,1200)}
+async function push(){
+ if(!online||sending)return;
+ sending=true;pending=false;
+ try{
+  const r=await fetch('/api/state',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({state:S})});
+  if(r.status===401){online=false;note('Signed out on this device. Open your private link again.')}
+  else if(!r.ok)pending=true;
+  else note('');
+ }catch(e){pending=true;note('Offline. Changes are kept on this device.')}
+ sending=false;
+ if(pending&&online)queue();
+}
+async function pull(){
+ let r;
+ try{r=await fetch('/api/state',{headers:{accept:'application/json'}})}
+ catch(e){note('Offline. Changes are kept on this device.');return}
+ if(r.status===401){note('Open your private link to save across devices.');return}
+ if(!r.ok){note('The server did not answer. Changes are kept on this device.');return}
+ online=true;note('');
+ let body=null;try{body=await r.json()}catch(e){}
+ const stored=body&&body.state;
+ if(stored&&stored.canvases){S=stored;prepare();cache();render();renderMsgs()}
+ else queue();  /* nothing up there yet: this device seeds it */
+}
 
 const tlabel=e=>e.time?t12(e.time):(e.tmode==='tbd'?'TBD':'');
 const t12=t=>{if(!t)return '';let [h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';h=h%12||12;return `${h}:${pad(m)} ${ap}`};
@@ -293,7 +353,8 @@ function renderTabs(){
 
 const hrs=(a,b)=>{if(!a||!b)return '';const [h1,m1]=a.split(':').map(Number),[h2,m2]=b.split(':').map(Number);let m=(h2*60+m2)-(h1*60+m1);if(m<=0)m+=1440;return `${Math.floor(m/60)}h${m%60?` ${m%60}m`:''}`};
 const hasVal=(f,v)=>v!==undefined&&v!==null&&v!==''&&v!==false&&!(f.type==='range'&&!(v.from||v.to));
-const short=(f,v)=>f.type==='range'?`${v.from||'?'}→${v.to||'?'}`:f.type==='check'?'':String(v);
+const TRI={good:'\u2212',bad:'\u2715'};
+const short=(f,v)=>f.type==='range'?`${v.from||'?'}→${v.to||'?'}`:f.type==='check'?'':f.type==='tri'?(TRI[v]||''):String(v);
 const doneOn=k=>{const out=[];Object.entries(S.tasks).forEach(([cid,L])=>L.forEach(t=>{if(t.done&&t.doneAt===k)out.push(t)}));return out};
 function summary(k){
  const vs=S.vals[k]||{},parts=[];let cn=0,cd=0;
@@ -344,11 +405,12 @@ function renderCal(){
    <p class="sub">${sd.toLocaleDateString('en-US',{month:'long',day:'numeric'})}</p>
    <div class="daily">${S.fields.map(f=>{const v=(S.vals[sel]||{})[f.id];let ctl;
      if(f.type==='check')ctl=`<input type="checkbox" data-f="${f.id}" ${v?'checked':''} aria-label="${esc(f.name)}">`;
+     else if(f.type==='tri')ctl=`<button class="tri${v?' '+v:''}" data-tri="${f.id}" aria-label="${esc(f.name)}: ${v||'blank'}">${TRI[v]||''}</button>`;
      else if(f.type==='number')ctl=`<input type="number" inputmode="decimal" step="any" data-f="${f.id}" value="${esc(v??'')}" aria-label="${esc(f.name)}">`;
      else if(f.type==='range')ctl=`<div class="rg"><input type="time" data-f="${f.id}" data-p="from" value="${esc(v?.from||'')}" aria-label="${esc(f.name)} start"><span>→</span><input type="time" data-f="${f.id}" data-p="to" value="${esc(v?.to||'')}" aria-label="${esc(f.name)} end"><em>${hrs(v?.from,v?.to)}</em></div>`;
      else ctl=`<input type="text" data-f="${f.id}" value="${esc(v??'')}" aria-label="${esc(f.name)}">`;
      return `<div class="fd"><span title="${esc(f.name)}">${esc(f.name)}</span>${ctl}<button class="x" data-rmf="${f.id}" aria-label="Remove ${esc(f.name)}">×</button></div>`}).join('')}
-    <div class="newf"><input id="nf" placeholder="+ Field" aria-label="New field name"><select id="nft" aria-label="Field type"><option value="check">Check</option><option value="number">Number</option><option value="text">Text</option><option value="range">Time range</option></select></div></div>
+    <div class="newf"><input id="nf" placeholder="+ Field" aria-label="New field name"><select id="nft" aria-label="Field type"><option value="check">Check</option><option value="tri">Good / bad</option><option value="number">Number</option><option value="text">Text</option><option value="range">Time range</option></select></div></div>
    <div class="flex">${list.length?'<h4>Plans</h4>':''}${agenda}</div>
    ${(()=>{const d=doneOn(sel);return d.length?`<div class="donel"><h4>Done</h4>${d.map(t=>`<div class="dn"><b>✓</b><span>${esc(t.text)}</span></div>`).join('')}</div>`:''})()}
   </aside>
@@ -456,13 +518,13 @@ const TOOLS=()=>[
  {name:'update_page',description:'Change how this page looks. Only send fields to change; send an empty string to reset a field to default. name: wordmark at top left (empty hides it). theme: text in the top ticker. themeLabel: small label before the theme (empty hides it). ticker: show the ticker. speed: slow|normal|fast. accent, background, ink, paper: hex colours like #23408e. displayFont, bodyFont: Google Fonts family names. dockHeight: chat height as % of screen, 15 to 70. weekStart: mon|sun. shTime: show Shanghai time under each event. weekend: give Saturday and Sunday a tinted style. showTheme: show the year theme in the ticker. The ticker otherwise shows only this month highlights and hides when there are none.',
   inputSchema:{type:'object',properties:{name:{type:'string'},theme:{type:'string'},themeLabel:{type:'string'},ticker:{type:'boolean'},speed:{type:'string'},accent:{type:'string'},background:{type:'string'},ink:{type:'string'},paper:{type:'string'},displayFont:{type:'string'},bodyFont:{type:'string'},dockHeight:{type:'number'},weekStart:{type:'string'},shTime:{type:'boolean'},showTheme:{type:'boolean'},weekend:{type:'boolean'}}},
   execute:i=>{const st=S.settings;for(const k of Object.keys(i)){if(['accent','background','ink','paper'].includes(k)&&i[k]&&!HEX.test(i[k]))throw new Error(k+' must be #rrggbb');if(/Font$/.test(k)&&i[k]&&!FONT_OK.test(i[k]))throw new Error('bad font name');st[k]=typeof i[k]==='string'?i[k].slice(0,80):i[k]}return {ok:true}}},
- {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), number, text, range (time span such as sleep).',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','number','text','range']}},required:['name','type']},
-  execute:i=>{const f={id:++S.seq,name:String(i.name).slice(0,40),type:['check','number','text','range'].includes(i.type)?i.type:'text'};S.fields.push(f);return {ok:true,id:f.id}}},
+ {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), tri (a mark that cycles blank, good, bad), number, text, range (time span such as sleep).',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','tri','number','text','range']}},required:['name','type']},
+  execute:i=>{const f={id:++S.seq,name:String(i.name).slice(0,40),type:['check','tri','number','text','range'].includes(i.type)?i.type:'text'};S.fields.push(f);return {ok:true,id:f.id}}},
  {name:'remove_field',description:'Remove a daily field by id.',inputSchema:{type:'object',properties:{id:{type:'number'}},required:['id']},
   execute:i=>{const n=S.fields.length;S.fields=S.fields.filter(f=>f.id!==+i.id);return {ok:S.fields.length<n}}},
- {name:'set_value',description:'Record a daily field value on a date (YYYY-MM-DD). check: true/false. number: a number. text: a string. range: from and to as HH:MM (24h). Send an empty value to clear.',inputSchema:{type:'object',properties:{field_id:{type:'number'},date:{type:'string'},value:{},from:{type:'string'},to:{type:'string'}},required:['field_id','date']},
+ {name:'set_value',description:'Record a daily field value on a date (YYYY-MM-DD). check: true/false. tri: good or bad. number: a number. text: a string. range: from and to as HH:MM (24h). Send an empty value to clear.',inputSchema:{type:'object',properties:{field_id:{type:'number'},date:{type:'string'},value:{},from:{type:'string'},to:{type:'string'}},required:['field_id','date']},
   execute:i=>{const f=S.fields.find(x=>x.id===+i.field_id);if(!f)throw new Error('no field with that id');if(!/^\d{4}-\d{2}-\d{2}$/.test(i.date))throw new Error('date must be YYYY-MM-DD');
-   let v;if(f.type==='range'){const t=x=>/^\d{1,2}:\d{2}$/.test(x||'')?x.padStart(5,'0'):'';v={from:t(i.from),to:t(i.to)}}else if(f.type==='check')v=i.value===true||i.value==='true';else if(f.type==='number')v=(i.value===''||i.value==null||isNaN(+i.value))?'':+i.value;else v=String(i.value??'').slice(0,200);
+   let v;if(f.type==='range'){const t=x=>/^\d{1,2}:\d{2}$/.test(x||'')?x.padStart(5,'0'):'';v={from:t(i.from),to:t(i.to)}}else if(f.type==='check')v=i.value===true||i.value==='true';else if(f.type==='tri')v=['good','bad'].includes(i.value)?i.value:'';else if(f.type==='number')v=(i.value===''||i.value==null||isNaN(+i.value))?'':+i.value;else v=String(i.value??'').slice(0,200);
    setVal(i.date,f,v);return {ok:true}}},
  {name:'set_task',description:'Tick or untick a task on a task canvas, by task id.',inputSchema:{type:'object',properties:{canvas:{type:'string'},id:{type:'number'},done:{type:'boolean'}},required:['id','done']},
   execute:i=>{for(const L of Object.values(S.tasks)){const t=L.find(x=>x.id===+i.id);if(t){t.done=!!i.done;if(t.done)t.doneAt=key(new Date());else delete t.doneAt;return {ok:true}}}throw new Error('no task with that id')}},
@@ -576,6 +638,12 @@ $('#canvas').addEventListener('change',ev=>{const el=ev.target.closest('[data-f]
  setVal(sel,f,v);save();render()});
 const addField=()=>{const n=$('#nf').value.trim();if(!n)return;S.fields.push({id:++S.seq,name:n.slice(0,40),type:$('#nft').value});save();render();$('#nf').focus()};
 $('#canvas').addEventListener('keydown',ev=>{if(ev.target.id==='nf'&&ev.key==='Enter'){ev.preventDefault();addField()}},true);
+/* blank, good, bad, blank: one tap each, like ruling a line through a box
+   and then crossing it out. */
+$('#canvas').addEventListener('click',ev=>{const t=ev.target.closest('[data-tri]');if(!t)return;ev.preventDefault();ev.stopPropagation();
+ const f=S.fields.find(x=>x.id===+t.dataset.tri);if(!f)return;
+ const cur=(S.vals[sel]||{})[f.id];
+ setVal(sel,f,cur==='good'?'bad':cur==='bad'?'':'good');save();render()},true);
 $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmf]');if(!x)return;ev.preventDefault();ev.stopPropagation();S.fields=S.fields.filter(f=>f.id!==+x.dataset.rmf);save();render()},true);
 /* keyboard on day cells, enter key in form */
 $('#canvas').addEventListener('keydown',ev=>{const d=ev.target.closest&&ev.target.closest('[data-day]');if(d&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();d.click()}
@@ -622,7 +690,7 @@ $('#panel').addEventListener('click',ev=>{const b=ev.target.closest('button');if
  const sw=b.closest('[data-sw]');if(sw){setK(sw.dataset.sw,b.dataset.c);syncPanel();return}
  if(b.id==='preset'){const keep={theme:S.settings.theme,name:S.settings.name};S.settings=Object.assign({name:'',theme:'',themeLabel:'',weekStart:'mon',ticker:true,speed:'normal',shTime:false,showTheme:false,weekend:true},keep);save();render();syncPanel()}});
 
-render();renderMsgs();
+render();renderMsgs();pull();
 }
 </script>
 </body>

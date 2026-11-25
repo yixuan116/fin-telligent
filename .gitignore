@@ -3,3 +3,5 @@
 node_modules/
 finance-business-partnering/data/private.yaml
 Data Center demo/
+.dev.vars
+.wrangler/
