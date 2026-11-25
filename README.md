@@ -24,6 +24,8 @@ fin-telligent = finance + intelligent. A series on bringing AI into financial an
   - link: https://yixuan116.github.io/fin-telligent/finance-business-partnering/
   - Full README: [finance-business-partnering/README.md](finance-business-partnering/README.md)
 
-- pii-redaction:
-  - link: https://yixuan116.github.io/fin-telligent/pii-redaction/
-  - A live scatter of a PII redaction benchmark: run cost or speed against leak rate, lower left is better. The numbers live in `pii-redaction/data.json`; the page edits them, redraws instantly, and exports a 2x PNG.
+**Agents**
+
+- personal-agent:
+  - link: https://yixuan116.github.io/fin-telligent/personal-agent/
+  - A personal agent with canvases above and a conversation box below. Calendar comes first, with daily tracking, highlights and reminders; a finance analysis canvas joins next.

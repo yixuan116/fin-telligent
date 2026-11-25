@@ -464,7 +464,7 @@ const TOOLS=()=>[
   execute:i=>{const f=S.fields.find(x=>x.id===+i.field_id);if(!f)throw new Error('no field with that id');if(!/^\d{4}-\d{2}-\d{2}$/.test(i.date))throw new Error('date must be YYYY-MM-DD');
    let v;if(f.type==='range'){const t=x=>/^\d{1,2}:\d{2}$/.test(x||'')?x.padStart(5,'0'):'';v={from:t(i.from),to:t(i.to)}}else if(f.type==='check')v=i.value===true||i.value==='true';else if(f.type==='number')v=(i.value===''||i.value==null||isNaN(+i.value))?'':+i.value;else v=String(i.value??'').slice(0,200);
    setVal(i.date,f,v);return {ok:true}}},
- {name:'set_task',description:'Tick or untick a task on a task canvas such as Launch, by task id.',inputSchema:{type:'object',properties:{canvas:{type:'string'},id:{type:'number'},done:{type:'boolean'}},required:['id','done']},
+ {name:'set_task',description:'Tick or untick a task on a task canvas, by task id.',inputSchema:{type:'object',properties:{canvas:{type:'string'},id:{type:'number'},done:{type:'boolean'}},required:['id','done']},
   execute:i=>{for(const L of Object.values(S.tasks)){const t=L.find(x=>x.id===+i.id);if(t){t.done=!!i.done;if(t.done)t.doneAt=key(new Date());else delete t.doneAt;return {ok:true}}}throw new Error('no task with that id')}},
  {name:'add_canvas',description:'Add a new canvas tab with a name.',inputSchema:{type:'object',properties:{name:{type:'string'}},required:['name']},
   execute:i=>{const id='c'+(++S.seq);S.canvases.push({id,name:String(i.name).slice(0,40),type:'blank'});S.active=id;return {ok:true}}}
