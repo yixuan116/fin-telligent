@@ -2,6 +2,14 @@ name = "personal-agent"
 main = "worker.js"
 compatibility_date = "2026-11-01"
 
+# The zone is active, so the app lives on its own name and nothing is
+# published to workers.dev. Wrangler keeps the DNS record in step.
+workers_dev = false
+
+[[routes]]
+pattern = "agent.fin-telligent.com"
+custom_domain = true
+
 # The folder itself is the site. .assetsignore keeps the Worker, the schema
 # and the tooling out of what gets uploaded.
 [assets]
@@ -11,4 +19,4 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "personal-agent-db"
-database_id = "PLACEHOLDER_SET_BY_WRANGLER_D1_CREATE"
+database_id = "9746c17c-f9b6-4688-8f8c-1dc8842379fe"
