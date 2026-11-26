@@ -115,18 +115,36 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .ctype{display:inline-flex;gap:4px;margin-bottom:12px}
 .ctype button{font-size:13px;padding:5px 10px;border:1px solid var(--rule);border-radius:999px;color:var(--soft);min-height:32px}
 .ctype button[aria-pressed=true]{color:var(--ink);border-color:var(--ink)}
-/* A mind map fills what the canvas gives it, with the three things you
-   can do to the node in hand along the bottom. */
+/* A mind map is a sheet you scroll, with the nodes placed on it. */
 .mindc{height:100%;display:flex;flex-direction:column;min-height:0}
 .mindc .phead{flex:none}
-.mwrap{flex:1;min-height:320px;border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:var(--paper)}
-.mwrap .hint2{padding:18px}
-.mbar{display:flex;gap:8px;flex:none;padding:10px 0 2px}
-.mbar[hidden]{display:none}
-.mbar button{font-size:14px;padding:0 14px;min-height:40px;border:1px solid var(--rule);border-radius:999px;color:var(--ink)}
-.mbar button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
-.mbar button[disabled]{opacity:.35}
-.mbar .warn{color:var(--f-coral)}
+.msheet{flex:1;min-height:320px;border:1px solid var(--rule);border-radius:14px;overflow:auto;background:var(--paper);position:relative;overscroll-behavior:contain}
+.mpaper{position:relative}
+.mlines{position:absolute;inset:0;pointer-events:none}
+.mnode{position:absolute;transform:translate(-50%,-50%);max-width:200px}
+.mtext{border:2px solid var(--pc);background:var(--paper);color:var(--ink);border-radius:11px;
+ padding:7px 12px;font-size:15px;line-height:1.35;min-width:34px;max-width:200px;cursor:grab;
+ white-space:pre-wrap;overflow-wrap:anywhere;text-align:center;touch-action:none;-webkit-user-select:none;user-select:none}
+.mnode.root .mtext{border-color:var(--ink);background:var(--ink);color:var(--paper);font-size:16px}
+.mnode.sel .mtext{box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 35%,transparent)}
+.mnode.lift{z-index:3}
+.mnode.lift .mtext{cursor:grabbing;box-shadow:0 8px 20px rgba(0,0,0,.14)}
+.mtext.editing{cursor:text;outline:none;-webkit-user-select:text;user-select:text;background:var(--paper);color:var(--ink)}
+/* The four ways on, and the one way off: shown to a pointer that is over
+   the node, and to a finger once the node is picked. */
+.mplus,.mx{position:absolute;opacity:0;transition:opacity .12s;border:1px solid var(--rule);
+ background:var(--paper);color:var(--soft);border-radius:50%;display:grid;place-items:center;
+ width:22px;height:22px;font-size:15px;line-height:1;padding:0;z-index:2}
+.mplus:hover{color:var(--ink);border-color:var(--ink)}
+.mx{top:-15px;right:-15px;color:var(--f-coral);font-size:14px}
+.mx:hover{border-color:var(--f-coral)}
+.mplus.up{top:-13px;left:50%;margin-left:-11px}
+.mplus.down{bottom:-13px;left:50%;margin-left:-11px}
+.mplus.left{left:-13px;top:50%;margin-top:-11px}
+.mplus.right{right:-13px;top:50%;margin-top:-11px}
+.mnode:hover .mplus,.mnode:hover .mx,.mnode.sel .mplus,.mnode.sel .mx{opacity:1}
+.mnode.lift .mplus,.mnode.lift .mx{opacity:0}
+@media(hover:none){.mnode .mplus,.mnode .mx{opacity:0}.mnode.sel .mplus,.mnode.sel .mx{opacity:1}}
 
 /* canvas */
 .canvas{overflow:auto;padding:clamp(20px,3vw,40px) max(4vw,18px)}
@@ -1170,99 +1188,251 @@ function renderYear(){
  </div>`;
 }
 
-/* ---- a mind map, by Mind Elixir ----
-   The library is 150KB and nobody needs it until a map is opened, so it
-   is fetched then and never again. Everything it holds lives in this
-   account's state and syncs like the rest; the instance itself is kept
-   alive across redraws, because rebuilding it would throw away where you
-   were looking and what you were typing. */
-const MINDLIB='https://cdn.jsdelivr.net/npm/mind-elixir@6.0.0/dist/';
-const MINDC=['#d9829b','#6fd3a8','#7cb8ff','#b79cff','#ffc94d','#ff9f94'];
-let MEclass=null,MEwait=null;
-function loadMind(){
- if(MEwait)return MEwait;
- MEwait=new Promise((res,rej)=>{
-  if(!document.getElementById('me-css')){
-   const l=document.createElement('link');l.id='me-css';l.rel='stylesheet';l.href=MINDLIB+'MindElixir.css';
-   document.head.appendChild(l);
-  }
-  import(MINDLIB+'MindElixir.js').then(m=>{MEclass=m.default;res(MEclass)}).catch(e=>{MEwait=null;rej(e)});
- });
- return MEwait;
-}
-const mindTheme=()=>({name:'paper',palette:MINDC,cssVar:{
- '--main-color':'#ffffff','--main-bgcolor':'#5b6472','--color':'#2b2a28','--bgcolor':'transparent',
- '--root-color':'#fdfcf9','--root-bgcolor':'#1c1b19','--root-border-color':'#1c1b19',
- '--root-radius':'14px','--main-radius':'12px','--topic-padding':'6px','--panel-bgcolor':'#fffdf9'}});
+/* ---- a mind map, drawn here ----
+   A map is a sheet with nodes placed on it, not a tree that arranges
+   itself: every node, the root included, stays exactly where it is put.
+   A node carries its own place, so the whole map is a flat set of nodes
+   that merges one node at a time like everything else in the state.
 
-let mind=null,mindFor=null,mindRoot=null,mindSeen='';
-const mindOf=c=>{const d=(S.minds||{})[c.id];return d&&d.nodeData?clone(d):null};
+   Nothing is fetched for this: no library, no network, and it works
+   offline like the rest of the page. */
+const MINDC=['#d9829b','#6fd3a8','#7cb8ff','#b79cff','#ffc94d','#ff9f94'];
+const MSHEET={w:3200,h:2200},MSTEP={x:210,y:130};
+
+/* A map written by the old library was a tree; it becomes a sheet, with
+   each branch laid out where the tree had it. Nothing written is lost. */
+function fromTree(d,name){
+ const nodes={};
+ const place=(n,x,y,parent)=>{
+  const id=String(n.id||nid());
+  nodes[id]={id,text:String(n.topic||n.text||''),x,y,parent:parent||null};
+  return id;
+ };
+ const rootObj=d&&d.nodeData?d.nodeData:{topic:name||'Idea'};
+ const rid=place(rootObj,MSHEET.w/2,MSHEET.h/2,null);
+ const kids=rootObj.children||[];
+ const side={0:[],1:[]};
+ kids.forEach((k,i)=>side[k.direction===0||k.direction===1?k.direction:i%2].push(k));
+ for(const dir of [0,1]){
+  const list=side[dir],sx=dir===0?-1:1;
+  list.forEach((k,i)=>{
+   const y=MSHEET.h/2+(i-(list.length-1)/2)*MSTEP.y*1.4;
+   const kid=place(k,MSHEET.w/2+sx*MSTEP.x,y,rid);
+   const walk=(n,pid,depth,base)=>{
+    (n.children||[]).forEach((g,j)=>{
+     const gy=base+(j-((n.children.length-1)/2))*MSTEP.y;
+     const gid=place(g,MSHEET.w/2+sx*MSTEP.x*(depth+1),gy,pid);
+     walk(g,gid,depth+1,gy);
+    });
+   };
+   walk(k,kid,1,y);
+  });
+ }
+ return {root:rid,nodes};
+}
+/* The map this canvas holds, made or brought forward if need be. */
+function mindDoc(c){
+ S.minds=S.minds||{};
+ const d=S.minds[c.id];
+ if(d&&d.root&&d.nodes&&d.nodes[d.root])return d;
+ const made=d&&d.nodeData?fromTree(d,c.name):(()=>{
+  const id=String(nid());
+  return {root:id,nodes:{[id]:{id,text:c.name||'Idea',x:MSHEET.w/2,y:MSHEET.h/2,parent:null}}};
+ })();
+ S.minds[c.id]=made;save();
+ return made;
+}
+/* Which of the six colours a node wears: the branch it hangs from, and
+   the root wears none. */
+function mindPaint(doc){
+ const paint={},kids=Object.values(doc.nodes).filter(n=>n.parent===doc.root)
+  .sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+ kids.forEach((k,i)=>{
+  const c=MINDC[i%MINDC.length];
+  const walk=n=>{paint[n.id]=c;Object.values(doc.nodes).filter(x=>x.parent===n.id).forEach(walk)};
+  walk(k);
+ });
+ return paint;
+}
+const mindKids=(doc,id)=>Object.values(doc.nodes).filter(n=>n.parent===id);
+
+let mindRoot=null,mindFor=null,mindSeen='',mindSel=null,mindBusy=false;
+/* The line from a parent to a child: a curve that leaves the way the
+   child lies. */
+function mindPath(a,b){
+ const dx=b.x-a.x,dy=b.y-a.y;
+ return Math.abs(dx)>=Math.abs(dy)
+  ? `M${a.x} ${a.y}C${a.x+dx/2} ${a.y},${a.x+dx/2} ${b.y},${b.x} ${b.y}`
+  : `M${a.x} ${a.y}C${a.x} ${a.y+dy/2},${b.x} ${a.y+dy/2},${b.x} ${b.y}`;
+}
+function drawMind(c,doc){
+ const paper=mindRoot.querySelector('.mpaper');if(!paper)return;
+ const paint=mindPaint(doc),ns=Object.values(doc.nodes);
+ const lines=ns.filter(n=>n.parent&&doc.nodes[n.parent])
+  .map(n=>`<path d="${mindPath(doc.nodes[n.parent],n)}" stroke="${paint[n.id]||'#b9b5ac'}" fill="none" stroke-width="2.5" stroke-linecap="round"/>`).join('');
+ const nodes=ns.map(n=>`<div class="mnode${n.id===doc.root?' root':''}${n.id===mindSel?' sel':''}" data-mn="${esc(n.id)}"
+   style="left:${Math.round(n.x)}px;top:${Math.round(n.y)}px;--pc:${paint[n.id]||'var(--ink)'}">
+   <div class="mtext" data-mt="${esc(n.id)}">${esc(n.text||'')}</div>
+   ${['up','right','down','left'].map(d=>`<button class="mplus ${d}" data-plus="${d}" data-mn2="${esc(n.id)}" aria-label="Add ${d}" tabindex="-1">+</button>`).join('')}
+   ${n.id===doc.root?'':`<button class="mx" data-mx="${esc(n.id)}" aria-label="Delete this node" tabindex="-1">×</button>`}
+  </div>`).join('');
+ paper.innerHTML=`<svg class="mlines" width="${MSHEET.w}" height="${MSHEET.h}" aria-hidden="true">${lines}</svg>${nodes}`;
+}
+const mindSave=(c,doc)=>{S.minds[c.id]=doc;mindSeen=JSON.stringify(doc)+'|'+(mindSel||'');save()};
+/* Where a new child goes: one step out, and clear of anything already
+   standing there. */
+function mindSpot(doc,from,dir){
+ let x=from.x+(dir==='right'?MSTEP.x:dir==='left'?-MSTEP.x:0);
+ let y=from.y+(dir==='down'?MSTEP.y:dir==='up'?-MSTEP.y:0);
+ const taken=()=>Object.values(doc.nodes).some(n=>Math.abs(n.x-x)<120&&Math.abs(n.y-y)<56);
+ for(let i=0;i<40&&taken();i++){
+  if(dir==='left'||dir==='right')y+=MSTEP.y;else x+=MSTEP.x;
+ }
+ return {x:Math.max(60,Math.min(MSHEET.w-60,x)),y:Math.max(40,Math.min(MSHEET.h-40,y))};
+}
+function mindEdit(id){
+ const el=mindRoot&&mindRoot.querySelector(`[data-mt="${CSS.escape(String(id))}"]`);
+ if(!el)return;
+ mindBusy=true;
+ el.contentEditable='plaintext-only';el.classList.add('editing');el.focus();
+ const r=document.createRange();r.selectNodeContents(el);
+ const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
+}
 function renderMind(c){
- const host=$('#canvas');
- /* Already standing: put it back on the page and let it be. */
+ const host=$('#canvas'),doc=mindDoc(c);
+ const sig=JSON.stringify(doc)+'|'+(mindSel||'');
  if(mindFor===c.id&&mindRoot){
   if(mindRoot.parentElement!==host)host.replaceChildren(mindRoot);
-  const want=JSON.stringify(mindOf(c));
-  if(mind&&want!=='null'&&want!==mindSeen){mindSeen=want;try{mind.refresh(JSON.parse(want))}catch(e){}}
+  /* A redraw in the middle of writing or dragging would take the caret
+     and the node out of your hand, so it waits. */
+  if(sig!==mindSeen&&!mindBusy){mindSeen=sig;drawMind(c,doc)}
   return;
  }
- if(mind){try{mind.destroy()}catch(e){}}
- mind=null;mindRoot=document.createElement('div');mindRoot.className='mindc';mindFor=c.id;mindSeen='';
+ mindFor=c.id;mindSel=null;mindBusy=false;
+ mindRoot=document.createElement('div');mindRoot.className='mindc';
  mindRoot.innerHTML=`<div class="phead">
    <h1 class="ptitle" contenteditable="plaintext-only" data-ptitle="${esc(c.id)}" role="textbox" data-hint="Untitled">${esc(c.name)}</h1>
-   <button class="pset" data-pset="${esc(c.id)}" aria-label="Page settings" aria-expanded="false">\u22ef</button>
+   <button class="pset" data-pset="${esc(c.id)}" aria-label="Page settings" aria-expanded="false">⋯</button>
    <div class="pmenu" id="pmenu" hidden></div>
   </div>
-  <div class="mwrap"></div>
-  <div class="mbar" hidden>
-   <button data-mind="child">+ Child</button>
-   <button data-mind="sibling">+ Sibling</button>
-   <button class="warn" data-mind="remove">Delete</button>
-  </div>`;
+  <div class="msheet"><div class="mpaper" style="width:${MSHEET.w}px;height:${MSHEET.h}px"></div></div>`;
  host.replaceChildren(mindRoot);
- const wrap=mindRoot.querySelector('.mwrap'),bar=mindRoot.querySelector('.mbar');
- loadMind().then(ME=>{
-  if(mindFor!==c.id||!mindRoot.isConnected)return;
-  const me=new ME({el:wrap,direction:ME.SIDE,alignment:'root',contextMenu:false,toolBar:false,
-   theme:mindTheme(),newTopicName:'New node'});
-  const data=mindOf(c)||ME.new(c.name||'Idea');
-  me.init(data);
-  mind=me;mindSeen=JSON.stringify(me.getData());
-  /* The map is laid out before the box has its final size, so it is put
-     back in the middle once the page has settled. */
-  setTimeout(()=>{if(mind===me)try{me.toCenter()}catch(e){}},0);
-  /* Every change, however it was made, is this canvas's data. */
-  me.bus.addListener('operation',()=>{
-   S.minds=S.minds||{};const d=me.getData();
-   mindSeen=JSON.stringify(d);S.minds[c.id]=d;save();
-  });
-  const show=()=>{
-   const n=me.currentNodes&&me.currentNodes.length?me.currentNodes[0]:null;
-   bar.hidden=!n;
-   if(n)bar.querySelector('[data-mind=remove]').disabled=!n.nodeObj.parent;
-  };
-  /* Two taps on a node open it for writing. */
-  wrap.addEventListener('dblclick',ev=>{
-   const t=ev.target.closest('.me-tpc');if(!t)return;
-   ev.preventDefault();ev.stopPropagation();
-   me.selectNode(t);me.beginEdit(t);
-  });
-  me.bus.addListener('selectNodes',show);
-  me.bus.addListener('selectNewNode',show);
-  me.bus.addListener('unselectNodes',()=>{bar.hidden=true});
-  bar.addEventListener('click',ev=>{
-   const b=ev.target.closest('[data-mind]');if(!b)return;
-   ev.preventDefault();ev.stopPropagation();
-   if(b.dataset.mind==='child')me.addChild();
-   else if(b.dataset.mind==='sibling')me.insertSibling('after');
-   else if(me.currentNodes&&me.currentNodes.length&&me.currentNodes[0].nodeObj.parent)me.removeNodes(me.currentNodes);
-   setTimeout(show,0);
-  });
-  /* A map made just now is worth keeping even before it is touched. */
-  if(!mindOf(c)){S.minds=S.minds||{};S.minds[c.id]=me.getData();mindSeen=JSON.stringify(S.minds[c.id]);save()}
- }).catch(()=>{
-  if(mindFor===c.id&&mindRoot.isConnected)
-   wrap.innerHTML='<p class="hint2">The mind map needs a connection the first time it is opened.</p>';
+ mindSeen=sig;drawMind(c,doc);
+ wireMind(c);
+ /* Open on the root rather than on a corner of the sheet. */
+ const sheet=mindRoot.querySelector('.msheet'),r=doc.nodes[doc.root];
+ requestAnimationFrame(()=>{
+  sheet.scrollLeft=Math.max(0,r.x-sheet.clientWidth/2);
+  sheet.scrollTop=Math.max(0,r.y-sheet.clientHeight/2);
+ });
+}
+/* One set of hands for the whole sheet. */
+function wireMind(c){
+ const paper=mindRoot.querySelector('.mpaper'),sheet=mindRoot.querySelector('.msheet');
+ const doc=()=>mindDoc(c);
+ const stop=e=>{e.preventDefault();e.stopPropagation()};
+ const pick=id=>{mindSel=id;mindRoot.querySelectorAll('.mnode').forEach(n=>n.classList.toggle('sel',n.dataset.mn===String(id)))};
+ const endEdit=()=>{
+  const el=mindRoot.querySelector('.mtext.editing');if(!el)return;
+  const d=doc(),n=d.nodes[el.dataset.mt];
+  el.contentEditable='false';el.classList.remove('editing');
+  mindBusy=false;
+  if(n){const t=el.textContent.replace(/\s+/g,' ').trim().slice(0,120);
+   if(t!==n.text){n.text=t;mindSave(c,d);drawMind(c,d)}else el.textContent=n.text}
+ };
+ /* Adding: a child one step out in the direction of the plus, already
+    open for writing. */
+ paper.addEventListener('click',ev=>{
+  const plus=ev.target.closest('[data-plus]');
+  if(plus){stop(ev);endEdit();
+   const d=doc(),from=d.nodes[plus.dataset.mn2];if(!from)return;
+   const at=mindSpot(d,from,plus.dataset.plus),id=String(nid());
+   d.nodes[id]={id,text:'',x:at.x,y:at.y,parent:from.id};
+   pick(id);mindSave(c,d);drawMind(c,d);mindEdit(id);
+   return}
+  const x=ev.target.closest('[data-mx]');
+  if(x){stop(ev);endEdit();
+   const d=doc(),n=d.nodes[x.dataset.mx];if(!n)return;
+   const r=x.getBoundingClientRect();
+   confirmNode(c,n,r.left,r.bottom+6);
+   return}
+  const t=ev.target.closest('[data-mt]');
+  if(t){stop(ev);
+   if(t.classList.contains('editing'))return;
+   /* A node already in hand opens for writing on the next tap, which is
+      how a finger does what a double click does. */
+   if(mindSel===t.dataset.mt){endEdit();mindEdit(t.dataset.mt)}else{endEdit();pick(t.dataset.mt)}
+   return}
+  endEdit();pick(null);
+ });
+ paper.addEventListener('dblclick',ev=>{
+  const t=ev.target.closest('[data-mt]');if(!t)return;
+  stop(ev);if(!t.classList.contains('editing')){pick(t.dataset.mt);mindEdit(t.dataset.mt)}
+ });
+ paper.addEventListener('keydown',ev=>{
+  if(!ev.target.classList.contains('editing'))return;
+  if(ev.key==='Enter'){ev.preventDefault();ev.target.blur()}
+  if(ev.key==='Escape'){const d=doc(),n=d.nodes[ev.target.dataset.mt];if(n)ev.target.textContent=n.text;ev.target.blur()}
+ });
+ paper.addEventListener('focusout',ev=>{
+  if(ev.target.classList&&ev.target.classList.contains('editing'))setTimeout(endEdit,0);
+ });
+ /* Moving: the node goes where it is put, and the lines follow. */
+ let drag=null;
+ paper.addEventListener('pointerdown',ev=>{
+  const t=ev.target.closest('[data-mt]');
+  if(!t||t.classList.contains('editing'))return;
+  if(ev.button!==undefined&&ev.button>0)return;
+  const d=doc(),n=d.nodes[t.dataset.mt];if(!n)return;
+  const box=t.closest('.mnode');
+  drag={id:n.id,box,sx:ev.clientX,sy:ev.clientY,ox:n.x,oy:n.y,moved:false};
+  try{t.setPointerCapture(ev.pointerId)}catch(e){}
+ });
+ paper.addEventListener('pointermove',ev=>{
+  if(!drag)return;
+  const dx=ev.clientX-drag.sx,dy=ev.clientY-drag.sy;
+  if(!drag.moved&&Math.hypot(dx,dy)<4)return;
+  if(!drag.moved){drag.moved=true;mindBusy=true;drag.box.classList.add('lift')}
+  const d=doc(),n=d.nodes[drag.id];if(!n)return;
+  n.x=Math.max(60,Math.min(MSHEET.w-60,drag.ox+dx));
+  n.y=Math.max(40,Math.min(MSHEET.h-40,drag.oy+dy));
+  drag.box.style.left=Math.round(n.x)+'px';drag.box.style.top=Math.round(n.y)+'px';
+  /* Only the lines are redrawn while the hand is down. */
+  const paint=mindPaint(d),svg=paper.querySelector('.mlines');
+  if(svg)svg.innerHTML=Object.values(d.nodes).filter(k=>k.parent&&d.nodes[k.parent])
+   .map(k=>`<path d="${mindPath(d.nodes[k.parent],k)}" stroke="${paint[k.id]||'#b9b5ac'}" fill="none" stroke-width="2.5" stroke-linecap="round"/>`).join('');
+ });
+ const drop=()=>{
+  if(!drag)return;
+  const was=drag;drag=null;
+  if(was.moved){was.box.classList.remove('lift');mindBusy=false;
+   const d=doc();pick(was.id);mindSave(c,d);drawMind(c,d)}
+ };
+ paper.addEventListener('pointerup',drop);
+ paper.addEventListener('pointercancel',drop);
+ sheet.addEventListener('scroll',()=>{if(fmenu)closeFieldMenu()});
+}
+/* Taking a node off the sheet takes what hangs from it, so it asks. */
+function confirmNode(c,n,x,y){
+ closeFieldMenu();
+ const d=mindDoc(c);
+ const doomed=(()=>{const out=[];const walk=id=>{out.push(id);mindKids(d,id).forEach(k=>walk(k.id))};walk(n.id);return out})();
+ const m=document.createElement('div');
+ m.className='fmenu';m.setAttribute('role','dialog');
+ m.innerHTML=`<p>Delete ${esc(n.text||'this node')}${doomed.length>1?` and the ${doomed.length-1} under it`:''}?</p>
+  <button class="warn" data-nodel="1">Delete</button><button data-nokeep="1">Keep it</button>`;
+ document.body.appendChild(m);fmenu=m;
+ const r=m.getBoundingClientRect();
+ m.style.left=Math.round(Math.max(8,Math.min(x,window.innerWidth-r.width-8)))+'px';
+ m.style.top=Math.round(Math.max(8,Math.min(y,window.innerHeight-r.height-8)))+'px';
+ m.addEventListener('click',ev=>{
+  const b=ev.target.closest('button');if(!b)return;
+  ev.preventDefault();ev.stopPropagation();
+  closeFieldMenu();
+  if(!b.dataset.nodel)return;
+  doomed.forEach(id=>{delete d.nodes[id]});
+  if(mindSel&&doomed.includes(mindSel))mindSel=null;
+  mindSave(c,d);drawMind(c,d);
  });
 }
 
@@ -1503,7 +1673,7 @@ $('#canvas').addEventListener('pointercancel',endDrag);
 function deletePage(cid){
  (S.pages[cid]||[]).forEach(b=>{if(b.photo)dropPhoto(b.photo)});
  delete S.pages[cid];delete S.tasks[cid];delete (S.minds||{})[cid];
- if(mindFor===cid){if(mind){try{mind.destroy()}catch(e){}}mind=null;mindFor=null;mindRoot=null}
+ if(mindFor===cid){mindFor=null;mindRoot=null;mindSel=null;mindBusy=false}
  S.canvases=S.canvases.filter(c=>c.id!==cid);
  if(!S.canvases.length)S.canvases=[{id:'cal',name:'Calendar',type:'calendar'}];
  S.active=S.canvases[0].id;
