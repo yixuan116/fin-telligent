@@ -1307,6 +1307,20 @@ function drawOutline(c,doc){
     <span class="otext" data-ot="${esc(n.id)}" contenteditable="plaintext-only" data-hint="Type">${esc(n.text||'')}</span>
    </div>`).join('');
 }
+/* The same outline as a list, for anything that takes rich text: a
+   heading and nested lists, with none of Markdown's marks in the words
+   themselves. */
+function outlineHtml(doc){
+ const rows=outlineRows(doc);
+ let html=`<h2>${esc((doc.nodes[doc.root].text||'Untitled').trim())}</h2>`,depth=0;
+ rows.forEach(({n,lvl})=>{
+  if(lvl>depth){while(depth<lvl){html+='<ul>';depth++}}
+  else{html+='</li>';while(depth>lvl){html+='</ul></li>';depth--}}
+  html+=`<li>${esc((n.text||'').trim())}`;
+ });
+ if(rows.length){html+='</li>';while(depth>1){html+='</ul></li>';depth--}html+='</ul>'}
+ return html;
+}
 /* The same outline as Markdown, for wherever it is going next. */
 function outlineMd(doc){
  const t=(doc.nodes[doc.root].text||'Untitled').trim();
@@ -1413,13 +1427,25 @@ function wireMind(c){
    return}
   const cp=ev.target.closest('[data-ocopy]');
   if(cp){ev.preventDefault();ev.stopPropagation();
-   const text=outlineMd(doc());
+   const d=doc(),text=outlineMd(d),html=outlineHtml(d);
    const done=()=>{cp.textContent='Copied';setTimeout(()=>{cp.textContent='Copy'},1600)};
+   /* The last resort, for a browser that will not take a blob. */
    const hard=()=>{try{const ta=document.createElement('textarea');ta.value=text;
      ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);
      ta.select();document.execCommand('copy');ta.remove();done()}catch(e){}};
-   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,hard);
-   else hard();
+   const plain=()=>{
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,hard);
+    else hard();
+   };
+   /* Both at once: a mail or a doc takes the list, a plain box takes the
+      Markdown. */
+   if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){
+    try{
+     navigator.clipboard.write([new ClipboardItem({
+      'text/html':new Blob([html],{type:'text/html'}),
+      'text/plain':new Blob([text],{type:'text/plain'})})]).then(done,plain);
+    }catch(e){plain()}
+   }else plain();
    return}
  },true);
  /* ---- writing in the outline ----
