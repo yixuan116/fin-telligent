@@ -139,6 +139,10 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .ev .ttl .hl{color:var(--blue);font-size:13px;margin-left:8px}
 .tog{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--soft)}
 .more{font-size:11px;color:var(--soft)}
+/* A long title is cut at the edge of its own day rather than running into
+   the next one: the cell clips, the chips stack, each one is a block that
+   can be ellipsed. */
+.day{overflow:hidden}.day .chips{display:flex;flex-direction:column;gap:2px;min-width:0;width:100%}.chip{display:block;max-width:100%}
 
 /* agenda */
 .agenda h2{font:500 30px/1.1 var(--fd,"Cormorant Garamond"),serif;margin:6px 0 4px}
@@ -193,7 +197,9 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
  .day{min-height:52px;padding:5px;align-items:center}
  .day .n{margin:0;font-size:13px}
  .chip{font-size:0;width:5px;height:5px}.chip::before{margin:0}
- .day .chips{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}
+ /* Dots, not titles, so they run across the cell: the column direction
+    above is for the wide layout only. */
+ .day .chips{display:flex;flex-direction:row;align-items:center;gap:3px;justify-content:center;flex-wrap:wrap}
  .more{display:none}
  .dow span{padding-left:0;text-align:center}
  .dock{height:auto}
@@ -311,7 +317,7 @@ let view={y:today.getFullYear(),m:today.getMonth()},sel=key(today),editing=null,
    added on the phone and a task ticked on the Mac both survive. The server
    refuses any write not built on its current version. */
 const BASE='shsf-base';
-let online=false,sending=false,timer=null,pulling=false;
+let online=false,sending=false,timer=null,pulling=false,firstPull=true;
 let dirty=false,syncBase=null,baseAt=0;
 try{const m=JSON.parse(localStorage.getItem(BASE));if(m){syncBase=m.state;baseAt=m.at||0;dirty=!!m.dirty}else if(localStorage.getItem(CACHE))dirty=true}catch(e){}
 const cache=()=>{try{localStorage.setItem(CACHE,JSON.stringify(S));localStorage.setItem(BASE,JSON.stringify({state:syncBase,at:baseAt,dirty}))}catch(e){}};
@@ -320,6 +326,11 @@ const save=()=>{dirty=true;cache();if(online)queue()};
 function queue(){clearTimeout(timer);timer=setTimeout(push,1200)}
 const clone=o=>JSON.parse(JSON.stringify(o));
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+/* The two keys are written together but can still come apart, for instance
+   when a full disk loses one of them. With nothing unsent, the base is the
+   copy this device has already had acknowledged, so it is the better of the
+   two and the page starts from it. */
+if(!dirty&&syncBase&&!same(S,syncBase)){S=clone(syncBase);prepare()}
 const isObj=o=>o&&typeof o==='object'&&!Array.isArray(o);
 const byId=a=>Array.isArray(a)&&a.length>0&&a.every(x=>isObj(x)&&x.id!=null);
 /* Three-way merge: whichever side changed something since the base wins;
@@ -385,8 +396,12 @@ async function pull(){
   online=true;note('');
   let body=null;try{body=await r.json()}catch(e){}
   const stored=body&&body.state;
-  if(!stored||!stored.canvases){baseAt=0;syncBase=null;dirty=true;queue();return}  /* nothing up there yet: this device seeds it */
-  if(body.updatedAt!==baseAt&&!busyEditing())adopt(stored,body.updatedAt);
+  if(!stored||!stored.canvases){baseAt=0;syncBase=null;dirty=true;firstPull=false;queue();return}  /* nothing up there yet: this device seeds it */
+  /* The first answer is taken whatever the base says. A device whose cache
+     failed to write can hold a base that already matches the server while
+     showing something older, and would otherwise never catch up. */
+  if(firstPull||(body.updatedAt!==baseAt&&!busyEditing()))adopt(stored,body.updatedAt);
+  firstPull=false;
   if(dirty)queue();
  }finally{pulling=false}
 }
