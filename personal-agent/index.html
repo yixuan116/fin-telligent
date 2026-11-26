@@ -243,25 +243,11 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .sws{display:flex;gap:6px;align-items:center;flex:none}
 .cw{width:26px;height:26px;flex:none;border-radius:50%;background:var(--c);border:1px solid color-mix(in srgb,var(--ink) 12%,transparent)}
 .cw.on{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--c)}
-.ipick{display:grid;gap:8px;border:1px solid var(--rule);border-radius:12px;padding:8px;background:var(--paper)}
-.irow{display:flex;gap:4px;flex-wrap:wrap}
-.irow2{display:flex;gap:8px}
-.ipick input{border:1px solid var(--rule);border-radius:9px;background:none;font-size:16px;padding:8px 10px;color:var(--ink);outline:none;min-height:40px}
-.isearch{flex:1;min-width:0}
-.iemo{width:5.2em;flex:none;text-align:center}
-.ipick input:focus{border-color:var(--blue)}
-.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:3px;max-height:200px;overflow-y:auto;overscroll-behavior:contain}
-.igrid:empty{display:none}
-.ib{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;color:var(--ink);border:1px solid transparent}
-.ib:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
-.ib.on{border-color:var(--blue)}
-.ihint{margin:0;font-size:12px;color:var(--soft)}
 /* An emoji brings its own colours, so it is only ever placed, never
    painted. */
 .emo{display:grid;place-items:center;font-size:15px;line-height:1;font-style:normal;overflow:visible}
 .tgl .emo{font-size:19px}
 .mk .emo{font-size:9px}
-.ib .emo{font-size:18px}
 .pickb .emo{font-size:20px}
 
 /* The settings list of items. */
@@ -276,8 +262,6 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .fitem .sel2{grid-column:1/-1;display:flex;gap:8px;padding-bottom:2px}
 .fitem .sel2 select{flex:1;min-width:0;border:1px solid var(--rule);border-radius:9px;background:none;font-size:14px;padding:8px;color:var(--ink);min-height:40px}
 .fitem .sel2 .pickb{width:40px;height:40px}
-.fitem .fpick{grid-column:1/-1}
-.fitem .fpick:empty{display:none}
 .fitem input.nm{border:0;background:none;font-size:15px;padding:4px 0;outline:none;width:100%;color:var(--ink)}
 .fitem input.nm:focus{border-bottom:1px solid var(--blue)}
 .hint2{font-size:12px;color:var(--soft);margin:8px 0 0;line-height:1.5}
@@ -846,6 +830,13 @@ const icon=n=>{
 const COLORS=['c1','c2','c3','c4','c5','c6'];
 const fcol=f=>`var(--f-${COLORS.includes(f&&f.color)?f.color:'slate'})`;
 const ficon=f=>(f&&f.icon&&(svgFor(f.icon)||!isName(f.icon)))?f.icon:'check';
+/* The box left of the colours holds the mark, and there are two of them:
+   a tick, or a pair of pointe shoes. Tapping it turns one into the other,
+   and a field that wears neither starts at the tick. */
+const MARKS=['check','🩰'];
+const markName={'check':'tick','🩰':'pointe shoes'};
+const nextMark=v=>MARKS[(MARKS.indexOf(v)+1)%MARKS.length];
+const markLabel=v=>`Mark: ${markName[v]||'tick'}. Tap to change.`;
 /* "2315", "23:15", "11:15pm", "11.15", "7", "7am" are all a time. Anything
    else is kept exactly as it was typed: a note beats a rejection, and
    nothing here ever refuses to save. */
@@ -1596,25 +1587,6 @@ function loadIconLib(){
  ]).then(([n,t])=>{LIB=n;TAGS=t||{};return n}).catch(e=>{libP=null;throw e});
  return libP;
 }
-/* Name first, then the rest of the name, then what it is a picture of. */
-function searchIcons(q,max=72){
- if(!LIB)return [];
- const t=q.trim().toLowerCase().replace(/\s+/g,'-');
- if(!t)return [];
- const a=[],b=[],c=[];
- for(const n in LIB){
-  const i=n.indexOf(t);
-  if(i===0)a.push(n);
-  else if(i>0)b.push(n);
-  else if((TAGS[n]||[]).some(x=>x.includes(t.replace(/-/g,' '))||x.includes(t)))c.push(n);
- }
- return [...a,...b,...c].slice(0,max);
-}
-/* Remember the drawing, and that this one was picked most recently. */
-function keepIcon(v){
- if(isName(v)&&LIB&&LIB[v]&&!UI_ICONS[v])S.iconlib[v]=nodeSvg(LIB[v]);
- S.iconsUsed=[v,...S.iconsUsed.filter(x=>x!==v)].slice(0,24);
-}
 /* A state written before the library existed names icons it does not
    carry. Fetch those once, quietly, and the page keeps its faces. */
 function healIcons(){
@@ -1638,63 +1610,20 @@ const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],[
 /* The colours are shown, not named. */
 const swatches=cur=>COLORS.map(c=>`<button class="cw${c===cur?' on':''}" data-sw2="${c}" style="--c:var(--f-${c})" aria-label="${c}" aria-pressed="${c===cur}"></button>`).join('');
 
-/* One icon the picker always offers, used or not. */
-const PINNED=[['🩰','足尖']];
-/* The picker: what you have used lately, a search over the whole
-   library, and a box for an emoji. No list of favourites chosen for
-   you, bar the one above. */
-function openPicker(host,current,onPick){
- if(!host)return;
- if(host.dataset.open==='1'){host.innerHTML='';host.dataset.open='';return}
- const recent=S.iconsUsed.filter(v=>svgFor(v)||!isName(v)).slice(0,14);
- /* One icon is kept within reach whether or not it has been used. */
- const quick=[...PINNED.filter(([v])=>!recent.includes(v)),...recent.map(v=>[v,v])];
- host.dataset.open='1';
- host.innerHTML=`<div class="ipick">
-  ${quick.length?`<div class="irow">${quick.map(([v,lab])=>`<button class="ib${v===current?' on':''}" data-ic="${esc(v)}" title="${esc(lab)}" aria-label="${esc(lab)}">${icon(v)}</button>`).join('')}</div>`:''}
-  <div class="irow2">
-   <input class="isearch" type="search" placeholder="Search icons" aria-label="Search icons" autocomplete="off">
-   <input class="iemo" placeholder="emoji" aria-label="Use an emoji instead" autocomplete="off">
-  </div>
-  <div class="igrid"></div>
-  <p class="ihint" aria-live="polite"></p>
- </div>`;
- const grid=host.querySelector('.igrid'),hint=host.querySelector('.ihint'),q=host.querySelector('.isearch'),em=host.querySelector('.iemo');
- const pick=v=>{host.innerHTML='';host.dataset.open='';onPick(v)};
- host.addEventListener('click',ev=>{const b=ev.target.closest('[data-ic]');if(!b)return;
-  ev.preventDefault();ev.stopPropagation();pick(b.dataset.ic)});
- const takeEmoji=()=>{const v=emoji(em.value);if(v)pick(v)};
- em.addEventListener('change',takeEmoji);
- em.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();takeEmoji()}});
- const draw=()=>{
-  const t=q.value.trim();
-  if(!t){grid.innerHTML='';hint.textContent=LIB?'Search for an icon, or type an emoji.':hint.textContent;return}
-  const r=searchIcons(t);
-  grid.innerHTML=r.map(n=>`<button class="ib" data-ic="${n}" title="${n}" aria-label="${n}"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${nodeSvg(LIB[n])}</svg></button>`).join('');
-  hint.textContent=r.length?'':'Nothing by that name. Try another word, or an emoji.';
- };
- let t=null;
- q.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(draw,90)});
- hint.textContent='Fetching the icons\u2026';
- loadIconLib().then(()=>{hint.textContent='Search for an icon, or type an emoji.';draw();try{q.focus()}catch(e){}})
-  .catch(()=>{hint.textContent='The icon library is out of reach. An emoji still works.'});
-}
-
 function addFieldForm(host){
  let ic='check',co='c1';
  host.innerHTML=`<div class="addf">
   <div class="r"><input id="af-name" placeholder="Name" aria-label="Item name" autocomplete="off"></div>
   <div class="r">
-   <button class="pickb" id="af-icon" aria-label="Choose an icon">${icon(ic)}</button>
+   <button class="pickb" id="af-icon" aria-label="${markLabel(ic)}">${icon(ic)}</button>
    <span class="sws" id="af-color">${swatches(co)}</span>
    <select id="af-type" aria-label="Kind">${typeOptions('check')}</select>
   </div>
-  <div id="af-pick"></div>
   <div class="r"><button class="ok" id="af-add">Add</button><button class="cancel" id="af-cancel">Cancel</button></div>
  </div>`;
  const name=$('#af-name');name.focus();
  $('#af-icon').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();
-  openPicker($('#af-pick'),ic,v=>{ic=v;keepIcon(v);$('#af-icon').innerHTML=icon(v);save()})});
+  ic=nextMark(ic);const b=$('#af-icon');b.innerHTML=icon(ic);b.setAttribute('aria-label',markLabel(ic))});
  $('#af-color').addEventListener('click',e=>{const b=e.target.closest('[data-sw2]');if(!b)return;
   e.preventDefault();e.stopPropagation();co=b.dataset.sw2;$('#af-color').innerHTML=swatches(co)});
  const add=()=>{
@@ -1775,11 +1704,10 @@ function renderFieldList(){
     <button class="rm" data-frm="${f.id}" aria-label="Remove ${esc(f.name)}">×</button>
    </span>
    <span class="sel2">
-    <button class="pickb" data-fpick="${f.id}" aria-label="Icon for ${esc(f.name)}">${icon(ficon(f))}</button>
+    <button class="pickb" data-fpick="${f.id}" aria-label="${esc(f.name)}. ${markLabel(ficon(f))}">${icon(ficon(f))}</button>
     <span class="sws" data-fsw="${f.id}">${swatches(f.color)}</span>
     <select data-ftype="${f.id}" aria-label="Kind">${typeOptions(f.type)}</select>
    </span>
-   <div class="fpick"></div>
   </div>`).join(''):'<p class="hint2">Nothing yet. Add what you want to log each day.</p>';
 }
 
@@ -1813,7 +1741,7 @@ $('#panel').addEventListener('click',ev=>{const b=ev.target.closest('button');if
   if(i>=0&&j>=0&&j<S.fields.length){const[x]=S.fields.splice(i,1);S.fields.splice(j,0,x);save();render();syncPanel()}return}
  if(b.dataset.frm){const f=S.fields.find(x=>x.id===+b.dataset.frm);if(f)retire(f);return}
  if(b.dataset.fpick){const f=S.fields.find(x=>x.id===+b.dataset.fpick);
-  if(f)openPicker(b.closest('.fitem').querySelector('.fpick'),ficon(f),v=>{f.icon=v;keepIcon(v);save();render();syncPanel()});return}
+  if(f){f.icon=nextMark(ficon(f));save();render();syncPanel()}return}
  const fsw=b.closest('[data-fsw]');
  if(fsw&&b.dataset.sw2){const f=S.fields.find(x=>x.id===+fsw.dataset.fsw);
   if(f){f.color=b.dataset.sw2;save();render();syncPanel()}return}
