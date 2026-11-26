@@ -16,7 +16,7 @@
  */
 
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, existsSync, rmSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from "node:fs";
 
 const CHROME = process.env.CHROME_BIN ||
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -117,6 +117,13 @@ export async function launch(dir, { headless = true, size = "1280,900" } = {}) {
             if (Date.now() > until) throw new Error("page never finished loading");
             await wait(100);
           }
+        },
+        /* A picture of the page, for looking at rather than measuring. */
+        async shot(file, clip) {
+          const r = await conn.send("Page.captureScreenshot",
+            clip ? { format: "png", clip: { ...clip, scale: 2 } } : { format: "png" }, sessionId);
+          writeFileSync(file, Buffer.from(r.data, "base64"));
+          return file;
         },
         close() { return conn.send("Target.closeTarget", { targetId }); }
       };

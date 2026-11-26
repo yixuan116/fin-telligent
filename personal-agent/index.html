@@ -29,6 +29,11 @@
 /* Structural edges are a warm hairline and a little shadow, never a black
    rule: the page is paper, not a form. */
 --edge:light-dark(#ddd9d1,#2f3137);
+/* The ticker is a strip of sky: flat, no gradient, and a muted navy of
+   the same temperature after dark. */
+--tick-bg:light-dark(#e6edf7,#161d2b);
+--tick-ink:light-dark(#1f3354,#c3cee2);
+--tick-lab:light-dark(#5b6f8f,#8695af);
 /* Field identity, every colour of it here and nowhere else. A field stores
    the key, "sage"; the stylesheet owns what sage is. Muted, no emoji. */
 --f-indigo:light-dark(#4b4f7d,#9095cd);      /* dusk, for sleep */
@@ -45,15 +50,17 @@ button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0}
 :focus-visible{outline:1.5px solid var(--blue);outline-offset:3px}
 .app{height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto auto}
-.ticker{overflow:hidden;background:var(--ink);color:var(--bg);font-size:13px;letter-spacing:.02em;white-space:nowrap}
+.ticker{overflow:hidden;background:var(--tick-bg);color:var(--tick-ink);font-size:13px;letter-spacing:.02em;white-space:nowrap}
 .track{display:inline-flex;padding:9px 0;animation:roll var(--dur,40s) linear infinite}
 .grp{display:inline-flex;gap:44px;padding-right:44px;min-width:100vw;justify-content:space-around}
 .track.still{animation:none;display:flex;justify-content:center;width:100%}.track.still .grp{min-width:0;padding:0}
 .ticker:hover .track{animation-play-state:paused}
 .track span{display:inline-flex;gap:10px;align-items:baseline}
-.track .th{font:italic 500 16px/1 var(--fd,"Cormorant Garamond"),serif}
-.track .k{opacity:.6}
-.track .star{color:light-dark(#b9c8f0,#23408e)}
+.track .th{font:italic 500 16px/1 var(--fd,"Cormorant Garamond"),serif;color:var(--tick-ink)}
+/* A date and its diamond carry the accent; the word "highlights" steps back. */
+.track .k{color:var(--blue)}
+.track .lab{color:var(--tick-lab)}
+.track .star{color:var(--blue)}
 @keyframes roll{to{transform:translateX(-50%)}}
 
 /* top bar */
@@ -66,7 +73,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .gear{width:44px;height:44px;display:grid;place-items:center;color:var(--soft);margin-bottom:8px;flex:none}
 .gear:hover{color:var(--ink)}
 .ticker{cursor:text}
-.tedit{width:100%;border:0;background:var(--ink);color:var(--bg);font:italic 500 16px/1 var(--fd,"Cormorant Garamond"),serif;padding:9px max(4vw,18px);outline:none}
+.tedit{width:100%;border:0;background:var(--tick-bg);color:var(--tick-ink);font:italic 500 16px/1 var(--fd,"Cormorant Garamond"),serif;padding:9px max(4vw,18px);outline:none}
 .seg{display:flex;border:1px solid var(--rule);border-radius:20px;width:max-content;overflow:hidden}
 .seg button{padding:6px 14px;font-size:13px;color:var(--soft);min-height:34px}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
@@ -374,7 +381,7 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .sync[hidden]{display:none}
 .m{max-width:min(620px,85%);font-size:15px;line-height:1.5;animation:in .35s ease}
 .m.me{align-self:flex-end;background:var(--wash);padding:8px 14px;border-radius:14px 14px 3px 14px}
-.m.ai{align-self:flex-start;color:var(--ink)}
+.m.ai{align-self:flex-start;color:var(--ink);max-width:100%}
 .m.ai b{font-weight:500;color:var(--blue)}
 .m.ai.wait{color:var(--soft);font-style:italic}
 .m img{display:block;max-width:180px;border-radius:8px;margin-bottom:6px}
@@ -1190,8 +1197,8 @@ function renderTicker(){
  const mk=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}`,cur=`${view.y}-${pad(view.m+1)}`;
  const hl=S.events.filter(e=>e.big&&e.date.startsWith(cur)).sort((a,b)=>a.date.localeCompare(b.date));
  const st=S.settings;
- const items=[...(st.showTheme&&st.theme?[`<span>${st.themeLabel?`<span class="k">${esc(st.themeLabel)}</span>`:''}<span class="th">${esc(st.theme)}</span></span>`]:[]),
-  ...(hl.length?[`<span><span class="k">${MONTHS[view.m]} highlights</span></span>`]:[]),
+ const items=[...(st.showTheme&&st.theme?[`<span>${st.themeLabel?`<span class="lab">${esc(st.themeLabel)}</span>`:''}<span class="th">${esc(st.theme)}</span></span>`]:[]),
+  ...(hl.length?[`<span><span class="lab">${MONTHS[view.m]} highlights</span></span>`]:[]),
   ...hl.map(e=>{const d=fromKey(e.date);return `<span><span class="star">◆</span><span class="k">${d.toLocaleDateString('en-US',{weekday:'short',day:'numeric'})}</span>${esc(e.title)}</span>`})];
   $('#ticker').style.display=st.ticker&&items.length?'':'none';
  const one=`<span class="grp">${items.join('')}</span>`,still=items.length<2;
@@ -1319,7 +1326,7 @@ async function ask(text,img){
  const hist=S.msgs.filter(m=>!m.wait).slice(-9,-1).map(m=>`${m.who==='me'?'User':'Assistant'}: ${m.text||(m.html?m.html.replace(/<[^>]+>/g,''):'')}`).join('\n');
  const prompt=`You are the conversation box at the bottom of Personal Agent, a private calendar and daily tracking page. Users write in English or Chinese, by typing, voice or screenshot.
 
-What the page itself offers, so you can point people to it: a month grid above; clicking a day opens it on the right; on that day panel (a bottom sheet on phones) there are daily items of several kinds (check, good/bad, a typed time, number, text and photo) with a plus at the end of the row to add more, then Plans (events) and "+ Add to this day". Each day cell shows a short summary of its values. Clicking an event edits title, date, time (Time, TBD or No time) and "Highlight of the month". Events can be dragged to another day. Highlights scroll in the black ticker at the top. The gear at top right opens Appearance (name, year theme, ticker, colours, fonts, weekend tint, Shanghai time, week start). The conversation box itself is resized by dragging the handle on its top edge, and folds away with a tap on it. Images can be attached with the paperclip, dragged onto the chat, or pasted. The mic turns speech into text.
+What the page itself offers, so you can point people to it: a month grid above; clicking a day opens it on the right; on that day panel (a bottom sheet on phones) there are daily items of several kinds (check, good/bad, a typed time, number, text and photo) with a plus at the end of the row to add more, then Plans (events) and "+ Add to this day". Each day cell shows a short summary of its values. Clicking an event edits title, date, time (Time, TBD or No time) and "Highlight of the month". Events can be dragged to another day. Highlights scroll in the ticker at the top. The gear at top right opens Appearance (name, year theme, ticker, colours, fonts, weekend tint, Shanghai time, week start). The conversation box itself is resized by dragging the handle on its top edge, and folds away with a tap on it. Images can be attached with the paperclip, dragged onto the chat, or pasted. The mic turns speech into text.
 
 Use the tools to act: events, daily fields and their values (one spoken sentence may set several fields at once, for example sleep range, weight number, exercise text and ticks), and appearance. Match what the user says to existing fields by meaning before creating a new field. Resolve relative dates from today; times are Pacific. If an image is attached, read it and add what it shows. Only state facts you can see in State; never guess where data came from. Act first, then reply in one or two short sentences in the user's language. No apologies beyond a few words, no dashes, no filler. If a request needs something the tools and page do not offer, say so in one sentence and add that it can be built in the next version.
 
