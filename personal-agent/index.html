@@ -210,6 +210,33 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .addf select{border:1px solid var(--rule);border-radius:10px;background:none;font-size:15px;padding:10px;color:var(--ink);min-height:44px}
 .addf .ok{color:var(--blue);font-size:15px;min-height:44px;padding:0 6px}
 .addf .cancel{color:var(--soft);font-size:15px;min-height:44px;padding:0 6px}
+/* ---- choosing a face and a colour ----
+   The button shows the icon it holds; the swatches show the colours
+   themselves. Nothing here is a list of names. */
+.pickb{width:44px;height:44px;flex:none;border:1px solid var(--rule);border-radius:11px;display:grid;place-items:center;color:var(--fc,var(--ink))}
+.sws{display:flex;gap:6px;align-items:center;flex:none}
+.sw{width:26px;height:26px;border-radius:50%;background:var(--c);border:1px solid color-mix(in srgb,var(--ink) 12%,transparent)}
+.sw.on{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--c)}
+.ipick{display:grid;gap:8px;border:1px solid var(--rule);border-radius:12px;padding:8px;background:var(--paper)}
+.irow{display:flex;gap:4px;flex-wrap:wrap}
+.irow2{display:flex;gap:8px}
+.ipick input{border:1px solid var(--rule);border-radius:9px;background:none;font-size:16px;padding:8px 10px;color:var(--ink);outline:none;min-height:40px}
+.isearch{flex:1;min-width:0}
+.iemo{width:5.2em;flex:none;text-align:center}
+.ipick input:focus{border-color:var(--blue)}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:3px;max-height:200px;overflow-y:auto;overscroll-behavior:contain}
+.igrid:empty{display:none}
+.ib{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;color:var(--ink);border:1px solid transparent}
+.ib:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.ib.on{border-color:var(--blue)}
+.ihint{margin:0;font-size:12px;color:var(--soft)}
+/* An emoji brings its own colours, so it is only ever placed, never
+   painted. */
+.emo{display:grid;place-items:center;font-size:15px;line-height:1;font-style:normal;overflow:visible}
+.tgl .emo{font-size:19px}
+.mk .emo{font-size:9px}
+.ib .emo{font-size:18px}
+.pickb .emo{font-size:20px}
 
 /* The settings list of items. */
 .flist{display:grid;gap:2px;padding:2px 0}
@@ -222,6 +249,9 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .fitem .acts .rm:hover{color:var(--f-coral)}
 .fitem .sel2{grid-column:1/-1;display:flex;gap:8px;padding-bottom:2px}
 .fitem .sel2 select{flex:1;min-width:0;border:1px solid var(--rule);border-radius:9px;background:none;font-size:14px;padding:8px;color:var(--ink);min-height:40px}
+.fitem .sel2 .pickb{width:40px;height:40px}
+.fitem .fpick{grid-column:1/-1}
+.fitem .fpick:empty{display:none}
 .fitem input.nm{border:0;background:none;font-size:15px;padding:4px 0;outline:none;width:100%;color:var(--ink)}
 .fitem input.nm:focus{border-bottom:1px solid var(--blue)}
 .hint2{font-size:12px;color:var(--soft);margin:8px 0 0;line-height:1.5}
@@ -448,6 +478,13 @@ function prepare(){
   S.m10=true;
  }
  S.retired=Array.isArray(S.retired)?S.retired:[];
+ /* The drawing of every icon in use travels with the state; the library
+    itself is only ever a search away. Anything no longer referenced is
+    dropped, so this cannot grow without end. */
+ S.iconlib=(S.iconlib&&typeof S.iconlib==='object')?S.iconlib:{};
+ S.iconsUsed=Array.isArray(S.iconsUsed)?S.iconsUsed.filter(v=>typeof v==='string').slice(0,24):[];
+ {const keep=new Set([...S.fields,...S.retired].map(f=>f&&f.icon).concat(S.iconsUsed).filter(Boolean));
+  Object.keys(S.iconlib).forEach(k=>{if(!keep.has(k))delete S.iconlib[k]})}
  if(!S.m4){S.msgs=[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence, a voice note or a screenshot works.'}];S.m4=true}
  S.seq=S.seq||10;
 }
@@ -519,6 +556,8 @@ function adopt(remote,at){
  S=dirty?merge(syncBase||{},S,remote):clone(remote);
  if(S.canvases&&S.canvases.some(c=>c.id===act))S.active=act;  /* the open tab stays per device */
  syncBase=clone(remote);baseAt=at;prepare();cache();render();renderMsgs();
+ /* A copy from another device may name icons this one has never drawn. */
+ healIcons();
 }
 /* Hold incoming changes while something is being typed or edited. */
 const busyEditing=()=>{const a=document.activeElement;return editing!==null||busy||!!(a&&a.id!=='q'&&(a.isContentEditable||a.tagName==='TEXTAREA'||a.tagName==='SELECT'||(a.tagName==='INPUT'&&!/^(checkbox|radio|range|color|file|button)$/.test(a.type))))};
@@ -641,15 +680,27 @@ const PHOTO_PARTS=['photo','text','time'];
 const emptyBag=v=>!v||typeof v!=='object'||!Object.values(v).some(x=>x!==''&&x!=null&&x!==false);
 const hasVal=(f,v)=>f.type==='photo'||f.type==='range'?!emptyBag(v)
  :v!==undefined&&v!==null&&v!==''&&v!==false;
-/* lucide 0.544.0, ISC. Inlined rather than linked: nineteen icons weigh
-   less than the round trip, and the page keeps working offline. */
-const ICONS={"check":'<path d="M20 6 9 17l-5-5" />',"moon":'<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />',"scale":'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="M7 21h10" /> <path d="M12 3v18" /> <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />',"utensils":'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />',"x":'<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',"dumbbell":'<path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /> <path d="m2.5 21.5 1.4-1.4" /> <path d="m20.1 3.9 1.4-1.4" /> <path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /> <path d="m9.6 14.4 4.8-4.8" />',"book-open":'<path d="M12 7v14" /> <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />',"droplet":'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />',"pill":'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /> <path d="m8.5 8.5 7 7" />',"heart":'<path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />',"footprints":'<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /> <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /> <path d="M16 17h4" /> <path d="M4 13h4" />',"sun":'<circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" />',"coffee":'<path d="M10 2v2" /> <path d="M14 2v2" /> <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1" /> <path d="M6 2v2" />',"leaf":'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" /> <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />',"sparkles":'<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" />',"music":'<path d="M9 18V5l12-2v13" /> <circle cx="6" cy="18" r="3" /> <circle cx="18" cy="16" r="3" />',"brush-cleaning":'<path d="m16 22-1-4" /> <path d="M19 13.99a1 1 0 0 0 1-1V12a2 2 0 0 0-2-2h-3a1 1 0 0 1-1-1V4a2 2 0 0 0-4 0v5a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2v.99a1 1 0 0 0 1 1" /> <path d="M5 14h14l1.973 6.767A1 1 0 0 1 20 22H4a1 1 0 0 1-.973-1.233z" /> <path d="m8 22 1-4" />',"bike":'<circle cx="18.5" cy="17.5" r="3.5" /> <circle cx="5.5" cy="17.5" r="3.5" /> <circle cx="15" cy="5" r="1" /> <path d="M12 17.5V14l-3-3 4-3 2 3h2" />',"notebook-pen":'<path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" /> <path d="M2 6h4" /> <path d="M2 10h4" /> <path d="M2 14h4" /> <path d="M2 18h4" /> <path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />'};
-Object.assign(ICONS,{"camera":'<path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /> <circle cx="12" cy="13" r="3" />',"sunrise":'<path d="M12 2v8" /> <path d="m4.93 10.93 1.41 1.41" /> <path d="M2 18h2" /> <path d="M20 18h2" /> <path d="m19.07 10.93-1.41 1.41" /> <path d="M22 22H2" /> <path d="m8 6 4-4 4 4" /> <path d="M16 18a4 4 0 0 0-8 0" />'});
-const ICON_NAMES=Object.keys(ICONS);
-const icon=n=>`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||ICONS.check}</svg>`;
+/* ---- icons ----
+   Three marks are the page's own furniture and are inlined (lucide
+   0.544.0, ISC); there is no preset list beyond them. A field's icon is
+   either an emoji or a lucide name, and the drawing of every name in use
+   is kept in the state, so the page draws what you chose while offline
+   and only reaches for the library when you open the picker. */
+const UI_ICONS={"check":'<path d="M20 6 9 17l-5-5" />',"x":'<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',"camera":'<path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /> <circle cx="12" cy="13" r="3" />'};
+const svgFor=n=>UI_ICONS[n]||(S.iconlib&&S.iconlib[n])||null;
+/* A name is a lucide name; anything else you typed is an emoji. */
+const isName=v=>/^[a-z0-9-]+$/.test(String(v||''));
+const emoji=v=>{const c=[...String(v||'').trim()];
+ try{const sg=new Intl.Segmenter();return [...sg.segment(String(v||'').trim())][0]?.segment||c[0]||''}catch(e){return c[0]||''}};
+const icon=n=>{
+ const g=svgFor(n);
+ if(g)return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${g}</svg>`;
+ if(n&&!isName(n))return `<span class="ic emo" aria-hidden="true">${esc(emoji(n))}</span>`;
+ return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI_ICONS.check}</svg>`;
+};
 const COLORS=['indigo','sage','coral','terracotta','slate'];
 const fcol=f=>`var(--f-${COLORS.includes(f&&f.color)?f.color:'slate'})`;
-const ficon=f=>(f&&ICONS[f.icon])?f.icon:'check';
+const ficon=f=>(f&&f.icon&&(svgFor(f.icon)||!isName(f.icon)))?f.icon:'check';
 /* "2315", "23:15", "11:15pm", "11.15", "7", "7am" are all a time. Anything
    else is kept exactly as it was typed: a note beats a rejection, and
    nothing here ever refuses to save. */
@@ -1124,32 +1175,122 @@ $('#canvas').addEventListener('click',ev=>{const t=ev.target.closest('[data-tri]
  const dk=t.dataset.d||sel;
  setVal(dk,f,triNext((S.vals[dk]||{})[f.id]));save();render()},true);
 $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmf]');if(!x)return;ev.preventDefault();ev.stopPropagation();S.fields=S.fields.filter(f=>f.id!==+x.dataset.rmf);save();render()},true);
+/* ---- the icon library ----
+   1,600 icons are a third of a megabyte, so they are not part of the
+   page: the picker fetches them the first time it opens, and what you
+   choose is copied into the state and never fetched again. Tags come
+   with them, so "meal" finds the fork and knife. */
+const LUCIDE='https://cdn.jsdelivr.net/npm/lucide-static@0.544.0/';
+let LIB=null,TAGS={},libP=null;
+const nodeSvg=nodes=>nodes.map(([tag,at])=>`<${tag} ${Object.entries(at).map(([k,v])=>`${k}="${esc(v)}"`).join(' ')} />`).join('');
+function loadIconLib(){
+ if(libP)return libP;
+ libP=Promise.all([
+  fetch(LUCIDE+'icon-nodes.json').then(r=>r.ok?r.json():Promise.reject(new Error('icons'))),
+  fetch(LUCIDE+'tags.json').then(r=>r.ok?r.json():{}).catch(()=>({}))
+ ]).then(([n,t])=>{LIB=n;TAGS=t||{};return n}).catch(e=>{libP=null;throw e});
+ return libP;
+}
+/* Name first, then the rest of the name, then what it is a picture of. */
+function searchIcons(q,max=72){
+ if(!LIB)return [];
+ const t=q.trim().toLowerCase().replace(/\s+/g,'-');
+ if(!t)return [];
+ const a=[],b=[],c=[];
+ for(const n in LIB){
+  const i=n.indexOf(t);
+  if(i===0)a.push(n);
+  else if(i>0)b.push(n);
+  else if((TAGS[n]||[]).some(x=>x.includes(t.replace(/-/g,' '))||x.includes(t)))c.push(n);
+ }
+ return [...a,...b,...c].slice(0,max);
+}
+/* Remember the drawing, and that this one was picked most recently. */
+function keepIcon(v){
+ if(isName(v)&&LIB&&LIB[v]&&!UI_ICONS[v])S.iconlib[v]=nodeSvg(LIB[v]);
+ S.iconsUsed=[v,...S.iconsUsed.filter(x=>x!==v)].slice(0,24);
+}
+/* A state written before the library existed names icons it does not
+   carry. Fetch those once, quietly, and the page keeps its faces. */
+function healIcons(){
+ const want=[...S.fields,...S.retired].map(f=>f&&f.icon).filter(v=>isName(v)&&!svgFor(v));
+ if(!want.length)return;
+ loadIconLib().then(()=>{
+  let got=false;
+  want.forEach(n=>{if(LIB[n]){S.iconlib[n]=nodeSvg(LIB[n]);got=true}});
+  if(got){save();render()}
+ }).catch(()=>{});
+}
+
 /* ---- the daily list, edited where it is used ----
    A plus at the end of the row adds an item; a long press on one takes it
    off the list. Taking it off never touches a day that already has a
    value: the field moves to the archive and those days still show it. */
-const ICON_OPTIONS=ICON_NAMES.filter(n=>n!=='x');
 /* `range` still renders wherever it was used, but a new field is one of
    these: a time is typed, and a photo carries its own note and time. */
 const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],['number','Number'],['text','Text'],['photo','Photo']]
  .map(([v,l])=>`<option value="${v}"${v===sel?' selected':''}>${l}</option>`).join('');
-const iconOptions=sel=>ICON_OPTIONS.map(n=>`<option value="${n}"${n===sel?' selected':''}>${n.replace(/-/g,' ')}</option>`).join('');
-const colorOptions=sel=>COLORS.map(c=>`<option value="${c}"${c===sel?' selected':''}>${c}</option>`).join('');
+/* The colours are shown, not named. */
+const swatches=cur=>COLORS.map(c=>`<button class="sw${c===cur?' on':''}" data-sw2="${c}" style="--c:var(--f-${c})" aria-label="${c}" aria-pressed="${c===cur}"></button>`).join('');
+
+/* The picker: what you have used lately, a search over the whole
+   library, and a box for an emoji. No list of favourites chosen for
+   you. */
+function openPicker(host,current,onPick){
+ if(!host)return;
+ if(host.dataset.open==='1'){host.innerHTML='';host.dataset.open='';return}
+ const recent=S.iconsUsed.filter(v=>svgFor(v)||!isName(v)).slice(0,14);
+ host.dataset.open='1';
+ host.innerHTML=`<div class="ipick">
+  ${recent.length?`<div class="irow">${recent.map(v=>`<button class="ib${v===current?' on':''}" data-ic="${esc(v)}" title="${esc(v)}" aria-label="${esc(v)}">${icon(v)}</button>`).join('')}</div>`:''}
+  <div class="irow2">
+   <input class="isearch" type="search" placeholder="Search icons" aria-label="Search icons" autocomplete="off">
+   <input class="iemo" placeholder="emoji" aria-label="Use an emoji instead" autocomplete="off">
+  </div>
+  <div class="igrid"></div>
+  <p class="ihint" aria-live="polite"></p>
+ </div>`;
+ const grid=host.querySelector('.igrid'),hint=host.querySelector('.ihint'),q=host.querySelector('.isearch'),em=host.querySelector('.iemo');
+ const pick=v=>{host.innerHTML='';host.dataset.open='';onPick(v)};
+ host.addEventListener('click',ev=>{const b=ev.target.closest('[data-ic]');if(!b)return;
+  ev.preventDefault();ev.stopPropagation();pick(b.dataset.ic)});
+ const takeEmoji=()=>{const v=emoji(em.value);if(v)pick(v)};
+ em.addEventListener('change',takeEmoji);
+ em.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();takeEmoji()}});
+ const draw=()=>{
+  const t=q.value.trim();
+  if(!t){grid.innerHTML='';hint.textContent=LIB?'Search for an icon, or type an emoji.':hint.textContent;return}
+  const r=searchIcons(t);
+  grid.innerHTML=r.map(n=>`<button class="ib" data-ic="${n}" title="${n}" aria-label="${n}"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${nodeSvg(LIB[n])}</svg></button>`).join('');
+  hint.textContent=r.length?'':'Nothing by that name. Try another word, or an emoji.';
+ };
+ let t=null;
+ q.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(draw,90)});
+ hint.textContent='Fetching the icons\u2026';
+ loadIconLib().then(()=>{hint.textContent='Search for an icon, or type an emoji.';draw();try{q.focus()}catch(e){}})
+  .catch(()=>{hint.textContent='The icon library is out of reach. An emoji still works.'});
+}
 
 function addFieldForm(host){
+ let ic='check',co='slate';
  host.innerHTML=`<div class="addf">
   <div class="r"><input id="af-name" placeholder="Name" aria-label="Item name" autocomplete="off"></div>
   <div class="r">
-   <select id="af-icon" aria-label="Icon">${iconOptions('check')}</select>
-   <select id="af-color" aria-label="Colour">${colorOptions('slate')}</select>
+   <button class="pickb" id="af-icon" aria-label="Choose an icon">${icon(ic)}</button>
+   <span class="sws" id="af-color">${swatches(co)}</span>
    <select id="af-type" aria-label="Kind">${typeOptions('check')}</select>
   </div>
+  <div id="af-pick"></div>
   <div class="r"><button class="ok" id="af-add">Add</button><button class="cancel" id="af-cancel">Cancel</button></div>
  </div>`;
  const name=$('#af-name');name.focus();
+ $('#af-icon').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();
+  openPicker($('#af-pick'),ic,v=>{ic=v;keepIcon(v);$('#af-icon').innerHTML=icon(v);save()})});
+ $('#af-color').addEventListener('click',e=>{const b=e.target.closest('[data-sw2]');if(!b)return;
+  e.preventDefault();e.stopPropagation();co=b.dataset.sw2;$('#af-color').innerHTML=swatches(co)});
  const add=()=>{
   const n=name.value.trim();if(!n)return;
-  S.fields.push({id:nid(),name:n.slice(0,40),type:$('#af-type').value,icon:$('#af-icon').value,color:$('#af-color').value});
+  S.fields.push({id:nid(),name:n.slice(0,40),type:$('#af-type').value,icon:ic,color:co});
   /* The form closes with the add, so a second tap cannot repeat it. */
   host.innerHTML='';
   save();render();syncPanel();
@@ -1225,10 +1366,11 @@ function renderFieldList(){
     <button class="rm" data-frm="${f.id}" aria-label="Remove ${esc(f.name)}">×</button>
    </span>
    <span class="sel2">
-    <select data-ficon="${f.id}" aria-label="Icon">${iconOptions(ficon(f))}</select>
-    <select data-fcolor="${f.id}" aria-label="Colour">${colorOptions(f.color)}</select>
+    <button class="pickb" data-fpick="${f.id}" aria-label="Icon for ${esc(f.name)}">${icon(ficon(f))}</button>
+    <span class="sws" data-fsw="${f.id}">${swatches(f.color)}</span>
     <select data-ftype="${f.id}" aria-label="Kind">${typeOptions(f.type)}</select>
    </span>
+   <div class="fpick"></div>
   </div>`).join(''):'<p class="hint2">Nothing yet. Add what you want to log each day.</p>';
 }
 
@@ -1245,11 +1387,9 @@ $('#gear').addEventListener('click',()=>{syncPanel();$('#panel').classList.add('
 $('#pclose').addEventListener('click',()=>{$('#panel').classList.remove('open');$('#panel').setAttribute('aria-hidden','true')});
 /* The list: rename, re-icon, recolour, reorder, remove. */
 $('#panel').addEventListener('change',ev=>{
- const el=ev.target,id=+(el.dataset.ficon||el.dataset.fcolor||el.dataset.ftype||0);
+ const el=ev.target,id=+(el.dataset.ftype||0);
  if(!id)return;
  const f=S.fields.find(x=>x.id===id);if(!f)return;
- if(el.dataset.ficon)f.icon=ICON_NAMES.includes(el.value)?el.value:'check';
- if(el.dataset.fcolor)f.color=COLORS.includes(el.value)?el.value:'slate';
  if(el.dataset.ftype)f.type=el.value;
  save();render();syncPanel();
 });
@@ -1263,11 +1403,16 @@ $('#panel').addEventListener('click',ev=>{const b=ev.target.closest('button');if
  if(move){const id=+move,i=S.fields.findIndex(f=>f.id===id),j=i+(b.dataset.fup?-1:1);
   if(i>=0&&j>=0&&j<S.fields.length){const[x]=S.fields.splice(i,1);S.fields.splice(j,0,x);save();render();syncPanel()}return}
  if(b.dataset.frm){const f=S.fields.find(x=>x.id===+b.dataset.frm);if(f)retire(f);return}
+ if(b.dataset.fpick){const f=S.fields.find(x=>x.id===+b.dataset.fpick);
+  if(f)openPicker(b.closest('.fitem').querySelector('.fpick'),ficon(f),v=>{f.icon=v;keepIcon(v);save();render();syncPanel()});return}
+ const fsw=b.closest('[data-fsw]');
+ if(fsw&&b.dataset.sw2){const f=S.fields.find(x=>x.id===+fsw.dataset.fsw);
+  if(f){f.color=b.dataset.sw2;save();render();syncPanel()}return}
  const seg=b.closest('[data-seg]');if(seg){const k=seg.dataset.seg;setK(k,(k==='ticker'||k==='shTime'||k==='showTheme'||k==='weekend')?b.dataset.v==='true':b.dataset.v);syncPanel();return}
  const sw=b.closest('[data-sw]');if(sw){setK(sw.dataset.sw,b.dataset.c);syncPanel();return}
  if(b.id==='preset'){const keep={theme:S.settings.theme,name:S.settings.name};S.settings=Object.assign({name:'',theme:'',themeLabel:'',weekStart:'mon',ticker:true,speed:'normal',shTime:false,showTheme:false,weekend:true},keep);save();render();syncPanel()}});
 
-render();renderMsgs();pull();
+render();renderMsgs();pull();healIcons();
 }
 </script>
 </body>
