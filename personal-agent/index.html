@@ -124,7 +124,39 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .dow span{font-size:12px;color:var(--soft);padding:0 0 8px 8px}
 .grid{border-top:1px solid var(--edge);border-left:1px solid var(--rule)}
-.day{min-height:clamp(86px,13dvh,132px);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left;display:flex;flex-direction:column;gap:3px;background:var(--paper);transition:background .25s}
+/* A highlighter stroke across the middle of a day, the number still
+   plainly there under it. */
+.pbar{position:absolute;left:12%;right:12%;top:50%;height:26%;min-height:7px;border-radius:2px;
+ background:var(--pc);opacity:.55;transform:translateY(-50%) rotate(-11deg);pointer-events:none}
+.day .n,.day .chips,.day .more,.day .sum,.day .marks,.yd i{position:relative;z-index:1}
+/* In a month cell the stroke is a stroke, not a block. */
+.day .pbar{height:14%;min-height:9px;max-height:15px;opacity:.5}
+/* The year, as a paper planner holds one. */
+.year{max-width:1100px;margin:0 auto;height:100%;display:flex;flex-direction:column;min-height:0}
+.pswitch{display:inline-flex;align-self:flex-start;align-items:center;gap:8px;position:relative;margin:0 0 14px;padding:7px 14px 7px 10px;
+ border:1px solid var(--rule);border-radius:999px;font-size:14px;color:var(--soft);min-height:40px}
+.pswitch .pbar{position:static;transform:rotate(-11deg);width:18px;height:9px;left:auto;right:auto;top:auto;flex:none;opacity:.6}
+.pswitch.on{color:var(--ink);border-color:var(--ink)}
+.pswitch.on .pbar{opacity:1}
+/* The whole year wants to be seen at once, so the rows share whatever
+   height the canvas has. */
+.ygrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;flex:1;min-height:0;padding-bottom:4px}
+.ycol{display:grid;grid-template-rows:auto repeat(31,minmax(0,1fr));gap:1px;min-width:0;min-height:0}
+.ycol b{font-weight:400;font-size:12px;color:var(--soft);text-align:center;padding-bottom:4px;letter-spacing:.04em}
+.yd{position:relative;min-height:14px;display:grid;place-items:center;font-size:11px;color:var(--ink);
+ border-radius:3px;background:none;font-variant-numeric:tabular-nums}
+.yd i{font-style:normal}
+.yd.we{color:var(--soft)}
+.yd.none{visibility:hidden}
+.yd:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.yd.today i{font-weight:500;color:var(--blue)}
+/* The switch beside the day's own items. */
+.pertog{display:inline-flex;align-items:center;gap:8px;position:relative;margin:2px 0 10px;padding:6px 12px 6px 9px;
+ border:1px solid var(--rule);border-radius:999px;font-size:13px;color:var(--soft);min-height:36px}
+.pertog .pbar{position:static;transform:rotate(-11deg);width:16px;height:8px;left:auto;right:auto;top:auto;flex:none;opacity:.35}
+.pertog.on{color:var(--ink);border-color:var(--ink)}
+.pertog.on .pbar{opacity:1}
+.day{position:relative;min-height:clamp(86px,13dvh,132px);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left;display:flex;flex-direction:column;gap:3px;background:var(--paper);transition:background .25s}
 .day:hover{background:var(--wash)}
 .day.out{background:transparent;color:var(--soft);opacity:.55}
 .wkend .day.we:not(.out){background:var(--wash)}
@@ -473,6 +505,9 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  .more{display:none}
  .dow span{padding-left:0;text-align:center}
  .dock{height:auto}
+ .ygrid{gap:2px}
+ .ycol b{font-size:10px}
+ .yd{min-height:13px;font-size:9.5px}
  .day .sum{display:none}
  .marks{display:flex}
  .agenda{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--paper);border-top:1px solid var(--edge);border-radius:16px 16px 0 0;padding:14px 18px max(24px,env(safe-area-inset-bottom));max-height:78dvh;overflow:auto;transform:translateY(105%);transition:transform .28s ease;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
@@ -621,6 +656,11 @@ function prepare(){
  S.iconsUsed=Array.isArray(S.iconsUsed)?S.iconsUsed.filter(v=>typeof v==='string').slice(0,24):[];
  {const keep=new Set([...S.fields,...S.retired].map(f=>f&&f.icon).concat(S.iconsUsed).filter(Boolean));
   Object.keys(S.iconlib).forEach(k=>{if(!keep.has(k))delete S.iconlib[k]})}
+ /* A year of its own, once. Delete it and it stays deleted. */
+ if(!S.m13){
+  if(!S.canvases.some(c=>c.type==='year'))S.canvases.push({id:'year',name:'Year',type:'year'});
+  S.m13=true;
+ }
  if(!S.m4){S.msgs=[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence, a voice note or a screenshot works.'}];S.m4=true}
  S.seq=S.seq||10;
 }
@@ -807,6 +847,29 @@ function fieldsOn(dk){
  return S.fields.concat(S.retired.filter(f=>vs[f.id]!==undefined));
 }
 const triNext=v=>v==='good'?'bad':v==='bad'?'':'good';
+
+/* ---- the period, kept in one place ----
+   A day is in it or it is not; there is no second copy. Days that touch
+   are one spell, and the spells take these colours in turn. Nothing is
+   predicted, counted or named. */
+const PCOL=['#d9829b','#6fd3a8','#7cb8ff','#ffc94d','#ff9f94','#b79cff'];
+const isPeriod=dk=>!!(S.period&&S.period[dk]);
+function setPeriod(dk,on){
+ S.period=S.period||{};
+ if(on)S.period[dk]=true;else delete S.period[dk];
+ save();render();
+}
+/* Every day in the period, with the colour of the spell it belongs to. */
+function periodPaint(){
+ const days=Object.keys(S.period||{}).filter(k=>S.period[k]).sort();
+ const paint={};let run=-1,prev=null;
+ for(const d of days){
+  if(!prev||key(addDays(fromKey(prev),1))!==d)run++;
+  paint[d]=PCOL[run%PCOL.length];prev=d;
+ }
+ return paint;
+}
+const pbar=c=>c?`<span class="pbar" style="--pc:${c}"></span>`:'';
 /* Wide enough for what is written, and no wider; the cell's own maximum
    stops it running off a phone. */
 const chw=v=>Math.min(42,Math.max(4,String(v??'').length+1))+'ch';
@@ -989,6 +1052,7 @@ function renderCal(){
  const start=addDays(first,-((first.getDay()-ws+7)%7));
  const byDay={};S.events.forEach(e=>(byDay[e.date]??=[]).push(e));
  Object.values(byDay).forEach(a=>a.sort((a,b)=>(a.time||'').localeCompare(b.time||'')));
+ const paint=periodPaint();
  let cells='';
  for(let i=0;i<42;i++){
   const d=addDays(start,i),k=key(d),ev=byDay[k]||[];
@@ -1002,7 +1066,7 @@ function renderCal(){
    return `<i class="mk dot" style="--fc:${fcol(f)}" title="${esc(f.name)}"></i>`;
   }).join('');
   const cls=['day',we&&'we',d.getMonth()!==view.m&&'out',k===key(today)&&'today',k===sel&&'sel'].filter(Boolean).join(' ');
-  cells+=`<div role="button" tabindex="0" class="${cls}" data-day="${k}" aria-label="${d.toDateString()}, ${ev.length} events"><span class="n">${d.getDate()}</span><span class="chips">${ev.slice(0,2).map(e=>`<span class="chip${e.big?' big':''}" draggable="true" data-drag="${e.id}">${esc(e.title)}</span>`).join('')}</span>${ev.length>2?`<span class="more">+${ev.length-2} more</span>`:''}${sm?`<span class="sum">${esc(sm)}</span>`:''}${marks?`<span class="marks">${marks}</span>`:''}</div>`;
+  cells+=`<div role="button" tabindex="0" class="${cls}" data-day="${k}" aria-label="${d.toDateString()}, ${ev.length} events">${pbar(paint[k])}<span class="n">${d.getDate()}</span><span class="chips">${ev.slice(0,2).map(e=>`<span class="chip${e.big?' big':''}" draggable="true" data-drag="${e.id}">${esc(e.title)}</span>`).join('')}</span>${ev.length>2?`<span class="more">+${ev.length-2} more</span>`:''}${sm?`<span class="sum">${esc(sm)}</span>`:''}${marks?`<span class="marks">${marks}</span>`:''}</div>`;
  }
  $('#canvas').innerHTML=`
  <div class="cal${S.settings.weekend?' wkend':''}">
@@ -1051,11 +1115,42 @@ function sheetInner(){
   +(editing==='new'?form({date:sel,title:'',time:null,tmode:'none'}):`<button class="addev" data-act="new">+ Add to this day</button>`);
  return `
    <div class="daily">
+    <button class="pertog${isPeriod(sel)?' on':''}" data-pertog="${sel}" aria-pressed="${isPeriod(sel)}">${pbar(periodPaint()[sel]||PCOL[0])}<span>Period</span></button>
     <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em class="fnm" data-fnm="${f.id}" tabindex="0" title="Tap to rename">${esc(f.name)}</em></span>`).join('')}
      <button class="tgl adding" data-addf="${sel}" aria-label="Add a daily item"><span class="plus">+</span></button></div>
     <div id="addfield"></div></div>
    <div class="flex">${list.length?'<h4>Plans</h4>':''}${agenda}</div>
    ${(()=>{const d=doneOn(sel);return d.length?`<div class="donel"><h4>Done</h4>${d.map(t=>`<div class="dn"><b>✓</b><span>${esc(t.text)}</span></div>`).join('')}</div>`:''})()}`;
+}
+
+/* ---- the year, the way a paper planner holds one ----
+   Twelve columns, thirty-one rows, no colour of its own. The switch at
+   the top says what a tap means: with it on, a tap marks the day and the
+   stripes show; with it off, a tap opens the day itself. */
+const PMODE='shsf-pmode';
+let pmode=(()=>{try{return localStorage.getItem(PMODE)!=='0'}catch(e){return true}})();
+let yearShown=today.getFullYear();
+const YM=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function renderYear(c){
+ const paint=pmode?periodPaint():{};
+ let cols='';
+ for(let m=0;m<12;m++){
+  const last=new Date(yearShown,m+1,0).getDate();
+  let days='';
+  for(let i=1;i<=31;i++){
+   if(i>last){days+=`<span class="yd none" aria-hidden="true"></span>`;continue}
+   const k=`${yearShown}-${pad(m+1)}-${pad(i)}`;
+   const d=new Date(yearShown,m,i),we=d.getDay()===0||d.getDay()===6;
+   days+=`<button class="yd${we?' we':''}${k===key(today)?' today':''}" data-yd="${k}" aria-label="${d.toDateString()}"${paint[k]?' aria-pressed="true"':''}>${pbar(paint[k])}<i>${i}</i></button>`;
+  }
+  cols+=`<div class="ycol"><b>${YM[m]}</b>${days}</div>`;
+ }
+ $('#canvas').innerHTML=`<div class="year">
+  <div class="mhead"><h1>${esc(c.name)} <em>${yearShown}</em></h1>
+   <div class="nav"><button data-ynav="-1" aria-label="Previous year">‹</button><button data-ynav="1" aria-label="Next year">›</button></div></div>
+  <button class="pswitch${pmode?' on':''}" id="pswitch" aria-pressed="${pmode}">${pbar(PCOL[0])}<span>Period</span></button>
+  <div class="ygrid">${cols}</div>
+ </div>`;
 }
 
 /* The phone gets a week, a row a day, because a month of thumbnails is
@@ -1367,7 +1462,7 @@ function render(){
  const c=S.canvases.find(c=>c.id===S.active)||S.canvases[0];
  c.type==='calendar'
   ?(viewMode==='week'?renderWeek():viewMode==='day'?renderDay():renderCal())
-  :c.type==='tasks'?renderTasks(c):renderPage(c);
+  :c.type==='tasks'?renderTasks(c):c.type==='year'?renderYear(c):renderPage(c);
 
 }
 
@@ -1758,6 +1853,27 @@ function addFieldForm(host){
  name.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add()}});
  $('#af-cancel').addEventListener('click',()=>{host.innerHTML='';});
 }
+/* The switch, the years, and a day in the grid. */
+$('#canvas').addEventListener('click',ev=>{
+ const y=ev.target.closest('[data-ynav]');
+ if(y){ev.preventDefault();ev.stopPropagation();yearShown+=+y.dataset.ynav;render();return}
+ if(ev.target.closest('#pswitch')){ev.preventDefault();ev.stopPropagation();
+  pmode=!pmode;try{localStorage.setItem(PMODE,pmode?'1':'0')}catch(e){}
+  render();return}
+ const d=ev.target.closest('[data-yd]');
+ if(d){ev.preventDefault();ev.stopPropagation();
+  const k=d.dataset.yd;
+  if(pmode){setPeriod(k,!isPeriod(k));return}
+  const cal=S.canvases.find(c=>c.type==='calendar');
+  if(cal)S.active=cal.id;
+  sel=k;sheet=true;editing=null;
+  const dd=fromKey(k);view={y:dd.getFullYear(),m:dd.getMonth()};
+  save();render();return}
+ const t=ev.target.closest('[data-pertog]');
+ if(t){ev.preventDefault();ev.stopPropagation();
+  const k=t.dataset.pertog;setPeriod(k,!isPeriod(k));return}
+},true);
+
 $('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-addf]');if(!b)return;
  ev.preventDefault();ev.stopPropagation();
  sel=b.dataset.addf;sheet=true;render();
