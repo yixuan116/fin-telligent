@@ -561,11 +561,18 @@ let view={y:today.getFullYear(),m:today.getMonth()},sel=key(today),editing=null,
    last server copy it saw (the base) and merges item by item, so an event
    added on the phone and a task ticked on the Mac both survive. The server
    refuses any write not built on its current version. */
-const BASE='shsf-base';
+const BASE='shsf-base',OWNER='shsf-owner';
+/* Which account this device's cache was built from. A browser is shared
+   furniture: two people, or one person with two links, land on the same
+   localStorage. Until the server says whose turn it is, the cache is
+   drawn but never sent. */
+let ownerId='';
+try{ownerId=localStorage.getItem(OWNER)||''}catch(e){}
 let online=false,sending=false,timer=null,pulling=false,firstPull=true;
 let dirty=false,syncBase=null,baseAt=0;
 try{const m=JSON.parse(localStorage.getItem(BASE));if(m){syncBase=m.state;baseAt=m.at||0;dirty=!!m.dirty}else if(localStorage.getItem(CACHE))dirty=true}catch(e){}
-const cache=()=>{try{localStorage.setItem(CACHE,JSON.stringify(S));localStorage.setItem(BASE,JSON.stringify({state:syncBase,at:baseAt,dirty}))}catch(e){}};
+const cache=()=>{try{localStorage.setItem(CACHE,JSON.stringify(S));localStorage.setItem(BASE,JSON.stringify({state:syncBase,at:baseAt,dirty}));
+ if(ownerId)localStorage.setItem(OWNER,ownerId)}catch(e){}};
 const note=t=>{const n=$('#sync');n.textContent=t||'';n.hidden=!t};
 const save=()=>{dirty=true;cache();if(online)queue()};
 function queue(){clearTimeout(timer);timer=setTimeout(push,1200)}
@@ -618,12 +625,14 @@ function adopt(remote,at){
 /* Hold incoming changes while something is being typed or edited. */
 const busyEditing=()=>{const a=document.activeElement;return editing!==null||busy||!!(a&&a.id!=='q'&&(a.isContentEditable||a.tagName==='TEXTAREA'||a.tagName==='SELECT'||(a.tagName==='INPUT'&&!/^(checkbox|radio|range|color|file|button)$/.test(a.type))))};
 async function push(){
- if(!online||sending||!dirty)return;
+ /* Nothing leaves this device until the server has said which account it
+    is talking to and the cache has been shown to belong to it. */
+ if(!online||sending||!dirty||!ownerId)return;
  if(pulling){queue();return}
  sending=true;
  const snap=clone(S);
  try{
-  const r=await fetch('/api/state',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({state:snap,baseUpdatedAt:baseAt})});
+  const r=await fetch('/api/state',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({state:snap,baseUpdatedAt:baseAt,owner:ownerId})});
   if(r.status===401){online=false;note('Signed out on this device. Open your private link again.')}
   else if(r.status===409){const body=await r.json().catch(()=>null);if(body&&body.state){adopt(body.state,body.updatedAt)}else note('Reload the page to keep saving.')}
   else if(r.ok){const body=await r.json();syncBase=snap;baseAt=body.updatedAt;dirty=!same(S,snap);cache();note('')}
@@ -643,7 +652,27 @@ async function pull(){
   online=true;note('');
   let body=null;try{body=await r.json()}catch(e){}
   const stored=body&&body.state;
-  if(!stored||!stored.canvases){baseAt=0;syncBase=null;dirty=true;firstPull=false;queue();return}  /* nothing up there yet: this device seeds it */
+  const who=(body&&body.userId)||'';
+
+  /* A cache belonging to someone else, or to nobody yet, is not this
+     account's to keep or to send. The server is the record: take what is
+     up there, or start empty, and throw the stranger's copy away. */
+  if(who&&who!==ownerId){
+   const fresh=ownerId?'This device was signed in to another account. Showing what the server has.':'';
+   /* Unsent work is set aside rather than destroyed: it is not published
+      anywhere, but it is still on the device if it turns out to matter. */
+   if(dirty){try{localStorage.setItem('shsf-orphan',JSON.stringify({at:Date.now(),state:S}))}catch(e){}}
+   ownerId=who;dirty=false;firstPull=false;
+   if(stored&&stored.canvases){S=clone(stored);syncBase=clone(stored);baseAt=body.updatedAt}
+   else{S=seed();syncBase=null;baseAt=0}
+   prepare();cache();render();renderMsgs();healIcons();
+   if(fresh){note(fresh);setTimeout(()=>note(''),6000)}
+   return;
+  }
+  if(!who){note('The server did not say which account this is. Changes are kept on this device.');return}
+
+  /* Same account, nothing up there yet: this device's own copy seeds it. */
+  if(!stored||!stored.canvases){baseAt=0;syncBase=null;dirty=true;firstPull=false;queue();return}
   /* The first answer is taken whatever the base says. A device whose cache
      failed to write can hold a base that already matches the server while
      showing something older, and would otherwise never catch up. */

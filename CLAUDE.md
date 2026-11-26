@@ -15,3 +15,15 @@ and is a single `index.html` with its HTML, CSS and JS inline; no build step.
 - `scripts/` + `data/` — the daily Nimble price refresh feeding the Shopping Cart; run from the repo root.
 
 The repo is English only, templates included.
+
+## Browser testing
+
+Never drive the user's own Chrome profile, and never use the Claude in Chrome
+extension against it. It carries their live sessions and site storage: opening a
+test login there replaces the cookie for the real one and signs them out, and
+the page's `localStorage` is shared with whatever account is signed in.
+
+Test in an isolated profile instead: headless Chrome with its own
+`--user-data-dir` under the session scratchpad, driven over the DevTools
+protocol (`scripts/cdp.mjs` in `personal-agent/` does this for the agent app).
+Delete the profile directory when the run is over.

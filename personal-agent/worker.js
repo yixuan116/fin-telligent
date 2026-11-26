@@ -89,12 +89,16 @@ async function join(request, env, url) {
   });
 }
 
+/* The reply names the account it belongs to. The page keeps that name
+   beside its cache, so a cache from another account can be recognised
+   and dropped instead of being merged into this one. */
 async function getState(userId, env) {
   const row = await env.DB
     .prepare("SELECT state, updated_at FROM states WHERE user_id = ?1")
     .bind(userId)
     .first();
   return json({
+    userId,
     state: row ? JSON.parse(row.state) : null,
     updatedAt: row ? row.updated_at : 0
   });
@@ -117,6 +121,15 @@ async function putState(request, userId, env) {
   const base = body.baseUpdatedAt;
   if (typeof base !== "number") return json({ error: "baseUpdatedAt required, reload the page" }, 409);
 
+  /* A write says which account it was written for. If that is not this
+     one, it is a cache left on the device by someone else and it is
+     refused: the current state goes back instead, and the page starts
+     again from it. */
+  if (body.owner !== userId) {
+    const cur = await getState(userId, env);
+    return new Response(cur.body, { status: 409, headers: cur.headers });
+  }
+
   const blob = JSON.stringify(state);
   if (blob.length > MAX_STATE_BYTES) return json({ error: "state too large" }, 413);
 
@@ -133,7 +146,7 @@ async function putState(request, userId, env) {
     const cur = await getState(userId, env);
     return new Response(cur.body, { status: 409, headers: cur.headers });
   }
-  return json({ ok: true, updatedAt: now });
+  return json({ ok: true, userId, updatedAt: now });
 }
 
 /* ---- day photos ----
