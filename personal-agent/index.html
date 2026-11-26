@@ -218,6 +218,7 @@ button.wkv.set{color:var(--ink)}
 /* Two faces and a line that sits with them. */
 .pair{display:inline-flex;align-items:center;gap:6px}
 .pair .av{width:1.45em;height:1.45em;width:1lh;height:1lh;flex:none;vertical-align:middle}
+.soon{display:block;margin-top:2px;font-size:12px;line-height:1.4;color:var(--soft)}
 .fnm.editing{-webkit-user-select:text;user-select:text;display:block;-webkit-line-clamp:none;color:var(--ink);outline:none;background:color-mix(in srgb,var(--blue) 10%,transparent)}
 .fitem.gone b i{font-style:normal;color:var(--soft);font-size:12px}
 .fitem.gone .back{width:auto;padding:0 10px;font-size:13px;color:var(--blue)}
@@ -1409,7 +1410,7 @@ function reply(text,img){
  const p=parse(text||'');
  if(img&&!p.date&&!p.time)return {text:'Screenshot received. In the live build, the model reads it and places the event for you. For this preview, add a line such as "Interview Dec 3 2pm".'};
  if(!p.date&&!p.time)return {text:'Yixuan and Alex are getting closer soon',
-  html:`<span class="pair"><img class="av" src="cat.svg" alt="" width="64" height="64"><img class="av" src="raccoon.svg" alt="" width="64" height="64">Yixuan and Alex are getting closer soon</span>`};
+  html:`<span class="pair"><img class="av" src="cat.svg" alt="" width="64" height="64"><img class="av" src="raccoon.svg" alt="" width="64" height="64">Yixuan and Alex are getting closer soon</span><span class="soon">Chat opening soon. Stay tuned.</span>`};
  const date=p.date||today,title=p.title||'Untitled';
  const big=/!|\bhighlight\b|大事|重要/i.test(text||'');
  const e={id:nid(),date:key(date),time:p.time,title:title.replace(/!+|\bhighlight\b|大事|重要/ig,'').trim()||'Untitled',big};
