@@ -28,10 +28,10 @@
 --wash:light-dark(#eef1f8,#1c2233);
 /* Field identity, every colour of it here and nowhere else. A field stores
    the key, "sage"; the stylesheet owns what sage is. Muted, no emoji. */
---f-indigo:light-dark(#4b4f7d,#9095cd);      /* dusk, for bedtime */
+--f-indigo:light-dark(#4b4f7d,#9095cd);      /* dusk, for sleep */
 --f-sage:light-dark(#5c7a5e,#93b094);        /* green, for weight and for done */
 --f-coral:light-dark(#b16a5a,#d99486);       /* muted, for a cross */
---f-terracotta:light-dark(#a86549,#d49074);  /* warm, for dinner */
+--f-terracotta:light-dark(#a86549,#d49074);  /* warm */
 --f-slate:light-dark(#596371,#9aa4b4);       /* the quiet default */
 --done:var(--f-sage)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
@@ -136,6 +136,23 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .fname .ic{width:17px;height:17px;color:var(--fc,var(--f-slate))}
 .fname span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+/* The view switcher, under the month name in every view. */
+.vsw{margin:0 0 14px}
+.vsw button{min-height:40px;padding:6px 16px;font-size:14px}
+
+/* A month cell on a phone carries marks, not words. */
+.marks{display:none;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:auto;align-items:center}
+.mk{display:block;line-height:0}
+.mk.dot{width:6px;height:6px;border-radius:50%;background:var(--fc,var(--f-slate))}
+.mk .ic{width:11px;height:11px}
+.mk.good{color:var(--f-sage)}
+.mk.bad{color:var(--f-coral)}
+
+/* One day on its own. */
+.dayview{max-width:720px;margin:0 auto}
+.dayview .mhead{margin-bottom:12px}
+.dayview h1 em{font-size:.62em}
+
 /* The week, one row a day, its fields running across. */
 .week{max-width:760px;margin:0 auto}
 .wk{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
@@ -164,6 +181,28 @@ button.wkv.set{color:var(--ink)}
 .chkitem em{font-style:normal;font-size:11px;line-height:1.25;color:var(--soft);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .chkitem .wkv{height:44px}
 .chkitem:has(.wkv){width:auto}
+/* A time is typed, so it needs no more room than it shows, and a value
+   before five in the morning says which night it belongs to. */
+.wkv input.tmi{width:4.4em;font-variant-numeric:tabular-nums}
+.wkv .nb{font-style:normal;font-size:10px;color:var(--soft);white-space:nowrap}
+/* A photo field is a row of its own: the picture, then its note and its
+   time beside it. */
+.chkitem:has(.pho){width:100%;flex-direction:row;align-items:center;gap:10px;text-align:left}
+.chkitem:has(.pho) em{order:-1;-webkit-line-clamp:1;flex:none;max-width:5em}
+.pho{display:flex;align-items:center;gap:8px;flex:1;min-width:0;max-width:460px}
+.pho.busy{opacity:.5;pointer-events:none}
+.shot{width:44px;height:44px;flex:none;border:1px solid var(--rule);border-radius:11px;display:grid;place-items:center;overflow:hidden;cursor:pointer}
+.pho.set .shot{border-color:var(--fc,var(--f-slate))}
+.shot .ic{width:19px;height:19px;color:var(--fc,var(--f-slate));opacity:.55}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot input{display:none}
+.phf{display:flex;gap:6px;flex:1;min-width:0}
+.phf input{height:44px;min-width:0;border:1px solid var(--rule);border-radius:11px;background:none;color:var(--ink);font-size:16px;padding:0 10px;outline:none}
+.phf input[data-pk=text]{flex:1}
+.phf input.tmi{width:5.2em;flex:none}
+.phx{width:28px;height:28px;flex:none;border:0;background:none;color:var(--soft);font-size:18px;line-height:1;cursor:pointer}
+button.wkv.pht{padding:0;width:44px;overflow:hidden}
+button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .addf{display:grid;gap:8px;padding:10px 0 2px;border-top:1px solid var(--rule)}
 .addf .r{display:flex;gap:8px;align-items:center}
 .addf input{flex:1;border:0;border-bottom:1px solid var(--rule);background:none;font-size:16px;padding:9px 0;outline:none;min-height:44px}
@@ -295,7 +334,8 @@ button.wkv.set{color:var(--ink)}
  .more{display:none}
  .dow span{padding-left:0;text-align:center}
  .dock{height:auto}
- .day .sum{font-size:9px;max-width:100%;text-align:center}
+ .day .sum{display:none}
+ .marks{display:flex}
  .agenda{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--paper);border-top:1px solid var(--ink);border-radius:16px 16px 0 0;padding:14px 18px max(24px,env(safe-area-inset-bottom));max-height:78dvh;overflow:auto;transform:translateY(105%);transition:transform .28s ease;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
  .agenda.up{transform:none}
  .shut{display:block;margin-left:auto;color:var(--soft);font-size:15px;min-height:40px}
@@ -400,9 +440,9 @@ function prepare(){
     was written under. Nothing recorded is touched. */
  if(!S.m10){
   const guess=n=>{const t=String(n).toLowerCase();
-   if(/bed|lights|asleep/.test(t))return['moon','indigo'];
+   if(/slept|sleep|bed|lights|asleep/.test(t))return['moon','indigo'];
+   if(/woke|wake|sunrise/.test(t))return['sunrise','indigo'];
    if(/weight|scale|kg|lb/.test(t))return['scale','sage'];
-   if(/dinner|lunch|breakfast|meal|eat|food/.test(t))return['utensils','terracotta'];
    return['check','slate']};
   (S.fields||[]).forEach(f=>{const[i,c]=guess(f.name);if(!f.icon)f.icon=i;if(!f.color)f.color=c});
   S.m10=true;
@@ -556,13 +596,33 @@ function control(f,dk,compact){
  if(f.type==='tri')
   /* Blank shows no mark at all, just the square to tap. */
   return `<button class="tgl${v?' '+v:''}" ${st} data-tri="${f.id}" data-d="${dk}" aria-label="${lbl}: ${v||'blank'}">${v==='good'?icon('check'):v==='bad'?icon('x'):''}</button>`;
- const shown=f.type==='range'?((v&&(v.from||v.to))?`${v.from||'?'}\u2013${v.to||'?'}`:''):(v===undefined||v===''?'':String(v));
+ const shown=f.type==='range'?((v&&(v.from||v.to))?`${v.from||'?'}\u2013${v.to||'?'}`:'')
+  :f.type==='photo'?(hasVal(f,v)?short(f,v):'')
+  :(v===undefined||v===''?'':String(v));
+ if(f.type==='photo'&&compact)
+  /* The picture itself is the control: tap it to open the day. */
+  return `<button class="wkv pht${hasVal(f,v)?' set':''}" ${st} data-day="${dk}" title="${lbl}" aria-label="${lbl}">${v&&v.photo?`<img src="/api/photo/${encodeURIComponent(v.photo)}" alt="">`:icon(ficon(f))}</button>`;
+ if(f.type==='photo'){
+  const cur=v||{};
+  return `<div class="pho${hasVal(f,cur)?' set':''}" ${st}>
+   <label class="shot" title="${lbl}">${cur.photo?`<img src="/api/photo/${encodeURIComponent(cur.photo)}" alt="${lbl}">`:icon('camera')}
+    <input type="file" accept="image/*" data-ph="${f.id}" data-d="${dk}" aria-label="${lbl} photo"></label>
+   <div class="phf">
+    <input type="text" data-f="${f.id}" data-pk="text" data-d="${dk}" value="${esc(cur.text||'')}" placeholder="Note" aria-label="${lbl} note">
+    <input type="text" inputmode="numeric" class="tmi" data-f="${f.id}" data-pk="time" data-d="${dk}" value="${esc(cur.time||'')}" placeholder="Time" aria-label="${lbl} time">
+   </div>
+   ${cur.photo?`<button class="phx" data-phx="${f.id}" data-d="${dk}" aria-label="Remove photo">\u00d7</button>`:''}
+  </div>`;
+ }
+ if(compact)
  if(compact)
   /* Empty, the icon says what it is; filled, the value does, and the
      colour of the border keeps it tied to its field. */
   return `<button class="wkv${shown?' set':''}" ${st} data-day="${dk}" title="${lbl}" aria-label="${lbl}${shown?': '+esc(shown):''}">${shown?`<b>${esc(shown)}</b>`:icon(ficon(f))}</button>`;
  if(f.type==='time')
-  return `<label class="wkv${v?' set':''}" ${st} title="${lbl}">${icon(ficon(f))}<input type="time" data-f="${f.id}" data-d="${dk}" value="${esc(v||'')}" aria-label="${lbl}"></label>`;
+  /* Typed, not picked: "2315" and "11.15pm" both land on 23:15, and what
+     cannot be read is kept as written rather than thrown away. */
+  return `<label class="wkv${v?' set':''}" ${st} title="${lbl}">${icon(ficon(f))}<input type="text" inputmode="numeric" class="tmi" data-f="${f.id}" data-d="${dk}" value="${esc(v||'')}" placeholder="--:--" aria-label="${lbl}">${nightBefore(v)?'<em class="nb">night before</em>':''}</label>`;
  if(f.type==='number')
   return `<label class="wkv${v!==undefined&&v!==''?' set':''}" ${st} title="${lbl}">${icon(ficon(f))}<input type="number" inputmode="decimal" step="any" data-f="${f.id}" data-d="${dk}" value="${esc(v??'')}" aria-label="${lbl}"></label>`;
  if(f.type==='range')
@@ -575,17 +635,45 @@ function renderTabs(){
 }
 
 const hrs=(a,b)=>{if(!a||!b)return '';const [h1,m1]=a.split(':').map(Number),[h2,m2]=b.split(':').map(Number);let m=(h2*60+m2)-(h1*60+m1);if(m<=0)m+=1440;return `${Math.floor(m/60)}h${m%60?` ${m%60}m`:''}`};
-const hasVal=(f,v)=>v!==undefined&&v!==null&&v!==''&&v!==false&&!(f.type==='range'&&!(v.from||v.to));
+/* A photo field holds any mix of a picture, a note and a time, so its
+   value is a small object; everything else is a scalar. */
+const PHOTO_PARTS=['photo','text','time'];
+const emptyBag=v=>!v||typeof v!=='object'||!Object.values(v).some(x=>x!==''&&x!=null&&x!==false);
+const hasVal=(f,v)=>f.type==='photo'||f.type==='range'?!emptyBag(v)
+ :v!==undefined&&v!==null&&v!==''&&v!==false;
 /* lucide 0.544.0, ISC. Inlined rather than linked: nineteen icons weigh
    less than the round trip, and the page keeps working offline. */
 const ICONS={"check":'<path d="M20 6 9 17l-5-5" />',"moon":'<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />',"scale":'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="M7 21h10" /> <path d="M12 3v18" /> <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />',"utensils":'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />',"x":'<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',"dumbbell":'<path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /> <path d="m2.5 21.5 1.4-1.4" /> <path d="m20.1 3.9 1.4-1.4" /> <path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /> <path d="m9.6 14.4 4.8-4.8" />',"book-open":'<path d="M12 7v14" /> <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />',"droplet":'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />',"pill":'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /> <path d="m8.5 8.5 7 7" />',"heart":'<path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />',"footprints":'<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /> <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /> <path d="M16 17h4" /> <path d="M4 13h4" />',"sun":'<circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" />',"coffee":'<path d="M10 2v2" /> <path d="M14 2v2" /> <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1" /> <path d="M6 2v2" />',"leaf":'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" /> <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />',"sparkles":'<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" />',"music":'<path d="M9 18V5l12-2v13" /> <circle cx="6" cy="18" r="3" /> <circle cx="18" cy="16" r="3" />',"brush-cleaning":'<path d="m16 22-1-4" /> <path d="M19 13.99a1 1 0 0 0 1-1V12a2 2 0 0 0-2-2h-3a1 1 0 0 1-1-1V4a2 2 0 0 0-4 0v5a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2v.99a1 1 0 0 0 1 1" /> <path d="M5 14h14l1.973 6.767A1 1 0 0 1 20 22H4a1 1 0 0 1-.973-1.233z" /> <path d="m8 22 1-4" />',"bike":'<circle cx="18.5" cy="17.5" r="3.5" /> <circle cx="5.5" cy="17.5" r="3.5" /> <circle cx="15" cy="5" r="1" /> <path d="M12 17.5V14l-3-3 4-3 2 3h2" />',"notebook-pen":'<path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" /> <path d="M2 6h4" /> <path d="M2 10h4" /> <path d="M2 14h4" /> <path d="M2 18h4" /> <path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />'};
+Object.assign(ICONS,{"camera":'<path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /> <circle cx="12" cy="13" r="3" />',"sunrise":'<path d="M12 2v8" /> <path d="m4.93 10.93 1.41 1.41" /> <path d="M2 18h2" /> <path d="M20 18h2" /> <path d="m19.07 10.93-1.41 1.41" /> <path d="M22 22H2" /> <path d="m8 6 4-4 4 4" /> <path d="M16 18a4 4 0 0 0-8 0" />'});
 const ICON_NAMES=Object.keys(ICONS);
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||ICONS.check}</svg>`;
 const COLORS=['indigo','sage','coral','terracotta','slate'];
 const fcol=f=>`var(--f-${COLORS.includes(f&&f.color)?f.color:'slate'})`;
 const ficon=f=>(f&&ICONS[f.icon])?f.icon:'check';
+/* "2315", "23:15", "11:15pm", "11.15", "7", "7am" are all a time. Anything
+   else is kept exactly as it was typed: a note beats a rejection, and
+   nothing here ever refuses to save. */
+function parseClock(raw){
+ const t=String(raw).trim().toLowerCase().replace(/\s+/g,'').replace(/[\uFF0E\u3002]/g,'.');
+ if(!t)return '';
+ let m,h,mi=0,ap=null;
+ if(m=t.match(/^(\d{1,2})[:.](\d{1,2})(am|pm|a|p)?$/)){h=+m[1];mi=+m[2];ap=m[3]}
+ else if(m=t.match(/^(\d{3,4})(am|pm|a|p)?$/)){h=+m[1].slice(0,-2);mi=+m[1].slice(-2);ap=m[2]}
+ else if(m=t.match(/^(\d{1,2})(am|pm|a|p)?$/)){h=+m[1];ap=m[2]}
+ else return null;
+ if(mi>59)return null;
+ if(ap){if(h<1||h>12)return null;h=h%12+(ap[0]==='p'?12:0)}
+ else if(h>23)return null;
+ return pad(h)+':'+pad(mi);
+}
+const clockValue=raw=>{const v=parseClock(raw);return v===null?String(raw).trim().slice(0,40):v};
+/* A time before five in the morning belongs to the evening before. */
+const nightBefore=v=>/^0[0-4]:/.test(v||'');
+
 const TRI={good:'\u2212',bad:'\u2715'};
-const short=(f,v)=>f.type==='range'?`${v.from||'?'}→${v.to||'?'}`:f.type==='check'?'':f.type==='tri'?(TRI[v]||''):String(v);
+const short=(f,v)=>f.type==='range'?`${v.from||'?'}→${v.to||'?'}`
+ :f.type==='photo'?([v.time,v.text].filter(Boolean).join(' ')||'photo')
+ :f.type==='check'?'':f.type==='tri'?(TRI[v]||''):String(v);
 const doneOn=k=>{const out=[];Object.entries(S.tasks).forEach(([cid,L])=>L.forEach(t=>{if(t.done&&t.doneAt===k)out.push(t)}));return out};
 function summary(k){
  const vs=S.vals[k]||{},parts=[];let cn=0,cd=0;
@@ -605,14 +693,22 @@ function renderCal(){
   const d=addDays(start,i),k=key(d),ev=byDay[k]||[];
   const we=d.getDay()===0||d.getDay()===6;
   const sm=summary(k);
+  /* A phone cell has room for marks and nothing else: a dot in the field's
+     own colour, and the sleep mark as itself. */
+  const marks=fieldsOn(k).filter(f=>hasVal(f,(S.vals[k]||{})[f.id])).map(f=>{
+   const v=(S.vals[k]||{})[f.id];
+   if(f.type==='tri')return `<i class="mk ${v}">${v==='good'?icon('check'):icon('x')}</i>`;
+   return `<i class="mk dot" style="--fc:${fcol(f)}" title="${esc(f.name)}"></i>`;
+  }).join('');
   const cls=['day',we&&'we',d.getMonth()!==view.m&&'out',k===key(today)&&'today',k===sel&&'sel'].filter(Boolean).join(' ');
-  cells+=`<div role="button" tabindex="0" class="${cls}" data-day="${k}" aria-label="${d.toDateString()}, ${ev.length} events"><span class="n">${d.getDate()}</span><span class="chips">${ev.slice(0,2).map(e=>`<span class="chip${e.big?' big':''}" draggable="true" data-drag="${e.id}">${esc(e.title)}</span>`).join('')}</span>${ev.length>2?`<span class="more">+${ev.length-2} more</span>`:''}${sm?`<span class="sum">${esc(sm)}</span>`:''}</div>`;
+  cells+=`<div role="button" tabindex="0" class="${cls}" data-day="${k}" aria-label="${d.toDateString()}, ${ev.length} events"><span class="n">${d.getDate()}</span><span class="chips">${ev.slice(0,2).map(e=>`<span class="chip${e.big?' big':''}" draggable="true" data-drag="${e.id}">${esc(e.title)}</span>`).join('')}</span>${ev.length>2?`<span class="more">+${ev.length-2} more</span>`:''}${sm?`<span class="sum">${esc(sm)}</span>`:''}${marks?`<span class="marks">${marks}</span>`:''}</div>`;
  }
  $('#canvas').innerHTML=`
  <div class="cal${S.settings.weekend?' wkend':''}">
   <section>
    <div class="mhead"><h1>${MONTHS[view.m]} <em>${view.y}</em></h1>
     <div class="nav"><button data-nav="-1" aria-label="Previous month">‹</button><button data-nav="1" aria-label="Next month">›</button></div></div>
+   ${viewSwitch()}
    <div class="dow">${(S.settings.weekStart==='sun'?['Sun','Mon','Tue','Wed','Thu','Fri','Sat']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun']).map(d=>`<span class="${d==='Sat'||d==='Sun'?'we':''}">${d}</span>`).join('')}</div>
    <div class="grid">${cells}</div>
   </section>
@@ -621,11 +717,24 @@ function renderCal(){
 }
 
 /* The day panel: a column beside the month on a desktop, a sheet over the
-   week on a phone, the same markup either way. */
+   week on a phone, the same content either way. */
 function sheetHtml(){
+ const sd=fromKey(sel);
+ return `
+  <aside class="agenda${sheet?' up':''}" id="agenda">
+   <button class="shut" data-act="shut">Close</button>
+   <h2>${sd.toLocaleDateString('en-US',{weekday:'long'})}</h2>
+   <p class="sub">${sd.toLocaleDateString('en-US',{month:'long',day:'numeric'})}</p>
+   ${sheetInner()}
+  </aside>`;
+}
+
+/* Everything a day holds, with no frame around it: the sheet wraps this on
+   a phone, the day view shows it on its own. */
+function sheetInner(){
  const byDay={};S.events.forEach(e=>(byDay[e.date]??=[]).push(e));
  Object.values(byDay).forEach(a=>a.sort((a,b)=>(a.time||'').localeCompare(b.time||'')));
- const sd=fromKey(sel),list=byDay[sel]||[];
+ const list=byDay[sel]||[];
  const form=e=>{const tm=e.time?'set':(e.tmode||'none');return `
   <div class="edit" data-edit="${e.id||'new'}" data-tm="${tm}">
    <input id="et" value="${esc(e.title||'')}" placeholder="What is happening" aria-label="Title">
@@ -640,18 +749,12 @@ function sheetHtml(){
   :'')
   +(editing==='new'?form({date:sel,title:'',time:null,tmode:'none'}):`<button class="addev" data-act="new">+ Add to this day</button>`);
  return `
-  <aside class="agenda${sheet?' up':''}" id="agenda">
-   <button class="shut" data-act="shut">Close</button>
-   <h2>${sd.toLocaleDateString('en-US',{weekday:'long'})}</h2>
-   <p class="sub">${sd.toLocaleDateString('en-US',{month:'long',day:'numeric'})}</p>
    <div class="daily">
     <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em>${esc(f.name)}</em></span>`).join('')}
      <button class="tgl adding" data-addf="${sel}" aria-label="Add a daily item">${icon('check')}</button></div>
     <div id="addfield"></div></div>
    <div class="flex">${list.length?'<h4>Plans</h4>':''}${agenda}</div>
-   ${(()=>{const d=doneOn(sel);return d.length?`<div class="donel"><h4>Done</h4>${d.map(t=>`<div class="dn"><b>✓</b><span>${esc(t.text)}</span></div>`).join('')}</div>`:''})()}
-  </aside>
- </div>`;
+   ${(()=>{const d=doneOn(sel);return d.length?`<div class="donel"><h4>Done</h4>${d.map(t=>`<div class="dn"><b>✓</b><span>${esc(t.text)}</span></div>`).join('')}</div>`:''})()}`;
 }
 
 /* The phone gets a week, a row a day, because a month of thumbnails is
@@ -673,9 +776,21 @@ function renderWeek(){
  $('#canvas').innerHTML=`<div class="week">
   <div class="mhead"><h1>${MONTHS[m.getMonth()]} <em>${m.getFullYear()}</em></h1>
    <div class="nav"><button data-wnav="-7" aria-label="Previous week">‹</button><button data-wnav="7" aria-label="Next week">›</button></div></div>
+  ${viewSwitch()}
   ${rows}
  </div>
  ${sheetHtml()}`;
+}
+
+/* One day, the whole of it, with the days either side an arrow away. */
+function renderDay(){
+ const d=fromKey(sel);
+ $('#canvas').innerHTML=`<div class="dayview">
+  <div class="mhead"><h1>${d.toLocaleDateString('en-US',{weekday:'long'})} <em>${d.toLocaleDateString('en-US',{month:'long',day:'numeric'})}</em></h1>
+   <div class="nav"><button data-dnav="-1" aria-label="Previous day">‹</button><button data-dnav="1" aria-label="Next day">›</button></div></div>
+  ${viewSwitch()}
+  ${sheetInner()}
+ </div>`;
 }
 
 function renderTasks(c){
@@ -714,8 +829,17 @@ function applySettings(){
  if(st.bodyFont&&FONT_OK.test(st.bodyFont)){loadFont(st.bodyFont);document.body.style.fontFamily=`"${st.bodyFont}",system-ui,sans-serif`}else document.body.style.fontFamily='';
  const h=+st.dockHeight;h>=15&&h<=70?r.setProperty('--dockh',h+'dvh'):r.removeProperty('--dockh');
 }
-/* The month is a desktop shape and the week is a phone one, so the screen
-   decides rather than a setting. */
+/* Month, week or day, chosen here and remembered here: which shape suits
+   is a property of the screen in your hand, not of the account. */
+const VIEWS=['month','week','day'],VIEWKEY='shsf-view';
+let viewMode='month';
+try{const v=localStorage.getItem(VIEWKEY);if(VIEWS.includes(v))viewMode=v}catch(e){}
+const setView=v=>{if(!VIEWS.includes(v)||v===viewMode)return;viewMode=v;
+ try{localStorage.setItem(VIEWKEY,v)}catch(e){}
+ editing=null;render()};
+const viewSwitch=()=>`<div class="seg vsw" role="group" aria-label="View">${
+ VIEWS.map(v=>`<button data-vw="${v}" aria-pressed="${v===viewMode}">${v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div>`;
+
 const narrow=window.matchMedia('(max-width:760px)');
 const phone=()=>narrow.matches;
 if(narrow.addEventListener)narrow.addEventListener('change',()=>render());
@@ -724,7 +848,9 @@ else if(narrow.addListener)narrow.addListener(()=>render());
 function render(){
  applySettings();renderTabs();renderTicker();
  const c=S.canvases.find(c=>c.id===S.active)||S.canvases[0];
- c.type==='calendar'?(phone()?renderWeek():renderCal()):c.type==='tasks'?renderTasks(c):renderBlank(c);
+ c.type==='calendar'
+  ?(viewMode==='week'?renderWeek():viewMode==='day'?renderDay():renderCal())
+  :c.type==='tasks'?renderTasks(c):renderBlank(c);
 
 }
 
@@ -787,13 +913,13 @@ const TOOLS=()=>[
  {name:'update_page',description:'Change how this page looks. Only send fields to change; send an empty string to reset a field to default. name: wordmark at top left (empty hides it). theme: text in the top ticker. themeLabel: small label before the theme (empty hides it). ticker: show the ticker. speed: slow|normal|fast. accent, background, ink, paper: hex colours like #23408e. displayFont, bodyFont: Google Fonts family names. dockHeight: chat height as % of screen, 15 to 70. weekStart: mon|sun. shTime: show Shanghai time under each event. weekend: give Saturday and Sunday a tinted style. showTheme: show the year theme in the ticker. The ticker otherwise shows only this month highlights and hides when there are none.',
   inputSchema:{type:'object',properties:{name:{type:'string'},theme:{type:'string'},themeLabel:{type:'string'},ticker:{type:'boolean'},speed:{type:'string'},accent:{type:'string'},background:{type:'string'},ink:{type:'string'},paper:{type:'string'},displayFont:{type:'string'},bodyFont:{type:'string'},dockHeight:{type:'number'},weekStart:{type:'string'},shTime:{type:'boolean'},showTheme:{type:'boolean'},weekend:{type:'boolean'}}},
   execute:i=>{const st=S.settings;for(const k of Object.keys(i)){if(['accent','background','ink','paper'].includes(k)&&i[k]&&!HEX.test(i[k]))throw new Error(k+' must be #rrggbb');if(/Font$/.test(k)&&i[k]&&!FONT_OK.test(i[k]))throw new Error('bad font name');st[k]=typeof i[k]==='string'?i[k].slice(0,80):i[k]}return {ok:true}}},
- {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), tri (a mark that cycles blank, good, bad), number, text, range (time span such as sleep).',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','tri','number','text','range']}},required:['name','type']},
-  execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','number','text','range'].includes(i.type)?i.type:'text'};S.fields.push(f);return {ok:true,id:f.id}}},
+ {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), tri (a mark that cycles blank, good, bad), time (one clock time), number, text.',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','tri','time','number','text']}},required:['name','type']},
+  execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','time','number','text'].includes(i.type)?i.type:'text',icon:'check',color:'slate'};S.fields.push(f);return {ok:true,id:f.id}}},
  {name:'remove_field',description:'Remove a daily field by id.',inputSchema:{type:'object',properties:{id:{type:'number'}},required:['id']},
   execute:i=>{const n=S.fields.length;S.fields=S.fields.filter(f=>f.id!==+i.id);return {ok:S.fields.length<n}}},
- {name:'set_value',description:'Record a daily field value on a date (YYYY-MM-DD). check: true/false. tri: good or bad. number: a number. text: a string. range: from and to as HH:MM (24h). Send an empty value to clear.',inputSchema:{type:'object',properties:{field_id:{type:'number'},date:{type:'string'},value:{},from:{type:'string'},to:{type:'string'}},required:['field_id','date']},
+ {name:'set_value',description:'Record a daily field value on a date (YYYY-MM-DD). check: true/false. tri: good or bad. number: a number. text: a string. time: a clock time, loose forms such as 2315 or 11:15pm are accepted. range: from and to as HH:MM (24h). Send an empty value to clear.',inputSchema:{type:'object',properties:{field_id:{type:'number'},date:{type:'string'},value:{},from:{type:'string'},to:{type:'string'}},required:['field_id','date']},
   execute:i=>{const f=S.fields.find(x=>x.id===+i.field_id);if(!f)throw new Error('no field with that id');if(!/^\d{4}-\d{2}-\d{2}$/.test(i.date))throw new Error('date must be YYYY-MM-DD');
-   let v;if(f.type==='range'){const t=x=>/^\d{1,2}:\d{2}$/.test(x||'')?x.padStart(5,'0'):'';v={from:t(i.from),to:t(i.to)}}else if(f.type==='check')v=i.value===true||i.value==='true';else if(f.type==='tri')v=['good','bad'].includes(i.value)?i.value:'';else if(f.type==='number')v=(i.value===''||i.value==null||isNaN(+i.value))?'':+i.value;else v=String(i.value??'').slice(0,200);
+   let v;if(f.type==='time')v=clockValue(i.value??'');else if(f.type==='range'){const t=x=>/^\d{1,2}:\d{2}$/.test(x||'')?x.padStart(5,'0'):'';v={from:t(i.from),to:t(i.to)}}else if(f.type==='check')v=i.value===true||i.value==='true';else if(f.type==='tri')v=['good','bad'].includes(i.value)?i.value:'';else if(f.type==='number')v=(i.value===''||i.value==null||isNaN(+i.value))?'':+i.value;else v=String(i.value??'').slice(0,200);
    setVal(i.date,f,v);return {ok:true}}},
  {name:'set_task',description:'Tick or untick a task on a task canvas, by task id.',inputSchema:{type:'object',properties:{canvas:{type:'string'},id:{type:'number'},done:{type:'boolean'}},required:['id','done']},
   execute:i=>{for(const L of Object.values(S.tasks)){const t=L.find(x=>x.id===+i.id);if(t){t.done=!!i.done;if(t.done)t.doneAt=key(new Date());else delete t.doneAt;return {ok:true}}}throw new Error('no task with that id')}},
@@ -810,7 +936,7 @@ async function ask(text,img){
  const hist=S.msgs.filter(m=>!m.wait).slice(-9,-1).map(m=>`${m.who==='me'?'User':'Assistant'}: ${m.text||(m.html?m.html.replace(/<[^>]+>/g,''):'')}`).join('\n');
  const prompt=`You are the conversation box at the bottom of Personal Agent, a private calendar and daily tracking page. Users write in English or Chinese, by typing, voice or screenshot.
 
-What the page itself offers, so you can point people to it: a month grid above; clicking a day opens it on the right; on that day panel (a bottom sheet on phones) there are daily fields of four kinds (check, number, text, time range) with a "+ Field" row to add more, then Plans (events) and "+ Add to this day". Each day cell shows a short summary of its values. Clicking an event edits title, date, time (Time, TBD or No time) and "Highlight of the month". Events can be dragged to another day. Highlights scroll in the black ticker at the top. The gear at top right opens Appearance (name, year theme, ticker, colours, fonts, chat height, weekend tint, Shanghai time, week start). Images can be attached with the paperclip, dragged onto the chat, or pasted. The mic turns speech into text.
+What the page itself offers, so you can point people to it: a month grid above; clicking a day opens it on the right; on that day panel (a bottom sheet on phones) there are daily items of several kinds (check, good/bad, a typed time, number, text and photo) with a plus at the end of the row to add more, then Plans (events) and "+ Add to this day". Each day cell shows a short summary of its values. Clicking an event edits title, date, time (Time, TBD or No time) and "Highlight of the month". Events can be dragged to another day. Highlights scroll in the black ticker at the top. The gear at top right opens Appearance (name, year theme, ticker, colours, fonts, chat height, weekend tint, Shanghai time, week start). Images can be attached with the paperclip, dragged onto the chat, or pasted. The mic turns speech into text.
 
 Use the tools to act: events, daily fields and their values (one spoken sentence may set several fields at once, for example sleep range, weight number, exercise text and ticks), and appearance. Match what the user says to existing fields by meaning before creating a new field. Resolve relative dates from today; times are Pacific. If an image is attached, read it and add what it shows. Only state facts you can see in State; never guess where data came from. Act first, then reply in one or two short sentences in the user's language. No apologies beyond a few words, no dashes, no filler. If a request needs something the tools and page do not offer, say so in one sentence and add that it can be built in the next version.
 
@@ -871,6 +997,8 @@ $('#canvas').addEventListener('click',ev=>{
  if(ev.target.closest('[data-act=shut]')){sheet=false;$('#agenda').classList.remove('up');return}
  const b=ev.target.closest('button');if(!b)return;
  if(b.dataset.tm){const f=b.closest('.edit');f.dataset.tm=b.dataset.tm;f.querySelectorAll('[data-tm]').forEach(x=>x.tagName==='BUTTON'&&x.setAttribute('aria-pressed',x===b));const h=f.querySelector('#eh');h.hidden=b.dataset.tm!=='set';if(!h.hidden)h.focus();return}
+ if(b.dataset.vw){setView(b.dataset.vw);return}
+ if(b.dataset.dnav){sel=key(addDays(fromKey(sel),+b.dataset.dnav));editing=null;render();return}
  if(b.dataset.wnav){sel=key(addDays(fromKey(sel),+b.dataset.wnav));editing=null;render();return}
  if(b.dataset.nav){view.m+=+b.dataset.nav;if(view.m<0){view.m=11;view.y--}if(view.m>11){view.m=0;view.y++}render();return}
  if(b.dataset.day){sel=b.dataset.day;editing=null;render();return}
@@ -901,8 +1029,63 @@ $('#add').addEventListener('click',()=>{
 $('#canvas').addEventListener('change',ev=>{const c=ev.target.closest('[data-tk]');if(!c)return;const L=S.tasks[S.active]||[];const t=L.find(x=>x.id===+c.dataset.tk);if(t){t.done=c.checked;if(t.done)t.doneAt=key(new Date());else delete t.doneAt;save();render()}});
 $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmtk]');if(!x)return;ev.preventDefault();ev.stopPropagation();S.tasks[S.active]=(S.tasks[S.active]||[]).filter(t=>t.id!==+x.dataset.rmtk);save();render()},true);
 $('#canvas').addEventListener('keydown',ev=>{if(ev.target.id!=='addtk'||ev.key!=='Enter')return;const v=ev.target.value.trim();if(!v)return;(S.tasks[S.active]=S.tasks[S.active]||[]).push({id:nid(),group:'',text:v.slice(0,160),done:false});save();render();$('#addtk').focus()},true);
+/* ---- photos ----
+   The phone shrinks the picture before it leaves: a day's photo is a
+   record, not a print, so 1280px of JPEG is plenty and it fits in the
+   free tier. The state keeps only the key; the bytes live in R2. */
+const PHOTO_MAX=1280,PHOTO_BYTES=2*1024*1024;
+async function shrink(file){
+ const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(file)});
+ const sc=Math.min(1,PHOTO_MAX/Math.max(img.width,img.height));
+ const c=document.createElement('canvas');
+ c.width=Math.max(1,Math.round(img.width*sc));c.height=Math.max(1,Math.round(img.height*sc));
+ c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+ URL.revokeObjectURL(img.src);
+ const blob=q=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
+ let b=await blob(.72);
+ if(b&&b.size>PHOTO_BYTES)b=await blob(.5);
+ return b;
+}
+/* A replaced or cleared picture is not left behind in the bucket. Best
+   effort: if the delete fails the state has already moved on. */
+const dropPhoto=k=>{if(k)fetch('/api/photo/'+encodeURIComponent(k),{method:'DELETE'}).catch(()=>{})};
+async function uploadPhoto(file){
+ const b=await shrink(file);
+ if(!b)throw new Error('could not read that image');
+ if(b.size>PHOTO_BYTES)throw new Error('that image is too large');
+ const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'image/jpeg'},body:b});
+ if(!r.ok)throw new Error('upload failed');
+ return (await r.json()).key;
+}
+$('#canvas').addEventListener('change',async ev=>{
+ const el=ev.target.closest('[data-ph]');if(!el)return;
+ const file=el.files&&el.files[0];if(!file)return;
+ const f=fieldById(+el.dataset.ph),dk=el.dataset.d||sel;if(!f)return;
+ const host=el.closest('.pho');if(host)host.classList.add('busy');
+ try{
+  const k=await uploadPhoto(file);
+  const cur={...((S.vals[dk]||{})[f.id]||{})};
+  if(cur.photo&&cur.photo!==k)dropPhoto(cur.photo);
+  cur.photo=k;setVal(dk,f,cur);save();render();
+ }catch(e){
+  if(host)host.classList.remove('busy');
+  alert(e.message||'That photo did not go through.');
+ }
+});
+/* Clearing the picture leaves the note and the time alone. */
+$('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-phx]');if(!x)return;
+ ev.preventDefault();ev.stopPropagation();
+ const f=fieldById(+x.dataset.phx),dk=x.dataset.d||sel;if(!f)return;
+ const cur={...((S.vals[dk]||{})[f.id]||{})};
+ dropPhoto(cur.photo);delete cur.photo;
+ setVal(dk,f,cur);save();render();
+},true);
+
 /* daily fields */
-const setVal=(date,f,val)=>{S.vals[date]=S.vals[date]||{};const o=S.vals[date];if(val===''||val===false||val==null||(f.type==='range'&&!val.from&&!val.to))delete o[f.id];else o[f.id]=val;if(!Object.keys(o).length)delete S.vals[date]};
+const setVal=(date,f,val)=>{S.vals[date]=S.vals[date]||{};const o=S.vals[date];
+ const gone=val===''||val===false||val==null||(typeof val==='object'&&emptyBag(val));
+ if(gone)delete o[f.id];else o[f.id]=val;
+ if(!Object.keys(o).length)delete S.vals[date]};
 /* A control carries the day it writes to, because the week shows seven of
    them at once. */
 $('#canvas').addEventListener('change',ev=>{const el=ev.target.closest('[data-f]');if(!el)return;
@@ -912,6 +1095,14 @@ $('#canvas').addEventListener('change',ev=>{const el=ev.target.closest('[data-f]
  if(f.type==='check')v=el.checked;
  else if(f.type==='number')v=el.value===''?'':+el.value;
  else if(f.type==='range'){const cur={...((S.vals[dk]||{})[f.id]||{})};cur[el.dataset.p]=el.value;v=cur}
+ else if(f.type==='photo'){
+  const cur={...((S.vals[dk]||{})[f.id]||{})},k=el.dataset.pk;
+  cur[k]=k==='time'?clockValue(el.value):el.value.trim().slice(0,200);
+  if(!cur[k])delete cur[k];
+  if(emptyBag(cur)&&cur.photo)dropPhoto(cur.photo);
+  v=cur;
+ }
+ else if(f.type==='time')v=clockValue(el.value);
  else v=el.value.trim().slice(0,200);
  setVal(dk,f,v);save();render()});
 
@@ -938,7 +1129,9 @@ $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmf]
    off the list. Taking it off never touches a day that already has a
    value: the field moves to the archive and those days still show it. */
 const ICON_OPTIONS=ICON_NAMES.filter(n=>n!=='x');
-const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],['number','Number'],['text','Text'],['range','Time range']]
+/* `range` still renders wherever it was used, but a new field is one of
+   these: a time is typed, and a photo carries its own note and time. */
+const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],['number','Number'],['text','Text'],['photo','Photo']]
  .map(([v,l])=>`<option value="${v}"${v===sel?' selected':''}>${l}</option>`).join('');
 const iconOptions=sel=>ICON_OPTIONS.map(n=>`<option value="${n}"${n===sel?' selected':''}>${n.replace(/-/g,' ')}</option>`).join('');
 const colorOptions=sel=>COLORS.map(c=>`<option value="${c}"${c===sel?' selected':''}>${c}</option>`).join('');

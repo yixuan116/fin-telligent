@@ -26,5 +26,11 @@ database_id = "9746c17c-f9b6-4688-8f8c-1dc8842379fe"
 binding = "BACKUPS"
 bucket_name = "personal-agent-backups"
 
+# Day photos. Same free tier, its own bucket so a backup sweep never meets
+# a photo.
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "personal-agent-photos"
+
 [triggers]
 crons = ["17 11 * * *"]   # 11:17 UTC, about 3am in California

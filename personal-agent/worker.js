@@ -13,6 +13,7 @@
 
 const YEAR_SECONDS = 31536000;
 const MAX_STATE_BYTES = 1024 * 1024;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const SESSION_COOKIE = "pa_session";
 
 const json = (body, status = 200) =>
@@ -135,6 +136,43 @@ async function putState(request, userId, env) {
   return json({ ok: true, updatedAt: now });
 }
 
+/* ---- day photos ----
+   One object per photo under the owner's own prefix, which is also how a
+   read is authorised: a key that does not start with your id is not yours
+   to fetch. The page sends an already compressed JPEG. */
+function photoKey(userId, name) {
+  return `${userId}/${name}`;
+}
+
+async function putPhoto(request, userId, env) {
+  const body = await request.arrayBuffer();
+  if (!body.byteLength) return json({ error: "empty" }, 400);
+  if (body.byteLength > MAX_PHOTO_BYTES) return json({ error: "photo too large" }, 413);
+
+  const key = photoKey(userId, crypto.randomUUID() + ".jpg");
+  await env.PHOTOS.put(key, body, { httpMetadata: { contentType: "image/jpeg" } });
+  return json({ key });
+}
+
+async function getPhoto(key, userId, env) {
+  if (!key.startsWith(userId + "/")) return json({ error: "not found" }, 404);
+  const obj = await env.PHOTOS.get(key);
+  if (!obj) return json({ error: "not found" }, 404);
+  return new Response(obj.body, {
+    headers: {
+      "content-type": obj.httpMetadata?.contentType || "image/jpeg",
+      /* Private to one person and immutable once written. */
+      "cache-control": "private, max-age=31536000, immutable"
+    }
+  });
+}
+
+async function deletePhoto(key, userId, env) {
+  if (!key.startsWith(userId + "/")) return json({ error: "not found" }, 404);
+  await env.PHOTOS.delete(key);
+  return json({ ok: true });
+}
+
 /* ---- daily backup ----
    Every user's full state goes to R2 as daily/YYYY-MM-DD.json. Anything
    older than 365 days is removed in the same run. */
@@ -180,6 +218,16 @@ export default {
       }
       /* Run today's backup now, e.g. before a risky change. */
       if (url.pathname === "/api/backup" && request.method === "POST") return json(await backup(env));
+
+      if (url.pathname === "/api/photo" && request.method === "POST") {
+        return putPhoto(request, userId, env);
+      }
+      if (url.pathname.startsWith("/api/photo/")) {
+        const key = decodeURIComponent(url.pathname.slice("/api/photo/".length));
+        if (request.method === "GET") return getPhoto(key, userId, env);
+        if (request.method === "DELETE") return deletePhoto(key, userId, env);
+        return json({ error: "method not allowed" }, 405);
+      }
       return json({ error: "not found" }, 404);
     }
 
