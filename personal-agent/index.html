@@ -88,10 +88,16 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .pf>span{font-size:12px;color:var(--soft)}
 .pf input[type=text],.pf select{border:0;border-bottom:1px solid var(--rule);background:none;padding:6px 0;font-size:16px;outline:none;width:100%}
 .pf input[type=range]{width:100%;accent-color:var(--blue)}
-.sw{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.sw button{width:30px;height:30px;border-radius:50%;border:1px solid var(--rule)}
-.sw button[aria-pressed=true]{box-shadow:0 0 0 2px var(--paper),0 0 0 3.5px var(--ink)}
-.sw input[type=color]{width:34px;height:34px;border:0;background:none;padding:0}
+/* One colour setting is one row in normal flow: the label above, every
+   swatch beside the next below it. No height is set here; the row is as
+   tall as the circles in it. */
+.pf .sw{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:8px;width:100%;min-width:0}
+.pf .sw button{width:28px;height:28px;flex:none;padding:0;border-radius:50%;border:1px solid var(--rule)}
+.pf .sw button[aria-pressed=true]{box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--blue)}
+.pf .sw input[type=color]{width:28px;height:28px;flex:none;border:1px solid var(--rule);background:none;padding:0;border-radius:50%;overflow:hidden}
+/* The native colour well is square until it is told otherwise. */
+.pf .sw input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.pf .sw input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
 .reset{color:var(--soft);font-size:14px;margin-top:18px;min-height:44px}
 .tabs{display:flex;gap:22px;overflow-x:auto;scrollbar-width:none;flex:1}
 .tab{padding:6px 0 14px;font-size:15px;color:var(--soft);border-bottom:1.5px solid transparent;white-space:nowrap;min-height:44px}
@@ -224,9 +230,13 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
    The button shows the icon it holds; the swatches show the colours
    themselves. Nothing here is a list of names. */
 .pickb{width:44px;height:44px;flex:none;border:1px solid var(--rule);border-radius:11px;display:grid;place-items:center;color:var(--fc,var(--ink))}
+/* A field's colour wells. They were called .sw, which is also the name of
+   the Appearance panel's colour row, so this rule was sizing that row to
+   26px and spilling its swatches over everything below. Their own name
+   now. */
 .sws{display:flex;gap:6px;align-items:center;flex:none}
-.sw{width:26px;height:26px;border-radius:50%;background:var(--c);border:1px solid color-mix(in srgb,var(--ink) 12%,transparent)}
-.sw.on{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--c)}
+.cw{width:26px;height:26px;flex:none;border-radius:50%;background:var(--c);border:1px solid color-mix(in srgb,var(--ink) 12%,transparent)}
+.cw.on{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--c)}
 .ipick{display:grid;gap:8px;border:1px solid var(--rule);border-radius:12px;padding:8px;background:var(--paper)}
 .irow{display:flex;gap:4px;flex-wrap:wrap}
 .irow2{display:flex;gap:8px}
@@ -1613,7 +1623,7 @@ function healIcons(){
 const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],['number','Number'],['text','Text'],['photo','Photo']]
  .map(([v,l])=>`<option value="${v}"${v===sel?' selected':''}>${l}</option>`).join('');
 /* The colours are shown, not named. */
-const swatches=cur=>COLORS.map(c=>`<button class="sw${c===cur?' on':''}" data-sw2="${c}" style="--c:var(--f-${c})" aria-label="${c}" aria-pressed="${c===cur}"></button>`).join('');
+const swatches=cur=>COLORS.map(c=>`<button class="cw${c===cur?' on':''}" data-sw2="${c}" style="--c:var(--f-${c})" aria-label="${c}" aria-pressed="${c===cur}"></button>`).join('');
 
 /* The picker: what you have used lately, a search over the whole
    library, and a box for an emoji. No list of favourites chosen for
