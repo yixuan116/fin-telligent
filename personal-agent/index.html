@@ -147,11 +147,12 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .yd.none{visibility:hidden}
 .yd:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
 .yd.today i{font-weight:500;color:var(--blue)}
-/* The switch beside the day's own items. */
-.pertog{display:inline-flex;align-items:center;gap:8px;position:relative;margin:2px 0 10px;padding:6px 12px 6px 9px;
- border:1px solid var(--rule);border-radius:999px;font-size:13px;color:var(--soft);min-height:36px}
-.pertog .pbar{position:static;transform:rotate(-7deg);width:16px;height:3px;left:auto;right:auto;bottom:auto;flex:none;opacity:.4}
-.pertog.on{color:var(--ink);border-color:var(--ink)}
+/* The switch beside the day's own items: the stroke itself, pale until
+   the day is marked. */
+.pertog{display:inline-flex;align-items:center;justify-content:center;position:relative;margin:2px 0 10px;
+ width:48px;min-height:36px;border:1px solid var(--rule);border-radius:999px}
+.pertog .pbar{position:static;transform:rotate(-7deg);width:20px;height:3px;left:auto;right:auto;bottom:auto;flex:none;opacity:.28}
+.pertog.on{border-color:var(--pc)}
 .pertog.on .pbar{opacity:1}
 .day{position:relative;min-height:clamp(86px,13dvh,132px);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left;display:flex;flex-direction:column;gap:3px;background:var(--paper);transition:background .25s}
 .day:hover{background:var(--wash)}
@@ -1116,7 +1117,7 @@ function sheetInner(){
   +(editing==='new'?form({date:sel,title:'',time:null,tmode:'none'}):`<button class="addev" data-act="new">+ Add to this day</button>`);
  return `
    <div class="daily">
-    <button class="pertog${isPeriod(sel)?' on':''}" data-pertog="${sel}" aria-pressed="${isPeriod(sel)}">${pbar(periodPaint()[sel]||PCOL[0])}<span>Period</span></button>
+    <button class="pertog${isPeriod(sel)?' on':''}" data-pertog="${sel}" style="--pc:${periodPaint()[sel]||PCOL[0]}" aria-pressed="${isPeriod(sel)}" aria-label="Period" title="Period"><span class="pbar"></span></button>
     <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em class="fnm" data-fnm="${f.id}" tabindex="0" title="Tap to rename">${esc(f.name)}</em></span>`).join('')}
      <button class="tgl adding" data-addf="${sel}" aria-label="Add a daily item"><span class="plus">+</span></button></div>
     <div id="addfield"></div></div>
