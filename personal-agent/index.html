@@ -201,6 +201,14 @@ button.wkv.set{color:var(--ink)}
 .chkrow{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:flex-start;padding:4px 0 12px}
 .chkitem{display:flex;flex-direction:column;align-items:center;gap:5px;width:60px;max-width:100%;min-width:0;text-align:center}
 .chkitem em{font-style:normal;font-size:11px;line-height:1.25;color:var(--soft);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* The name is the item's own; a tap opens it for writing and a long
+   press asks to take it off. The phone is told not to offer its own
+   menu over it, so the press stays ours. */
+.fnm{cursor:text;border-radius:5px;padding:0 3px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.fnm:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.fnm.editing{-webkit-user-select:text;user-select:text;display:block;-webkit-line-clamp:none;color:var(--ink);outline:none;background:color-mix(in srgb,var(--blue) 10%,transparent)}
+.fitem.gone b i{font-style:normal;color:var(--soft);font-size:12px}
+.fitem.gone .back{width:auto;padding:0 10px;font-size:13px;color:var(--blue)}
 .chkitem .wkv{height:44px}
 .chkitem:has(.wkv){width:auto}
 /* A time is typed, so it needs no more room than it shows, and a value
@@ -505,6 +513,7 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  <div class="pf"><span>Ticker speed</span><div class="seg" data-seg="speed"><button data-v="slow">Slow</button><button data-v="normal">Normal</button><button data-v="fast">Fast</button></div></div>
  <div class="pf"><span>Daily items</span>
   <div class="flist" id="flist"></div>
+  <div class="flist" id="rlist"></div>
   <button class="ok" id="pf-new" style="color:var(--blue);font-size:15px;min-height:44px;text-align:left">+ Add an item</button>
   <div id="pf-add"></div>
   <p class="hint2">Changes apply from now on. A day that already has a value keeps it.</p>
@@ -1021,7 +1030,7 @@ function sheetInner(){
   +(editing==='new'?form({date:sel,title:'',time:null,tmode:'none'}):`<button class="addev" data-act="new">+ Add to this day</button>`);
  return `
    <div class="daily">
-    <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em>${esc(f.name)}</em></span>`).join('')}
+    <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em class="fnm" data-fnm="${f.id}" tabindex="0" title="Tap to rename, hold to remove">${esc(f.name)}</em></span>`).join('')}
      <button class="tgl adding" data-addf="${sel}" aria-label="Add a daily item">${icon('check')}</button></div>
     <div id="addfield"></div></div>
    <div class="flex">${list.length?'<h4>Plans</h4>':''}${agenda}</div>
@@ -1732,11 +1741,22 @@ $('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-addf
  const host=$('#addfield');if(host)addFieldForm(host);
 },true);
 
+/* Taking an item off the list throws nothing away: the item itself is
+   kept, every value it holds is kept, and Settings can put it back. */
 function retire(f){
  S.fields=S.fields.filter(x=>x.id!==f.id);
+ f.removedAt=key(today);
  if(!S.retired.some(x=>x.id===f.id))S.retired.push(f);
  save();render();syncPanel();
- note(`${f.name} is off the list. Days that already have it keep it.`);
+ note(`${f.name} is off the list. Nothing is deleted \u2014 Settings can bring it back.`);
+ setTimeout(()=>note(''),5000);
+}
+function restore(f){
+ S.retired=S.retired.filter(x=>x.id!==f.id);
+ delete f.removedAt;
+ if(!S.fields.some(x=>x.id===f.id))S.fields.push(f);
+ save();render();syncPanel();
+ note(`${f.name} is back on the list.`);
  setTimeout(()=>note(''),4000);
 }
 /* ---- taking an item off the list ----
@@ -1768,28 +1788,59 @@ function fieldMenu(f,x,y){
   closeFieldMenu();
  });
 }
-/* The cell under the pointer, and the item it belongs to. */
-const fieldAt=t=>{
+/* The name under a cell is where this happens, never the cell itself: a
+   cell is for tapping, and a tap must only ever mean a tick. A name
+   holds no keyboard either, so the phone's own text menu cannot take the
+   press away from us, which is what it does inside a text cell. */
+const nameAt=t=>{
  if(!t||!t.closest)return null;
- if(t.closest('input,textarea,[contenteditable="true"],[contenteditable="plaintext-only"]'))return null;
- const h=t.closest('[data-item],[data-chk],[data-tri]');if(!h)return null;
- return fieldById(+(h.dataset.item||h.dataset.chk||h.dataset.tri))||null;
+ const n=t.closest('[data-fnm]');if(!n||n.isContentEditable)return null;
+ const f=fieldById(+n.dataset.fnm);return f?{f,n}:null;
 };
-let longTimer=null,longPressed=false;
+let longTimer=null,longPressed=false,pressAt=null;
 const startPress=ev=>{
- const f=fieldAt(ev.target);if(!f)return;
- const holder=ev.target.closest('[data-item],[data-chk],[data-tri]');
- longPressed=false;
+ if(ev.isPrimary===false||(ev.button!==undefined&&ev.button>0))return;
+ const hit=nameAt(ev.target);if(!hit)return;
+ longPressed=false;pressAt={x:ev.clientX,y:ev.clientY};
  clearTimeout(longTimer);
- longTimer=setTimeout(()=>{longPressed=true;
-  const r=holder.getBoundingClientRect();
-  fieldMenu(f,r.left,r.bottom+6)},600);
+ longTimer=setTimeout(()=>{longPressed=true;pressAt=null;
+  const r=hit.n.getBoundingClientRect();
+  fieldMenu(hit.f,r.left,r.bottom+6)},500);
 };
-const endPress=()=>{clearTimeout(longTimer);setTimeout(()=>{longPressed=false},0)};
+/* A finger that travels is a scroll, not a press. */
+const movePress=ev=>{if(pressAt&&Math.hypot(ev.clientX-pressAt.x,ev.clientY-pressAt.y)>8){clearTimeout(longTimer);pressAt=null}};
+const endPress=()=>{clearTimeout(longTimer);pressAt=null;setTimeout(()=>{longPressed=false},0)};
 $('#canvas').addEventListener('pointerdown',startPress,true);
+$('#canvas').addEventListener('pointermove',movePress,true);
 ['pointerup','pointercancel','pointerleave','scroll'].forEach(t=>$('#canvas').addEventListener(t,endPress,true));
-$('#canvas').addEventListener('contextmenu',ev=>{const f=fieldAt(ev.target);if(!f)return;
- ev.preventDefault();fieldMenu(f,ev.clientX,ev.clientY)});
+$('#canvas').addEventListener('contextmenu',ev=>{const hit=nameAt(ev.target);if(!hit)return;
+ ev.preventDefault();fieldMenu(hit.f,ev.clientX,ev.clientY)});
+
+/* ---- the name of an item, changed where it is read ----
+   The name belongs to the item (Sleep); what the cell holds belongs to
+   the day (23:40 to 7:10). Renaming one never touches the other. */
+function editName(n){
+ const f=fieldById(+n.dataset.fnm);if(!f||n.isContentEditable)return;
+ const was=f.name;
+ n.contentEditable='plaintext-only';n.classList.add('editing');n.focus();
+ const r=document.createRange();r.selectNodeContents(n);
+ const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
+ const done=()=>{
+  if(!n.isContentEditable)return;
+  n.contentEditable='false';n.classList.remove('editing');
+  const v=n.textContent.replace(/\s+/g,' ').trim().slice(0,40);
+  if(v&&v!==was){f.name=v;save();render();syncPanel()}
+  else{n.textContent=was}
+ };
+ n.addEventListener('blur',done,{once:true});
+ n.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();n.blur()}
+  if(e.key==='Escape'){n.textContent=was;n.blur()}});
+}
+$('#canvas').addEventListener('click',ev=>{
+ const hit=nameAt(ev.target);if(!hit)return;
+ if(longPressed){ev.preventDefault();ev.stopPropagation();return}
+ ev.preventDefault();ev.stopPropagation();editName(hit.n);},true);
 /* Anywhere else, and the question goes away unanswered. */
 document.addEventListener('pointerdown',ev=>{if(fmenu&&!ev.target.closest('.fmenu'))closeFieldMenu()},true);
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeFieldMenu()});
@@ -1839,9 +1890,20 @@ function renderFieldList(){
   </div>`).join(''):'<p class="hint2">Nothing yet. Add what you want to log each day.</p>';
 }
 
+/* Nothing here is gone; this is the shelf it was put on. */
+function renderRemoved(){
+ const host=$('#rlist');if(!host)return;
+ const gone=[...S.retired].reverse();
+ host.innerHTML=gone.length?`<p class="hint2">Taken off the list. Everything they hold is still here.</p>`+gone.map(f=>`
+  <div class="fitem gone" style="--fc:${fcol(f)}">
+   <span class="face">${markFace(markOf(f))}</span>
+   <b>${esc(f.name)}${f.removedAt?` <i>${esc(f.removedAt)}</i>`:''}</b>
+   <span class="acts"><button class="back" data-fback="${f.id}">Bring back</button></span>
+  </div>`).join(''):'';
+}
 function syncPanel(){
  const st=S.settings;
- renderFieldList();
+ renderFieldList();renderRemoved();
  document.querySelectorAll('#panel [data-k]').forEach(el=>{const v=st[el.dataset.k];if(el.type==='range')el.value=v||27;else el.value=v||''});
  document.querySelectorAll('#panel [data-seg]').forEach(g=>{const v=String(st[g.dataset.seg]);g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v))});
  document.querySelectorAll('#panel [data-sw]').forEach(g=>{const k=g.dataset.sw,cur=st[k]||'';
@@ -1861,6 +1923,7 @@ $('#panel').addEventListener('click',ev=>{const b=ev.target.closest('button');if
  if(move){const id=+move,i=S.fields.findIndex(f=>f.id===id),j=i+(b.dataset.fup?-1:1);
   if(i>=0&&j>=0&&j<S.fields.length){const[x]=S.fields.splice(i,1);S.fields.splice(j,0,x);save();render();syncPanel()}return}
  if(b.dataset.frm){const f=S.fields.find(x=>x.id===+b.dataset.frm);if(f)retire(f);return}
+ if(b.dataset.fback){const f=S.retired.find(x=>x.id===+b.dataset.fback);if(f)restore(f);return}
  const mrow=b.closest('[data-fmk]');
  if(mrow){const f=S.fields.find(x=>x.id===+mrow.dataset.fmk);if(!f)return;
   if(b.dataset.mkadd){askEmoji(b,v=>{if(v)applyMark(f,v);save();render();syncPanel()});return}
