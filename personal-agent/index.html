@@ -409,7 +409,11 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .shut{display:none}
 .tasks{max-width:760px;margin:0 auto}
 .tasks .prog{height:3px;background:var(--rule);margin:14px 0 6px;border-radius:2px;overflow:hidden}.tasks .prog i{display:block;height:100%;background:var(--blue);transition:width .4s ease}
-.tasks .pc{font-size:13px;color:var(--soft);margin:0 0 26px}
+.tasks .pc{font-size:13px;color:var(--soft);margin:0 0 12px}
+/* How the list is read: by section or by what is left, and the finished
+   ones newest or oldest first. */
+.tsw{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.tsw .seg{flex:none}
 .tasks h4{font:500 12px/1 Jost,sans-serif;color:var(--soft);margin:26px 0 8px}
 .tk{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--rule);font-size:16px;cursor:pointer}
 .tk input{width:19px;height:19px;accent-color:var(--blue);flex:none}
@@ -1661,10 +1665,44 @@ function renderDay(){
  </div>`;
 }
 
+/* A list can be read by the part of the work it belongs to, or by what
+   is left to do; and the finished ones by when they were finished.
+   Both are this device's choice, like the calendar's views. */
+const TGROUP='shsf-tgroup',TSORT='shsf-tsort';
+let tgroup='section',tsort='newest';
+try{const g=localStorage.getItem(TGROUP);if(g==='status'||g==='section')tgroup=g;
+ const o=localStorage.getItem(TSORT);if(o==='oldest'||o==='newest')tsort=o}catch(e){}
+const setTaskView=(k,v)=>{
+ if(k==='g'){if(v===tgroup)return;tgroup=v;try{localStorage.setItem(TGROUP,v)}catch(e){}}
+ else{if(v===tsort)return;tsort=v;try{localStorage.setItem(TSORT,v)}catch(e){}}
+ render();
+};
+/* What is still open keeps the order it was written in and stays at the
+   top; what is done follows, by the day it was done. */
+function taskOrder(list){
+ const open=list.filter(t=>!t.done),done=list.filter(t=>t.done);
+ done.sort((a,b)=>{
+  const x=a.doneAt||'',y=b.doneAt||'';
+  if(x===y)return 0;
+  if(!x)return 1;if(!y)return -1;
+  return tsort==='newest'?y.localeCompare(x):x.localeCompare(y);
+ });
+ return [...open,...done];
+}
 function renderTasks(c){
- const L=S.tasks[c.id]=S.tasks[c.id]||[],n=L.length,d=L.filter(t=>t.done).length,groups=[...new Set(L.map(t=>t.group||''))];
+ const L=S.tasks[c.id]=S.tasks[c.id]||[],n=L.length,d=L.filter(t=>t.done).length;
+ const line=t=>`<label class="tk${t.done?' done':''}"><input type="checkbox" data-tk="${t.id}" ${t.done?'checked':''}><span>${esc(t.text)}</span>${t.done&&t.doneAt?`<em class="dd">${fromKey(t.doneAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</em>`:''}<button class="x" data-rmtk="${t.id}" aria-label="Remove">×</button></label>`;
+ const blocks=tgroup==='status'
+  ? [['To do',L.filter(t=>!t.done)],['Done',taskOrder(L.filter(t=>t.done))]]
+    .filter(([,list])=>list.length).map(([g,list])=>`<h4>${g}</h4>${list.map(line).join('')}`).join('')
+  : [...new Set(L.map(t=>t.group||''))]
+    .map(g=>`${g?`<h4>${esc(g)}</h4>`:''}${taskOrder(L.filter(t=>(t.group||'')===g)).map(line).join('')}`).join('');
  $('#canvas').innerHTML=`<div class="tasks"><h1>${esc(c.name)}</h1><div class="prog"><i style="width:${n?Math.round(d/n*100):0}%"></i></div><p class="pc">${d} of ${n} done</p>
- ${groups.map(g=>`${g?`<h4>${esc(g)}</h4>`:''}${L.filter(t=>(t.group||'')===g).map(t=>`<label class="tk${t.done?' done':''}"><input type="checkbox" data-tk="${t.id}" ${t.done?'checked':''}><span>${esc(t.text)}</span>${t.done&&t.doneAt?`<em class="dd">${fromKey(t.doneAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</em>`:''}<button class="x" data-rmtk="${t.id}" aria-label="Remove">×</button></label>`).join('')}`).join('')}
+ <div class="tsw">
+  <div class="seg" role="group" aria-label="Group by"><button data-tg="section" aria-pressed="${tgroup==='section'}">Section</button><button data-tg="status" aria-pressed="${tgroup==='status'}">Status</button></div>
+  <div class="seg" role="group" aria-label="Sort by"><button data-ts="newest" aria-pressed="${tsort==='newest'}">Newest</button><button data-ts="oldest" aria-pressed="${tsort==='oldest'}">Oldest</button></div>
+ </div>
+ ${blocks}
  <input class="addtk" id="addtk" placeholder="+ Task"></div>`;
 }
 /* ---- a page you write on ----
@@ -2176,6 +2214,9 @@ $('#add').addEventListener('click',()=>{
 
 /* task canvases */
 $('#canvas').addEventListener('change',ev=>{const c=ev.target.closest('[data-tk]');if(!c)return;const L=S.tasks[S.active]||[];const t=L.find(x=>x.id===+c.dataset.tk);if(t){t.done=c.checked;if(t.done)t.doneAt=key(new Date());else delete t.doneAt;save();render()}});
+$('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-tg],[data-ts]');if(!b)return;
+ ev.preventDefault();ev.stopPropagation();
+ setTaskView(b.dataset.tg?'g':'s',b.dataset.tg||b.dataset.ts)},true);
 $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmtk]');if(!x)return;ev.preventDefault();ev.stopPropagation();S.tasks[S.active]=(S.tasks[S.active]||[]).filter(t=>t.id!==+x.dataset.rmtk);save();render()},true);
 $('#canvas').addEventListener('keydown',ev=>{if(ev.target.id!=='addtk'||ev.key!=='Enter')return;const v=ev.target.value.trim();if(!v)return;(S.tasks[S.active]=S.tasks[S.active]||[]).push({id:nid(),group:'',text:v.slice(0,160),done:false});save();render();$('#addtk').focus()},true);
 /* ---- photos ----
