@@ -304,39 +304,96 @@ prepare();
 let view={y:today.getFullYear(),m:today.getMonth()},sel=key(today),editing=null,pendingImg=null,sheet=false;
 
 /* ---- sync ----
-   A write lands in the cache at once and on the server on a lazy timer, so
-   ticking a box is not a round trip. With no session, or no network, the
-   cache is the whole story and nothing is lost: the next good save carries
-   the state up as it stands. */
-let online=false,pending=false,sending=false,timer=null;
-const cache=()=>{try{localStorage.setItem(CACHE,JSON.stringify(S))}catch(e){}};
+   A write lands in the cache at once and on the server on a lazy timer.
+   Every 5 seconds, and whenever the page comes back into view, the page
+   pulls the latest. Two devices never overwrite each other: each keeps the
+   last server copy it saw (the base) and merges item by item, so an event
+   added on the phone and a task ticked on the Mac both survive. The server
+   refuses any write not built on its current version. */
+const BASE='shsf-base';
+let online=false,sending=false,timer=null,pulling=false;
+let dirty=false,syncBase=null,baseAt=0;
+try{const m=JSON.parse(localStorage.getItem(BASE));if(m){syncBase=m.state;baseAt=m.at||0;dirty=!!m.dirty}else if(localStorage.getItem(CACHE))dirty=true}catch(e){}
+const cache=()=>{try{localStorage.setItem(CACHE,JSON.stringify(S));localStorage.setItem(BASE,JSON.stringify({state:syncBase,at:baseAt,dirty}))}catch(e){}};
 const note=t=>{const n=$('#sync');n.textContent=t||'';n.hidden=!t};
-const save=()=>{cache();if(online)queue()};
-function queue(){pending=true;clearTimeout(timer);timer=setTimeout(push,1200)}
+const save=()=>{dirty=true;cache();if(online)queue()};
+function queue(){clearTimeout(timer);timer=setTimeout(push,1200)}
+const clone=o=>JSON.parse(JSON.stringify(o));
+const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const isObj=o=>o&&typeof o==='object'&&!Array.isArray(o);
+const byId=a=>Array.isArray(a)&&a.length>0&&a.every(x=>isObj(x)&&x.id!=null);
+/* Three-way merge: whichever side changed something since the base wins;
+   if both changed it, objects merge key by key and lists merge item by id.
+   On a true clash this device wins, and a deletion never beats an edit. */
+function merge(b,l,r){
+ if(same(l,r))return l;
+ if(same(l,b))return r;
+ if(same(r,b))return l;
+ if(l===undefined)return r;
+ if(r===undefined)return l;
+ if((byId(l)||byId(r))&&Array.isArray(l)&&Array.isArray(r))return mergeList(Array.isArray(b)?b:[],l,r);
+ if(isObj(l)&&isObj(r)){const o={},bb=isObj(b)?b:{};for(const k of new Set([...Object.keys(r),...Object.keys(l)])){const v=merge(bb[k],l[k],r[k]);if(v!==undefined)o[k]=v}return o}
+ return l;
+}
+function mergeList(b,l,r){
+ const m=a=>new Map(a.map(x=>[String(x.id),x]));const bm=m(b),lm=m(l),rm=m(r),out=[];
+ const take=(id)=>{
+  const bi=bm.get(id),li=lm.get(id),ri=rm.get(id);
+  /* Same id added on both sides with different content: an id clash, not
+     an edit. Keep both. */
+  if(bi===undefined&&li&&ri&&!same(li,ri)){out.push(ri);out.push({...li,id:typeof li.id==='number'?nid():li.id+'-'+nid()});return}
+  const v=merge(bi,li,ri);if(v!==undefined)out.push(v);
+ };
+ for(const x of r)take(String(x.id));
+ for(const x of l)if(!rm.has(String(x.id)))take(String(x.id));
+ return out;
+}
+/* Ids that two devices will not both hand out. */
+const nid=()=>Date.now()*1000+Math.floor(Math.random()*1000);
+/* Bring in a server copy: merge if this device has unsent changes. */
+function adopt(remote,at){
+ const act=S.active;
+ S=dirty?merge(syncBase||{},S,remote):clone(remote);
+ if(S.canvases&&S.canvases.some(c=>c.id===act))S.active=act;  /* the open tab stays per device */
+ syncBase=clone(remote);baseAt=at;prepare();cache();render();renderMsgs();
+}
+/* Hold incoming changes while something is being typed or edited. */
+const busyEditing=()=>{const a=document.activeElement;return editing!==null||busy||!!(a&&a.id!=='q'&&(a.isContentEditable||a.tagName==='TEXTAREA'||a.tagName==='SELECT'||(a.tagName==='INPUT'&&!/^(checkbox|radio|range|color|file|button)$/.test(a.type))))};
 async function push(){
- if(!online||sending)return;
- sending=true;pending=false;
+ if(!online||sending||!dirty)return;
+ if(pulling){queue();return}
+ sending=true;
+ const snap=clone(S);
  try{
-  const r=await fetch('/api/state',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({state:S})});
+  const r=await fetch('/api/state',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({state:snap,baseUpdatedAt:baseAt})});
   if(r.status===401){online=false;note('Signed out on this device. Open your private link again.')}
-  else if(!r.ok)pending=true;
-  else note('');
- }catch(e){pending=true;note('Offline. Changes are kept on this device.')}
+  else if(r.status===409){const body=await r.json().catch(()=>null);if(body&&body.state){adopt(body.state,body.updatedAt)}else note('Reload the page to keep saving.')}
+  else if(r.ok){const body=await r.json();syncBase=snap;baseAt=body.updatedAt;dirty=!same(S,snap);cache();note('')}
+ }catch(e){note('Offline. Changes are kept on this device.')}
  sending=false;
- if(pending&&online)queue();
+ if(dirty&&online)queue();
 }
 async function pull(){
- let r;
- try{r=await fetch('/api/state',{headers:{accept:'application/json'}})}
- catch(e){note('Offline. Changes are kept on this device.');return}
- if(r.status===401){note('Open your private link to save across devices.');return}
- if(!r.ok){note('The server did not answer. Changes are kept on this device.');return}
- online=true;note('');
- let body=null;try{body=await r.json()}catch(e){}
- const stored=body&&body.state;
- if(stored&&stored.canvases){S=stored;prepare();cache();render();renderMsgs()}
- else queue();  /* nothing up there yet: this device seeds it */
+ if(pulling||sending)return;
+ pulling=true;
+ try{
+  let r;
+  try{r=await fetch('/api/state',{headers:{accept:'application/json'},cache:'no-store'})}
+  catch(e){note('Offline. Changes are kept on this device.');return}
+  if(r.status===401){online=false;note('Open your private link to save across devices.');return}
+  if(!r.ok){note('The server did not answer. Changes are kept on this device.');return}
+  online=true;note('');
+  let body=null;try{body=await r.json()}catch(e){}
+  const stored=body&&body.state;
+  if(!stored||!stored.canvases){baseAt=0;syncBase=null;dirty=true;queue();return}  /* nothing up there yet: this device seeds it */
+  if(body.updatedAt!==baseAt&&!busyEditing())adopt(stored,body.updatedAt);
+  if(dirty)queue();
+ }finally{pulling=false}
 }
+setInterval(()=>{if(!document.hidden)pull()},5000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()});
+window.addEventListener('focus',pull);
+window.addEventListener('online',pull);
 
 const tlabel=e=>e.time?t12(e.time):(e.tmode==='tbd'?'TBD':'');
 const t12=t=>{if(!t)return '';let [h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';h=h%12||12;return `${h}:${pad(m)} ${ap}`};
@@ -499,7 +556,7 @@ function reply(text,img){
  if(!p.date&&!p.time)return {text:'I could not find a day or a time. Try "Lunch with Claire tomorrow 12:30" or "下周三下午3点 面试".'};
  const date=p.date||today,title=p.title||'Untitled';
  const big=/!|\bhighlight\b|大事|重要/i.test(text||'');
- const e={id:++S.seq,date:key(date),time:p.time,title:title.replace(/!+|\bhighlight\b|大事|重要/ig,'').trim()||'Untitled',big};
+ const e={id:nid(),date:key(date),time:p.time,title:title.replace(/!+|\bhighlight\b|大事|重要/ig,'').trim()||'Untitled',big};
  S.events.push(e);sel=e.date;view={y:date.getFullYear(),m:date.getMonth()};
  const dl=date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
  return {html:`Added <b>${esc(e.title)}</b>${big?' as a highlight':''} · ${esc(dl)} · ${esc(tlabel(e)||'no time')}${shanghai(e.date,e.time)?` <span style="color:var(--soft)">(${esc(shanghai(e.date,e.time))})</span>`:''}`};
@@ -509,7 +566,7 @@ function reply(text,img){
 const TOOLS=()=>[
  {name:'add_event',description:'Add a calendar event. date is YYYY-MM-DD, time is 24h HH:MM; leave time empty when unknown and set time_status to tbd (time to be decided) or none (no time shown). highlight=true puts it in the top ticker as a big moment of the month.',
   inputSchema:{type:'object',properties:{title:{type:'string'},date:{type:'string'},time:{type:'string'},time_status:{type:'string',enum:['tbd','none']},highlight:{type:'boolean'}},required:['title','date']},
-  execute:i=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(i.date))throw new Error('date must be YYYY-MM-DD');const tt=/^\d{2}:\d{2}$/.test(i.time||'')?i.time:null;const e={id:++S.seq,date:i.date,time:tt,tmode:tt?null:(i.time_status==='tbd'?'tbd':'none'),title:String(i.title).slice(0,120),big:!!i.highlight};S.events.push(e);sel=e.date;const d=fromKey(e.date);view={y:d.getFullYear(),m:d.getMonth()};return {ok:true,id:e.id}}},
+  execute:i=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(i.date))throw new Error('date must be YYYY-MM-DD');const tt=/^\d{2}:\d{2}$/.test(i.time||'')?i.time:null;const e={id:nid(),date:i.date,time:tt,tmode:tt?null:(i.time_status==='tbd'?'tbd':'none'),title:String(i.title).slice(0,120),big:!!i.highlight};S.events.push(e);sel=e.date;const d=fromKey(e.date);view={y:d.getFullYear(),m:d.getMonth()};return {ok:true,id:e.id}}},
  {name:'update_event',description:'Change an existing event by id. Only send fields to change. To remove a time, send time empty with time_status tbd or none.',
   inputSchema:{type:'object',properties:{id:{type:'number'},title:{type:'string'},date:{type:'string'},time:{type:'string'},time_status:{type:'string',enum:['tbd','none']},highlight:{type:'boolean'}},required:['id']},
   execute:i=>{const e=S.events.find(x=>x.id===+i.id);if(!e)throw new Error('no event with that id');if(i.title)e.title=String(i.title).slice(0,120);if(/^\d{4}-\d{2}-\d{2}$/.test(i.date||''))e.date=i.date;if(i.time!==undefined||i.time_status){e.time=/^\d{2}:\d{2}$/.test(i.time||'')?i.time:null;e.tmode=e.time?null:(i.time_status==='tbd'?'tbd':'none')}if(i.highlight!==undefined)e.big=!!i.highlight;return {ok:true}}},
@@ -519,7 +576,7 @@ const TOOLS=()=>[
   inputSchema:{type:'object',properties:{name:{type:'string'},theme:{type:'string'},themeLabel:{type:'string'},ticker:{type:'boolean'},speed:{type:'string'},accent:{type:'string'},background:{type:'string'},ink:{type:'string'},paper:{type:'string'},displayFont:{type:'string'},bodyFont:{type:'string'},dockHeight:{type:'number'},weekStart:{type:'string'},shTime:{type:'boolean'},showTheme:{type:'boolean'},weekend:{type:'boolean'}}},
   execute:i=>{const st=S.settings;for(const k of Object.keys(i)){if(['accent','background','ink','paper'].includes(k)&&i[k]&&!HEX.test(i[k]))throw new Error(k+' must be #rrggbb');if(/Font$/.test(k)&&i[k]&&!FONT_OK.test(i[k]))throw new Error('bad font name');st[k]=typeof i[k]==='string'?i[k].slice(0,80):i[k]}return {ok:true}}},
  {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), tri (a mark that cycles blank, good, bad), number, text, range (time span such as sleep).',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','tri','number','text','range']}},required:['name','type']},
-  execute:i=>{const f={id:++S.seq,name:String(i.name).slice(0,40),type:['check','tri','number','text','range'].includes(i.type)?i.type:'text'};S.fields.push(f);return {ok:true,id:f.id}}},
+  execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','number','text','range'].includes(i.type)?i.type:'text'};S.fields.push(f);return {ok:true,id:f.id}}},
  {name:'remove_field',description:'Remove a daily field by id.',inputSchema:{type:'object',properties:{id:{type:'number'}},required:['id']},
   execute:i=>{const n=S.fields.length;S.fields=S.fields.filter(f=>f.id!==+i.id);return {ok:S.fields.length<n}}},
  {name:'set_value',description:'Record a daily field value on a date (YYYY-MM-DD). check: true/false. tri: good or bad. number: a number. text: a string. range: from and to as HH:MM (24h). Send an empty value to clear.',inputSchema:{type:'object',properties:{field_id:{type:'number'},date:{type:'string'},value:{},from:{type:'string'},to:{type:'string'}},required:['field_id','date']},
@@ -529,7 +586,7 @@ const TOOLS=()=>[
  {name:'set_task',description:'Tick or untick a task on a task canvas, by task id.',inputSchema:{type:'object',properties:{canvas:{type:'string'},id:{type:'number'},done:{type:'boolean'}},required:['id','done']},
   execute:i=>{for(const L of Object.values(S.tasks)){const t=L.find(x=>x.id===+i.id);if(t){t.done=!!i.done;if(t.done)t.doneAt=key(new Date());else delete t.doneAt;return {ok:true}}}throw new Error('no task with that id')}},
  {name:'add_canvas',description:'Add a new canvas tab with a name.',inputSchema:{type:'object',properties:{name:{type:'string'}},required:['name']},
-  execute:i=>{const id='c'+(++S.seq);S.canvases.push({id,name:String(i.name).slice(0,40),type:'blank'});S.active=id;return {ok:true}}}
+  execute:i=>{const id='c'+(nid());S.canvases.push({id,name:String(i.name).slice(0,40),type:'blank'});S.active=id;return {ok:true}}}
 ];
 const brief=()=>JSON.stringify({today:key(today),weekday:today.toLocaleDateString('en-US',{weekday:'long'}),timezone:'America/Los_Angeles',
  events:S.events.map(e=>({id:e.id,date:e.date,time:e.time||(e.tmode==='tbd'?'TBD':''),title:e.title,highlight:!!e.big})),page:S.settings,canvases:S.canvases.map(c=>c.name),tasks:S.tasks,fields:S.fields,valuesLast14Days:Object.fromEntries(Object.entries(S.vals).filter(([d])=>d>=key(addDays(today,-14)))),activeCanvas:(S.canvases.find(c=>c.id===S.active)||{}).name});
@@ -610,7 +667,7 @@ $('#canvas').addEventListener('click',ev=>{
   if(b.dataset.act==='save'){
    const f=$('.edit'),tm=f.dataset.tm,title=$('#et').value.trim(),date=/^\d{4}-\d{2}-\d{2}$/.test($('#ed').value)?$('#ed').value:sel;
    const time=tm==='set'&&$('#eh').value?$('#eh').value:null,tmode=time?null:(tm==='tbd'?'tbd':'none');
-   if(editing==='new'){if(title)S.events.push({id:++S.seq,date,time,tmode,title,big:$('#eb').checked})}
+   if(editing==='new'){if(title)S.events.push({id:nid(),date,time,tmode,title,big:$('#eb').checked})}
    else{const e=S.events.find(x=>x.id===editing);if(e){e.title=title||e.title;e.date=date;e.time=time;e.tmode=tmode;e.big=$('#eb').checked}}
    sel=date;const d=fromKey(date);view={y:d.getFullYear(),m:d.getMonth()};
   }
@@ -622,7 +679,7 @@ $('#tabs').addEventListener('click',ev=>{const b=ev.target.closest('.tab');if(!b
 $('#add').addEventListener('click',()=>{
  if($('.newtab'))return;
  const inp=document.createElement('input');inp.className='newtab';inp.placeholder='Canvas name';$('#tabs').appendChild(inp);inp.focus();
- const done=()=>{const n=inp.value.trim();if(n){const id='c'+(++S.seq);S.canvases.push({id,name:n,type:'blank'});S.active=id;save()}render()};
+ const done=()=>{const n=inp.value.trim();if(n){const id='c'+(nid());S.canvases.push({id,name:n,type:'blank'});S.active=id;save()}render()};
  inp.addEventListener('keydown',e=>{if(e.key==='Enter')done();if(e.key==='Escape')render()});
  inp.addEventListener('blur',done);
 });
@@ -630,13 +687,13 @@ $('#add').addEventListener('click',()=>{
 /* task canvases */
 $('#canvas').addEventListener('change',ev=>{const c=ev.target.closest('[data-tk]');if(!c)return;const L=S.tasks[S.active]||[];const t=L.find(x=>x.id===+c.dataset.tk);if(t){t.done=c.checked;if(t.done)t.doneAt=key(new Date());else delete t.doneAt;save();render()}});
 $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmtk]');if(!x)return;ev.preventDefault();ev.stopPropagation();S.tasks[S.active]=(S.tasks[S.active]||[]).filter(t=>t.id!==+x.dataset.rmtk);save();render()},true);
-$('#canvas').addEventListener('keydown',ev=>{if(ev.target.id!=='addtk'||ev.key!=='Enter')return;const v=ev.target.value.trim();if(!v)return;(S.tasks[S.active]=S.tasks[S.active]||[]).push({id:++S.seq,group:'',text:v.slice(0,160),done:false});save();render();$('#addtk').focus()},true);
+$('#canvas').addEventListener('keydown',ev=>{if(ev.target.id!=='addtk'||ev.key!=='Enter')return;const v=ev.target.value.trim();if(!v)return;(S.tasks[S.active]=S.tasks[S.active]||[]).push({id:nid(),group:'',text:v.slice(0,160),done:false});save();render();$('#addtk').focus()},true);
 /* daily fields */
 const setVal=(date,f,val)=>{S.vals[date]=S.vals[date]||{};const o=S.vals[date];if(val===''||val===false||val==null||(f.type==='range'&&!val.from&&!val.to))delete o[f.id];else o[f.id]=val;if(!Object.keys(o).length)delete S.vals[date]};
 $('#canvas').addEventListener('change',ev=>{const el=ev.target.closest('[data-f]');if(!el)return;const f=S.fields.find(x=>x.id===+el.dataset.f);if(!f)return;
  let v;if(f.type==='check')v=el.checked;else if(f.type==='number')v=el.value===''?'':+el.value;else if(f.type==='range'){const cur={...((S.vals[sel]||{})[f.id]||{})};cur[el.dataset.p]=el.value;v=cur}else v=el.value.trim().slice(0,200);
  setVal(sel,f,v);save();render()});
-const addField=()=>{const n=$('#nf').value.trim();if(!n)return;S.fields.push({id:++S.seq,name:n.slice(0,40),type:$('#nft').value});save();render();$('#nf').focus()};
+const addField=()=>{const n=$('#nf').value.trim();if(!n)return;S.fields.push({id:nid(),name:n.slice(0,40),type:$('#nft').value});save();render();$('#nf').focus()};
 $('#canvas').addEventListener('keydown',ev=>{if(ev.target.id==='nf'&&ev.key==='Enter'){ev.preventDefault();addField()}},true);
 /* blank, good, bad, blank: one tap each, like ruling a line through a box
    and then crossing it out. */

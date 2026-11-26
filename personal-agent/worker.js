@@ -1,9 +1,10 @@
 /**
  * Personal Agent, server side.
  *
- * Three things only: it hands out a session when someone opens a private
- * link, it reads and writes one JSON state per user, and it leaves
- * everything else to the static assets.
+ * It hands out a session when someone opens a private link, reads and
+ * writes one JSON state per user without ever overwriting a newer write,
+ * backs every state up to R2 once a day, and leaves everything else to
+ * the static assets.
  *
  * There are no passwords. A link carries a token; D1 holds only that
  * token's SHA-256, so the table is useless to anyone who reads it, and a
@@ -98,6 +99,9 @@ async function getState(userId, env) {
   });
 }
 
+/* A write names the version it was built on. If someone else wrote in the
+   meantime, nothing is overwritten: the caller gets the current state back
+   (409), merges item by item, and tries again. */
 async function putState(request, userId, env) {
   let body;
   try {
@@ -109,19 +113,54 @@ async function putState(request, userId, env) {
   if (!state || typeof state !== "object" || Array.isArray(state)) {
     return json({ error: "state must be an object" }, 400);
   }
+  const base = body.baseUpdatedAt;
+  if (typeof base !== "number") return json({ error: "baseUpdatedAt required, reload the page" }, 409);
 
   const blob = JSON.stringify(state);
   if (blob.length > MAX_STATE_BYTES) return json({ error: "state too large" }, 413);
 
   const now = Date.now();
-  await env.DB
-    .prepare(
-      `INSERT INTO states (user_id, state, updated_at) VALUES (?1, ?2, ?3)
-       ON CONFLICT(user_id) DO UPDATE SET state = excluded.state, updated_at = excluded.updated_at`
-    )
-    .bind(userId, blob, now)
-    .run();
+  const res = base === 0
+    ? await env.DB
+        .prepare("INSERT INTO states (user_id, state, updated_at) VALUES (?1, ?2, ?3) ON CONFLICT(user_id) DO NOTHING")
+        .bind(userId, blob, now).run()
+    : await env.DB
+        .prepare("UPDATE states SET state = ?2, updated_at = ?3 WHERE user_id = ?1 AND updated_at = ?4")
+        .bind(userId, blob, now, base).run();
+
+  if (!res.meta || res.meta.changes !== 1) {
+    const cur = await getState(userId, env);
+    return new Response(cur.body, { status: 409, headers: cur.headers });
+  }
   return json({ ok: true, updatedAt: now });
+}
+
+/* ---- daily backup ----
+   Every user's full state goes to R2 as daily/YYYY-MM-DD.json. Anything
+   older than 365 days is removed in the same run. */
+const KEEP_DAYS = 365;
+
+async function backup(env) {
+  const { results } = await env.DB.prepare("SELECT user_id, state, updated_at FROM states").all();
+  const day = new Date().toISOString().slice(0, 10);
+  const doc = {
+    takenAt: new Date().toISOString(),
+    users: results.map((r) => ({ user_id: r.user_id, updated_at: r.updated_at, state: JSON.parse(r.state) }))
+  };
+  await env.BACKUPS.put(`daily/${day}.json`, JSON.stringify(doc), {
+    httpMetadata: { contentType: "application/json" }
+  });
+
+  const cutoff = new Date(Date.now() - KEEP_DAYS * 86400000).toISOString().slice(0, 10);
+  let cursor;
+  do {
+    const list = await env.BACKUPS.list({ prefix: "daily/", cursor });
+    const old = list.objects.map((o) => o.key).filter((k) => k.slice(6, 16) < cutoff);
+    if (old.length) await env.BACKUPS.delete(old);
+    cursor = list.truncated ? list.cursor : undefined;
+  } while (cursor);
+
+  return { key: `daily/${day}.json`, users: results.length };
 }
 
 export default {
@@ -139,11 +178,17 @@ export default {
         if (request.method === "PUT") return putState(request, userId, env);
         return json({ error: "method not allowed" }, 405);
       }
+      /* Run today's backup now, e.g. before a risky change. */
+      if (url.pathname === "/api/backup" && request.method === "POST") return json(await backup(env));
       return json({ error: "not found" }, 404);
     }
 
     /* Anything else is a file. Assets that exist are served before this
        Worker runs at all; this catches the rest. */
     return env.ASSETS.fetch(request);
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(backup(env));
   }
 };

@@ -20,3 +20,11 @@ binding = "ASSETS"
 binding = "DB"
 database_name = "personal-agent-db"
 database_id = "9746c17c-f9b6-4688-8f8c-1dc8842379fe"
+
+# Daily backup: every user's state to R2, kept 365 days (see worker.js).
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "personal-agent-backups"
+
+[triggers]
+crons = ["17 11 * * *"]   # 11:17 UTC, about 3am in California

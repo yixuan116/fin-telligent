@@ -9,3 +9,5 @@ node_modules/
 .assetsignore
 .dev.vars
 .wrangler/
+backups/
+.gitignore
