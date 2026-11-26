@@ -121,10 +121,13 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .msheet{flex:1;min-height:320px;border:1px solid var(--rule);border-radius:14px;overflow:auto;background:var(--paper);position:relative;overscroll-behavior:contain}
 .mpaper{position:relative}
 .mlines{position:absolute;inset:0;pointer-events:none}
-.mnode{position:absolute;transform:translate(-50%,-50%);max-width:200px}
+.mnode{position:absolute;transform:translate(-50%,-50%);max-width:220px}
 .mtext{border:2px solid var(--pc);background:var(--paper);color:var(--ink);border-radius:11px;
- padding:7px 12px;font-size:15px;line-height:1.35;min-width:34px;max-width:200px;cursor:grab;
+ padding:8px 14px;font-size:15px;line-height:1.35;min-width:120px;min-height:40px;max-width:220px;cursor:grab;
+ display:flex;align-items:center;justify-content:center;
  white-space:pre-wrap;overflow-wrap:anywhere;text-align:center;touch-action:none;-webkit-user-select:none;user-select:none}
+/* An empty node says what to do with it. */
+.mtext:empty::before{content:'Type';color:var(--soft);opacity:.55;pointer-events:none}
 .mnode.root .mtext{border-color:var(--ink);background:var(--ink);color:var(--paper);font-size:16px}
 .mnode.sel .mtext{box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 35%,transparent)}
 .mnode.lift{z-index:3}
@@ -136,14 +139,18 @@ button{cursor:pointer;background:none;border:0;padding:0}
  background:var(--paper);color:var(--soft);border-radius:50%;display:grid;place-items:center;
  width:22px;height:22px;font-size:15px;line-height:1;padding:0;z-index:2}
 .mplus:hover{color:var(--ink);border-color:var(--ink)}
-.mx{top:-15px;right:-15px;color:var(--f-coral);font-size:14px}
+/* Twelve pixels clear of the border, so nothing ever sits over what the
+   node says. */
+.mx{top:-34px;right:0;color:var(--f-coral);font-size:14px}
 .mx:hover{border-color:var(--f-coral)}
-.mplus.up{top:-13px;left:50%;margin-left:-11px}
-.mplus.down{bottom:-13px;left:50%;margin-left:-11px}
-.mplus.left{left:-13px;top:50%;margin-top:-11px}
-.mplus.right{right:-13px;top:50%;margin-top:-11px}
+.mplus.up{top:-34px;left:50%;margin-left:-11px}
+.mplus.down{bottom:-34px;left:50%;margin-left:-11px}
+.mplus.left{left:-34px;top:50%;margin-top:-11px}
+.mplus.right{right:-34px;top:50%;margin-top:-11px}
 .mnode:hover .mplus,.mnode:hover .mx,.mnode.sel .mplus,.mnode.sel .mx{opacity:1}
 .mnode.lift .mplus,.mnode.lift .mx{opacity:0}
+/* Nothing in the way of the words while they are being written. */
+.mnode.typing .mplus,.mnode.typing .mx{opacity:0;pointer-events:none}
 @media(hover:none){.mnode .mplus,.mnode .mx{opacity:0}.mnode.sel .mplus,.mnode.sel .mx{opacity:1}}
 
 /* canvas */
@@ -1284,7 +1291,7 @@ const mindSave=(c,doc)=>{S.minds[c.id]=doc;mindSeen=JSON.stringify(doc)+'|'+(min
 function mindSpot(doc,from,dir){
  let x=from.x+(dir==='right'?MSTEP.x:dir==='left'?-MSTEP.x:0);
  let y=from.y+(dir==='down'?MSTEP.y:dir==='up'?-MSTEP.y:0);
- const taken=()=>Object.values(doc.nodes).some(n=>Math.abs(n.x-x)<120&&Math.abs(n.y-y)<56);
+ const taken=()=>Object.values(doc.nodes).some(n=>Math.abs(n.x-x)<150&&Math.abs(n.y-y)<62);
  for(let i=0;i<40&&taken();i++){
   if(dir==='left'||dir==='right')y+=MSTEP.y;else x+=MSTEP.x;
  }
@@ -1294,6 +1301,7 @@ function mindEdit(id){
  const el=mindRoot&&mindRoot.querySelector(`[data-mt="${CSS.escape(String(id))}"]`);
  if(!el)return;
  mindBusy=true;
+ const box=el.closest('.mnode');if(box)box.classList.add('typing');
  el.contentEditable='plaintext-only';el.classList.add('editing');el.focus();
  const r=document.createRange();r.selectNodeContents(el);
  const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
@@ -1336,6 +1344,7 @@ function wireMind(c){
   const el=mindRoot.querySelector('.mtext.editing');if(!el)return;
   const d=doc(),n=d.nodes[el.dataset.mt];
   el.contentEditable='false';el.classList.remove('editing');
+  const box=el.closest('.mnode');if(box)box.classList.remove('typing');
   mindBusy=false;
   if(n){const t=el.textContent.replace(/\s+/g,' ').trim().slice(0,120);
    if(t!==n.text){n.text=t;mindSave(c,d);drawMind(c,d)}else el.textContent=n.text}
