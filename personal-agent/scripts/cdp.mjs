@@ -111,6 +111,55 @@ export async function launch(dir, { headless = true, size = "1280,900" } = {}) {
           await conn.send("Emulation.setDeviceMetricsOverride",
             { width, height, deviceScaleFactor: dpr, mobile }, sessionId);
         },
+        /* A click the page cannot tell from a person's: the whole
+           pointer, mouse and click sequence, from the browser itself. */
+        async click(x, y, { count = 1, button = "left" } = {}) {
+          const at = { x: Math.round(x), y: Math.round(y), button, clickCount: count, buttons: 1 };
+          await conn.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...at, buttons: 0 }, sessionId);
+          for (let i = 1; i <= count; i++) {
+            await conn.send("Input.dispatchMouseEvent", { type: "mousePressed", ...at, clickCount: i }, sessionId);
+            await conn.send("Input.dispatchMouseEvent", { type: "mouseReleased", ...at, clickCount: i, buttons: 0 }, sessionId);
+          }
+        },
+        /** The middle of whatever that selector finds. */
+        async clickOn(selector, opts) {
+          const box = await page.eval(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});
+            if(!e)return null;const r=e.getBoundingClientRect();
+            return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+          if (!box) throw new Error("nothing matches " + selector);
+          return page.click(box.x, box.y, opts);
+        },
+        /** One raw mouse event, for a gesture that has to be built by hand. */
+        async mouse(type, x, y, extra = {}) {
+          return conn.send("Input.dispatchMouseEvent",
+            { type, x: Math.round(x), y: Math.round(y), button: "left", ...extra }, sessionId);
+        },
+        /* Press, travel, release: a drag as the page would feel one. */
+        async drag(from, to, { steps = 14, pause = 16 } = {}) {
+          const at = (x, y, extra) => conn.send("Input.dispatchMouseEvent",
+            { x: Math.round(x), y: Math.round(y), button: "left", ...extra }, sessionId);
+          await at(from.x, from.y, { type: "mouseMoved", buttons: 0 });
+          await at(from.x, from.y, { type: "mousePressed", clickCount: 1, buttons: 1 });
+          for (let i = 1; i <= steps; i++) {
+            const k = i / steps;
+            await at(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k,
+              { type: "mouseMoved", buttons: 1 });
+            await wait(pause);
+          }
+          /* A moment's hover at the end: a page that decides where a
+             drop lands on the last move needs that move to arrive. */
+          for (let i = 0; i < 3; i++) { await at(to.x, to.y, { type: "mouseMoved", buttons: 1 }); await wait(40); }
+          await wait(120);
+          await at(to.x, to.y, { type: "mouseReleased", clickCount: 1, buttons: 0 });
+        },
+        /** Where that selector is, in the middle. */
+        async at(selector) {
+          const box = await page.eval(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});
+            if(!e)return null;const r=e.getBoundingClientRect();
+            return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+          if (!box) throw new Error("nothing matches " + selector);
+          return box;
+        },
         async goto(to) {
           await conn.send("Page.navigate", { url: to }, sessionId);
           await page.ready();

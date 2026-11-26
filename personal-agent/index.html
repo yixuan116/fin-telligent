@@ -111,6 +111,22 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .add{color:var(--soft);font-size:15px;padding-bottom:14px;min-height:44px;white-space:nowrap}
 .add:hover{color:var(--blue)}
 .newtab{border:0;border-bottom:1px solid var(--blue);background:none;font-size:15px;width:140px;padding:6px 0;margin-bottom:12px;outline:none}
+.newc{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ctype{display:inline-flex;gap:4px;margin-bottom:12px}
+.ctype button{font-size:13px;padding:5px 10px;border:1px solid var(--rule);border-radius:999px;color:var(--soft);min-height:32px}
+.ctype button[aria-pressed=true]{color:var(--ink);border-color:var(--ink)}
+/* A mind map fills what the canvas gives it, with the three things you
+   can do to the node in hand along the bottom. */
+.mindc{height:100%;display:flex;flex-direction:column;min-height:0}
+.mindc .phead{flex:none}
+.mwrap{flex:1;min-height:320px;border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:var(--paper)}
+.mwrap .hint2{padding:18px}
+.mbar{display:flex;gap:8px;flex:none;padding:10px 0 2px}
+.mbar[hidden]{display:none}
+.mbar button{font-size:14px;padding:0 14px;min-height:40px;border:1px solid var(--rule);border-radius:999px;color:var(--ink)}
+.mbar button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.mbar button[disabled]{opacity:.35}
+.mbar .warn{color:var(--f-coral)}
 
 /* canvas */
 .canvas{overflow:auto;padding:clamp(20px,3vw,40px) max(4vw,18px)}
@@ -612,6 +628,8 @@ function prepare(){
     two devices writing different blocks of the same page both keep their
     work. */
  S.pages=(S.pages&&typeof S.pages==='object'&&!Array.isArray(S.pages))?S.pages:{};
+ /* One mind map per canvas that holds one. */
+ S.minds=(S.minds&&typeof S.minds==='object'&&!Array.isArray(S.minds))?S.minds:{};
 
  /* Fields gain an icon and a colour, and a removed one is archived rather
     than dropped, so a day that already carries its value keeps the name it
@@ -1152,6 +1170,102 @@ function renderYear(){
  </div>`;
 }
 
+/* ---- a mind map, by Mind Elixir ----
+   The library is 150KB and nobody needs it until a map is opened, so it
+   is fetched then and never again. Everything it holds lives in this
+   account's state and syncs like the rest; the instance itself is kept
+   alive across redraws, because rebuilding it would throw away where you
+   were looking and what you were typing. */
+const MINDLIB='https://cdn.jsdelivr.net/npm/mind-elixir@6.0.0/dist/';
+const MINDC=['#d9829b','#6fd3a8','#7cb8ff','#b79cff','#ffc94d','#ff9f94'];
+let MEclass=null,MEwait=null;
+function loadMind(){
+ if(MEwait)return MEwait;
+ MEwait=new Promise((res,rej)=>{
+  if(!document.getElementById('me-css')){
+   const l=document.createElement('link');l.id='me-css';l.rel='stylesheet';l.href=MINDLIB+'MindElixir.css';
+   document.head.appendChild(l);
+  }
+  import(MINDLIB+'MindElixir.js').then(m=>{MEclass=m.default;res(MEclass)}).catch(e=>{MEwait=null;rej(e)});
+ });
+ return MEwait;
+}
+const mindTheme=()=>({name:'paper',palette:MINDC,cssVar:{
+ '--main-color':'#ffffff','--main-bgcolor':'#5b6472','--color':'#2b2a28','--bgcolor':'transparent',
+ '--root-color':'#fdfcf9','--root-bgcolor':'#1c1b19','--root-border-color':'#1c1b19',
+ '--root-radius':'14px','--main-radius':'12px','--topic-padding':'6px','--panel-bgcolor':'#fffdf9'}});
+
+let mind=null,mindFor=null,mindRoot=null,mindSeen='';
+const mindOf=c=>{const d=(S.minds||{})[c.id];return d&&d.nodeData?clone(d):null};
+function renderMind(c){
+ const host=$('#canvas');
+ /* Already standing: put it back on the page and let it be. */
+ if(mindFor===c.id&&mindRoot){
+  if(mindRoot.parentElement!==host)host.replaceChildren(mindRoot);
+  const want=JSON.stringify(mindOf(c));
+  if(mind&&want!=='null'&&want!==mindSeen){mindSeen=want;try{mind.refresh(JSON.parse(want))}catch(e){}}
+  return;
+ }
+ if(mind){try{mind.destroy()}catch(e){}}
+ mind=null;mindRoot=document.createElement('div');mindRoot.className='mindc';mindFor=c.id;mindSeen='';
+ mindRoot.innerHTML=`<div class="phead">
+   <h1 class="ptitle" contenteditable="plaintext-only" data-ptitle="${esc(c.id)}" role="textbox" data-hint="Untitled">${esc(c.name)}</h1>
+   <button class="pset" data-pset="${esc(c.id)}" aria-label="Page settings" aria-expanded="false">\u22ef</button>
+   <div class="pmenu" id="pmenu" hidden></div>
+  </div>
+  <div class="mwrap"></div>
+  <div class="mbar" hidden>
+   <button data-mind="child">+ Child</button>
+   <button data-mind="sibling">+ Sibling</button>
+   <button class="warn" data-mind="remove">Delete</button>
+  </div>`;
+ host.replaceChildren(mindRoot);
+ const wrap=mindRoot.querySelector('.mwrap'),bar=mindRoot.querySelector('.mbar');
+ loadMind().then(ME=>{
+  if(mindFor!==c.id||!mindRoot.isConnected)return;
+  const me=new ME({el:wrap,direction:ME.SIDE,alignment:'root',contextMenu:false,toolBar:false,
+   theme:mindTheme(),newTopicName:'New node'});
+  const data=mindOf(c)||ME.new(c.name||'Idea');
+  me.init(data);
+  mind=me;mindSeen=JSON.stringify(me.getData());
+  /* The map is laid out before the box has its final size, so it is put
+     back in the middle once the page has settled. */
+  setTimeout(()=>{if(mind===me)try{me.toCenter()}catch(e){}},0);
+  /* Every change, however it was made, is this canvas's data. */
+  me.bus.addListener('operation',()=>{
+   S.minds=S.minds||{};const d=me.getData();
+   mindSeen=JSON.stringify(d);S.minds[c.id]=d;save();
+  });
+  const show=()=>{
+   const n=me.currentNodes&&me.currentNodes.length?me.currentNodes[0]:null;
+   bar.hidden=!n;
+   if(n)bar.querySelector('[data-mind=remove]').disabled=!n.nodeObj.parent;
+  };
+  /* Two taps on a node open it for writing. */
+  wrap.addEventListener('dblclick',ev=>{
+   const t=ev.target.closest('.me-tpc');if(!t)return;
+   ev.preventDefault();ev.stopPropagation();
+   me.selectNode(t);me.beginEdit(t);
+  });
+  me.bus.addListener('selectNodes',show);
+  me.bus.addListener('selectNewNode',show);
+  me.bus.addListener('unselectNodes',()=>{bar.hidden=true});
+  bar.addEventListener('click',ev=>{
+   const b=ev.target.closest('[data-mind]');if(!b)return;
+   ev.preventDefault();ev.stopPropagation();
+   if(b.dataset.mind==='child')me.addChild();
+   else if(b.dataset.mind==='sibling')me.insertSibling('after');
+   else if(me.currentNodes&&me.currentNodes.length&&me.currentNodes[0].nodeObj.parent)me.removeNodes(me.currentNodes);
+   setTimeout(show,0);
+  });
+  /* A map made just now is worth keeping even before it is touched. */
+  if(!mindOf(c)){S.minds=S.minds||{};S.minds[c.id]=me.getData();mindSeen=JSON.stringify(S.minds[c.id]);save()}
+ }).catch(()=>{
+  if(mindFor===c.id&&mindRoot.isConnected)
+   wrap.innerHTML='<p class="hint2">The mind map needs a connection the first time it is opened.</p>';
+ });
+}
+
 /* The phone gets a week, a row a day, because a month of thumbnails is
    not something you can log into. The date opens the day; the controls on
    the row write straight through. */
@@ -1388,7 +1502,8 @@ $('#canvas').addEventListener('pointercancel',endDrag);
 /* ---- what to do with the page itself ---- */
 function deletePage(cid){
  (S.pages[cid]||[]).forEach(b=>{if(b.photo)dropPhoto(b.photo)});
- delete S.pages[cid];delete S.tasks[cid];
+ delete S.pages[cid];delete S.tasks[cid];delete (S.minds||{})[cid];
+ if(mindFor===cid){if(mind){try{mind.destroy()}catch(e){}}mind=null;mindFor=null;mindRoot=null}
  S.canvases=S.canvases.filter(c=>c.id!==cid);
  if(!S.canvases.length)S.canvases=[{id:'cal',name:'Calendar',type:'calendar'}];
  S.active=S.canvases[0].id;
@@ -1461,7 +1576,7 @@ function render(){
  const c=S.canvases.find(c=>c.id===S.active)||S.canvases[0];
  c.type==='calendar'
   ?(viewMode==='week'?renderWeek():viewMode==='day'?renderDay():viewMode==='year'?renderYear():renderCal())
-  :c.type==='tasks'?renderTasks(c):renderPage(c);
+  :c.type==='tasks'?renderTasks(c):c.type==='mind'?renderMind(c):renderPage(c);
 
 }
 
@@ -1668,15 +1783,34 @@ $('#canvas').addEventListener('click',ev=>{
 });
 $('#tabs').addEventListener('click',ev=>{const b=ev.target.closest('.tab');if(!b)return;S.active=b.dataset.id;save();render()});
 $('#add').addEventListener('click',()=>{
- if($('.newtab'))return;
- const inp=document.createElement('input');inp.className='newtab';inp.placeholder='Canvas name';$('#tabs').appendChild(inp);inp.focus();
+ if($('.newc'))return;
+ /* A name and a kind. The kind it has always been is the one already
+    chosen, so a canvas is still one word and the return key. */
+ let kind='blank';
+ const box=document.createElement('span');box.className='newc';
+ box.innerHTML=`<input class="newtab" placeholder="Canvas name" aria-label="Canvas name">
+  <span class="ctype" role="group" aria-label="Kind">
+   <button type="button" data-ct="blank" aria-pressed="true">Page</button>
+   <button type="button" data-ct="mind" aria-pressed="false">Mind map</button>
+  </span>`;
+ $('#tabs').appendChild(box);
+ const inp=box.querySelector('input');inp.focus();
  /* Redrawing the tabs takes the box away, and losing focus looks like
     one more Enter, so this answers once however it ends. */
  let settled=false;
  const done=()=>{if(settled)return;settled=true;
   const n=inp.value.trim();
-  if(n){const id='c'+(nid());S.canvases.push({id,name:n,type:'blank'});S.active=id;save()}
+  if(n){const id='c'+(nid());S.canvases.push({id,name:n,type:kind});S.active=id;save()}
   render()};
+ /* Pointerdown and no default, so choosing a kind never takes the
+    focus from the name and never reads as finishing. */
+ box.querySelector('.ctype').addEventListener('pointerdown',e=>{
+  const b=e.target.closest('[data-ct]');if(!b)return;
+  e.preventDefault();e.stopPropagation();
+  kind=b.dataset.ct;
+  box.querySelectorAll('[data-ct]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  inp.focus();
+ });
  inp.addEventListener('keydown',e=>{if(e.key==='Enter')done();if(e.key==='Escape'){settled=true;render()}});
  inp.addEventListener('blur',done);
 });
