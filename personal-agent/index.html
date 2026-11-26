@@ -552,10 +552,10 @@ function prepare(){
  S.seq=S.seq||10;
 }
 
-/* The conversation is written and works, but there is nobody at the other
-   end of it yet, so it is switched off here rather than taken out. One
-   flag hides the dock, its setting, and every line that points at it. */
-const CHAT_LIVE=false;
+/* The conversation is on. One flag still governs it: set this to false
+   and the dock, its grip and every line that points at it disappear,
+   without anything being taken out. */
+const CHAT_LIVE=true;
 document.body.classList.toggle('nochat',!CHAT_LIVE);
 
 /* How tall the conversation is, and whether it is folded away: both are
@@ -1319,7 +1319,7 @@ async function ask(text,img){
  const hist=S.msgs.filter(m=>!m.wait).slice(-9,-1).map(m=>`${m.who==='me'?'User':'Assistant'}: ${m.text||(m.html?m.html.replace(/<[^>]+>/g,''):'')}`).join('\n');
  const prompt=`You are the conversation box at the bottom of Personal Agent, a private calendar and daily tracking page. Users write in English or Chinese, by typing, voice or screenshot.
 
-What the page itself offers, so you can point people to it: a month grid above; clicking a day opens it on the right; on that day panel (a bottom sheet on phones) there are daily items of several kinds (check, good/bad, a typed time, number, text and photo) with a plus at the end of the row to add more, then Plans (events) and "+ Add to this day". Each day cell shows a short summary of its values. Clicking an event edits title, date, time (Time, TBD or No time) and "Highlight of the month". Events can be dragged to another day. Highlights scroll in the black ticker at the top. The gear at top right opens Appearance (name, year theme, ticker, colours, fonts, chat height, weekend tint, Shanghai time, week start). Images can be attached with the paperclip, dragged onto the chat, or pasted. The mic turns speech into text.
+What the page itself offers, so you can point people to it: a month grid above; clicking a day opens it on the right; on that day panel (a bottom sheet on phones) there are daily items of several kinds (check, good/bad, a typed time, number, text and photo) with a plus at the end of the row to add more, then Plans (events) and "+ Add to this day". Each day cell shows a short summary of its values. Clicking an event edits title, date, time (Time, TBD or No time) and "Highlight of the month". Events can be dragged to another day. Highlights scroll in the black ticker at the top. The gear at top right opens Appearance (name, year theme, ticker, colours, fonts, weekend tint, Shanghai time, week start). The conversation box itself is resized by dragging the handle on its top edge, and folds away with a tap on it. Images can be attached with the paperclip, dragged onto the chat, or pasted. The mic turns speech into text.
 
 Use the tools to act: events, daily fields and their values (one spoken sentence may set several fields at once, for example sleep range, weight number, exercise text and ticks), and appearance. Match what the user says to existing fields by meaning before creating a new field. Resolve relative dates from today; times are Pacific. If an image is attached, read it and add what it shows. Only state facts you can see in State; never guess where data came from. Act first, then reply in one or two short sentences in the user's language. No apologies beyond a few words, no dashes, no filler. If a request needs something the tools and page do not offer, say so in one sentence and add that it can be built in the next version.
 
