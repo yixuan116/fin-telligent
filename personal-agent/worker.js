@@ -144,12 +144,21 @@ function photoKey(userId, name) {
   return `${userId}/${name}`;
 }
 
-async function putPhoto(request, userId, env) {
+/* An optional ?p= groups a picture under the page it belongs to, so a
+   page taken away can take its pictures with it. It is checked against a
+   narrow shape, never passed through: a key is always below the owner's
+   own prefix. */
+const PREFIX_OK = /^[A-Za-z0-9_-]{1,40}$/;
+
+async function putPhoto(request, userId, env, url) {
+  const group = url.searchParams.get("p") || "";
+  if (group && !PREFIX_OK.test(group)) return json({ error: "bad prefix" }, 400);
+
   const body = await request.arrayBuffer();
   if (!body.byteLength) return json({ error: "empty" }, 400);
   if (body.byteLength > MAX_PHOTO_BYTES) return json({ error: "photo too large" }, 413);
 
-  const key = photoKey(userId, crypto.randomUUID() + ".jpg");
+  const key = photoKey(userId, (group ? group + "/" : "") + crypto.randomUUID() + ".jpg");
   await env.PHOTOS.put(key, body, { httpMetadata: { contentType: "image/jpeg" } });
   return json({ key });
 }
@@ -220,7 +229,7 @@ export default {
       if (url.pathname === "/api/backup" && request.method === "POST") return json(await backup(env));
 
       if (url.pathname === "/api/photo" && request.method === "POST") {
-        return putPhoto(request, userId, env);
+        return putPhoto(request, userId, env, url);
       }
       if (url.pathname.startsWith("/api/photo/")) {
         const key = decodeURIComponent(url.pathname.slice("/api/photo/".length));

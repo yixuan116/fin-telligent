@@ -41,7 +41,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:300 16px/1.55 Jost,syst
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0}
 :focus-visible{outline:1.5px solid var(--blue);outline-offset:3px}
-.app{height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto}
+.app{height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto auto}
 .ticker{overflow:hidden;background:var(--ink);color:var(--bg);font-size:13px;letter-spacing:.02em;white-space:nowrap}
 .track{display:inline-flex;padding:9px 0;animation:roll var(--dur,40s) linear infinite}
 .grp{display:inline-flex;gap:44px;padding-right:44px;min-width:100vw;justify-content:space-around}
@@ -304,14 +304,60 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .edit input:focus{border-color:var(--blue)}
 .row{display:flex;gap:18px;font-size:14px}
 .row .del{color:var(--soft)}.row .ok{color:var(--blue)}
+/* ---- a page of blocks ---- */
+.page{max-width:720px;margin:0 auto;padding-bottom:10vh}
+.phead{position:relative;display:flex;align-items:flex-start;gap:8px}
+.ptitle{font:400 clamp(28px,4vw,40px)/1.15 var(--fd,'Cormorant Garamond',serif);margin:0 0 14px;flex:1;outline:none}
+.ptitle:focus{border-bottom:1px solid var(--rule)}
+.ptitle:empty::before{content:attr(data-hint);color:var(--soft)}
+.pset{width:36px;height:36px;border-radius:9px;color:var(--soft);font-size:18px;line-height:1;flex:none}
+.pset:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.pmenu{position:absolute;right:0;top:40px;z-index:5;min-width:210px;display:grid;gap:6px;padding:10px;border:1px solid var(--rule);border-radius:12px;background:var(--paper);box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.pmenu[hidden]{display:none}
+.pmenu p{margin:0;font-size:13px;color:var(--soft)}
+.pmenu button{text-align:left;font-size:15px;padding:8px;border-radius:8px;min-height:40px}
+.pmenu button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.pmenu .warn{color:var(--f-coral)}
+.blocks{display:grid}
+.bl{position:relative;display:flex;align-items:flex-start;gap:8px;padding:2px 0 2px 22px;border-radius:6px}
+.bl.lift{opacity:.5}
+.bl.busy{opacity:.5;pointer-events:none}
+.bl.dropline::before{content:'';position:absolute;left:22px;right:0;top:-1px;height:2px;background:var(--blue)}
+.blocks.dropend::after{content:'';display:block;height:2px;margin-left:22px;background:var(--blue)}
+/* The handle sits in the margin and only shows itself when you are near
+   the block, so a page of writing stays a page of writing. */
+.bh{position:absolute;left:0;top:4px;width:18px;height:24px;cursor:grab;touch-action:none;opacity:0;transition:opacity .12s;
+ background:radial-gradient(circle at 5px 6px,var(--soft) 1.3px,transparent 1.4px),radial-gradient(circle at 11px 6px,var(--soft) 1.3px,transparent 1.4px),
+  radial-gradient(circle at 5px 12px,var(--soft) 1.3px,transparent 1.4px),radial-gradient(circle at 11px 12px,var(--soft) 1.3px,transparent 1.4px),
+  radial-gradient(circle at 5px 18px,var(--soft) 1.3px,transparent 1.4px),radial-gradient(circle at 11px 18px,var(--soft) 1.3px,transparent 1.4px)}
+.bl:hover .bh,.bl:focus-within .bh{opacity:.75}
+.bt{flex:1;min-width:0;outline:none;white-space:pre-wrap;word-break:break-word;padding:3px 0;line-height:1.6}
+.bt:empty::before{content:attr(data-hint);color:var(--soft);pointer-events:none}
+.bl.h .bt{font:400 clamp(19px,2.4vw,23px)/1.35 var(--fd,'Cormorant Garamond',serif);padding-top:14px}
+.bl.todo input{width:17px;height:17px;margin:7px 0 0;accent-color:var(--done);flex:none}
+.bl.todo.done .bt{color:var(--soft);text-decoration:line-through}
+.bul{width:17px;flex:none;text-align:center;color:var(--soft);line-height:1.9}
+.bul::before{content:'\2022'}
+.bl.img{align-items:center}
+.bl.img img{max-width:100%;border-radius:10px;display:block}
+.bimg{display:inline-grid;place-items:center;min-height:88px;padding:0 20px;border:1px dashed var(--rule);border-radius:10px;color:var(--soft);font-size:14px;cursor:pointer}
+.bimg input{display:none}
+.bx{opacity:0;width:28px;height:28px;color:var(--soft);font-size:17px;flex:none}
+.bl.img:hover .bx,.bl.img:focus-within .bx{opacity:1}
+.bmenu{position:absolute;left:22px;top:100%;z-index:6;min-width:170px;display:grid;gap:2px;padding:6px;border:1px solid var(--rule);border-radius:11px;background:var(--paper);box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.bmenu button{text-align:left;font-size:15px;padding:8px 10px;border-radius:8px;min-height:38px}
+.bmenu button.on{background:var(--wash)}
+.pfill{min-height:34vh;cursor:text}
 .blank{max-width:640px;margin:12vh auto 0;text-align:center}
 .blank p{color:var(--soft)}
+/* Until the chat answers, nothing on the page offers it. */
+.nochat .dock,.nochat .chatonly{display:none}
 .note{font-size:12px;color:var(--soft);margin-top:26px}
 
 /* chat dock */
 .dock{border-top:1px solid var(--ink);background:var(--paper);height:var(--dockh,clamp(190px,27dvh,300px));display:grid;grid-template-rows:1fr auto}
 .msgs{overflow:auto;padding:16px max(4vw,18px) 6px;display:flex;flex-direction:column;gap:10px}
-.sync{margin:0;padding:4px max(4vw,18px) 0;font-size:12.5px;color:var(--soft)}
+.sync{margin:0;padding:6px max(4vw,18px);font-size:12.5px;color:var(--soft);border-top:1px solid var(--rule)}
 .sync[hidden]{display:none}
 .m{max-width:min(620px,85%);font-size:15px;line-height:1.5;animation:in .35s ease}
 .m.me{align-self:flex-end;background:var(--wash);padding:8px 14px;border-radius:14px 14px 3px 14px}
@@ -386,10 +432,10 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 
  <div class="ticker" id="ticker" aria-label="Highlights, click to edit" title="Click to edit"><div class="track" id="track"></div></div>
  <main class="canvas" id="canvas"></main>
+ <p class="sync" id="sync" role="status" hidden></p>
 
  <section class="dock" id="dock" aria-label="Conversation">
   <div class="msgs" id="msgs" aria-live="polite"></div>
-  <p class="sync" id="sync" role="status" hidden></p>
   <form class="bar" id="form">
    <label class="clip" title="Attach an image" aria-label="Attach an image">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l9.2-9.2a3.7 3.7 0 015.2 5.2l-9.2 9.2a1.8 1.8 0 01-2.6-2.6l8.5-8.5"/></svg>
@@ -424,7 +470,7 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  <div class="pf"><span>Background</span><div class="sw" data-sw="background"></div></div>
  <label class="pf"><span>Title font</span><select data-k="displayFont"><option value="">Cormorant Garamond</option><option>Playfair Display</option><option>Fraunces</option><option>DM Serif Display</option><option>Libre Caslon Text</option><option>Instrument Serif</option><option>Inter</option></select></label>
  <label class="pf"><span>Text font</span><select data-k="bodyFont"><option value="">Jost</option><option>Inter</option><option>DM Sans</option><option>Manrope</option><option>Work Sans</option><option>IBM Plex Sans</option></select></label>
- <label class="pf"><span>Chat height</span><input type="range" min="15" max="70" step="1" data-k="dockHeight"></label>
+ <label class="pf chatonly"><span>Chat height</span><input type="range" min="15" max="70" step="1" data-k="dockHeight"></label>
  <div class="pf"><span>Weekend tint</span><div class="seg" data-seg="weekend"><button data-v="true">On</button><button data-v="false">Off</button></div></div>
  <div class="pf"><span>Shanghai time under each event</span><div class="seg" data-seg="shTime"><button data-v="true">Show</button><button data-v="false">Hide</button></div></div>
  <div class="pf"><span>Week starts on</span><div class="seg" data-seg="weekStart"><button data-v="mon">Monday</button><button data-v="sun">Sunday</button></div></div>
@@ -464,6 +510,10 @@ function prepare(){
  delete S.habits;delete S.checks;
  if(S.settings.weekend===undefined)S.settings.weekend=true;
  S.tasks=S.tasks||{};
+ /* A page is a list of blocks, kept per canvas. Each block has an id, so
+    two devices writing different blocks of the same page both keep their
+    work. */
+ S.pages=(S.pages&&typeof S.pages==='object'&&!Array.isArray(S.pages))?S.pages:{};
 
  /* Fields gain an icon and a colour, and a removed one is archived rather
     than dropped, so a day that already carries its value keeps the name it
@@ -488,6 +538,12 @@ function prepare(){
  if(!S.m4){S.msgs=[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence, a voice note or a screenshot works.'}];S.m4=true}
  S.seq=S.seq||10;
 }
+
+/* The conversation is written and works, but there is nobody at the other
+   end of it yet, so it is switched off here rather than taken out. One
+   flag hides the dock, its setting, and every line that points at it. */
+const CHAT_LIVE=false;
+document.body.classList.toggle('nochat',!CHAT_LIVE);
 
 const CACHE='shsf-proto';
 let S;
@@ -850,9 +906,226 @@ function renderTasks(c){
  ${groups.map(g=>`${g?`<h4>${esc(g)}</h4>`:''}${L.filter(t=>(t.group||'')===g).map(t=>`<label class="tk${t.done?' done':''}"><input type="checkbox" data-tk="${t.id}" ${t.done?'checked':''}><span>${esc(t.text)}</span>${t.done&&t.doneAt?`<em class="dd">${fromKey(t.doneAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</em>`:''}<button class="x" data-rmtk="${t.id}" aria-label="Remove">×</button></label>`).join('')}`).join('')}
  <input class="addtk" id="addtk" placeholder="+ Task"></div>`;
 }
-function renderBlank(c){
- $('#canvas').innerHTML=`<div class="blank"><h1>${esc(c.name)}</h1><p>An empty canvas, ready for its first entry. Describe what it should hold in the conversation below.</p></div>`;
+/* ---- a page you write on ----
+   Blocks in a list: a kind, some text, sometimes a picture. That is the
+   whole format, which is what lets two devices merge a page block by
+   block the way they merge everything else. Typing saves the block it is
+   in and redraws nothing, so the caret stays where you put it; only a
+   change of shape redraws. */
+const BLOCK_KINDS=[['h','Heading'],['p','Text'],['todo','Checklist'],['li','Bullet'],['img','Image']];
+const pageOf=cid=>(S.pages[cid]=S.pages[cid]||[]);
+const blockById=(cid,bid)=>pageOf(cid).find(b=>b.id===bid);
+const activeId=()=>S.active;
+let menuFor=null;   /* the block whose slash menu is open */
+let bdrag=null;     /* a block being carried to a new place */
+
+function blockHtml(b,hint){
+ const handle=`<span class="bh" data-bh="${b.id}" aria-label="Drag to reorder" role="button" tabindex="-1"></span>`;
+ if(b.t==='img')
+  return `<div class="bl img" data-b="${b.id}" data-t="img">${handle}
+   ${b.photo?`<img src="/api/photo/${encodeURIComponent(b.photo)}" alt="">`
+    :`<label class="bimg">Choose a picture<input type="file" accept="image/*" data-bimg="${b.id}"></label>`}
+   <button class="bx" data-bx="${b.id}" aria-label="Remove this block">×</button></div>`;
+ const box=`<div class="bt" contenteditable="plaintext-only" data-bt="${b.id}" data-hint="${esc(hint||'')}" role="textbox" aria-multiline="true">${esc(b.text||'')}</div>`;
+ if(b.t==='todo')
+  return `<div class="bl todo${b.done?' done':''}" data-b="${b.id}" data-t="todo">${handle}<input type="checkbox" data-bck="${b.id}" ${b.done?'checked':''} aria-label="Done">${box}</div>`;
+ if(b.t==='li')
+  return `<div class="bl li" data-b="${b.id}" data-t="li">${handle}<span class="bul" aria-hidden="true"></span>${box}</div>`;
+ return `<div class="bl ${b.t==='h'?'h':'p'}" data-b="${b.id}" data-t="${b.t==='h'?'h':'p'}">${handle}${box}</div>`;
 }
+
+function renderPage(c){
+ const L=pageOf(c.id);
+ /* An untouched page still shows one line to write on; it only becomes a
+    block once there is something in it. */
+ const draw=L.length?L:[{id:nid(),t:'p',text:''}];
+ const hint=i=>L.length?(i===L.length-1?'Type / for a block':''):'Start writing.';
+ $('#canvas').innerHTML=`<div class="page">
+  <div class="phead">
+   <h1 class="ptitle" contenteditable="plaintext-only" data-ptitle="${esc(c.id)}" role="textbox" data-hint="Untitled">${esc(c.name)}</h1>
+   <button class="pset" data-pset="${esc(c.id)}" aria-label="Page settings" aria-expanded="false">⋯</button>
+   <div class="pmenu" id="pmenu" hidden></div>
+  </div>
+  <div class="blocks" id="blocks">${draw.map((b,i)=>blockHtml(b,hint(i))).join('')}</div>
+  <div class="pfill" data-pfill="${esc(c.id)}"></div>
+ </div>`;
+}
+
+/* The caret goes to the end of a block, which is where writing carries
+   on from. */
+function focusBlock(bid){
+ const el=document.querySelector(`[data-bt="${bid}"]`);if(!el)return;
+ el.focus();
+ try{const r=document.createRange();r.selectNodeContents(el);r.collapse(false);
+  const s=getSelection();s.removeAllRanges();s.addRange(r)}catch(e){}
+}
+const atStart=()=>{const s=getSelection();return s&&s.isCollapsed&&s.anchorOffset===0};
+
+function newBlockAfter(cid,bid){
+ const L=pageOf(cid),i=L.findIndex(b=>b.id===bid),cur=L[i];
+ /* Enter on an empty list item leaves the list rather than extending it. */
+ if(cur&&(cur.t==='todo'||cur.t==='li')&&!cur.text){cur.t='p';save();render();focusBlock(bid);return}
+ const nb={id:nid(),t:(cur&&(cur.t==='todo'||cur.t==='li'))?cur.t:'p',text:''};
+ L.splice(i<0?L.length:i+1,0,nb);
+ save();render();focusBlock(nb.id);
+}
+function removeBlock(cid,bid){
+ const L=pageOf(cid),i=L.findIndex(b=>b.id===bid);
+ if(i<0)return;
+ if(L[i].photo)dropPhoto(L[i].photo);
+ L.splice(i,1);save();render();
+ const prev=L[i-1];if(prev&&prev.t!=='img')focusBlock(prev.id);
+}
+function setKind(cid,bid,k){
+ closeMenu();
+ let b=blockById(cid,bid);
+ if(!b){b={id:bid,t:'p',text:''};pageOf(cid).push(b)}
+ b.text='';b.t=k;if(k!=='img')delete b.photo;
+ save();render();
+ if(k!=='img')focusBlock(bid);
+}
+
+/* ---- the slash menu ---- */
+function closeMenu(){menuFor=null;const m=document.querySelector('.bmenu');if(m)m.remove()}
+function openMenu(el,bid,q){
+ const items=BLOCK_KINDS.filter(([k,l])=>!q||l.toLowerCase().startsWith(q)||k.startsWith(q));
+ if(!items.length){closeMenu();return}
+ let m=document.querySelector('.bmenu');
+ if(!m||menuFor!==bid){closeMenu();m=document.createElement('div');m.className='bmenu';el.closest('.bl').appendChild(m)}
+ menuFor=bid;
+ m.innerHTML=items.map(([k,l],i)=>`<button data-bk="${k}" data-bbid="${bid}" class="${i?'':'on'}">${l}</button>`).join('');
+}
+function menuMove(d){
+ const m=document.querySelector('.bmenu');if(!m)return;
+ const bs=[...m.querySelectorAll('button')],i=bs.findIndex(b=>b.classList.contains('on'));
+ const j=Math.max(0,Math.min(bs.length-1,(i<0?0:i)+d));
+ bs.forEach((b,k)=>b.classList.toggle('on',k===j));
+}
+const menuPick=()=>{const b=document.querySelector('.bmenu button.on');if(b)b.click()};
+
+/* ---- writing ---- */
+$('#canvas').addEventListener('input',ev=>{
+ const t=ev.target.closest('[data-ptitle]');
+ if(t){const c=S.canvases.find(x=>x.id===t.dataset.ptitle);
+  if(c){c.name=t.textContent.replace(/\s+/g,' ').trim().slice(0,40)||'Untitled';save();renderTabs()}return}
+ const el=ev.target.closest('[data-bt]');if(!el)return;
+ const cid=activeId(),bid=+el.dataset.bt;
+ let b=blockById(cid,bid);
+ if(!b){b={id:bid,t:el.closest('.bl').dataset.t||'p',text:''};pageOf(cid).push(b)}
+ b.text=el.textContent.slice(0,4000);
+ save();
+ const m=/^\/(\w*)$/.exec(b.text);
+ if(m)openMenu(el,bid,m[1].toLowerCase());else closeMenu();
+});
+$('#canvas').addEventListener('keydown',ev=>{
+ if(ev.target.closest('[data-ptitle]')&&ev.key==='Enter'){ev.preventDefault();ev.target.blur();return}
+ const el=ev.target.closest('[data-bt]');if(!el)return;
+ const cid=activeId(),bid=+el.dataset.bt;
+ if(menuFor===bid){
+  if(ev.key==='Escape'){ev.preventDefault();closeMenu();return}
+  if(ev.key==='ArrowDown'){ev.preventDefault();menuMove(1);return}
+  if(ev.key==='ArrowUp'){ev.preventDefault();menuMove(-1);return}
+  if(ev.key==='Enter'){ev.preventDefault();menuPick();return}
+ }
+ if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();newBlockAfter(cid,bid);return}
+ if(ev.key==='Backspace'&&!el.textContent&&atStart()){
+  const L=pageOf(cid);
+  if(L.length>1||L.findIndex(b=>b.id===bid)<0){ev.preventDefault();removeBlock(cid,bid)}
+ }
+});
+/* Clicking the room under the last block carries on from there. */
+$('#canvas').addEventListener('click',ev=>{
+ const f=ev.target.closest('[data-pfill]');if(!f)return;
+ const cid=f.dataset.pfill,L=pageOf(cid),last=L[L.length-1];
+ if(!L.length){const el=document.querySelector('.blocks [data-bt]');if(el){focusBlock(+el.dataset.bt);return}}
+ if(last&&last.t!=='img'&&!last.text){focusBlock(last.id);return}
+ const nb={id:nid(),t:'p',text:''};L.push(nb);save();render();focusBlock(nb.id);
+});
+$('#canvas').addEventListener('click',ev=>{
+ const k=ev.target.closest('[data-bk]');
+ if(k){ev.preventDefault();setKind(activeId(),+k.dataset.bbid,k.dataset.bk);return}
+ const x=ev.target.closest('[data-bx]');
+ if(x){ev.preventDefault();removeBlock(activeId(),+x.dataset.bx);return}
+});
+$('#canvas').addEventListener('change',ev=>{
+ const c=ev.target.closest('[data-bck]');if(!c)return;
+ const b=blockById(activeId(),+c.dataset.bck);if(!b)return;
+ b.done=c.checked;c.closest('.bl').classList.toggle('done',c.checked);save();
+});
+$('#canvas').addEventListener('change',async ev=>{
+ const el=ev.target.closest('[data-bimg]');if(!el)return;
+ const file=el.files&&el.files[0];if(!file)return;
+ const cid=activeId(),bid=+el.dataset.bimg,b=blockById(cid,bid);
+ const host=el.closest('.bl');if(host)host.classList.add('busy');
+ try{
+  /* Filed under the page it sits on, so taking the page away takes its
+     pictures too. */
+  const key=await uploadPhoto(file,cid);
+  if(b){b.photo=key;save();render()}
+ }catch(e){if(host)host.classList.remove('busy');alert(e.message||'That picture did not go through.')}
+});
+
+/* ---- carrying a block somewhere else ----
+   A pointer, not the drag-and-drop API, so this works the same under a
+   finger as under a mouse. */
+$('#canvas').addEventListener('pointerdown',ev=>{
+ const h=ev.target.closest('[data-bh]');if(!h)return;
+ const list=document.querySelector('#blocks');if(!list)return;
+ ev.preventDefault();closeMenu();
+ bdrag={bid:+h.dataset.bh,list,to:-1};
+ try{h.setPointerCapture(ev.pointerId)}catch(e){}
+ h.closest('.bl').classList.add('lift');
+});
+$('#canvas').addEventListener('pointermove',ev=>{
+ if(!bdrag)return;
+ const els=[...bdrag.list.querySelectorAll('.bl')];
+ let idx=els.length;
+ for(let i=0;i<els.length;i++){const r=els[i].getBoundingClientRect();if(ev.clientY<r.top+r.height/2){idx=i;break}}
+ bdrag.to=idx;
+ els.forEach((e,i)=>e.classList.toggle('dropline',i===idx));
+ bdrag.list.classList.toggle('dropend',idx===els.length);
+});
+const endDrag=()=>{
+ if(!bdrag)return;
+ const {bid,to}=bdrag;bdrag=null;
+ const cid=activeId(),L=pageOf(cid),from=L.findIndex(b=>b.id===bid);
+ if(from<0||to<0){render();return}
+ let t=to;if(t>from)t--;
+ if(t!==from){const[x]=L.splice(from,1);L.splice(t,0,x);save()}
+ render();
+};
+$('#canvas').addEventListener('pointerup',endDrag);
+$('#canvas').addEventListener('pointercancel',endDrag);
+
+/* ---- what to do with the page itself ---- */
+function deletePage(cid){
+ (S.pages[cid]||[]).forEach(b=>{if(b.photo)dropPhoto(b.photo)});
+ delete S.pages[cid];delete S.tasks[cid];
+ S.canvases=S.canvases.filter(c=>c.id!==cid);
+ if(!S.canvases.length)S.canvases=[{id:'cal',name:'Calendar',type:'calendar'}];
+ S.active=S.canvases[0].id;
+ save();render();
+}
+$('#canvas').addEventListener('click',ev=>{
+ const b=ev.target.closest('[data-pset]');
+ const m=document.querySelector('#pmenu');
+ if(b&&m){ev.preventDefault();
+  const open=!m.hidden;
+  m.hidden=open;b.setAttribute('aria-expanded',String(!open));
+  if(!open)m.innerHTML=`<button data-pdel="${esc(b.dataset.pset)}">Delete page</button>`;
+  return}
+ const d=ev.target.closest('[data-pdel]');
+ if(d&&m){ev.preventDefault();
+  m.innerHTML=`<p>Delete this page, everything on it and its pictures? This cannot be undone.</p>
+   <button class="warn" data-pdel2="${esc(d.dataset.pdel)}">Delete</button><button data-pcancel>Keep it</button>`;
+  return}
+ const d2=ev.target.closest('[data-pdel2]');
+ if(d2){ev.preventDefault();deletePage(d2.dataset.pdel2);return}
+ if(ev.target.closest('[data-pcancel]')&&m){ev.preventDefault();m.hidden=true;m.innerHTML='';return}
+ /* A click anywhere else closes what is open. */
+ if(m&&!m.hidden&&!ev.target.closest('.phead')){m.hidden=true;m.innerHTML=''}
+ if(menuFor!==null&&!ev.target.closest('.bmenu'))closeMenu();
+});
 
 function renderTicker(){
  const mk=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}`,cur=`${view.y}-${pad(view.m+1)}`;
@@ -901,11 +1174,12 @@ function render(){
  const c=S.canvases.find(c=>c.id===S.active)||S.canvases[0];
  c.type==='calendar'
   ?(viewMode==='week'?renderWeek():viewMode==='day'?renderDay():renderCal())
-  :c.type==='tasks'?renderTasks(c):renderBlank(c);
+  :c.type==='tasks'?renderTasks(c):renderPage(c);
 
 }
 
 function renderMsgs(){
+ if(!CHAT_LIVE)return;
  $('#msgs').innerHTML=S.msgs.slice(-30).map(m=>`<div class="m ${m.who}${m.wait?' wait':''}">${m.img?`<img src="${m.img.startsWith('data:image/')?m.img:''}" alt="Attached image">`:''}${m.html&&m.who==='ai'?m.html:esc(m.text||'')}</div>`).join('');
  $('#msgs').scrollTop=1e9;
 }
@@ -1071,8 +1345,14 @@ $('#tabs').addEventListener('click',ev=>{const b=ev.target.closest('.tab');if(!b
 $('#add').addEventListener('click',()=>{
  if($('.newtab'))return;
  const inp=document.createElement('input');inp.className='newtab';inp.placeholder='Canvas name';$('#tabs').appendChild(inp);inp.focus();
- const done=()=>{const n=inp.value.trim();if(n){const id='c'+(nid());S.canvases.push({id,name:n,type:'blank'});S.active=id;save()}render()};
- inp.addEventListener('keydown',e=>{if(e.key==='Enter')done();if(e.key==='Escape')render()});
+ /* Redrawing the tabs takes the box away, and losing focus looks like
+    one more Enter, so this answers once however it ends. */
+ let settled=false;
+ const done=()=>{if(settled)return;settled=true;
+  const n=inp.value.trim();
+  if(n){const id='c'+(nid());S.canvases.push({id,name:n,type:'blank'});S.active=id;save()}
+  render()};
+ inp.addEventListener('keydown',e=>{if(e.key==='Enter')done();if(e.key==='Escape'){settled=true;render()}});
  inp.addEventListener('blur',done);
 });
 
@@ -1100,11 +1380,11 @@ async function shrink(file){
 /* A replaced or cleared picture is not left behind in the bucket. Best
    effort: if the delete fails the state has already moved on. */
 const dropPhoto=k=>{if(k)fetch('/api/photo/'+encodeURIComponent(k),{method:'DELETE'}).catch(()=>{})};
-async function uploadPhoto(file){
+async function uploadPhoto(file,group){
  const b=await shrink(file);
  if(!b)throw new Error('could not read that image');
  if(b.size>PHOTO_BYTES)throw new Error('that image is too large');
- const r=await fetch('/api/photo',{method:'POST',headers:{'content-type':'image/jpeg'},body:b});
+ const r=await fetch('/api/photo'+(group?'?p='+encodeURIComponent(group):''),{method:'POST',headers:{'content-type':'image/jpeg'},body:b});
  if(!r.ok)throw new Error('upload failed');
  return (await r.json()).key;
 }
