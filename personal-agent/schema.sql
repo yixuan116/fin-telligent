@@ -13,9 +13,14 @@ CREATE TABLE IF NOT EXISTS invites (
 CREATE TABLE IF NOT EXISTS sessions (
   token_hash TEXT PRIMARY KEY,      -- SHA-256 of the cookie value
   user_id    TEXT NOT NULL,
-  expires_at INTEGER NOT NULL       -- epoch ms
+  expires_at INTEGER NOT NULL,      -- epoch ms
+  invite     TEXT                   -- the label of the link it came from
 );
 CREATE INDEX IF NOT EXISTS sessions_expires_at ON sessions (expires_at);
+CREATE INDEX IF NOT EXISTS sessions_invite ON sessions (user_id, invite);
+
+-- Added later; harmless to run again on a database that already has it.
+-- ALTER TABLE sessions ADD COLUMN invite TEXT;
 
 -- One row per user: the whole app state as JSON, exactly the shape the page
 -- keeps in memory (canvases, events, fields, vals, tasks, settings).

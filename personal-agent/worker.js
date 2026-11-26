@@ -65,15 +65,17 @@ async function join(request, env, url) {
   if (!token) return text("This link is missing its token.", 400);
 
   const invite = await env.DB
-    .prepare("SELECT user_id FROM invites WHERE token_hash = ?1")
+    .prepare("SELECT user_id, label FROM invites WHERE token_hash = ?1")
     .bind(await sha256Hex(token))
     .first();
   if (!invite) return text("This link is not valid. Ask for a new one.", 403);
 
+  /* The session remembers which link opened it, so one link's devices can
+     be signed out without touching the others. */
   const session = newToken();
   await env.DB
-    .prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?1, ?2, ?3)")
-    .bind(await sha256Hex(session), invite.user_id, Date.now() + YEAR_SECONDS * 1000)
+    .prepare("INSERT INTO sessions (token_hash, user_id, expires_at, invite) VALUES (?1, ?2, ?3, ?4)")
+    .bind(await sha256Hex(session), invite.user_id, Date.now() + YEAR_SECONDS * 1000, invite.label || "")
     .run();
 
   /* Old sessions for this user are left alone on purpose: the same person

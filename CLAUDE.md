@@ -27,3 +27,15 @@ Test in an isolated profile instead: headless Chrome with its own
 `--user-data-dir` under the session scratchpad, driven over the DevTools
 protocol (`scripts/cdp.mjs` in `personal-agent/` does this for the agent app).
 Delete the profile directory when the run is over.
+
+## Data safety (personal-agent)
+
+Never delete, overwrite or lose anything the user or Alex has entered: events,
+daily values, check-ins, photos, canvas content, settings. Every schema or UI
+change must:
+
+1. back up all user rows before deploying;
+2. migrate non-destructively, so data written by the old version still renders;
+3. after deploying, verify the row counts against the backup and report them.
+
+Delete user data only when the user explicitly asks for a specific item.

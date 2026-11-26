@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "invite": "node scripts/invite.mjs",
+    "revoke": "node scripts/revoke.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "db:schema": "wrangler d1 execute personal-agent-db --remote --file=schema.sql"

@@ -26,6 +26,9 @@
 --ink:light-dark(#141414,#ecebe6);--soft:light-dark(#6f6d68,#9b9993);
 --rule:light-dark(#e6e4df,#2a2b30);--blue:light-dark(#23408e,#8ea8ec);
 --wash:light-dark(#eef1f8,#1c2233);
+/* Structural edges are a warm hairline and a little shadow, never a black
+   rule: the page is paper, not a form. */
+--edge:light-dark(#ddd9d1,#2f3137);
 /* Field identity, every colour of it here and nowhere else. A field stores
    the key, "sage"; the stylesheet owns what sage is. Muted, no emoji. */
 --f-indigo:light-dark(#4b4f7d,#9095cd);      /* dusk, for sleep */
@@ -70,7 +73,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .addev{color:var(--blue);font-size:14px;padding:14px 0;min-height:44px;text-align:left}
 .day.drop{background:var(--wash);box-shadow:inset 0 0 0 1.5px var(--blue)}
 [draggable=true]{cursor:grab}
-.panel{position:fixed;inset:0 0 0 auto;width:min(380px,100%);background:var(--paper);border-left:1px solid var(--ink);z-index:9;padding:22px 26px 40px;overflow:auto;transform:translateX(102%);transition:transform .3s ease}
+.panel{position:fixed;inset:0 0 0 auto;width:min(380px,100%);background:var(--paper);border-left:1px solid var(--edge);box-shadow:-20px 0 50px rgba(0,0,0,.07);z-index:9;padding:22px 26px 40px;overflow:auto;transform:translateX(102%);transition:transform .3s ease}
 .panel.open{transform:none}
 .panel h3{font:500 28px/1.1 var(--fd,"Cormorant Garamond"),serif;margin:0 0 18px;display:flex;justify-content:space-between;align-items:center}
 .panel h3 button{font:300 15px Jost,sans-serif;color:var(--soft);min-height:44px}
@@ -85,7 +88,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .reset{color:var(--soft);font-size:14px;margin-top:18px;min-height:44px}
 .tabs{display:flex;gap:22px;overflow-x:auto;scrollbar-width:none;flex:1}
 .tab{padding:6px 0 14px;font-size:15px;color:var(--soft);border-bottom:1.5px solid transparent;white-space:nowrap;min-height:44px}
-.tab[aria-selected=true]{color:var(--ink);border-color:var(--ink)}
+.tab[aria-selected=true]{color:var(--ink);border-color:color-mix(in srgb,var(--ink) 55%,var(--bg))}
 .add{color:var(--soft);font-size:15px;padding-bottom:14px;min-height:44px;white-space:nowrap}
 .add:hover{color:var(--blue)}
 .newtab{border:0;border-bottom:1px solid var(--blue);background:none;font-size:15px;width:140px;padding:6px 0;margin-bottom:12px;outline:none}
@@ -101,7 +104,7 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .nav button:hover{color:var(--ink);border-color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .dow span{font-size:12px;color:var(--soft);padding:0 0 8px 8px}
-.grid{border-top:1px solid var(--ink);border-left:1px solid var(--rule)}
+.grid{border-top:1px solid var(--edge);border-left:1px solid var(--rule)}
 .day{min-height:clamp(86px,13dvh,132px);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left;display:flex;flex-direction:column;gap:3px;background:var(--paper);transition:background .25s}
 .day:hover{background:var(--wash)}
 .day.out{background:transparent;color:var(--soft);opacity:.55}
@@ -355,9 +358,19 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .note{font-size:12px;color:var(--soft);margin-top:26px}
 
 /* chat dock */
-.dock{border-top:1px solid var(--ink);background:var(--paper);height:var(--dockh,clamp(190px,27dvh,300px));display:grid;grid-template-rows:1fr auto}
+.dock{border-top:1px solid var(--edge);box-shadow:0 -16px 40px rgba(0,0,0,.05);background:var(--paper);height:var(--dockh,clamp(190px,27dvh,300px));display:grid;grid-template-rows:auto 1fr auto}
+/* The grip is the whole top edge: drag it to resize, tap it to fold the
+   conversation down to this bar and tap again to bring it back. */
+.grip{height:22px;display:grid;place-items:center;cursor:ns-resize;touch-action:none;color:var(--soft);background:none;width:100%;border-radius:0}
+.grip::before{content:'';width:38px;height:3px;border-radius:2px;background:var(--edge)}
+.grip:hover::before{background:var(--soft)}
+.dock.down{height:auto}
+.dock.down .msgs,.dock.down .bar,.dock.down .sync{display:none}
+.dock.down .grip{height:34px;cursor:pointer}
+.dock.down .grip::before{width:54px}
+.dock.sizing{user-select:none}
 .msgs{overflow:auto;padding:16px max(4vw,18px) 6px;display:flex;flex-direction:column;gap:10px}
-.sync{margin:0;padding:6px max(4vw,18px);font-size:12.5px;color:var(--soft);border-top:1px solid var(--rule)}
+.sync{margin:0;padding:6px max(4vw,18px);font-size:12.5px;color:var(--soft);border-top:1px solid var(--edge)}
 .sync[hidden]{display:none}
 .m{max-width:min(620px,85%);font-size:15px;line-height:1.5;animation:in .35s ease}
 .m.me{align-self:flex-end;background:var(--wash);padding:8px 14px;border-radius:14px 14px 3px 14px}
@@ -367,13 +380,13 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .m img{display:block;max-width:180px;border-radius:8px;margin-bottom:6px}
 .bar{display:flex;align-items:center;gap:10px;padding:10px max(4vw,18px) max(14px,env(safe-area-inset-bottom))}
 .clip{width:44px;height:44px;border-radius:50%;border:1px solid var(--rule);display:grid;place-items:center;flex:none;color:var(--soft);cursor:pointer}
-.clip:hover{color:var(--ink);border-color:var(--ink)}
+.clip:hover{color:var(--ink);border-color:var(--edge)}
 .clip input{display:none}
 .mic{display:grid}
 .mic.on{color:var(--bg);background:var(--blue);border-color:var(--blue);animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--blue) 18%,transparent)}}
 .field{flex:1;display:flex;align-items:center;border:1px solid var(--rule);border-radius:24px;padding:0 6px 0 18px;min-height:46px;background:var(--bg)}
-.field:focus-within{border-color:var(--ink)}
+.field:focus-within{border-color:var(--blue)}
 .field input{flex:1;border:0;background:none;outline:none;font-size:16px;padding:10px 0}
 .send{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;flex:none}
 .thumb{position:relative;flex:none}
@@ -412,7 +425,7 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  .dock{height:auto}
  .day .sum{display:none}
  .marks{display:flex}
- .agenda{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--paper);border-top:1px solid var(--ink);border-radius:16px 16px 0 0;padding:14px 18px max(24px,env(safe-area-inset-bottom));max-height:78dvh;overflow:auto;transform:translateY(105%);transition:transform .28s ease;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
+ .agenda{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--paper);border-top:1px solid var(--edge);border-radius:16px 16px 0 0;padding:14px 18px max(24px,env(safe-area-inset-bottom));max-height:78dvh;overflow:auto;transform:translateY(105%);transition:transform .28s ease;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
  .agenda.up{transform:none}
  .shut{display:block;margin-left:auto;color:var(--soft);font-size:15px;min-height:40px}
  .fd .x{opacity:.6}
@@ -435,6 +448,7 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  <p class="sync" id="sync" role="status" hidden></p>
 
  <section class="dock" id="dock" aria-label="Conversation">
+  <button class="grip" id="grip" aria-label="Resize or fold the conversation" aria-expanded="true"></button>
   <div class="msgs" id="msgs" aria-live="polite"></div>
   <form class="bar" id="form">
    <label class="clip" title="Attach an image" aria-label="Attach an image">
@@ -470,7 +484,6 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  <div class="pf"><span>Background</span><div class="sw" data-sw="background"></div></div>
  <label class="pf"><span>Title font</span><select data-k="displayFont"><option value="">Cormorant Garamond</option><option>Playfair Display</option><option>Fraunces</option><option>DM Serif Display</option><option>Libre Caslon Text</option><option>Instrument Serif</option><option>Inter</option></select></label>
  <label class="pf"><span>Text font</span><select data-k="bodyFont"><option value="">Jost</option><option>Inter</option><option>DM Sans</option><option>Manrope</option><option>Work Sans</option><option>IBM Plex Sans</option></select></label>
- <label class="pf chatonly"><span>Chat height</span><input type="range" min="15" max="70" step="1" data-k="dockHeight"></label>
  <div class="pf"><span>Weekend tint</span><div class="seg" data-seg="weekend"><button data-v="true">On</button><button data-v="false">Off</button></div></div>
  <div class="pf"><span>Shanghai time under each event</span><div class="seg" data-seg="shTime"><button data-v="true">Show</button><button data-v="false">Hide</button></div></div>
  <div class="pf"><span>Week starts on</span><div class="seg" data-seg="weekStart"><button data-v="mon">Monday</button><button data-v="sun">Sunday</button></div></div>
@@ -544,6 +557,23 @@ function prepare(){
    flag hides the dock, its setting, and every line that points at it. */
 const CHAT_LIVE=false;
 document.body.classList.toggle('nochat',!CHAT_LIVE);
+
+/* How tall the conversation is, and whether it is folded away: both are
+   facts about this screen, not about the account, so they stay here. */
+const DOCKH='shsf-dockh',DOCKC='shsf-dockc';
+let dockH=0,dockDown=false;
+try{dockH=+localStorage.getItem(DOCKH)||0;dockDown=localStorage.getItem(DOCKC)==='1'}catch(e){}
+const dockLimits=()=>({min:120,max:Math.max(200,Math.round(innerHeight*.7))});
+function applyDock(){
+ if(!CHAT_LIVE)return;
+ const d=$('#dock'),g=$('#grip');if(!d)return;
+ const {min,max}=dockLimits();
+ if(dockH)d.style.setProperty('--dockh',Math.min(max,Math.max(min,dockH))+'px');
+ else d.style.removeProperty('--dockh');
+ d.classList.toggle('down',dockDown);
+ if(g)g.setAttribute('aria-expanded',String(!dockDown));
+}
+const rememberDock=()=>{try{localStorage.setItem(DOCKH,String(dockH));localStorage.setItem(DOCKC,dockDown?'1':'0')}catch(e){}};
 
 const CACHE='shsf-proto';
 let S;
@@ -1180,7 +1210,6 @@ function applySettings(){
  [['accent','--blue'],['background','--bg'],['ink','--ink'],['paper','--paper']].forEach(([k,v])=>HEX.test(st[k]||'')?r.setProperty(v,st[k]):r.removeProperty(v));
  if(st.displayFont&&FONT_OK.test(st.displayFont)){loadFont(st.displayFont);r.setProperty('--fd',`"${st.displayFont}"`)}else r.removeProperty('--fd');
  if(st.bodyFont&&FONT_OK.test(st.bodyFont)){loadFont(st.bodyFont);document.body.style.fontFamily=`"${st.bodyFont}",system-ui,sans-serif`}else document.body.style.fontFamily='';
- const h=+st.dockHeight;h>=15&&h<=70?r.setProperty('--dockh',h+'dvh'):r.removeProperty('--dockh');
 }
 /* Month, week or day, chosen here and remembered here: which shape suits
    is a property of the screen in your hand, not of the account. */
@@ -1264,8 +1293,8 @@ const TOOLS=()=>[
   execute:i=>{const e=S.events.find(x=>x.id===+i.id);if(!e)throw new Error('no event with that id');if(i.title)e.title=String(i.title).slice(0,120);if(/^\d{4}-\d{2}-\d{2}$/.test(i.date||''))e.date=i.date;if(i.time!==undefined||i.time_status){e.time=/^\d{2}:\d{2}$/.test(i.time||'')?i.time:null;e.tmode=e.time?null:(i.time_status==='tbd'?'tbd':'none')}if(i.highlight!==undefined)e.big=!!i.highlight;return {ok:true}}},
  {name:'delete_event',description:'Delete an event by id.',inputSchema:{type:'object',properties:{id:{type:'number'}},required:['id']},
   execute:i=>{const n=S.events.length;S.events=S.events.filter(x=>x.id!==+i.id);return {ok:S.events.length<n}}},
- {name:'update_page',description:'Change how this page looks. Only send fields to change; send an empty string to reset a field to default. name: wordmark at top left (empty hides it). theme: text in the top ticker. themeLabel: small label before the theme (empty hides it). ticker: show the ticker. speed: slow|normal|fast. accent, background, ink, paper: hex colours like #23408e. displayFont, bodyFont: Google Fonts family names. dockHeight: chat height as % of screen, 15 to 70. weekStart: mon|sun. shTime: show Shanghai time under each event. weekend: give Saturday and Sunday a tinted style. showTheme: show the year theme in the ticker. The ticker otherwise shows only this month highlights and hides when there are none.',
-  inputSchema:{type:'object',properties:{name:{type:'string'},theme:{type:'string'},themeLabel:{type:'string'},ticker:{type:'boolean'},speed:{type:'string'},accent:{type:'string'},background:{type:'string'},ink:{type:'string'},paper:{type:'string'},displayFont:{type:'string'},bodyFont:{type:'string'},dockHeight:{type:'number'},weekStart:{type:'string'},shTime:{type:'boolean'},showTheme:{type:'boolean'},weekend:{type:'boolean'}}},
+ {name:'update_page',description:'Change how this page looks. Only send fields to change; send an empty string to reset a field to default. name: wordmark at top left (empty hides it). theme: text in the top ticker. themeLabel: small label before the theme (empty hides it). ticker: show the ticker. speed: slow|normal|fast. accent, background, ink, paper: hex colours like #23408e. displayFont, bodyFont: Google Fonts family names. weekStart: mon|sun. shTime: show Shanghai time under each event. weekend: give Saturday and Sunday a tinted style. showTheme: show the year theme in the ticker. The ticker otherwise shows only this month highlights and hides when there are none.',
+  inputSchema:{type:'object',properties:{name:{type:'string'},theme:{type:'string'},themeLabel:{type:'string'},ticker:{type:'boolean'},speed:{type:'string'},accent:{type:'string'},background:{type:'string'},ink:{type:'string'},paper:{type:'string'},displayFont:{type:'string'},bodyFont:{type:'string'},weekStart:{type:'string'},shTime:{type:'boolean'},showTheme:{type:'boolean'},weekend:{type:'boolean'}}},
   execute:i=>{const st=S.settings;for(const k of Object.keys(i)){if(['accent','background','ink','paper'].includes(k)&&i[k]&&!HEX.test(i[k]))throw new Error(k+' must be #rrggbb');if(/Font$/.test(k)&&i[k]&&!FONT_OK.test(i[k]))throw new Error('bad font name');st[k]=typeof i[k]==='string'?i[k].slice(0,80):i[k]}return {ok:true}}},
  {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), tri (a mark that cycles blank, good, bad), time (one clock time), number, text.',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','tri','time','number','text']}},required:['name','type']},
   execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','time','number','text'].includes(i.type)?i.type:'text',icon:'check',color:'slate'};S.fields.push(f);return {ok:true,id:f.id}}},
@@ -1339,6 +1368,43 @@ $('#file').addEventListener('change',ev=>{
  rd.readAsDataURL(f);ev.target.value='';
 });
 $('#q').addEventListener('focus',()=>$('#dock').classList.add('open'));
+/* Pull the grip to set the height, let go without moving to fold it. */
+(()=>{
+ const g=$('#grip'),d=$('#dock');if(!g)return;
+ let from=null,dragged=false;
+ g.addEventListener('pointerdown',ev=>{
+  dragged=false;
+  if(dockDown)return;                       /* folded: the tap speaks for itself */
+  from={y:ev.clientY,h:d.getBoundingClientRect().height};
+  try{g.setPointerCapture(ev.pointerId)}catch(e){}
+  d.classList.add('sizing');
+ });
+ g.addEventListener('pointermove',ev=>{
+  if(!from)return;
+  const {min,max}=dockLimits();
+  const h=Math.min(max,Math.max(min,Math.round(from.h+(from.y-ev.clientY))));
+  if(Math.abs(h-from.h)>2)dragged=true;
+  dockH=h;d.style.setProperty('--dockh',h+'px');
+ });
+ const stop=()=>{if(!from)return;from=null;d.classList.remove('sizing');if(dragged)rememberDock()};
+ g.addEventListener('pointerup',stop);
+ g.addEventListener('pointercancel',stop);
+ g.addEventListener('click',ev=>{
+  ev.preventDefault();
+  /* A drag ends in a click of its own; only a still tap folds. */
+  if(dragged){dragged=false;return}
+  dockDown=!dockDown;applyDock();rememberDock();
+ });
+ g.addEventListener('keydown',ev=>{
+  const {min,max}=dockLimits();
+  if(ev.key==='ArrowUp'||ev.key==='ArrowDown'){
+   ev.preventDefault();
+   dockH=Math.min(max,Math.max(min,(dockH||d.getBoundingClientRect().height)+(ev.key==='ArrowUp'?24:-24)));
+   dockDown=false;applyDock();rememberDock();
+  }
+ });
+ applyDock();
+})();
 const takeImage=f=>{if(!f||!/^image\//.test(f.type))return false;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);pendingImg=cv.toDataURL('image/jpeg',.8);$('#thumb').innerHTML=`<img src="${pendingImg}" alt="">`;$('#q').focus()};im.src=rd.result};rd.readAsDataURL(f);return true};
 ['dragenter','dragover'].forEach(t=>$('#dock').addEventListener(t,ev=>{if([...(ev.dataTransfer?.types||[])].includes('Files')){ev.preventDefault();$('#dock').classList.add('drag')}}));
 ['dragleave','drop'].forEach(t=>$('#dock').addEventListener(t,()=>$('#dock').classList.remove('drag')));

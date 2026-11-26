@@ -62,7 +62,7 @@ function connect(url) {
   };
 }
 
-export async function launch(dir, { headless = true } = {}) {
+export async function launch(dir, { headless = true, size = "1280,900" } = {}) {
   mkdirSync(dir, { recursive: true });
   const args = [
     "--user-data-dir=" + dir,
@@ -70,6 +70,7 @@ export async function launch(dir, { headless = true } = {}) {
     "--no-first-run", "--no-default-browser-check",
     "--disable-background-networking", "--disable-sync",
     "--password-store=basic", "--use-mock-keychain",
+    "--window-size=" + size,
     "about:blank"
   ];
   if (headless) args.unshift("--headless=new");
