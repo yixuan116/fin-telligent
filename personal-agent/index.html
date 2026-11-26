@@ -206,6 +206,18 @@ button.wkv.set{color:var(--ink)}
    menu over it, so the press stays ours. */
 .fnm{cursor:text;border-radius:5px;padding:0 3px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .fnm:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+/* An open name makes room for itself and for the one red thing on the
+   page. */
+.chkitem.naming{display:grid;grid-template-columns:auto auto;justify-items:center;align-items:center;gap:5px 8px;width:auto}
+.chkitem.naming>:first-child{grid-column:1/-1}
+.delnm{color:var(--f-coral);font-size:12px;padding:2px 6px;border-radius:7px;white-space:nowrap;flex:none}
+.delnm:hover{background:color-mix(in srgb,var(--f-coral) 12%,transparent)}
+.rmmk{color:var(--f-coral);font-size:13px;padding:0 8px;height:40px;border-radius:9px;flex:none}
+.rmmk:hover{background:color-mix(in srgb,var(--f-coral) 12%,transparent)}
+.tgl .plus{font-size:21px;line-height:1;color:var(--soft)}
+/* Two faces and a line that sits with them. */
+.pair{display:inline-flex;align-items:center;gap:6px}
+.pair .av{width:1.45em;height:1.45em;width:1lh;height:1lh;flex:none;vertical-align:middle}
 .fnm.editing{-webkit-user-select:text;user-select:text;display:block;-webkit-line-clamp:none;color:var(--ink);outline:none;background:color-mix(in srgb,var(--blue) 10%,transparent)}
 .fitem.gone b i{font-style:normal;color:var(--soft);font-size:12px}
 .fitem.gone .back{width:auto;padding:0 10px;font-size:13px;color:var(--blue)}
@@ -595,11 +607,12 @@ function prepare(){
  }
  /* The emoji the row offers. Anything an item already wears is offered
     again, so a face can always be given back. */
- {/* An emoji is anything that is not a lucide name; the test is spelled
-     out here because the icon helpers are declared further down. */
+ {/* The emoji added with the plus, and only those: the tick, the tick or
+     cross, Aa and the shoes are fixed and live in the code. An emoji is
+     anything that is not a lucide name, spelled out here because the
+     icon helpers are declared further down. */
   const named=v=>/^[a-z0-9-]+$/.test(String(v||''));
-  S.marks=Array.isArray(S.marks)?S.marks.filter(v=>typeof v==='string'&&v&&!named(v)).slice(0,24):['🩰'];
-  [...(S.fields||[]),...S.retired].forEach(f=>{if(f&&f.icon&&!named(f.icon)&&!S.marks.includes(f.icon))S.marks.push(f.icon)});}
+  S.marks=Array.isArray(S.marks)?S.marks.filter(v=>typeof v==='string'&&v&&!named(v)&&v!=='🩰').slice(0,24):[];}
  /* The drawing of every icon in use travels with the state; the library
     itself is only ever a search away. Anything no longer referenced is
     dropped, so this cannot grow without end. */
@@ -907,11 +920,18 @@ const markFace=m=>m==='tri'?`<span class="two">${icon('check')}${icon('x')}</spa
  :m==='text'?'<span class="aa">Aa</span>':icon(m);
 /* An emoji already worn by an item is always offered again, even if the
    list it was added from has since been replaced. */
-const markList=()=>['check','tri','text',...S.marks];
+/* Four are the furniture and stay; everything after them was added with
+   the plus and can be taken out again. An item already wearing one keeps
+   it either way, so the row also shows whatever is chosen right now. */
+const FIXED=['check','tri','text','🩰'];
 function markRow(cur,attr=''){
+ const opts=[...FIXED,...S.marks.filter(m=>!FIXED.includes(m))];
+ if(cur&&!opts.includes(cur))opts.push(cur);
+ const removable=S.marks.includes(cur)&&!FIXED.includes(cur);
  return `<span class="mrow" role="group" aria-label="What this item logs"${attr?' '+attr:''}>${
-  markList().map(m=>`<button class="mk2${m===cur?' on':''}" data-mk="${esc(m)}" aria-pressed="${m===cur}" title="${esc(markName(m))}" aria-label="${esc(markName(m))}">${markFace(m)}</button>`).join('')
- }<button class="mk2 addm" data-mkadd="1" title="Add an emoji" aria-label="Add an emoji">+</button></span>`;
+  opts.map(m=>`<button class="mk2${m===cur?' on':''}" data-mk="${esc(m)}" aria-pressed="${m===cur}" title="${esc(markName(m))}" aria-label="${esc(markName(m))}">${markFace(m)}</button>`).join('')
+ }<button class="mk2 addm" data-mkadd="1" title="Add an emoji" aria-label="Add an emoji">+</button>${
+  removable?`<button class="rmmk" data-mkrm="${esc(cur)}" aria-label="Remove ${esc(cur)} from the row">Remove</button>`:''}</span>`;
 }
 /* The plus hands the job to whatever emoji keyboard the device has: the
    keyboard's own emoji key on a phone, ctrl-cmd-space on a Mac. Whatever
@@ -923,7 +943,7 @@ function askEmoji(btn,then){
  let done=false;
  const take=()=>{if(done)return;done=true;
   const v=emoji(inp.value);inp.remove();
-  if(v&&!S.marks.includes(v)){S.marks=[...S.marks,v].slice(-24);save()}
+  if(v&&!S.marks.includes(v)&&!FIXED.includes(v)){S.marks=[...S.marks,v].slice(-24);save()}
   then(v||null)};
  const drop=()=>{if(done)return;done=true;inp.remove();then(null)};
  inp.addEventListener('input',()=>{if(emoji(inp.value))take()});
@@ -1030,8 +1050,8 @@ function sheetInner(){
   +(editing==='new'?form({date:sel,title:'',time:null,tmode:'none'}):`<button class="addev" data-act="new">+ Add to this day</button>`);
  return `
    <div class="daily">
-    <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em class="fnm" data-fnm="${f.id}" tabindex="0" title="Tap to rename, hold to remove">${esc(f.name)}</em></span>`).join('')}
-     <button class="tgl adding" data-addf="${sel}" aria-label="Add a daily item">${icon('check')}</button></div>
+    <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em class="fnm" data-fnm="${f.id}" tabindex="0" title="Tap to rename">${esc(f.name)}</em></span>`).join('')}
+     <button class="tgl adding" data-addf="${sel}" aria-label="Add a daily item"><span class="plus">+</span></button></div>
     <div id="addfield"></div></div>
    <div class="flex">${list.length?'<h4>Plans</h4>':''}${agenda}</div>
    ${(()=>{const d=doneOn(sel);return d.length?`<div class="donel"><h4>Done</h4>${d.map(t=>`<div class="dn"><b>✓</b><span>${esc(t.text)}</span></div>`).join('')}</div>`:''})()}`;
@@ -1388,7 +1408,8 @@ function reply(text,img){
  if(c.type!=='calendar')return {text:`Noted for ${c.name}. This canvas comes to life in the next build; for now the calendar is listening.`};
  const p=parse(text||'');
  if(img&&!p.date&&!p.time)return {text:'Screenshot received. In the live build, the model reads it and places the event for you. For this preview, add a line such as "Interview Dec 3 2pm".'};
- if(!p.date&&!p.time)return {text:'Cat and Raccoon went looking for a day and time. Try "Yixuan and Alex are getting closer to the same sunrise"'};
+ if(!p.date&&!p.time)return {text:'Yixuan and Alex are getting closer soon',
+  html:`<span class="pair"><img class="av" src="cat.svg" alt="" width="64" height="64"><img class="av" src="raccoon.svg" alt="" width="64" height="64">Yixuan and Alex are getting closer soon</span>`};
  const date=p.date||today,title=p.title||'Untitled';
  const big=/!|\bhighlight\b|大事|重要/i.test(text||'');
  const e={id:nid(),date:key(date),time:p.time,title:title.replace(/!+|\bhighlight\b|大事|重要/ig,'').trim()||'Untitled',big};
@@ -1653,7 +1674,6 @@ $('#canvas').addEventListener('input',ev=>{const el=ev.target;
    miss, so unticking removes the record rather than storing false. */
 $('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-chk]');if(!b)return;
  ev.preventDefault();ev.stopPropagation();
- if(longPressed)return;
  const f=fieldById(+b.dataset.chk);if(!f)return;
  const dk=b.dataset.d||sel;
  setVal(dk,f,!((S.vals[dk]||{})[f.id]));save();render()},true);
@@ -1662,7 +1682,6 @@ $('#canvas').addEventListener('keydown',ev=>{if(ev.target.id==='nf'&&ev.key==='E
 /* blank, good, bad, blank: one tap each, like ruling a line through a box
    and then crossing it out. */
 $('#canvas').addEventListener('click',ev=>{const t=ev.target.closest('[data-tri]');if(!t)return;ev.preventDefault();ev.stopPropagation();
- if(longPressed)return;
  const f=fieldById(+t.dataset.tri);if(!f)return;
  const dk=t.dataset.d||sel;
  setVal(dk,f,triNext((S.vals[dk]||{})[f.id]));save();render()},true);
@@ -1719,6 +1738,10 @@ function addFieldForm(host){
  $('#af-mark').addEventListener('click',e=>{
   const plus=e.target.closest('[data-mkadd]');
   if(plus){e.preventDefault();e.stopPropagation();askEmoji(plus,v=>{if(v)mk=v;drawMarks()});return}
+  const rm=e.target.closest('[data-mkrm]');
+  if(rm){e.preventDefault();e.stopPropagation();
+   const v=rm.dataset.mkrm;S.marks=S.marks.filter(m=>m!==v);save();
+   if(mk===v)mk='check';drawMarks();return}
   const b=e.target.closest('[data-mk]');if(!b)return;
   e.preventDefault();e.stopPropagation();mk=b.dataset.mk;drawMarks()});
  $('#af-color').addEventListener('click',e=>{const b=e.target.closest('[data-sw2]');if(!b)return;
@@ -1736,7 +1759,6 @@ function addFieldForm(host){
 }
 $('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-addf]');if(!b)return;
  ev.preventDefault();ev.stopPropagation();
- if(longPressed)return;
  sel=b.dataset.addf;sheet=true;render();
  const host=$('#addfield');if(host)addFieldForm(host);
 },true);
@@ -1766,11 +1788,12 @@ function restore(f){
    from today, and every day that holds a value still shows it. */
 let fmenu=null;
 function closeFieldMenu(){if(fmenu){fmenu.remove();fmenu=null}}
-function fieldMenu(f,x,y){
+function confirmRemove(f,x,y,after){
  closeFieldMenu();
  const m=document.createElement('div');
  m.className='fmenu';m.setAttribute('role','dialog');m.setAttribute('aria-label',f.name);
- m.innerHTML=`<p>${esc(f.name)}</p><button class="warn" data-fdel="${f.id}">Delete</button>`;
+ m.innerHTML=`<p>Delete ${esc(f.name)}? It leaves the list from today. A day that already holds a value for it still shows it, and Settings can bring it back.</p>
+  <button class="warn" data-fdel2="${f.id}">Delete</button><button data-fkeep="1">Keep it</button>`;
  document.body.appendChild(m);
  fmenu=m;
  const place=()=>{const r=m.getBoundingClientRect();
@@ -1780,41 +1803,20 @@ function fieldMenu(f,x,y){
  m.addEventListener('click',ev=>{
   const b=ev.target.closest('button');if(!b)return;
   ev.preventDefault();ev.stopPropagation();
-  if(b.dataset.fdel){
-   m.innerHTML=`<p>Delete ${esc(f.name)}? It leaves the list from today. A day that already holds a value for it still shows it.</p>
-    <button class="warn" data-fdel2="${f.id}">Delete</button><button data-fkeep="1">Keep it</button>`;
-   place();return}
-  if(b.dataset.fdel2){closeFieldMenu();retire(f);return}
   closeFieldMenu();
+  if(after)after();
+  if(b.dataset.fdel2)retire(f);
  });
 }
-/* The name under a cell is where this happens, never the cell itself: a
-   cell is for tapping, and a tap must only ever mean a tick. A name
-   holds no keyboard either, so the phone's own text menu cannot take the
-   press away from us, which is what it does inside a text cell. */
+/* A cell is for tapping and a tap is a tick: nothing else can be reached
+   from there, by press, by hold or by right click. Renaming and removing
+   both live on the name under the cell, where neither can be reached by
+   accident. */
 const nameAt=t=>{
  if(!t||!t.closest)return null;
  const n=t.closest('[data-fnm]');if(!n||n.isContentEditable)return null;
  const f=fieldById(+n.dataset.fnm);return f?{f,n}:null;
 };
-let longTimer=null,longPressed=false,pressAt=null;
-const startPress=ev=>{
- if(ev.isPrimary===false||(ev.button!==undefined&&ev.button>0))return;
- const hit=nameAt(ev.target);if(!hit)return;
- longPressed=false;pressAt={x:ev.clientX,y:ev.clientY};
- clearTimeout(longTimer);
- longTimer=setTimeout(()=>{longPressed=true;pressAt=null;
-  const r=hit.n.getBoundingClientRect();
-  fieldMenu(hit.f,r.left,r.bottom+6)},500);
-};
-/* A finger that travels is a scroll, not a press. */
-const movePress=ev=>{if(pressAt&&Math.hypot(ev.clientX-pressAt.x,ev.clientY-pressAt.y)>8){clearTimeout(longTimer);pressAt=null}};
-const endPress=()=>{clearTimeout(longTimer);pressAt=null;setTimeout(()=>{longPressed=false},0)};
-$('#canvas').addEventListener('pointerdown',startPress,true);
-$('#canvas').addEventListener('pointermove',movePress,true);
-['pointerup','pointercancel','pointerleave','scroll'].forEach(t=>$('#canvas').addEventListener(t,endPress,true));
-$('#canvas').addEventListener('contextmenu',ev=>{const hit=nameAt(ev.target);if(!hit)return;
- ev.preventDefault();fieldMenu(hit.f,ev.clientX,ev.clientY)});
 
 /* ---- the name of an item, changed where it is read ----
    The name belongs to the item (Sleep); what the cell holds belongs to
@@ -1822,24 +1824,38 @@ $('#canvas').addEventListener('contextmenu',ev=>{const hit=nameAt(ev.target);if(
 function editName(n){
  const f=fieldById(+n.dataset.fnm);if(!f||n.isContentEditable)return;
  const was=f.name;
+ const item=n.closest('.chkitem');if(item)item.classList.add('naming');
  n.contentEditable='plaintext-only';n.classList.add('editing');n.focus();
  const r=document.createRange();r.selectNodeContents(n);
  const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
+ /* Taking the item off is offered here and nowhere else, beside the open
+    name, and it still asks before it does anything. */
+ const del=document.createElement('button');
+ del.className='delnm';del.type='button';del.textContent='Delete';
+ del.setAttribute('aria-label',`Delete ${f.name}`);
+ n.after(del);
  const done=()=>{
   if(!n.isContentEditable)return;
   n.contentEditable='false';n.classList.remove('editing');
+  del.remove();if(item)item.classList.remove('naming');
   const v=n.textContent.replace(/\s+/g,' ').trim().slice(0,40);
   if(v&&v!==was){f.name=v;save();render();syncPanel()}
   else{n.textContent=was}
  };
- n.addEventListener('blur',done,{once:true});
+ /* Pointerdown, not click: a click would arrive after the name had lost
+    focus and taken this button away with it. */
+ del.addEventListener('pointerdown',e=>{
+  e.preventDefault();e.stopPropagation();
+  const b=del.getBoundingClientRect();
+  confirmRemove(f,b.left,b.bottom+6,done);
+ });
+ n.addEventListener('blur',()=>setTimeout(()=>{if(!fmenu)done()},0));
  n.addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();n.blur()}
   if(e.key==='Escape'){n.textContent=was;n.blur()}});
 }
 $('#canvas').addEventListener('click',ev=>{
  const hit=nameAt(ev.target);if(!hit)return;
- if(longPressed){ev.preventDefault();ev.stopPropagation();return}
  ev.preventDefault();ev.stopPropagation();editName(hit.n);},true);
 /* Anywhere else, and the question goes away unanswered. */
 document.addEventListener('pointerdown',ev=>{if(fmenu&&!ev.target.closest('.fmenu'))closeFieldMenu()},true);
@@ -1927,6 +1943,8 @@ $('#panel').addEventListener('click',ev=>{const b=ev.target.closest('button');if
  const mrow=b.closest('[data-fmk]');
  if(mrow){const f=S.fields.find(x=>x.id===+mrow.dataset.fmk);if(!f)return;
   if(b.dataset.mkadd){askEmoji(b,v=>{if(v)applyMark(f,v);save();render();syncPanel()});return}
+  /* Out of the row, but the items wearing it keep it. */
+  if(b.dataset.mkrm){S.marks=S.marks.filter(m=>m!==b.dataset.mkrm);save();syncPanel();return}
   if(b.dataset.mk){applyMark(f,b.dataset.mk);save();render();syncPanel()}return}
  const fsw=b.closest('[data-fsw]');
  if(fsw&&b.dataset.sw2){const f=S.fields.find(x=>x.id===+fsw.dataset.fsw);
