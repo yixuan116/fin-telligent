@@ -1281,7 +1281,7 @@ function reply(text,img){
  if(c.type!=='calendar')return {text:`Noted for ${c.name}. This canvas comes to life in the next build; for now the calendar is listening.`};
  const p=parse(text||'');
  if(img&&!p.date&&!p.time)return {text:'Screenshot received. In the live build, the model reads it and places the event for you. For this preview, add a line such as "Interview Dec 3 2pm".'};
- if(!p.date&&!p.time)return {text:'Cat and Raccoon went looking for a day and time. Try "Yixuan and Alex are getting closer to the same sunrise, tomorrow 7am"'};
+ if(!p.date&&!p.time)return {text:'Cat and Raccoon went looking for a day and time. Try "Yixuan and Alex are getting closer to the same sunrise"'};
  const date=p.date||today,title=p.title||'Untitled';
  const big=/!|\bhighlight\b|大事|重要/i.test(text||'');
  const e={id:nid(),date:key(date),time:p.time,title:title.replace(/!+|\bhighlight\b|大事|重要/ig,'').trim()||'Untitled',big};
