@@ -199,7 +199,7 @@ button.wkv.set{color:var(--ink)}
 
 /* The day's items, as a row of toggles with their names under them. */
 .chkrow{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:flex-start;padding:4px 0 12px}
-.chkitem{display:flex;flex-direction:column;align-items:center;gap:5px;width:60px;text-align:center}
+.chkitem{display:flex;flex-direction:column;align-items:center;gap:5px;width:60px;max-width:100%;min-width:0;text-align:center}
 .chkitem em{font-style:normal;font-size:11px;line-height:1.25;color:var(--soft);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .chkitem .wkv{height:44px}
 .chkitem:has(.wkv){width:auto}
@@ -226,7 +226,7 @@ button.wkv.set{color:var(--ink)}
 button.wkv.pht{padding:0;width:44px;overflow:hidden}
 button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .addf{display:grid;gap:8px;padding:10px 0 2px;border-top:1px solid var(--rule)}
-.addf .r{display:flex;gap:8px;align-items:center}
+.addf .r{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
 .addf input{flex:1;border:0;border-bottom:1px solid var(--rule);background:none;font-size:16px;padding:9px 0;outline:none;min-height:44px}
 .addf input:focus{border-color:var(--blue)}
 .addf select{border:1px solid var(--rule);border-radius:10px;background:none;font-size:15px;padding:10px;color:var(--ink);min-height:44px}
@@ -235,7 +235,6 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 /* ---- choosing a face and a colour ----
    The button shows the icon it holds; the swatches show the colours
    themselves. Nothing here is a list of names. */
-.pickb{width:44px;height:44px;flex:none;border:1px solid var(--rule);border-radius:11px;display:grid;place-items:center;color:var(--fc,var(--ink))}
 /* A field's colour wells. They were called .sw, which is also the name of
    the Appearance panel's colour row, so this rule was sizing that row to
    26px and spilling its swatches over everything below. Their own name
@@ -248,20 +247,43 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .emo{display:grid;place-items:center;font-size:15px;line-height:1;font-style:normal;overflow:visible}
 .tgl .emo{font-size:19px}
 .mk .emo{font-size:9px}
-.pickb .emo{font-size:20px}
 
 /* The settings list of items. */
 .flist{display:grid;gap:2px;padding:2px 0}
+/* The kinds as one row: a tick, a tick or a cross, free text, then every
+   emoji added so far, then a plus for one more. */
+.mrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.mk2{width:40px;height:40px;flex:none;border:1px solid var(--rule);border-radius:10px;display:grid;place-items:center;color:var(--ink)}
+.mk2:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.mk2.on{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.mk2 .two{display:flex;align-items:center;gap:1px}
+.mk2 .two .ic{width:13px;height:13px}
+.mk2.addm{color:var(--soft);font-size:21px;line-height:1}
+.aa{font-size:14px;line-height:1;letter-spacing:.02em}
+.emoin{width:64px;height:40px;flex:none;border:1px solid var(--blue);border-radius:10px;background:none;text-align:center;font-size:19px;padding:0;outline:none;color:var(--ink)}
+/* Free text is as wide as what it says, and no wider than the cell it
+   sits in. */
+.wkv.txt{max-width:100%}
+.wkv.txt input{max-width:100%;min-width:4ch}
+.wkv.txt input::placeholder{color:var(--soft);opacity:.6}
+/* One question, where the cell is. */
+.fmenu{position:fixed;z-index:60;min-width:190px;max-width:280px;display:grid;gap:6px;padding:10px;
+ border:1px solid var(--rule);border-radius:12px;background:var(--paper);box-shadow:0 10px 30px rgba(0,0,0,.14)}
+.fmenu p{margin:0;font-size:13px;color:var(--soft);line-height:1.45}
+.fmenu button{text-align:left;font-size:15px;padding:8px;border-radius:8px;min-height:40px}
+.fmenu button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.fmenu .warn{color:var(--f-coral)}
 .fitem{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--rule);min-height:44px}
 .fitem .ic{width:18px;height:18px;color:var(--fc,var(--f-slate))}
+.fitem .face{display:grid;place-items:center;color:var(--fc,var(--f-slate))}
+.fitem .face .two .ic{width:11px;height:11px}
+.fitem .face .aa{font-size:13px}
 .fitem b{font-weight:400;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fitem .acts{display:flex;gap:2px}
 .fitem .acts button{width:36px;height:36px;color:var(--soft);font-size:15px;border-radius:8px}
 .fitem .acts button:hover{color:var(--ink)}
 .fitem .acts .rm:hover{color:var(--f-coral)}
-.fitem .sel2{grid-column:1/-1;display:flex;gap:8px;padding-bottom:2px}
-.fitem .sel2 select{flex:1;min-width:0;border:1px solid var(--rule);border-radius:9px;background:none;font-size:14px;padding:8px;color:var(--ink);min-height:40px}
-.fitem .sel2 .pickb{width:40px;height:40px}
+.fitem .sel2{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding-bottom:2px}
 .fitem input.nm{border:0;background:none;font-size:15px;padding:4px 0;outline:none;width:100%;color:var(--ink)}
 .fitem input.nm:focus{border-bottom:1px solid var(--blue)}
 .hint2{font-size:12px;color:var(--soft);margin:8px 0 0;line-height:1.5}
@@ -555,6 +577,20 @@ function prepare(){
   [...(S.fields||[]),...S.retired].forEach(f=>{if(f&&moved[f.color])f.color=moved[f.color]});
   S.m11=true;
  }
+ /* One row of marks replaced the kind dropdown: a time or a number is
+    free text now, and every character already typed stays as typed. A
+    photo keeps its own kind, so the pictures still show. */
+ if(!S.m12){
+  [...(S.fields||[]),...S.retired].forEach(f=>{if(f&&(f.type==='time'||f.type==='number'))f.type='text'});
+  S.m12=true;
+ }
+ /* The emoji the row offers. Anything an item already wears is offered
+    again, so a face can always be given back. */
+ {/* An emoji is anything that is not a lucide name; the test is spelled
+     out here because the icon helpers are declared further down. */
+  const named=v=>/^[a-z0-9-]+$/.test(String(v||''));
+  S.marks=Array.isArray(S.marks)?S.marks.filter(v=>typeof v==='string'&&v&&!named(v)).slice(0,24):['🩰'];
+  [...(S.fields||[]),...S.retired].forEach(f=>{if(f&&f.icon&&!named(f.icon)&&!S.marks.includes(f.icon))S.marks.push(f.icon)});}
  /* The drawing of every icon in use travels with the state; the library
     itself is only ever a search away. Anything no longer referenced is
     dropped, so this cannot grow without end. */
@@ -748,6 +784,9 @@ function fieldsOn(dk){
  return S.fields.concat(S.retired.filter(f=>vs[f.id]!==undefined));
 }
 const triNext=v=>v==='good'?'bad':v==='bad'?'':'good';
+/* Wide enough for what is written, and no wider; the cell's own maximum
+   stops it running off a phone. */
+const chw=v=>Math.min(42,Math.max(4,String(v??'').length+1))+'ch';
 
 /* One toggle or one small value, the same in the week and in the day
    sheet. `dk` is the day it writes to.
@@ -782,7 +821,14 @@ function control(f,dk,compact){
    ${cur.photo?`<button class="phx" data-phx="${f.id}" data-d="${dk}" aria-label="Remove photo">\u00d7</button>`:''}
   </div>`;
  }
- if(compact)
+ if(f.type==='text'){
+  /* Free text shows all of what it holds: the box grows with the writing
+     rather than cutting it off, and wears no tick to be mistaken for
+     one. */
+  if(compact)
+   return `<button class="wkv txt${shown?' set':''}" ${st} data-day="${dk}" title="${lbl}" aria-label="${lbl}${shown?': '+esc(shown):''}">${shown?`<b>${esc(shown)}</b>`:'<span class="aa">Aa</span>'}</button>`;
+  return `<label class="wkv txt${v?' set':''}" ${st} title="${lbl}"><input type="text" data-f="${f.id}" data-d="${dk}" value="${esc(v??'')}" style="width:${chw(v)}" placeholder="Aa" aria-label="${lbl}"></label>`;
+ }
  if(compact)
   /* Empty, the icon says what it is; filled, the value does, and the
      colour of the border keeps it tied to its field. */
@@ -833,10 +879,48 @@ const ficon=f=>(f&&f.icon&&(svgFor(f.icon)||!isName(f.icon)))?f.icon:'check';
 /* The box left of the colours holds the mark, and there are two of them:
    a tick, or a pair of pointe shoes. Tapping it turns one into the other,
    and a field that wears neither starts at the tick. */
-const MARKS=['check','🩰'];
-const markName={'check':'tick','🩰':'pointe shoes'};
-const nextMark=v=>MARKS[(MARKS.indexOf(v)+1)%MARKS.length];
-const markLabel=v=>`Mark: ${markName[v]||'tick'}. Tap to change.`;
+/* What an item logs is one choice, not two. A tick, a tick-or-cross, or
+   free text; or an emoji, which ticks like a tick and is the face of the
+   item as well. The row is the whole vocabulary, and the plus adds to
+   it. */
+const markOf=f=>!f?'':f.type==='tri'?'tri'
+ :(f.type==='text'||f.type==='time'||f.type==='number')?'text'
+ :f.type==='check'?((f.icon&&!isName(f.icon))?f.icon:'check'):'';
+function applyMark(f,m){
+ if(m==='tri'){f.type='tri';f.icon='check'}
+ else if(m==='text'){f.type='text';f.icon='check'}
+ else if(m==='check'){f.type='check';f.icon='check'}
+ else{f.type='check';f.icon=m}
+ return f;
+}
+const markName=m=>m==='tri'?'Tick or cross':m==='text'?'Free text':m==='check'?'Tick':m;
+const markFace=m=>m==='tri'?`<span class="two">${icon('check')}${icon('x')}</span>`
+ :m==='text'?'<span class="aa">Aa</span>':icon(m);
+/* An emoji already worn by an item is always offered again, even if the
+   list it was added from has since been replaced. */
+const markList=()=>['check','tri','text',...S.marks];
+function markRow(cur,attr=''){
+ return `<span class="mrow" role="group" aria-label="What this item logs"${attr?' '+attr:''}>${
+  markList().map(m=>`<button class="mk2${m===cur?' on':''}" data-mk="${esc(m)}" aria-pressed="${m===cur}" title="${esc(markName(m))}" aria-label="${esc(markName(m))}">${markFace(m)}</button>`).join('')
+ }<button class="mk2 addm" data-mkadd="1" title="Add an emoji" aria-label="Add an emoji">+</button></span>`;
+}
+/* The plus hands the job to whatever emoji keyboard the device has: the
+   keyboard's own emoji key on a phone, ctrl-cmd-space on a Mac. Whatever
+   lands in the box joins the row and stays there. */
+function askEmoji(btn,then){
+ const inp=document.createElement('input');
+ inp.className='emoin';inp.placeholder='emoji';inp.setAttribute('aria-label','Pick an emoji');
+ btn.replaceWith(inp);inp.focus();
+ let done=false;
+ const take=()=>{if(done)return;done=true;
+  const v=emoji(inp.value);inp.remove();
+  if(v&&!S.marks.includes(v)){S.marks=[...S.marks,v].slice(-24);save()}
+  then(v||null)};
+ const drop=()=>{if(done)return;done=true;inp.remove();then(null)};
+ inp.addEventListener('input',()=>{if(emoji(inp.value))take()});
+ inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();take()}if(e.key==='Escape')drop()});
+ inp.addEventListener('blur',()=>setTimeout(take,0));
+}
 /* "2315", "23:15", "11:15pm", "11.15", "7", "7am" are all a time. Anything
    else is kept exactly as it was typed: a note beats a rejection, and
    nothing here ever refuses to save. */
@@ -1318,7 +1402,7 @@ const TOOLS=()=>[
   inputSchema:{type:'object',properties:{name:{type:'string'},theme:{type:'string'},themeLabel:{type:'string'},ticker:{type:'boolean'},speed:{type:'string'},accent:{type:'string'},background:{type:'string'},ink:{type:'string'},paper:{type:'string'},displayFont:{type:'string'},bodyFont:{type:'string'},weekStart:{type:'string'},shTime:{type:'boolean'},showTheme:{type:'boolean'},weekend:{type:'boolean'}}},
   execute:i=>{const st=S.settings;for(const k of Object.keys(i)){if(['accent','background','ink','paper'].includes(k)&&i[k]&&!HEX.test(i[k]))throw new Error(k+' must be #rrggbb');if(/Font$/.test(k)&&i[k]&&!FONT_OK.test(i[k]))throw new Error('bad font name');st[k]=typeof i[k]==='string'?i[k].slice(0,80):i[k]}return {ok:true}}},
  {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), tri (a mark that cycles blank, good, bad), time (one clock time), number, text.',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','tri','time','number','text']}},required:['name','type']},
-  execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','time','number','text'].includes(i.type)?i.type:'text',icon:'check',color:'c1'};S.fields.push(f);return {ok:true,id:f.id}}},
+  execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','text'].includes(i.type)?i.type:'text',icon:'check',color:'c1'};S.fields.push(f);return {ok:true,id:f.id}}},
  {name:'remove_field',description:'Remove a daily field by id.',inputSchema:{type:'object',properties:{id:{type:'number'}},required:['id']},
   execute:i=>{const n=S.fields.length;S.fields=S.fields.filter(f=>f.id!==+i.id);return {ok:S.fields.length<n}}},
  {name:'set_value',description:'Record a daily field value on a date (YYYY-MM-DD). check: true/false. tri: good or bad. number: a number. text: a string. time: a clock time, loose forms such as 2315 or 11:15pm are accepted. range: from and to as HH:MM (24h). Send an empty value to clear.',inputSchema:{type:'object',properties:{field_id:{type:'number'},date:{type:'string'},value:{},from:{type:'string'},to:{type:'string'}},required:['field_id','date']},
@@ -1553,6 +1637,9 @@ $('#canvas').addEventListener('change',ev=>{const el=ev.target.closest('[data-f]
  else v=el.value.trim().slice(0,200);
  setVal(dk,f,v);save();render()});
 
+$('#canvas').addEventListener('input',ev=>{const el=ev.target;
+ if(el.matches&&el.matches('.wkv.txt input'))el.style.width=chw(el.value)},true);
+
 /* A check-in is on or it is nothing: an empty box is never recorded as a
    miss, so unticking removes the record rather than storing false. */
 $('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-chk]');if(!b)return;
@@ -1603,32 +1690,33 @@ function healIcons(){
    A plus at the end of the row adds an item; a long press on one takes it
    off the list. Taking it off never touches a day that already has a
    value: the field moves to the archive and those days still show it. */
-/* `range` still renders wherever it was used, but a new field is one of
-   these: a time is typed, and a photo carries its own note and time. */
-const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],['number','Number'],['text','Text'],['photo','Photo']]
- .map(([v,l])=>`<option value="${v}"${v===sel?' selected':''}>${l}</option>`).join('');
+/* `range`, `time`, `number` and `photo` still render wherever they were
+   used; what can be made now is the row of marks and nothing else. */
 /* The colours are shown, not named. */
 const swatches=cur=>COLORS.map(c=>`<button class="cw${c===cur?' on':''}" data-sw2="${c}" style="--c:var(--f-${c})" aria-label="${c}" aria-pressed="${c===cur}"></button>`).join('');
 
 function addFieldForm(host){
- let ic='check',co='c1';
+ let mk='check',co='c1';
  host.innerHTML=`<div class="addf">
   <div class="r"><input id="af-name" placeholder="Name" aria-label="Item name" autocomplete="off"></div>
   <div class="r">
-   <button class="pickb" id="af-icon" aria-label="${markLabel(ic)}">${icon(ic)}</button>
+   <span id="af-mark">${markRow(mk)}</span>
    <span class="sws" id="af-color">${swatches(co)}</span>
-   <select id="af-type" aria-label="Kind">${typeOptions('check')}</select>
   </div>
   <div class="r"><button class="ok" id="af-add">Add</button><button class="cancel" id="af-cancel">Cancel</button></div>
  </div>`;
  const name=$('#af-name');name.focus();
- $('#af-icon').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();
-  ic=nextMark(ic);const b=$('#af-icon');b.innerHTML=icon(ic);b.setAttribute('aria-label',markLabel(ic))});
+ const drawMarks=()=>{$('#af-mark').innerHTML=markRow(mk)};
+ $('#af-mark').addEventListener('click',e=>{
+  const plus=e.target.closest('[data-mkadd]');
+  if(plus){e.preventDefault();e.stopPropagation();askEmoji(plus,v=>{if(v)mk=v;drawMarks()});return}
+  const b=e.target.closest('[data-mk]');if(!b)return;
+  e.preventDefault();e.stopPropagation();mk=b.dataset.mk;drawMarks()});
  $('#af-color').addEventListener('click',e=>{const b=e.target.closest('[data-sw2]');if(!b)return;
   e.preventDefault();e.stopPropagation();co=b.dataset.sw2;$('#af-color').innerHTML=swatches(co)});
  const add=()=>{
   const n=name.value.trim();if(!n)return;
-  S.fields.push({id:nid(),name:n.slice(0,40),type:$('#af-type').value,icon:ic,color:co});
+  S.fields.push(applyMark({id:nid(),name:n.slice(0,40),color:co},mk));
   /* The form closes with the add, so a second tap cannot repeat it. */
   host.innerHTML='';
   save();render();syncPanel();
@@ -1648,22 +1736,63 @@ function retire(f){
  S.fields=S.fields.filter(x=>x.id!==f.id);
  if(!S.retired.some(x=>x.id===f.id))S.retired.push(f);
  save();render();syncPanel();
- note(`${f.name} is off the daily list. Days that already have it keep it.`);
+ note(`${f.name} is off the list. Days that already have it keep it.`);
  setTimeout(()=>note(''),4000);
 }
-/* A press held on an item takes it off the list. The flag stops the tap
-   that ends the press from also toggling the value. */
+/* ---- taking an item off the list ----
+   A press held on a cell, or a right click, asks; the asking is in two
+   steps, because this is the one thing here that cannot be undone from
+   the page. Nothing already written is touched: the item stops appearing
+   from today, and every day that holds a value still shows it. */
+let fmenu=null;
+function closeFieldMenu(){if(fmenu){fmenu.remove();fmenu=null}}
+function fieldMenu(f,x,y){
+ closeFieldMenu();
+ const m=document.createElement('div');
+ m.className='fmenu';m.setAttribute('role','dialog');m.setAttribute('aria-label',f.name);
+ m.innerHTML=`<p>${esc(f.name)}</p><button class="warn" data-fdel="${f.id}">Delete</button>`;
+ document.body.appendChild(m);
+ fmenu=m;
+ const place=()=>{const r=m.getBoundingClientRect();
+  m.style.left=Math.round(Math.max(8,Math.min(x,window.innerWidth-r.width-8)))+'px';
+  m.style.top=Math.round(Math.max(8,Math.min(y,window.innerHeight-r.height-8)))+'px'};
+ place();
+ m.addEventListener('click',ev=>{
+  const b=ev.target.closest('button');if(!b)return;
+  ev.preventDefault();ev.stopPropagation();
+  if(b.dataset.fdel){
+   m.innerHTML=`<p>Delete ${esc(f.name)}? It leaves the list from today. A day that already holds a value for it still shows it.</p>
+    <button class="warn" data-fdel2="${f.id}">Delete</button><button data-fkeep="1">Keep it</button>`;
+   place();return}
+  if(b.dataset.fdel2){closeFieldMenu();retire(f);return}
+  closeFieldMenu();
+ });
+}
+/* The cell under the pointer, and the item it belongs to. */
+const fieldAt=t=>{
+ if(!t||!t.closest)return null;
+ if(t.closest('input,textarea,[contenteditable="true"],[contenteditable="plaintext-only"]'))return null;
+ const h=t.closest('[data-item],[data-chk],[data-tri]');if(!h)return null;
+ return fieldById(+(h.dataset.item||h.dataset.chk||h.dataset.tri))||null;
+};
 let longTimer=null,longPressed=false;
 const startPress=ev=>{
- const holder=ev.target.closest('[data-chk],[data-tri]');if(!holder)return;
- const f=fieldById(+(holder.dataset.chk||holder.dataset.tri));if(!f)return;
+ const f=fieldAt(ev.target);if(!f)return;
+ const holder=ev.target.closest('[data-item],[data-chk],[data-tri]');
  longPressed=false;
  clearTimeout(longTimer);
- longTimer=setTimeout(()=>{longPressed=true;retire(f)},600);
+ longTimer=setTimeout(()=>{longPressed=true;
+  const r=holder.getBoundingClientRect();
+  fieldMenu(f,r.left,r.bottom+6)},600);
 };
 const endPress=()=>{clearTimeout(longTimer);setTimeout(()=>{longPressed=false},0)};
 $('#canvas').addEventListener('pointerdown',startPress,true);
 ['pointerup','pointercancel','pointerleave','scroll'].forEach(t=>$('#canvas').addEventListener(t,endPress,true));
+$('#canvas').addEventListener('contextmenu',ev=>{const f=fieldAt(ev.target);if(!f)return;
+ ev.preventDefault();fieldMenu(f,ev.clientX,ev.clientY)});
+/* Anywhere else, and the question goes away unanswered. */
+document.addEventListener('pointerdown',ev=>{if(fmenu&&!ev.target.closest('.fmenu'))closeFieldMenu()},true);
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeFieldMenu()});
 
 /* keyboard on day cells, enter key in form */
 $('#canvas').addEventListener('keydown',ev=>{const d=ev.target.closest&&ev.target.closest('[data-day]');if(d&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();d.click()}
@@ -1696,7 +1825,7 @@ function renderFieldList(){
  const host=$('#flist');if(!host)return;
  host.innerHTML=S.fields.length?S.fields.map((f,i)=>`
   <div class="fitem" style="--fc:${fcol(f)}">
-   ${icon(ficon(f))}
+   <span class="face">${markFace(markOf(f))}</span>
    <input class="nm" data-fname="${f.id}" value="${esc(f.name)}" aria-label="Name">
    <span class="acts">
     <button data-fup="${f.id}" aria-label="Move up"${i?'':' disabled style="opacity:.3"'}>↑</button>
@@ -1704,9 +1833,8 @@ function renderFieldList(){
     <button class="rm" data-frm="${f.id}" aria-label="Remove ${esc(f.name)}">×</button>
    </span>
    <span class="sel2">
-    <button class="pickb" data-fpick="${f.id}" aria-label="${esc(f.name)}. ${markLabel(ficon(f))}">${icon(ficon(f))}</button>
+    ${markRow(markOf(f),`data-fmk="${f.id}"`)}
     <span class="sws" data-fsw="${f.id}">${swatches(f.color)}</span>
-    <select data-ftype="${f.id}" aria-label="Kind">${typeOptions(f.type)}</select>
    </span>
   </div>`).join(''):'<p class="hint2">Nothing yet. Add what you want to log each day.</p>';
 }
@@ -1723,13 +1851,6 @@ const setK=(k,v)=>{S.settings[k]=v;save();render()};
 $('#gear').addEventListener('click',()=>{syncPanel();$('#panel').classList.add('open');$('#panel').setAttribute('aria-hidden','false')});
 $('#pclose').addEventListener('click',()=>{$('#panel').classList.remove('open');$('#panel').setAttribute('aria-hidden','true')});
 /* The list: rename, re-icon, recolour, reorder, remove. */
-$('#panel').addEventListener('change',ev=>{
- const el=ev.target,id=+(el.dataset.ftype||0);
- if(!id)return;
- const f=S.fields.find(x=>x.id===id);if(!f)return;
- if(el.dataset.ftype)f.type=el.value;
- save();render();syncPanel();
-});
 $('#panel').addEventListener('input',ev=>{const el=ev.target;
  if(el.dataset.fname){const f=S.fields.find(x=>x.id===+el.dataset.fname);if(f){f.name=el.value.slice(0,40);save();render()}return}
  if(el.dataset.k){setK(el.dataset.k,el.type==='range'?+el.value:el.value)}
@@ -1740,8 +1861,10 @@ $('#panel').addEventListener('click',ev=>{const b=ev.target.closest('button');if
  if(move){const id=+move,i=S.fields.findIndex(f=>f.id===id),j=i+(b.dataset.fup?-1:1);
   if(i>=0&&j>=0&&j<S.fields.length){const[x]=S.fields.splice(i,1);S.fields.splice(j,0,x);save();render();syncPanel()}return}
  if(b.dataset.frm){const f=S.fields.find(x=>x.id===+b.dataset.frm);if(f)retire(f);return}
- if(b.dataset.fpick){const f=S.fields.find(x=>x.id===+b.dataset.fpick);
-  if(f){f.icon=nextMark(ficon(f));save();render();syncPanel()}return}
+ const mrow=b.closest('[data-fmk]');
+ if(mrow){const f=S.fields.find(x=>x.id===+mrow.dataset.fmk);if(!f)return;
+  if(b.dataset.mkadd){askEmoji(b,v=>{if(v)applyMark(f,v);save();render();syncPanel()});return}
+  if(b.dataset.mk){applyMark(f,b.dataset.mk);save();render();syncPanel()}return}
  const fsw=b.closest('[data-fsw]');
  if(fsw&&b.dataset.sw2){const f=S.fields.find(x=>x.id===+fsw.dataset.fsw);
   if(f){f.color=b.dataset.sw2;save();render();syncPanel()}return}

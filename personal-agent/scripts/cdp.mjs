@@ -104,6 +104,13 @@ export async function launch(dir, { headless = true, size = "1280,900" } = {}) {
           }
           return r.result.value;
         },
+        /* A phone-sized viewport. Headless Chrome will not shrink its
+           window below about 500px, so the size a page sees is set here
+           rather than on the command line. */
+        async emulate({ width, height = 844, dpr = 2, mobile = true }) {
+          await conn.send("Emulation.setDeviceMetricsOverride",
+            { width, height, deviceScaleFactor: dpr, mobile }, sessionId);
+        },
         async goto(to) {
           await conn.send("Page.navigate", { url: to }, sessionId);
           await page.ready();
