@@ -25,7 +25,15 @@
 --bg:light-dark(#fcfcfa,#101114);--paper:light-dark(#ffffff,#16171b);
 --ink:light-dark(#141414,#ecebe6);--soft:light-dark(#6f6d68,#9b9993);
 --rule:light-dark(#e6e4df,#2a2b30);--blue:light-dark(#23408e,#8ea8ec);
---wash:light-dark(#eef1f8,#1c2233)}
+--wash:light-dark(#eef1f8,#1c2233);
+/* Field identity, every colour of it here and nowhere else. A field stores
+   the key, "sage"; the stylesheet owns what sage is. Muted, no emoji. */
+--f-indigo:light-dark(#4b4f7d,#9095cd);      /* dusk, for bedtime */
+--f-sage:light-dark(#5c7a5e,#93b094);        /* green, for weight and for done */
+--f-coral:light-dark(#b16a5a,#d99486);       /* muted, for a cross */
+--f-terracotta:light-dark(#a86549,#d49074);  /* warm, for dinner */
+--f-slate:light-dark(#596371,#9aa4b4);       /* the quiet default */
+--done:var(--f-sage)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%}
@@ -94,7 +102,7 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .dow span{font-size:12px;color:var(--soft);padding:0 0 8px 8px}
 .grid{border-top:1px solid var(--ink);border-left:1px solid var(--rule)}
-.day{min-height:clamp(58px,9.2dvh,96px);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left;display:flex;flex-direction:column;gap:3px;background:var(--paper);transition:background .25s}
+.day{min-height:clamp(86px,13dvh,132px);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left;display:flex;flex-direction:column;gap:3px;background:var(--paper);transition:background .25s}
 .day:hover{background:var(--wash)}
 .day.out{background:transparent;color:var(--soft);opacity:.55}
 .wkend .day.we:not(.out){background:var(--wash)}
@@ -112,6 +120,74 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .fd input:focus{border-bottom-color:var(--blue)}
 .fd .rg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.fd .rg input{width:7.6em}.fd .rg em{font-style:normal;color:var(--soft);font-size:13px;white-space:nowrap}
 .fd .x{color:var(--soft);opacity:.0;font-size:18px;width:28px;height:28px}.fd:hover .x,.fd:focus-within .x{opacity:1}
+/* One toggle, three places: the week row, the day sheet, the settings
+   list. 44px square so a thumb can find it. */
+.ic{width:20px;height:20px;display:block;flex:none}
+.tgl{width:44px;height:44px;border:1px solid var(--rule);border-radius:11px;display:grid;place-items:center;color:var(--soft);background:none;flex:none}
+.tgl .ic{color:var(--fc,var(--f-slate));opacity:.45}
+.tgl.on{border-color:var(--done);background:color-mix(in srgb,var(--done) 12%,transparent)}
+.tgl.on .ic{color:var(--done);opacity:1}
+.tgl.good{border-color:var(--f-sage);background:color-mix(in srgb,var(--f-sage) 12%,transparent)}
+.tgl.good .ic{color:var(--f-sage);opacity:1}
+.tgl.bad{border-color:var(--f-coral);background:color-mix(in srgb,var(--f-coral) 12%,transparent)}
+.tgl.bad .ic{color:var(--f-coral);opacity:1}
+.tgl.adding{border-style:dashed}
+.fname{display:flex;align-items:center;gap:8px;min-width:0}
+.fname .ic{width:17px;height:17px;color:var(--fc,var(--f-slate))}
+.fname span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* The week, one row a day, its fields running across. */
+.week{max-width:760px;margin:0 auto}
+.wk{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.wk:last-of-type{border-bottom:1px solid var(--rule)}
+.wk.today .wd b{background:var(--ink);color:var(--bg)}
+.wd{display:flex;align-items:center;gap:7px;min-height:44px;color:var(--ink);font-size:16px}
+.wd b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:500;font-size:15px;flex:none}
+.wd i{font-style:normal;color:var(--soft);font-size:13px}
+.wkf{display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;padding:1px 0}
+.wkf::-webkit-scrollbar{display:none}
+.wkv{display:flex;align-items:center;gap:6px;height:44px;padding:0 10px;border:1px solid var(--rule);border-radius:11px;font-size:16px;flex:none;color:var(--ink)}
+.wkv .ic{width:17px;height:17px;color:var(--fc,var(--f-slate));opacity:.75}
+.wkv input{border:0;background:none;outline:none;font-size:16px;width:4.6em;padding:0;color:inherit}
+.wkv input[type=time]{width:6.4em}
+.wkv.set{border-color:var(--fc,var(--f-slate))}
+.wkv b{font-weight:400;font-size:15px;font-variant-numeric:tabular-nums}
+button.wkv{padding:0 9px;gap:5px;color:var(--soft)}
+button.wkv.set{color:var(--ink)}
+/* A day with plans says so beside its number, so the row of fields keeps
+   the whole width it has. */
+.wd u{width:5px;height:5px;border-radius:50%;background:var(--blue);display:block;flex:none;text-decoration:none}
+
+/* The day's items, as a row of toggles with their names under them. */
+.chkrow{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:flex-start;padding:4px 0 12px}
+.chkitem{display:flex;flex-direction:column;align-items:center;gap:5px;width:60px;text-align:center}
+.chkitem em{font-style:normal;font-size:11px;line-height:1.25;color:var(--soft);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.chkitem .wkv{height:44px}
+.chkitem:has(.wkv){width:auto}
+.addf{display:grid;gap:8px;padding:10px 0 2px;border-top:1px solid var(--rule)}
+.addf .r{display:flex;gap:8px;align-items:center}
+.addf input{flex:1;border:0;border-bottom:1px solid var(--rule);background:none;font-size:16px;padding:9px 0;outline:none;min-height:44px}
+.addf input:focus{border-color:var(--blue)}
+.addf select{border:1px solid var(--rule);border-radius:10px;background:none;font-size:15px;padding:10px;color:var(--ink);min-height:44px}
+.addf .ok{color:var(--blue);font-size:15px;min-height:44px;padding:0 6px}
+.addf .cancel{color:var(--soft);font-size:15px;min-height:44px;padding:0 6px}
+
+/* The settings list of items. */
+.flist{display:grid;gap:2px;padding:2px 0}
+.fitem{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--rule);min-height:44px}
+.fitem .ic{width:18px;height:18px;color:var(--fc,var(--f-slate))}
+.fitem b{font-weight:400;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fitem .acts{display:flex;gap:2px}
+.fitem .acts button{width:36px;height:36px;color:var(--soft);font-size:15px;border-radius:8px}
+.fitem .acts button:hover{color:var(--ink)}
+.fitem .acts .rm:hover{color:var(--f-coral)}
+.fitem .sel2{grid-column:1/-1;display:flex;gap:8px;padding-bottom:2px}
+.fitem .sel2 select{flex:1;min-width:0;border:1px solid var(--rule);border-radius:9px;background:none;font-size:14px;padding:8px;color:var(--ink);min-height:40px}
+.fitem input.nm{border:0;background:none;font-size:15px;padding:4px 0;outline:none;width:100%;color:var(--ink)}
+.fitem input.nm:focus{border-bottom:1px solid var(--blue)}
+.hint2{font-size:12px;color:var(--soft);margin:8px 0 0;line-height:1.5}
+
+/* Adding an item without leaving the day. */
 .newf{display:flex;gap:8px;align-items:center;margin-top:6px}
 .newf input{flex:1;border:0;border-bottom:1px solid var(--rule);background:none;font-size:15px;padding:8px 0;outline:none}
 .newf input:focus{border-color:var(--blue)}
@@ -195,6 +271,22 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
  .top{gap:16px}.mark{font-size:21px}
  .cal{grid-template-columns:minmax(0,1fr)}
  .day{min-height:52px;padding:5px;align-items:center}
+ /* The week is the phone's calendar; the sheet is where a day is edited. */
+ .week{max-width:none}
+ .mhead{margin-bottom:12px}
+ h1{font-size:clamp(26px,7vw,34px)}
+ .nav button{width:44px;height:44px}
+ .chkitem{width:56px}
+ .tgl,.wkv{min-height:44px}
+ /* Five items and a date fit across a phone without a sideways scroll. */
+ .wk{grid-template-columns:46px minmax(0,1fr);gap:8px}
+ .wd{gap:5px}
+ .wd b{width:28px;height:28px;font-size:14px}
+ .wd i{display:none}
+ .wkf{gap:6px}
+ button.wkv{max-width:82px;padding:0 8px}
+ button.wkv b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .agenda .daily{padding-bottom:4px}
  .day .n{margin:0;font-size:13px}
  .chip{font-size:0;width:5px;height:5px}.chip::before{margin:0}
  /* Dots, not titles, so they run across the cell: the column direction
@@ -252,6 +344,12 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
  <label class="pf"><span>Ticker label</span><input type="text" data-k="themeLabel" placeholder="Optional"></label>
  <div class="pf"><span>Ticker</span><div class="seg" data-seg="ticker"><button data-v="true">Show</button><button data-v="false">Hide</button></div></div>
  <div class="pf"><span>Ticker speed</span><div class="seg" data-seg="speed"><button data-v="slow">Slow</button><button data-v="normal">Normal</button><button data-v="fast">Fast</button></div></div>
+ <div class="pf"><span>Daily items</span>
+  <div class="flist" id="flist"></div>
+  <button class="ok" id="pf-new" style="color:var(--blue);font-size:15px;min-height:44px;text-align:left">+ Add an item</button>
+  <div id="pf-add"></div>
+  <p class="hint2">Changes apply from now on. A day that already has a value keeps it.</p>
+ </div>
  <div class="pf"><span>Accent</span><div class="sw" data-sw="accent"></div></div>
  <div class="pf"><span>Background</span><div class="sw" data-sw="background"></div></div>
  <label class="pf"><span>Title font</span><select data-k="displayFont"><option value="">Cormorant Garamond</option><option>Playfair Display</option><option>Fraunces</option><option>DM Serif Display</option><option>Libre Caslon Text</option><option>Instrument Serif</option><option>Inter</option></select></label>
@@ -296,6 +394,20 @@ function prepare(){
  delete S.habits;delete S.checks;
  if(S.settings.weekend===undefined)S.settings.weekend=true;
  S.tasks=S.tasks||{};
+
+ /* Fields gain an icon and a colour, and a removed one is archived rather
+    than dropped, so a day that already carries its value keeps the name it
+    was written under. Nothing recorded is touched. */
+ if(!S.m10){
+  const guess=n=>{const t=String(n).toLowerCase();
+   if(/bed|lights|asleep/.test(t))return['moon','indigo'];
+   if(/weight|scale|kg|lb/.test(t))return['scale','sage'];
+   if(/dinner|lunch|breakfast|meal|eat|food/.test(t))return['utensils','terracotta'];
+   return['check','slate']};
+  (S.fields||[]).forEach(f=>{const[i,c]=guess(f.name);if(!f.icon)f.icon=i;if(!f.color)f.color=c});
+  S.m10=true;
+ }
+ S.retired=Array.isArray(S.retired)?S.retired:[];
  if(!S.m4){S.msgs=[{who:'ai',text:'Tell me what is coming up, or what to change on this page. A sentence, a voice note or a screenshot works.'}];S.m4=true}
  S.seq=S.seq||10;
 }
@@ -419,12 +531,59 @@ const shanghai=(dk,t)=>{
  return 'Shanghai '+f.format(d);
 };
 
+/* The field a value was written under, even if it has since left the list. */
+const fieldById=id=>S.fields.find(f=>f.id===id)||S.retired.find(f=>f.id===id);
+/* Which fields a day shows: the current list, plus anything retired that
+   this particular day still holds a value for. */
+function fieldsOn(dk){
+ const vs=S.vals[dk]||{};
+ return S.fields.concat(S.retired.filter(f=>vs[f.id]!==undefined));
+}
+const triNext=v=>v==='good'?'bad':v==='bad'?'':'good';
+
+/* One toggle or one small value, the same in the week and in the day
+   sheet. `dk` is the day it writes to.
+
+   Compact is the week row: a tick or a mark is tapped in place, but a field
+   that wants a keyboard shows what it holds and sends you to the sheet,
+   which is where a day is edited and where there is room for it. */
+function control(f,dk,compact){
+ const v=(S.vals[dk]||{})[f.id];
+ const st=`style="--fc:${fcol(f)}"`;
+ const lbl=esc(f.name);
+ if(f.type==='check')
+  return `<button class="tgl${v?' on':''}" ${st} data-chk="${f.id}" data-d="${dk}" aria-pressed="${v?'true':'false'}" aria-label="${lbl}">${icon(ficon(f))}</button>`;
+ if(f.type==='tri')
+  /* Blank shows no mark at all, just the square to tap. */
+  return `<button class="tgl${v?' '+v:''}" ${st} data-tri="${f.id}" data-d="${dk}" aria-label="${lbl}: ${v||'blank'}">${v==='good'?icon('check'):v==='bad'?icon('x'):''}</button>`;
+ const shown=f.type==='range'?((v&&(v.from||v.to))?`${v.from||'?'}\u2013${v.to||'?'}`:''):(v===undefined||v===''?'':String(v));
+ if(compact)
+  /* Empty, the icon says what it is; filled, the value does, and the
+     colour of the border keeps it tied to its field. */
+  return `<button class="wkv${shown?' set':''}" ${st} data-day="${dk}" title="${lbl}" aria-label="${lbl}${shown?': '+esc(shown):''}">${shown?`<b>${esc(shown)}</b>`:icon(ficon(f))}</button>`;
+ if(f.type==='time')
+  return `<label class="wkv${v?' set':''}" ${st} title="${lbl}">${icon(ficon(f))}<input type="time" data-f="${f.id}" data-d="${dk}" value="${esc(v||'')}" aria-label="${lbl}"></label>`;
+ if(f.type==='number')
+  return `<label class="wkv${v!==undefined&&v!==''?' set':''}" ${st} title="${lbl}">${icon(ficon(f))}<input type="number" inputmode="decimal" step="any" data-f="${f.id}" data-d="${dk}" value="${esc(v??'')}" aria-label="${lbl}"></label>`;
+ if(f.type==='range')
+  return `<label class="wkv${v&&(v.from||v.to)?' set':''}" ${st} title="${lbl}">${icon(ficon(f))}<input type="time" data-f="${f.id}" data-p="from" data-d="${dk}" value="${esc(v?.from||'')}" aria-label="${lbl} start"><input type="time" data-f="${f.id}" data-p="to" data-d="${dk}" value="${esc(v?.to||'')}" aria-label="${lbl} end"></label>`;
+ return `<label class="wkv${v?' set':''}" ${st} title="${lbl}">${icon(ficon(f))}<input type="text" data-f="${f.id}" data-d="${dk}" value="${esc(v??'')}" aria-label="${lbl}"></label>`;
+}
+
 function renderTabs(){
  $('#tabs').innerHTML=S.canvases.map(c=>`<button class="tab" role="tab" data-id="${esc(c.id)}" aria-selected="${c.id===S.active}">${esc(c.name)}</button>`).join('');
 }
 
 const hrs=(a,b)=>{if(!a||!b)return '';const [h1,m1]=a.split(':').map(Number),[h2,m2]=b.split(':').map(Number);let m=(h2*60+m2)-(h1*60+m1);if(m<=0)m+=1440;return `${Math.floor(m/60)}h${m%60?` ${m%60}m`:''}`};
 const hasVal=(f,v)=>v!==undefined&&v!==null&&v!==''&&v!==false&&!(f.type==='range'&&!(v.from||v.to));
+/* lucide 0.544.0, ISC. Inlined rather than linked: nineteen icons weigh
+   less than the round trip, and the page keeps working offline. */
+const ICONS={"check":'<path d="M20 6 9 17l-5-5" />',"moon":'<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />',"scale":'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="M7 21h10" /> <path d="M12 3v18" /> <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />',"utensils":'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />',"x":'<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',"dumbbell":'<path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /> <path d="m2.5 21.5 1.4-1.4" /> <path d="m20.1 3.9 1.4-1.4" /> <path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /> <path d="m9.6 14.4 4.8-4.8" />',"book-open":'<path d="M12 7v14" /> <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />',"droplet":'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />',"pill":'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /> <path d="m8.5 8.5 7 7" />',"heart":'<path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />',"footprints":'<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /> <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /> <path d="M16 17h4" /> <path d="M4 13h4" />',"sun":'<circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" />',"coffee":'<path d="M10 2v2" /> <path d="M14 2v2" /> <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1" /> <path d="M6 2v2" />',"leaf":'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" /> <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />',"sparkles":'<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" />',"music":'<path d="M9 18V5l12-2v13" /> <circle cx="6" cy="18" r="3" /> <circle cx="18" cy="16" r="3" />',"brush-cleaning":'<path d="m16 22-1-4" /> <path d="M19 13.99a1 1 0 0 0 1-1V12a2 2 0 0 0-2-2h-3a1 1 0 0 1-1-1V4a2 2 0 0 0-4 0v5a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2v.99a1 1 0 0 0 1 1" /> <path d="M5 14h14l1.973 6.767A1 1 0 0 1 20 22H4a1 1 0 0 1-.973-1.233z" /> <path d="m8 22 1-4" />',"bike":'<circle cx="18.5" cy="17.5" r="3.5" /> <circle cx="5.5" cy="17.5" r="3.5" /> <circle cx="15" cy="5" r="1" /> <path d="M12 17.5V14l-3-3 4-3 2 3h2" />',"notebook-pen":'<path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" /> <path d="M2 6h4" /> <path d="M2 10h4" /> <path d="M2 14h4" /> <path d="M2 18h4" /> <path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />'};
+const ICON_NAMES=Object.keys(ICONS);
+const icon=n=>`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||ICONS.check}</svg>`;
+const COLORS=['indigo','sage','coral','terracotta','slate'];
+const fcol=f=>`var(--f-${COLORS.includes(f&&f.color)?f.color:'slate'})`;
+const ficon=f=>(f&&ICONS[f.icon])?f.icon:'check';
 const TRI={good:'\u2212',bad:'\u2715'};
 const short=(f,v)=>f.type==='range'?`${v.from||'?'}→${v.to||'?'}`:f.type==='check'?'':f.type==='tri'?(TRI[v]||''):String(v);
 const doneOn=k=>{const out=[];Object.entries(S.tasks).forEach(([cid,L])=>L.forEach(t=>{if(t.done&&t.doneAt===k)out.push(t)}));return out};
@@ -449,6 +608,23 @@ function renderCal(){
   const cls=['day',we&&'we',d.getMonth()!==view.m&&'out',k===key(today)&&'today',k===sel&&'sel'].filter(Boolean).join(' ');
   cells+=`<div role="button" tabindex="0" class="${cls}" data-day="${k}" aria-label="${d.toDateString()}, ${ev.length} events"><span class="n">${d.getDate()}</span><span class="chips">${ev.slice(0,2).map(e=>`<span class="chip${e.big?' big':''}" draggable="true" data-drag="${e.id}">${esc(e.title)}</span>`).join('')}</span>${ev.length>2?`<span class="more">+${ev.length-2} more</span>`:''}${sm?`<span class="sum">${esc(sm)}</span>`:''}</div>`;
  }
+ $('#canvas').innerHTML=`
+ <div class="cal${S.settings.weekend?' wkend':''}">
+  <section>
+   <div class="mhead"><h1>${MONTHS[view.m]} <em>${view.y}</em></h1>
+    <div class="nav"><button data-nav="-1" aria-label="Previous month">‹</button><button data-nav="1" aria-label="Next month">›</button></div></div>
+   <div class="dow">${(S.settings.weekStart==='sun'?['Sun','Mon','Tue','Wed','Thu','Fri','Sat']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun']).map(d=>`<span class="${d==='Sat'||d==='Sun'?'we':''}">${d}</span>`).join('')}</div>
+   <div class="grid">${cells}</div>
+  </section>
+  ${sheetHtml()}
+ </div>`;
+}
+
+/* The day panel: a column beside the month on a desktop, a sheet over the
+   week on a phone, the same markup either way. */
+function sheetHtml(){
+ const byDay={};S.events.forEach(e=>(byDay[e.date]??=[]).push(e));
+ Object.values(byDay).forEach(a=>a.sort((a,b)=>(a.time||'').localeCompare(b.time||'')));
  const sd=fromKey(sel),list=byDay[sel]||[];
  const form=e=>{const tm=e.time?'set':(e.tmode||'none');return `
   <div class="edit" data-edit="${e.id||'new'}" data-tm="${tm}">
@@ -463,30 +639,43 @@ function renderCal(){
   <button class="ev${tlabel(e)?'':' nt'}" data-ev="${e.id}" draggable="true" data-drag="${e.id}"><span class="t">${tlabel(e)}</span><span><div class="ttl">${esc(e.title)}${e.big?'<span class="hl">◆ Highlight</span>':''}</div>${shanghai(e.date,e.time)?`<div class="sh">${shanghai(e.date,e.time)}</div>`:''}</span></button>`).join('')
   :'')
   +(editing==='new'?form({date:sel,title:'',time:null,tmode:'none'}):`<button class="addev" data-act="new">+ Add to this day</button>`);
- $('#canvas').innerHTML=`
- <div class="cal${S.settings.weekend?' wkend':''}">
-  <section>
-   <div class="mhead"><h1>${MONTHS[view.m]} <em>${view.y}</em></h1>
-    <div class="nav"><button data-nav="-1" aria-label="Previous month">‹</button><button data-nav="1" aria-label="Next month">›</button></div></div>
-   <div class="dow">${(S.settings.weekStart==='sun'?['Sun','Mon','Tue','Wed','Thu','Fri','Sat']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun']).map(d=>`<span class="${d==='Sat'||d==='Sun'?'we':''}">${d}</span>`).join('')}</div>
-   <div class="grid">${cells}</div>
-  </section>
+ return `
   <aside class="agenda${sheet?' up':''}" id="agenda">
    <button class="shut" data-act="shut">Close</button>
    <h2>${sd.toLocaleDateString('en-US',{weekday:'long'})}</h2>
    <p class="sub">${sd.toLocaleDateString('en-US',{month:'long',day:'numeric'})}</p>
-   <div class="daily">${S.fields.map(f=>{const v=(S.vals[sel]||{})[f.id];let ctl;
-     if(f.type==='check')ctl=`<input type="checkbox" data-f="${f.id}" ${v?'checked':''} aria-label="${esc(f.name)}">`;
-     else if(f.type==='tri')ctl=`<button class="tri${v?' '+v:''}" data-tri="${f.id}" aria-label="${esc(f.name)}: ${v||'blank'}">${TRI[v]||''}</button>`;
-     else if(f.type==='number')ctl=`<input type="number" inputmode="decimal" step="any" data-f="${f.id}" value="${esc(v??'')}" aria-label="${esc(f.name)}">`;
-     else if(f.type==='range')ctl=`<div class="rg"><input type="time" data-f="${f.id}" data-p="from" value="${esc(v?.from||'')}" aria-label="${esc(f.name)} start"><span>→</span><input type="time" data-f="${f.id}" data-p="to" value="${esc(v?.to||'')}" aria-label="${esc(f.name)} end"><em>${hrs(v?.from,v?.to)}</em></div>`;
-     else ctl=`<input type="text" data-f="${f.id}" value="${esc(v??'')}" aria-label="${esc(f.name)}">`;
-     return `<div class="fd"><span title="${esc(f.name)}">${esc(f.name)}</span>${ctl}<button class="x" data-rmf="${f.id}" aria-label="Remove ${esc(f.name)}">×</button></div>`}).join('')}
-    <div class="newf"><input id="nf" placeholder="+ Field" aria-label="New field name"><select id="nft" aria-label="Field type"><option value="check">Check</option><option value="tri">Good / bad</option><option value="number">Number</option><option value="text">Text</option><option value="range">Time range</option></select></div></div>
+   <div class="daily">
+    <div class="chkrow">${fieldsOn(sel).map(f=>`<span class="chkitem" data-item="${f.id}">${control(f,sel)}<em>${esc(f.name)}</em></span>`).join('')}
+     <button class="tgl adding" data-addf="${sel}" aria-label="Add a daily item">${icon('check')}</button></div>
+    <div id="addfield"></div></div>
    <div class="flex">${list.length?'<h4>Plans</h4>':''}${agenda}</div>
    ${(()=>{const d=doneOn(sel);return d.length?`<div class="donel"><h4>Done</h4>${d.map(t=>`<div class="dn"><b>✓</b><span>${esc(t.text)}</span></div>`).join('')}</div>`:''})()}
   </aside>
  </div>`;
+}
+
+/* The phone gets a week, a row a day, because a month of thumbnails is
+   not something you can log into. The date opens the day; the controls on
+   the row write straight through. */
+function renderWeek(){
+ const ws=S.settings.weekStart==='sun'?0:1;
+ const start=addDays(fromKey(sel),-((fromKey(sel).getDay()-ws+7)%7));
+ const byDay={};S.events.forEach(e=>(byDay[e.date]??=[]).push(e));
+ let rows='';
+ for(let i=0;i<7;i++){
+  const d=addDays(start,i),k=key(d),ev=(byDay[k]||[]).length;
+  const fs=fieldsOn(k);
+  rows+=`<div class="wk${k===key(today)?' today':''}${k===sel?' sel':''}">
+   <button class="wd" data-day="${k}" aria-label="${d.toDateString()}${ev?', '+ev+' plan'+(ev>1?'s':''):''}"><b>${d.getDate()}</b><i>${d.toLocaleDateString('en-US',{weekday:'short'})}</i>${ev?'<u></u>':''}</button>
+   <div class="wkf">${fs.map(f=>control(f,k,true)).join('')}</div></div>`;
+ }
+ const m=fromKey(sel);
+ $('#canvas').innerHTML=`<div class="week">
+  <div class="mhead"><h1>${MONTHS[m.getMonth()]} <em>${m.getFullYear()}</em></h1>
+   <div class="nav"><button data-wnav="-7" aria-label="Previous week">‹</button><button data-wnav="7" aria-label="Next week">›</button></div></div>
+  ${rows}
+ </div>
+ ${sheetHtml()}`;
 }
 
 function renderTasks(c){
@@ -525,10 +714,18 @@ function applySettings(){
  if(st.bodyFont&&FONT_OK.test(st.bodyFont)){loadFont(st.bodyFont);document.body.style.fontFamily=`"${st.bodyFont}",system-ui,sans-serif`}else document.body.style.fontFamily='';
  const h=+st.dockHeight;h>=15&&h<=70?r.setProperty('--dockh',h+'dvh'):r.removeProperty('--dockh');
 }
+/* The month is a desktop shape and the week is a phone one, so the screen
+   decides rather than a setting. */
+const narrow=window.matchMedia('(max-width:760px)');
+const phone=()=>narrow.matches;
+if(narrow.addEventListener)narrow.addEventListener('change',()=>render());
+else if(narrow.addListener)narrow.addListener(()=>render());
+
 function render(){
  applySettings();renderTabs();renderTicker();
  const c=S.canvases.find(c=>c.id===S.active)||S.canvases[0];
- c.type==='calendar'?renderCal():c.type==='tasks'?renderTasks(c):renderBlank(c);
+ c.type==='calendar'?(phone()?renderWeek():renderCal()):c.type==='tasks'?renderTasks(c):renderBlank(c);
+
 }
 
 function renderMsgs(){
@@ -674,6 +871,7 @@ $('#canvas').addEventListener('click',ev=>{
  if(ev.target.closest('[data-act=shut]')){sheet=false;$('#agenda').classList.remove('up');return}
  const b=ev.target.closest('button');if(!b)return;
  if(b.dataset.tm){const f=b.closest('.edit');f.dataset.tm=b.dataset.tm;f.querySelectorAll('[data-tm]').forEach(x=>x.tagName==='BUTTON'&&x.setAttribute('aria-pressed',x===b));const h=f.querySelector('#eh');h.hidden=b.dataset.tm!=='set';if(!h.hidden)h.focus();return}
+ if(b.dataset.wnav){sel=key(addDays(fromKey(sel),+b.dataset.wnav));editing=null;render();return}
  if(b.dataset.nav){view.m+=+b.dataset.nav;if(view.m<0){view.m=11;view.y--}if(view.m>11){view.m=0;view.y++}render();return}
  if(b.dataset.day){sel=b.dataset.day;editing=null;render();return}
  if(b.dataset.ev){editing=+b.dataset.ev;render();const t=$('#et');t&&t.focus();return}
@@ -705,18 +903,96 @@ $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmtk
 $('#canvas').addEventListener('keydown',ev=>{if(ev.target.id!=='addtk'||ev.key!=='Enter')return;const v=ev.target.value.trim();if(!v)return;(S.tasks[S.active]=S.tasks[S.active]||[]).push({id:nid(),group:'',text:v.slice(0,160),done:false});save();render();$('#addtk').focus()},true);
 /* daily fields */
 const setVal=(date,f,val)=>{S.vals[date]=S.vals[date]||{};const o=S.vals[date];if(val===''||val===false||val==null||(f.type==='range'&&!val.from&&!val.to))delete o[f.id];else o[f.id]=val;if(!Object.keys(o).length)delete S.vals[date]};
-$('#canvas').addEventListener('change',ev=>{const el=ev.target.closest('[data-f]');if(!el)return;const f=S.fields.find(x=>x.id===+el.dataset.f);if(!f)return;
- let v;if(f.type==='check')v=el.checked;else if(f.type==='number')v=el.value===''?'':+el.value;else if(f.type==='range'){const cur={...((S.vals[sel]||{})[f.id]||{})};cur[el.dataset.p]=el.value;v=cur}else v=el.value.trim().slice(0,200);
- setVal(sel,f,v);save();render()});
+/* A control carries the day it writes to, because the week shows seven of
+   them at once. */
+$('#canvas').addEventListener('change',ev=>{const el=ev.target.closest('[data-f]');if(!el)return;
+ const f=fieldById(+el.dataset.f);if(!f)return;
+ const dk=el.dataset.d||sel;
+ let v;
+ if(f.type==='check')v=el.checked;
+ else if(f.type==='number')v=el.value===''?'':+el.value;
+ else if(f.type==='range'){const cur={...((S.vals[dk]||{})[f.id]||{})};cur[el.dataset.p]=el.value;v=cur}
+ else v=el.value.trim().slice(0,200);
+ setVal(dk,f,v);save();render()});
+
+/* A check-in is on or it is nothing: an empty box is never recorded as a
+   miss, so unticking removes the record rather than storing false. */
+$('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-chk]');if(!b)return;
+ ev.preventDefault();ev.stopPropagation();
+ if(longPressed)return;
+ const f=fieldById(+b.dataset.chk);if(!f)return;
+ const dk=b.dataset.d||sel;
+ setVal(dk,f,!((S.vals[dk]||{})[f.id]));save();render()},true);
 const addField=()=>{const n=$('#nf').value.trim();if(!n)return;S.fields.push({id:nid(),name:n.slice(0,40),type:$('#nft').value});save();render();$('#nf').focus()};
 $('#canvas').addEventListener('keydown',ev=>{if(ev.target.id==='nf'&&ev.key==='Enter'){ev.preventDefault();addField()}},true);
 /* blank, good, bad, blank: one tap each, like ruling a line through a box
    and then crossing it out. */
 $('#canvas').addEventListener('click',ev=>{const t=ev.target.closest('[data-tri]');if(!t)return;ev.preventDefault();ev.stopPropagation();
- const f=S.fields.find(x=>x.id===+t.dataset.tri);if(!f)return;
- const cur=(S.vals[sel]||{})[f.id];
- setVal(sel,f,cur==='good'?'bad':cur==='bad'?'':'good');save();render()},true);
+ if(longPressed)return;
+ const f=fieldById(+t.dataset.tri);if(!f)return;
+ const dk=t.dataset.d||sel;
+ setVal(dk,f,triNext((S.vals[dk]||{})[f.id]));save();render()},true);
 $('#canvas').addEventListener('click',ev=>{const x=ev.target.closest('[data-rmf]');if(!x)return;ev.preventDefault();ev.stopPropagation();S.fields=S.fields.filter(f=>f.id!==+x.dataset.rmf);save();render()},true);
+/* ---- the daily list, edited where it is used ----
+   A plus at the end of the row adds an item; a long press on one takes it
+   off the list. Taking it off never touches a day that already has a
+   value: the field moves to the archive and those days still show it. */
+const ICON_OPTIONS=ICON_NAMES.filter(n=>n!=='x');
+const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],['number','Number'],['text','Text'],['range','Time range']]
+ .map(([v,l])=>`<option value="${v}"${v===sel?' selected':''}>${l}</option>`).join('');
+const iconOptions=sel=>ICON_OPTIONS.map(n=>`<option value="${n}"${n===sel?' selected':''}>${n.replace(/-/g,' ')}</option>`).join('');
+const colorOptions=sel=>COLORS.map(c=>`<option value="${c}"${c===sel?' selected':''}>${c}</option>`).join('');
+
+function addFieldForm(host){
+ host.innerHTML=`<div class="addf">
+  <div class="r"><input id="af-name" placeholder="Name" aria-label="Item name" autocomplete="off"></div>
+  <div class="r">
+   <select id="af-icon" aria-label="Icon">${iconOptions('check')}</select>
+   <select id="af-color" aria-label="Colour">${colorOptions('slate')}</select>
+   <select id="af-type" aria-label="Kind">${typeOptions('check')}</select>
+  </div>
+  <div class="r"><button class="ok" id="af-add">Add</button><button class="cancel" id="af-cancel">Cancel</button></div>
+ </div>`;
+ const name=$('#af-name');name.focus();
+ const add=()=>{
+  const n=name.value.trim();if(!n)return;
+  S.fields.push({id:nid(),name:n.slice(0,40),type:$('#af-type').value,icon:$('#af-icon').value,color:$('#af-color').value});
+  /* The form closes with the add, so a second tap cannot repeat it. */
+  host.innerHTML='';
+  save();render();syncPanel();
+ };
+ $('#af-add').addEventListener('click',add);
+ name.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add()}});
+ $('#af-cancel').addEventListener('click',()=>{host.innerHTML='';});
+}
+$('#canvas').addEventListener('click',ev=>{const b=ev.target.closest('[data-addf]');if(!b)return;
+ ev.preventDefault();ev.stopPropagation();
+ if(longPressed)return;
+ sel=b.dataset.addf;sheet=true;render();
+ const host=$('#addfield');if(host)addFieldForm(host);
+},true);
+
+function retire(f){
+ S.fields=S.fields.filter(x=>x.id!==f.id);
+ if(!S.retired.some(x=>x.id===f.id))S.retired.push(f);
+ save();render();syncPanel();
+ note(`${f.name} is off the daily list. Days that already have it keep it.`);
+ setTimeout(()=>note(''),4000);
+}
+/* A press held on an item takes it off the list. The flag stops the tap
+   that ends the press from also toggling the value. */
+let longTimer=null,longPressed=false;
+const startPress=ev=>{
+ const holder=ev.target.closest('[data-chk],[data-tri]');if(!holder)return;
+ const f=fieldById(+(holder.dataset.chk||holder.dataset.tri));if(!f)return;
+ longPressed=false;
+ clearTimeout(longTimer);
+ longTimer=setTimeout(()=>{longPressed=true;retire(f)},600);
+};
+const endPress=()=>{clearTimeout(longTimer);setTimeout(()=>{longPressed=false},0)};
+$('#canvas').addEventListener('pointerdown',startPress,true);
+['pointerup','pointercancel','pointerleave','scroll'].forEach(t=>$('#canvas').addEventListener(t,endPress,true));
+
 /* keyboard on day cells, enter key in form */
 $('#canvas').addEventListener('keydown',ev=>{const d=ev.target.closest&&ev.target.closest('[data-day]');if(d&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();d.click()}
  if(ev.key==='Enter'&&ev.target.id==='et'){const sv=$('[data-act=save]');sv&&sv.click()}if(ev.key==='Escape'&&editing!=null){editing=null;render()}});
@@ -744,8 +1020,28 @@ $('#ticker').addEventListener('click',()=>{
 });
 /* appearance panel */
 const SW={accent:['#23408e','#141414','#8a2b2b','#2f5d50','#b4834a','#6b5b95'],background:['#fcfcfa','#ffffff','#f6f3ee','#f2f4f7','#f4efe9','#101114']};
+function renderFieldList(){
+ const host=$('#flist');if(!host)return;
+ host.innerHTML=S.fields.length?S.fields.map((f,i)=>`
+  <div class="fitem" style="--fc:${fcol(f)}">
+   ${icon(ficon(f))}
+   <input class="nm" data-fname="${f.id}" value="${esc(f.name)}" aria-label="Name">
+   <span class="acts">
+    <button data-fup="${f.id}" aria-label="Move up"${i?'':' disabled style="opacity:.3"'}>↑</button>
+    <button data-fdown="${f.id}" aria-label="Move down"${i===S.fields.length-1?' disabled style="opacity:.3"':''}>↓</button>
+    <button class="rm" data-frm="${f.id}" aria-label="Remove ${esc(f.name)}">×</button>
+   </span>
+   <span class="sel2">
+    <select data-ficon="${f.id}" aria-label="Icon">${iconOptions(ficon(f))}</select>
+    <select data-fcolor="${f.id}" aria-label="Colour">${colorOptions(f.color)}</select>
+    <select data-ftype="${f.id}" aria-label="Kind">${typeOptions(f.type)}</select>
+   </span>
+  </div>`).join(''):'<p class="hint2">Nothing yet. Add what you want to log each day.</p>';
+}
+
 function syncPanel(){
  const st=S.settings;
+ renderFieldList();
  document.querySelectorAll('#panel [data-k]').forEach(el=>{const v=st[el.dataset.k];if(el.type==='range')el.value=v||27;else el.value=v||''});
  document.querySelectorAll('#panel [data-seg]').forEach(g=>{const v=String(st[g.dataset.seg]);g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v))});
  document.querySelectorAll('#panel [data-sw]').forEach(g=>{const k=g.dataset.sw,cur=st[k]||'';
@@ -754,10 +1050,26 @@ function syncPanel(){
 const setK=(k,v)=>{S.settings[k]=v;save();render()};
 $('#gear').addEventListener('click',()=>{syncPanel();$('#panel').classList.add('open');$('#panel').setAttribute('aria-hidden','false')});
 $('#pclose').addEventListener('click',()=>{$('#panel').classList.remove('open');$('#panel').setAttribute('aria-hidden','true')});
+/* The list: rename, re-icon, recolour, reorder, remove. */
+$('#panel').addEventListener('change',ev=>{
+ const el=ev.target,id=+(el.dataset.ficon||el.dataset.fcolor||el.dataset.ftype||0);
+ if(!id)return;
+ const f=S.fields.find(x=>x.id===id);if(!f)return;
+ if(el.dataset.ficon)f.icon=ICON_NAMES.includes(el.value)?el.value:'check';
+ if(el.dataset.fcolor)f.color=COLORS.includes(el.value)?el.value:'slate';
+ if(el.dataset.ftype)f.type=el.value;
+ save();render();syncPanel();
+});
 $('#panel').addEventListener('input',ev=>{const el=ev.target;
+ if(el.dataset.fname){const f=S.fields.find(x=>x.id===+el.dataset.fname);if(f){f.name=el.value.slice(0,40);save();render()}return}
  if(el.dataset.k){setK(el.dataset.k,el.type==='range'?+el.value:el.value)}
  if(el.type==='color'){const g=el.closest('[data-sw]');setK(g.dataset.sw,el.value);g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'))}});
 $('#panel').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
+ if(b.id==='pf-new'){addFieldForm($('#pf-add'));return}
+ const move=b.dataset.fup||b.dataset.fdown;
+ if(move){const id=+move,i=S.fields.findIndex(f=>f.id===id),j=i+(b.dataset.fup?-1:1);
+  if(i>=0&&j>=0&&j<S.fields.length){const[x]=S.fields.splice(i,1);S.fields.splice(j,0,x);save();render();syncPanel()}return}
+ if(b.dataset.frm){const f=S.fields.find(x=>x.id===+b.dataset.frm);if(f)retire(f);return}
  const seg=b.closest('[data-seg]');if(seg){const k=seg.dataset.seg;setK(k,(k==='ticker'||k==='shTime'||k==='showTheme'||k==='weekend')?b.dataset.v==='true':b.dataset.v);syncPanel();return}
  const sw=b.closest('[data-sw]');if(sw){setK(sw.dataset.sw,b.dataset.c);syncPanel();return}
  if(b.id==='preset'){const keep={theme:S.settings.theme,name:S.settings.name};S.settings=Object.assign({name:'',theme:'',themeLabel:'',weekStart:'mon',ticker:true,speed:'normal',shTime:false,showTheme:false,weekend:true},keep);save();render();syncPanel()}});
