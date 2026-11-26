@@ -115,10 +115,30 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .ctype{display:inline-flex;gap:4px;margin-bottom:12px}
 .ctype button{font-size:13px;padding:5px 10px;border:1px solid var(--rule);border-radius:999px;color:var(--soft);min-height:32px}
 .ctype button[aria-pressed=true]{color:var(--ink);border-color:var(--ink)}
+/* Map or outline, and a copy of the outline for elsewhere. */
+.mviews{display:flex;align-items:center;gap:8px;flex:none;padding-top:4px}
+.mviews .seg{flex:none}
+.ocopy{font-size:13px;color:var(--soft);padding:0 10px;min-height:34px;border:1px solid var(--rule);border-radius:999px;white-space:nowrap}
+.ocopy:hover{color:var(--ink);border-color:var(--ink)}
+.mbody{flex:1;min-height:0;display:flex;flex-direction:column}
+/* The outline: a title, then the branches as they hang. */
+.mout{flex:1;min-height:0;overflow:auto;padding:2px 2px 40px;max-width:720px}
+.otitle{font:400 clamp(21px,2.4vw,27px)/1.25 var(--fd,'Cormorant Garamond',serif);margin:0 0 14px}
+.orow{display:flex;align-items:baseline;gap:9px;padding:3px 0;min-height:30px}
+.obul{color:var(--soft);font-size:14px;line-height:1.5;flex:none;width:12px;text-align:center}
+.otext{flex:1;min-width:0;outline:none;font-size:16px;line-height:1.5;padding:1px 2px;border-radius:5px;
+ white-space:pre-wrap;overflow-wrap:anywhere}
+.otext:empty::before{content:attr(data-hint);color:var(--soft);opacity:.55}
+.otext:focus{background:color-mix(in srgb,var(--blue) 7%,transparent)}
+.otitle .otext{font:inherit}
+/* A first-level branch is underlined in the colour it wears on the sheet. */
+.orow.lead .otext{border-bottom:2px solid var(--pc);display:inline-block;flex:0 1 auto;max-width:100%}
+.orow.lead .obul{color:var(--pc)}
+
 /* A mind map is a sheet you scroll, with the nodes placed on it. */
 .mindc{height:100%;display:flex;flex-direction:column;min-height:0}
 .mindc .phead{flex:none}
-.msheet{flex:1;min-height:320px;border:1px solid var(--rule);border-radius:14px;overflow:auto;background:var(--paper);position:relative;overscroll-behavior:contain}
+.msheet{flex:1;min-height:0;border:1px solid var(--rule);border-radius:14px;overflow:auto;background:var(--paper);position:relative;overscroll-behavior:contain}
 .mpaper{position:relative}
 .mlines{position:absolute;inset:0;pointer-events:none}
 .mnode{position:absolute;transform:translate(-50%,-50%);max-width:220px}
@@ -1264,6 +1284,34 @@ function mindPaint(doc){
 const mindKids=(doc,id)=>Object.values(doc.nodes).filter(n=>n.parent===id);
 
 let mindRoot=null,mindFor=null,mindSeen='',mindSel=null,mindBusy=false;
+/* Map or outline: one map, two ways of reading it, remembered on this
+   device the way the calendar's views are. */
+const MVIEW='shsf-mview';
+let mview=(()=>{try{return localStorage.getItem(MVIEW)==='outline'?'outline':'map'}catch(e){return 'map'}})();
+/* Children in the order the sheet reads: down the page, then across. */
+const mindOrder=(doc,id)=>Object.values(doc.nodes).filter(n=>n.parent===id)
+ .sort((a,b)=>(a.y-b.y)||(a.x-b.x)||String(a.id).localeCompare(String(b.id)));
+function outlineRows(doc){
+ const out=[];
+ const walk=(id,lvl)=>mindOrder(doc,id).forEach(n=>{out.push({n,lvl});walk(n.id,lvl+1)});
+ walk(doc.root,1);
+ return out;
+}
+function drawOutline(c,doc){
+ const host=mindRoot&&mindRoot.querySelector('.mout');if(!host)return;
+ const paint=mindPaint(doc),rows=outlineRows(doc);
+ host.innerHTML=`<h2 class="otitle"><span class="otext" data-ot="${esc(doc.root)}" contenteditable="plaintext-only" data-hint="Untitled">${esc(doc.nodes[doc.root].text||'')}</span></h2>`
+  +rows.map(({n,lvl})=>`<div class="orow${lvl===1?' lead':''}" data-or="${esc(n.id)}"
+    style="--pc:${paint[n.id]||'var(--rule)'};padding-left:${(lvl-1)*24}px">
+    <span class="obul">${lvl===1?'\u2022':'\u25e6'}</span>
+    <span class="otext" data-ot="${esc(n.id)}" contenteditable="plaintext-only" data-hint="Type">${esc(n.text||'')}</span>
+   </div>`).join('');
+}
+/* The same outline as Markdown, for wherever it is going next. */
+function outlineMd(doc){
+ const t=(doc.nodes[doc.root].text||'Untitled').trim();
+ return `# ${t}\n\n`+outlineRows(doc).map(({n,lvl})=>`${'  '.repeat(lvl-1)}- ${(n.text||'').trim()}`).join('\n')+'\n';
+}
 /* The line from a parent to a child: a curve that leaves the way the
    child lies. */
 function mindPath(a,b){
@@ -1313,22 +1361,36 @@ function renderMind(c){
   if(mindRoot.parentElement!==host)host.replaceChildren(mindRoot);
   /* A redraw in the middle of writing or dragging would take the caret
      and the node out of your hand, so it waits. */
-  if(sig!==mindSeen&&!mindBusy){mindSeen=sig;drawMind(c,doc)}
+  if(sig!==mindSeen&&!mindBusy){mindSeen=sig;mview==='outline'?drawOutline(c,doc):drawMind(c,doc)}
   return;
  }
  mindFor=c.id;mindSel=null;mindBusy=false;
  mindRoot=document.createElement('div');mindRoot.className='mindc';
  mindRoot.innerHTML=`<div class="phead">
    <h1 class="ptitle" contenteditable="plaintext-only" data-ptitle="${esc(c.id)}" role="textbox" data-hint="Untitled">${esc(c.name)}</h1>
+   <div class="mviews">
+    <div class="seg" role="group" aria-label="View">
+     <button data-mv="map" aria-pressed="${mview==='map'}">Map</button>
+     <button data-mv="outline" aria-pressed="${mview==='outline'}">Outline</button>
+    </div>
+    <button class="ocopy" data-ocopy="1">Copy</button>
+   </div>
    <button class="pset" data-pset="${esc(c.id)}" aria-label="Page settings" aria-expanded="false">⋯</button>
    <div class="pmenu" id="pmenu" hidden></div>
   </div>
-  <div class="msheet"><div class="mpaper" style="width:${MSHEET.w}px;height:${MSHEET.h}px"></div></div>`;
+  <div class="mbody"></div>`;
  host.replaceChildren(mindRoot);
- mindSeen=sig;drawMind(c,doc);
+ mindSeen=sig;drawBody(c,doc);
  wireMind(c);
+}
+/* Whichever way the map is being read just now. */
+function drawBody(c,doc){
+ const body=mindRoot.querySelector('.mbody');if(!body)return;
+ if(mview==='outline'){body.innerHTML='<div class="mout"></div>';drawOutline(c,doc);return}
+ body.innerHTML=`<div class="msheet"><div class="mpaper" style="width:${MSHEET.w}px;height:${MSHEET.h}px"></div></div>`;
+ drawMind(c,doc);
  /* Open on the root rather than on a corner of the sheet. */
- const sheet=mindRoot.querySelector('.msheet'),r=doc.nodes[doc.root];
+ const sheet=body.querySelector('.msheet'),r=doc.nodes[doc.root];
  requestAnimationFrame(()=>{
   sheet.scrollLeft=Math.max(0,r.x-sheet.clientWidth/2);
   sheet.scrollTop=Math.max(0,r.y-sheet.clientHeight/2);
@@ -1336,8 +1398,100 @@ function renderMind(c){
 }
 /* One set of hands for the whole sheet. */
 function wireMind(c){
- const paper=mindRoot.querySelector('.mpaper'),sheet=mindRoot.querySelector('.msheet');
+ /* The listeners live on the canvas itself, so they survive the body
+    being swapped from one view to the other. */
+ const paper=mindRoot;
  const doc=()=>mindDoc(c);
+ /* The switch, and the outline on its way to somewhere else. */
+ mindRoot.addEventListener('click',ev=>{
+  const v=ev.target.closest('[data-mv]');
+  if(v){ev.preventDefault();ev.stopPropagation();
+   const want=v.dataset.mv;if(want===mview)return;
+   mview=want;try{localStorage.setItem(MVIEW,mview)}catch(e){}
+   mindRoot.querySelectorAll('[data-mv]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mv===mview)));
+   mindBusy=false;drawBody(c,doc());
+   return}
+  const cp=ev.target.closest('[data-ocopy]');
+  if(cp){ev.preventDefault();ev.stopPropagation();
+   const text=outlineMd(doc());
+   const done=()=>{cp.textContent='Copied';setTimeout(()=>{cp.textContent='Copy'},1600)};
+   const hard=()=>{try{const ta=document.createElement('textarea');ta.value=text;
+     ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);
+     ta.select();document.execCommand('copy');ta.remove();done()}catch(e){}};
+   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,hard);
+   else hard();
+   return}
+ },true);
+ /* ---- writing in the outline ----
+    The outline is the same set of nodes, so a line that moves here moves
+    on the sheet too, and a line made here is given a place beside the
+    one it belongs to. */
+ const rowSave=el=>{
+  const d=doc(),n=d.nodes[el.dataset.ot];if(!n)return false;
+  const t=el.textContent.replace(/\s+/g,' ').trim().slice(0,120);
+  if(t===n.text)return false;
+  n.text=t;mindSave(c,d);return true;
+ };
+ const focusRow=id=>requestAnimationFrame(()=>{
+  const el=mindRoot.querySelector(`.otext[data-ot="${CSS.escape(String(id))}"]`);
+  if(!el)return;
+  el.focus();
+  const r=document.createRange();r.selectNodeContents(el);r.collapse(false);
+  const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
+ });
+ const newNode=(d,parent,near,dir)=>{
+  const at=mindSpot(d,near,dir),id=String(nid());
+  d.nodes[id]={id,text:'',x:at.x,y:at.y,parent};
+  return id;
+ };
+ mindRoot.addEventListener('focusin',ev=>{if(ev.target.classList&&ev.target.classList.contains('otext'))mindBusy=true});
+ mindRoot.addEventListener('focusout',ev=>{
+  const el=ev.target;if(!el.classList||!el.classList.contains('otext'))return;
+  setTimeout(()=>{
+   if(mindRoot&&mindRoot.contains(document.activeElement)&&document.activeElement.classList&&document.activeElement.classList.contains('otext'))return;
+   mindBusy=false;
+  },0);
+  if(rowSave(el))drawOutline(c,doc());
+ });
+ mindRoot.addEventListener('keydown',ev=>{
+  const el=ev.target;if(!el.classList||!el.classList.contains('otext'))return;
+  const d=doc(),id=el.dataset.ot,n=d.nodes[id];if(!n)return;
+  if(ev.key==='Enter'){
+   ev.preventDefault();rowSave(el);
+   const made=id===d.root?newNode(d,d.root,d.nodes[d.root],'right'):newNode(d,n.parent,n,'down');
+   mindSave(c,d);drawOutline(c,d);focusRow(made);return;
+  }
+  if(ev.key==='Tab'){
+   ev.preventDefault();rowSave(el);
+   if(id===d.root)return;
+   if(ev.shiftKey){
+    /* Out one level: a sibling of what used to be the parent. */
+    const parent=d.nodes[n.parent];
+    if(!parent||parent.id===d.root)return;
+    n.parent=parent.parent;
+    const at=mindSpot(d,parent,'down');n.x=at.x;n.y=at.y;
+   }else{
+    /* In one level: the line above it, at the same level, takes it. */
+    const sibs=mindOrder(d,n.parent),i=sibs.findIndex(x=>x.id===id);
+    if(i<=0)return;
+    const up=sibs[i-1];
+    n.parent=up.id;
+    const at=mindSpot(d,up,'right');n.x=at.x;n.y=at.y;
+   }
+   mindSave(c,d);drawOutline(c,d);focusRow(id);return;
+  }
+  if(ev.key==='Backspace'&&el.textContent===''&&id!==d.root){
+   ev.preventDefault();
+   const rows=outlineRows(d),i=rows.findIndex(r=>r.n.id===id);
+   const before=i>0?rows[i-1].n.id:d.root;
+   /* Whatever hung from it moves up to where it was. */
+   Object.values(d.nodes).forEach(k=>{if(k.parent===id)k.parent=n.parent});
+   delete d.nodes[id];
+   if(mindSel===id)mindSel=null;
+   mindSave(c,d);drawOutline(c,d);focusRow(before);return;
+  }
+  if(ev.key==='Escape'){el.textContent=n.text||'';el.blur()}
+ });
  const stop=e=>{e.preventDefault();e.stopPropagation()};
  const pick=id=>{mindSel=id;mindRoot.querySelectorAll('.mnode').forEach(n=>n.classList.toggle('sel',n.dataset.mn===String(id)))};
  const endEdit=()=>{
@@ -1419,7 +1573,7 @@ function wireMind(c){
  };
  paper.addEventListener('pointerup',drop);
  paper.addEventListener('pointercancel',drop);
- sheet.addEventListener('scroll',()=>{if(fmenu)closeFieldMenu()});
+ mindRoot.addEventListener('scroll',()=>{if(fmenu)closeFieldMenu()},true);
 }
 /* Taking a node off the sheet takes what hangs from it, so it asks. */
 function confirmNode(c,n,x,y){
