@@ -35,12 +35,18 @@
 --tick-ink:light-dark(#1f3354,#c3cee2);
 --tick-lab:light-dark(#5b6f8f,#8695af);
 /* Field identity, every colour of it here and nowhere else. A field stores
-   the key, "sage"; the stylesheet owns what sage is. Muted, no emoji. */
---f-indigo:light-dark(#4b4f7d,#9095cd);      /* dusk, for sleep */
---f-sage:light-dark(#5c7a5e,#93b094);        /* green, for weight and for done */
---f-coral:light-dark(#b16a5a,#d99486);       /* muted, for a cross */
---f-terracotta:light-dark(#a86549,#d49074);  /* warm */
---f-slate:light-dark(#596371,#9aa4b4);       /* the quiet default */
+   the key, "c3"; the stylesheet owns what c3 is. Six, in picker order. */
+--f-c1:#d9829b;   /* rose */
+--f-c2:#ff9f94;   /* salmon */
+--f-c3:#6fd3a8;   /* mint */
+--f-c4:#7cb8ff;   /* sky */
+--f-c5:#b79cff;   /* violet */
+--f-c6:#ffc94d;   /* amber */
+/* Not a field's to choose: good, bad, done, and the quiet fallback for an
+   icon that has no colour of its own. */
+--f-sage:light-dark(#5c7a5e,#93b094);
+--f-coral:light-dark(#b16a5a,#d99486);
+--f-slate:light-dark(#596371,#9aa4b4);
 --done:var(--f-sage)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
@@ -550,14 +556,21 @@ function prepare(){
     was written under. Nothing recorded is touched. */
  if(!S.m10){
   const guess=n=>{const t=String(n).toLowerCase();
-   if(/slept|sleep|bed|lights|asleep/.test(t))return['moon','indigo'];
-   if(/woke|wake|sunrise/.test(t))return['sunrise','indigo'];
-   if(/weight|scale|kg|lb/.test(t))return['scale','sage'];
-   return['check','slate']};
+   if(/slept|sleep|bed|lights|asleep/.test(t))return['moon','c5'];
+   if(/woke|wake|sunrise/.test(t))return['sunrise','c5'];
+   if(/weight|scale|kg|lb/.test(t))return['scale','c3'];
+   return['check','c1']};
   (S.fields||[]).forEach(f=>{const[i,c]=guess(f.name);if(!f.icon)f.icon=i;if(!f.color)f.color=c});
   S.m10=true;
  }
  S.retired=Array.isArray(S.retired)?S.retired:[];
+ /* The palette is new; each field keeps its place in the old order, so a
+    name is all that changes and nothing recorded is touched. */
+ if(!S.m11){
+  const moved={indigo:'c1',sage:'c2',coral:'c3',terracotta:'c4',slate:'c5'};
+  [...(S.fields||[]),...S.retired].forEach(f=>{if(f&&moved[f.color])f.color=moved[f.color]});
+  S.m11=true;
+ }
  /* The drawing of every icon in use travels with the state; the library
     itself is only ever a search away. Anything no longer referenced is
     dropped, so this cannot grow without end. */
@@ -830,7 +843,7 @@ const icon=n=>{
  if(n&&!isName(n))return `<span class="ic emo" aria-hidden="true">${esc(emoji(n))}</span>`;
  return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI_ICONS.check}</svg>`;
 };
-const COLORS=['indigo','sage','coral','terracotta','slate'];
+const COLORS=['c1','c2','c3','c4','c5','c6'];
 const fcol=f=>`var(--f-${COLORS.includes(f&&f.color)?f.color:'slate'})`;
 const ficon=f=>(f&&f.icon&&(svgFor(f.icon)||!isName(f.icon)))?f.icon:'check';
 /* "2315", "23:15", "11:15pm", "11.15", "7", "7am" are all a time. Anything
@@ -1314,7 +1327,7 @@ const TOOLS=()=>[
   inputSchema:{type:'object',properties:{name:{type:'string'},theme:{type:'string'},themeLabel:{type:'string'},ticker:{type:'boolean'},speed:{type:'string'},accent:{type:'string'},background:{type:'string'},ink:{type:'string'},paper:{type:'string'},displayFont:{type:'string'},bodyFont:{type:'string'},weekStart:{type:'string'},shTime:{type:'boolean'},showTheme:{type:'boolean'},weekend:{type:'boolean'}}},
   execute:i=>{const st=S.settings;for(const k of Object.keys(i)){if(['accent','background','ink','paper'].includes(k)&&i[k]&&!HEX.test(i[k]))throw new Error(k+' must be #rrggbb');if(/Font$/.test(k)&&i[k]&&!FONT_OK.test(i[k]))throw new Error('bad font name');st[k]=typeof i[k]==='string'?i[k].slice(0,80):i[k]}return {ok:true}}},
  {name:'add_field',description:'Add a daily field shown on every day. type: check (tick box), tri (a mark that cycles blank, good, bad), time (one clock time), number, text.',inputSchema:{type:'object',properties:{name:{type:'string'},type:{type:'string',enum:['check','tri','time','number','text']}},required:['name','type']},
-  execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','time','number','text'].includes(i.type)?i.type:'text',icon:'check',color:'slate'};S.fields.push(f);return {ok:true,id:f.id}}},
+  execute:i=>{const f={id:nid(),name:String(i.name).slice(0,40),type:['check','tri','time','number','text'].includes(i.type)?i.type:'text',icon:'check',color:'c1'};S.fields.push(f);return {ok:true,id:f.id}}},
  {name:'remove_field',description:'Remove a daily field by id.',inputSchema:{type:'object',properties:{id:{type:'number'}},required:['id']},
   execute:i=>{const n=S.fields.length;S.fields=S.fields.filter(f=>f.id!==+i.id);return {ok:S.fields.length<n}}},
  {name:'set_value',description:'Record a daily field value on a date (YYYY-MM-DD). check: true/false. tri: good or bad. number: a number. text: a string. time: a clock time, loose forms such as 2315 or 11:15pm are accepted. range: from and to as HH:MM (24h). Send an empty value to clear.',inputSchema:{type:'object',properties:{field_id:{type:'number'},date:{type:'string'},value:{},from:{type:'string'},to:{type:'string'}},required:['field_id','date']},
@@ -1625,16 +1638,20 @@ const typeOptions=sel=>[['check','Check'],['tri','Good / bad'],['time','Time'],[
 /* The colours are shown, not named. */
 const swatches=cur=>COLORS.map(c=>`<button class="cw${c===cur?' on':''}" data-sw2="${c}" style="--c:var(--f-${c})" aria-label="${c}" aria-pressed="${c===cur}"></button>`).join('');
 
+/* One icon the picker always offers, used or not. */
+const PINNED=[['🩰','足尖']];
 /* The picker: what you have used lately, a search over the whole
    library, and a box for an emoji. No list of favourites chosen for
-   you. */
+   you, bar the one above. */
 function openPicker(host,current,onPick){
  if(!host)return;
  if(host.dataset.open==='1'){host.innerHTML='';host.dataset.open='';return}
  const recent=S.iconsUsed.filter(v=>svgFor(v)||!isName(v)).slice(0,14);
+ /* One icon is kept within reach whether or not it has been used. */
+ const quick=[...PINNED.filter(([v])=>!recent.includes(v)),...recent.map(v=>[v,v])];
  host.dataset.open='1';
  host.innerHTML=`<div class="ipick">
-  ${recent.length?`<div class="irow">${recent.map(v=>`<button class="ib${v===current?' on':''}" data-ic="${esc(v)}" title="${esc(v)}" aria-label="${esc(v)}">${icon(v)}</button>`).join('')}</div>`:''}
+  ${quick.length?`<div class="irow">${quick.map(([v,lab])=>`<button class="ib${v===current?' on':''}" data-ic="${esc(v)}" title="${esc(lab)}" aria-label="${esc(lab)}">${icon(v)}</button>`).join('')}</div>`:''}
   <div class="irow2">
    <input class="isearch" type="search" placeholder="Search icons" aria-label="Search icons" autocomplete="off">
    <input class="iemo" placeholder="emoji" aria-label="Use an emoji instead" autocomplete="off">
@@ -1664,7 +1681,7 @@ function openPicker(host,current,onPick){
 }
 
 function addFieldForm(host){
- let ic='check',co='slate';
+ let ic='check',co='c1';
  host.innerHTML=`<div class="addf">
   <div class="r"><input id="af-name" placeholder="Name" aria-label="Item name" autocomplete="off"></div>
   <div class="r">
