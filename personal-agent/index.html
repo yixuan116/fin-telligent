@@ -192,26 +192,25 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .day .n,.day .chips,.day .more,.day .sum,.day .marks{position:relative;z-index:1}
 .day .n{position:relative}
 /* The year, as a paper planner holds one: the days numbered once down
-   the side, and twelve columns of marks. */
+   the side, and twelve columns of marks. One grid holds the lot, so a
+   row is a row all the way across. */
 .year{max-width:1100px;margin:0 auto;height:100%;display:flex;flex-direction:column;min-height:0}
-/* The floor goes on the track, not on the cell: a cell taller than its
-   own row would sit on top of the day below it. */
-.ygrid{display:grid;grid-template-columns:26px repeat(12,minmax(0,1fr));gap:0 3px;flex:1;min-height:0;padding-bottom:4px}
-.ycol{display:grid;grid-template-rows:auto repeat(31,minmax(var(--yrow,15px),1fr));min-width:0;min-height:0}
-.ycol b{font:400 13px/1.2 var(--fd,'Cormorant Garamond',serif);color:var(--ink);text-align:center;
+.ygrid{display:grid;grid-template-columns:26px repeat(12,minmax(0,1fr));
+ grid-template-rows:auto;grid-auto-rows:minmax(var(--yrow,15px),1fr);
+ gap:0;flex:1;min-height:0;padding-bottom:4px}
+.ygrid b{font:400 13px/1.2 var(--fd,'Cormorant Garamond',serif);color:var(--ink);text-align:center;
  padding-bottom:5px;margin-bottom:3px;border-bottom:1px solid var(--rule)}
-.ycol.nums b{border-bottom-color:transparent}
 .yd{position:relative;display:grid;place-items:center;background:none;padding:0}
-/* Every fifth line, a rule faint enough to be felt rather than read.
-   Drawn as a shadow, not a border, so it takes nothing off the cell and
-   a bar running through it is not broken. */
-.yd.rule{box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--ink) 7%,transparent)}
-.ynum{font-size:9.5px;line-height:1;color:var(--soft);font-variant-numeric:tabular-nums;justify-items:end;
- justify-self:stretch;padding-right:5px;text-align:right;display:grid;align-items:center}
+/* Every fifth line, a rule faint enough to be felt rather than read,
+   drawn as a shadow so it takes nothing off the cell, and carried by
+   every cell in the row so the line runs the whole way across. */
+.yd.rule,.ynum.rule{box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--ink) 7%,transparent)}
+.ynum{font-size:9.5px;line-height:1;color:var(--soft);font-variant-numeric:tabular-nums;
+ display:grid;align-items:center;justify-items:end;padding-right:6px}
 /* A day with nothing on it is a speck; a day that does not exist is
-   nothing at all. */
+   nothing at all, though the rule still crosses it. */
 .dot{width:2px;height:2px;border-radius:50%;background:color-mix(in srgb,var(--ink) 22%,transparent)}
-.yd.none{visibility:hidden}
+.yd.none{pointer-events:none}
 /* A spell runs as one bar down the column. */
 .vb{width:6px;height:100%;align-self:stretch;justify-self:center;background:var(--pc)}
 .vb.t{border-radius:3px 3px 0 0}
@@ -580,11 +579,9 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  .more{display:none}
  .dow span{padding-left:0;text-align:center}
  .dock{height:auto}
- .ygrid{gap:2px}
- .ycol b{font-size:10px}
- .ycol{--yrow:14px}
+ .ygrid{--yrow:14px;grid-template-columns:20px repeat(12,minmax(0,1fr))}
  .ynum{font-size:9px;padding-right:4px}
- .ygrid{grid-template-columns:22px repeat(12,minmax(0,1fr));gap:0 2px}
+ .ygrid b{font-size:11px}
  .day .sum{display:none}
  .marks{display:flex}
  .agenda{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--paper);border-top:1px solid var(--edge);border-radius:16px 16px 0 0;padding:14px 18px max(24px,env(safe-area-inset-bottom));max-height:78dvh;overflow:auto;transform:translateY(105%);transition:transform .28s ease;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
@@ -1213,16 +1210,15 @@ const YM=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec
 function renderYear(){
  const paint=periodPaint();
  const prev=k=>key(addDays(fromKey(k),-1)),next=k=>key(addDays(fromKey(k),1));
- /* The numbers are written once, down the left, and the twelve columns
-    are left to the marks. */
- let cols=`<div class="ycol nums" aria-hidden="true"><b></b>${
-  Array.from({length:31},(_,i)=>`<span class="yd ynum${(i+1)%5===0&&i+1<31?' rule':''}">${i+1}</span>`).join('')}</div>`;
- for(let m=0;m<12;m++){
-  const last=new Date(yearShown,m+1,0).getDate();
-  let days='';
-  for(let i=1;i<=31;i++){
-   const rule=i%5===0&&i<31?' rule':'';
-   if(i>last){days+=`<span class="yd none${rule}" aria-hidden="true"></span>`;continue}
+ const last=m=>new Date(yearShown,m+1,0).getDate();
+ /* One grid, filled a row at a time: the number and its twelve days are
+    the same row, so they cannot drift apart. */
+ let cells=`<span class="yhead" aria-hidden="true"></span>`+YM.map(m=>`<b>${m}</b>`).join('');
+ for(let i=1;i<=31;i++){
+  const rule=i%5===0&&i<31?' rule':'';
+  cells+=`<span class="ynum${rule}" aria-hidden="true">${i}</span>`;
+  for(let m=0;m<12;m++){
+   if(i>last(m)){cells+=`<span class="yd none${rule}" aria-hidden="true"></span>`;continue}
    const k=`${yearShown}-${pad(m+1)}-${pad(i)}`;
    const d=new Date(yearShown,m,i),c=paint[k];
    /* A spell is one bar: each day fills its cell, and only the ends of
@@ -1230,15 +1226,14 @@ function renderYear(){
    const inner=c
     ? `<span class="vb${paint[prev(k)]?'':' t'}${paint[next(k)]?'':' b'}" style="--pc:${c}"></span>`
     : '<span class="dot"></span>';
-   days+=`<button class="yd${k===key(today)?' today':''}${rule}" data-yd="${k}" aria-label="${d.toDateString()}">${inner}</button>`;
+   cells+=`<button class="yd${k===key(today)?' today':''}${rule}" data-yd="${k}" aria-label="${d.toDateString()}">${inner}</button>`;
   }
-  cols+=`<div class="ycol"><b>${YM[m]}</b>${days}</div>`;
  }
  $('#canvas').innerHTML=`<div class="year">
   <div class="mhead"><h1>${yearShown}</h1>
    <div class="nav"><button data-ynav="-1" aria-label="Previous year">‹</button><button data-ynav="1" aria-label="Next year">›</button></div></div>
   ${viewSwitch()}
-  <div class="ygrid">${cols}</div>
+  <div class="ygrid">${cells}</div>
  </div>`;
 }
 
