@@ -129,6 +129,23 @@ export async function launch(dir, { headless = true, size = "1280,900" } = {}) {
           if (!box) throw new Error("nothing matches " + selector);
           return page.click(box.x, box.y, opts);
         },
+        /** A key, as the keyboard sends it: down, char, up. */
+        async key(key, { text, mods = 0, code } = {}) {
+          const base = { modifiers: mods, key, code: code || key,
+            windowsVirtualKeyCode: { Enter: 13, Backspace: 8, ArrowUp: 38, ArrowDown: 40,
+              ArrowLeft: 37, ArrowRight: 39, Tab: 9, Escape: 27 }[key] || key.charCodeAt(0) };
+          await conn.send("Input.dispatchKeyEvent", { type: "keyDown", ...base, text: text ?? (key.length === 1 ? key : undefined) }, sessionId);
+          await conn.send("Input.dispatchKeyEvent", { type: "keyUp", ...base }, sessionId);
+        },
+        /** A line of writing, one character at a time. */
+        async type(str) {
+          for (const ch of str) {
+            await conn.send("Input.dispatchKeyEvent",
+              { type: "keyDown", text: ch, key: ch, code: "Key" + ch.toUpperCase(), windowsVirtualKeyCode: ch.charCodeAt(0) }, sessionId);
+            await conn.send("Input.dispatchKeyEvent",
+              { type: "keyUp", key: ch, code: "Key" + ch.toUpperCase(), windowsVirtualKeyCode: ch.charCodeAt(0) }, sessionId);
+          }
+        },
         /** One raw mouse event, for a gesture that has to be built by hand. */
         async mouse(type, x, y, extra = {}) {
           return conn.send("Input.dispatchMouseEvent",

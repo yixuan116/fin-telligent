@@ -478,14 +478,22 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
 .pmenu button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pmenu .warn{color:var(--f-coral)}
 .blocks{display:grid}
-.bl{position:relative;display:flex;align-items:flex-start;gap:8px;padding:2px 0 2px 22px;border-radius:6px}
+.bl{position:relative;display:flex;align-items:flex-start;gap:8px;padding:2px 0 2px 44px;border-radius:6px}
+/* A plus to put a block under this one, beside the handle that carries
+   it somewhere else. */
+.bp{position:absolute;left:0;top:3px;width:20px;height:24px;border-radius:5px;color:var(--soft);
+ font-size:16px;line-height:1;display:grid;place-items:center;opacity:0;transition:opacity .12s}
+.bp:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.bl:hover .bp,.bl:focus-within .bp{opacity:.75}
+/* A finger has no hover, and a narrow screen is a finger. */
+@media(hover:none),(max-width:760px){.bl .bp{opacity:.5}}
 .bl.lift{opacity:.5}
 .bl.busy{opacity:.5;pointer-events:none}
-.bl.dropline::before{content:'';position:absolute;left:22px;right:0;top:-1px;height:2px;background:var(--blue)}
-.blocks.dropend::after{content:'';display:block;height:2px;margin-left:22px;background:var(--blue)}
+.bl.dropline::before{content:'';position:absolute;left:44px;right:0;top:-1px;height:2px;background:var(--blue)}
+.blocks.dropend::after{content:'';display:block;height:2px;margin-left:44px;background:var(--blue)}
 /* The handle sits in the margin and only shows itself when you are near
    the block, so a page of writing stays a page of writing. */
-.bh{position:absolute;left:0;top:4px;width:18px;height:24px;cursor:grab;touch-action:none;opacity:0;transition:opacity .12s;
+.bh{position:absolute;left:22px;top:4px;width:18px;height:24px;cursor:grab;touch-action:none;opacity:0;transition:opacity .12s;
  background:radial-gradient(circle at 5px 6px,var(--soft) 1.3px,transparent 1.4px),radial-gradient(circle at 11px 6px,var(--soft) 1.3px,transparent 1.4px),
   radial-gradient(circle at 5px 12px,var(--soft) 1.3px,transparent 1.4px),radial-gradient(circle at 11px 12px,var(--soft) 1.3px,transparent 1.4px),
   radial-gradient(circle at 5px 18px,var(--soft) 1.3px,transparent 1.4px),radial-gradient(circle at 11px 18px,var(--soft) 1.3px,transparent 1.4px)}
@@ -1338,7 +1346,8 @@ let menuFor=null;   /* the block whose slash menu is open */
 let bdrag=null;     /* a block being carried to a new place */
 
 function blockHtml(b,hint){
- const handle=`<span class="bh" data-bh="${b.id}" aria-label="Drag to reorder" role="button" tabindex="-1"></span>`;
+ const handle=`<button class="bp" data-bp="${b.id}" aria-label="Add a block below" tabindex="-1">+</button>`
+  +`<span class="bh" data-bh="${b.id}" aria-label="Drag to reorder" role="button" tabindex="-1"></span>`;
  if(b.t==='img')
   return `<div class="bl img" data-b="${b.id}" data-t="img">${handle}
    ${b.photo?`<img src="/api/photo/${encodeURIComponent(b.photo)}" alt="">`
@@ -1369,6 +1378,69 @@ function renderPage(c){
  </div>`;
 }
 
+/* ---- where the caret is, and where to put it ----
+   A block's text is what innerText says it is, so a soft break counts
+   as the one character it looks like, and an offset here means the same
+   thing as an offset into the stored text. */
+const blockText=el=>el.innerText.replace(/\n$/,'');
+const boxOf=bid=>document.querySelector(`[data-bt="${bid}"]`);
+function offsetIn(el){
+ const s=getSelection();if(!s||!s.rangeCount)return null;
+ const r=s.getRangeAt(0);if(!el.contains(r.startContainer))return null;
+ const pre=document.createRange();pre.selectNodeContents(el);
+ try{pre.setEnd(r.startContainer,r.startOffset)}catch(e){return null}
+ const frag=pre.cloneContents();
+ return frag.textContent.length+frag.querySelectorAll('br').length;
+}
+const collapsed=()=>{const s=getSelection();return !!s&&s.isCollapsed};
+/* After a redraw a block is one text node, so an offset lands exactly. */
+function caretAt(bid,off){
+ const el=boxOf(bid);if(!el)return;
+ el.focus();
+ const r=document.createRange(),n=el.firstChild;
+ if(n&&n.nodeType===3)r.setStart(n,Math.max(0,Math.min(off,n.nodeValue.length)));
+ else{r.selectNodeContents(el);r.collapse(true)}
+ r.collapse(true);
+ const s=getSelection();s.removeAllRanges();s.addRange(r);
+}
+/* Which visual line the caret is on, and how far across the page it is,
+   so moving to the block above or below keeps its column. */
+function caretLine(el){
+ const b=el.getBoundingClientRect();
+ const lh=parseFloat(getComputedStyle(el).lineHeight)||20;
+ const s=getSelection();
+ let r=null;
+ if(s&&s.rangeCount){const rr=s.getRangeAt(0).getBoundingClientRect();
+  if(rr&&(rr.top||rr.bottom||rr.left))r=rr}
+ if(!r)return {first:true,last:true,x:b.left+2};
+ return {first:r.top-b.top<lh*0.7,last:b.bottom-r.bottom<lh*0.7,x:r.left||b.left+2};
+}
+/* Into the line nearest that column, at the top or the bottom of the
+   block being entered. */
+function caretInto(el,x,atLast){
+ el.focus();
+ const b=el.getBoundingClientRect();
+ const lh=parseFloat(getComputedStyle(el).lineHeight)||20;
+ const px=Math.max(b.left+1,Math.min(x,b.right-1));
+ const py=atLast?b.bottom-lh/2:b.top+lh/2;
+ let r=null;
+ try{
+  if(document.caretRangeFromPoint)r=document.caretRangeFromPoint(px,py);
+  else if(document.caretPositionFromPoint){const q=document.caretPositionFromPoint(px,py);
+   if(q){r=document.createRange();r.setStart(q.offsetNode,q.offset)}}
+ }catch(e){}
+ if(!r||!el.contains(r.startContainer)){r=document.createRange();r.selectNodeContents(el);r.collapse(!atLast)}
+ r.collapse(true);
+ const s=getSelection();s.removeAllRanges();s.addRange(r);
+}
+/* The block before or after this one that can hold a caret. */
+function stepBox(bid,d){
+ const cur=boxOf(bid);if(!cur)return null;
+ const all=[...document.querySelectorAll('#blocks [data-bt]')];
+ const i=all.indexOf(cur);
+ return i<0?null:(all[i+d]||null);
+}
+
 /* The caret goes to the end of a block, which is where writing carries
    on from. */
 function focusBlock(bid){
@@ -1377,7 +1449,6 @@ function focusBlock(bid){
  try{const r=document.createRange();r.selectNodeContents(el);r.collapse(false);
   const s=getSelection();s.removeAllRanges();s.addRange(r)}catch(e){}
 }
-const atStart=()=>{const s=getSelection();return s&&s.isCollapsed&&s.anchorOffset===0};
 
 function newBlockAfter(cid,bid){
  const L=pageOf(cid),i=L.findIndex(b=>b.id===bid),cur=L[i];
@@ -1386,6 +1457,34 @@ function newBlockAfter(cid,bid){
  const nb={id:nid(),t:(cur&&(cur.t==='todo'||cur.t==='li'))?cur.t:'p',text:''};
  L.splice(i<0?L.length:i+1,0,nb);
  save();render();focusBlock(nb.id);
+}
+/* Enter: what is after the caret becomes the block below, and the caret
+   goes with it. At the end of a block that is simply an empty one. */
+function splitBlock(cid,bid,off,txt){
+ const L=pageOf(cid);
+ let i=L.findIndex(b=>b.id===bid);
+ if(i<0){L.push({id:bid,t:'p',text:txt});i=L.length-1}
+ const cur=L[i];
+ /* Enter on an empty list item leaves the list rather than extending it. */
+ if((cur.t==='todo'||cur.t==='li')&&!txt){cur.t='p';save();render();focusBlock(bid);return}
+ const after=txt.slice(off);
+ cur.text=txt.slice(0,off);
+ const nb={id:nid(),t:(cur.t==='todo'||cur.t==='li')?cur.t:'p',text:after};
+ L.splice(i+1,0,nb);
+ save();render();caretAt(nb.id,0);
+}
+/* Backspace at the very start: this block's words join the end of the
+   one above, and the caret waits at the seam. */
+function mergeBack(cid,bid,txt){
+ const L=pageOf(cid),i=L.findIndex(b=>b.id===bid);
+ if(i<1)return false;
+ const prev=L[i-1];
+ if(!prev||prev.t==='img')return false;
+ const at=(prev.text||'').length;
+ prev.text=(prev.text||'')+txt;
+ L.splice(i,1);
+ save();render();caretAt(prev.id,at);
+ return true;
 }
 function removeBlock(cid,bid){
  const L=pageOf(cid),i=L.findIndex(b=>b.id===bid);
@@ -1430,7 +1529,7 @@ $('#canvas').addEventListener('input',ev=>{
  const cid=activeId(),bid=+el.dataset.bt;
  let b=blockById(cid,bid);
  if(!b){b={id:bid,t:el.closest('.bl').dataset.t||'p',text:''};pageOf(cid).push(b)}
- b.text=el.textContent.slice(0,4000);
+ b.text=blockText(el).slice(0,4000);
  save();
  const m=/^\/(\w*)$/.exec(b.text);
  if(m)openMenu(el,bid,m[1].toLowerCase());else closeMenu();
@@ -1438,6 +1537,8 @@ $('#canvas').addEventListener('input',ev=>{
 $('#canvas').addEventListener('keydown',ev=>{
  if(ev.target.closest('[data-ptitle]')&&ev.key==='Enter'){ev.preventDefault();ev.target.blur();return}
  const el=ev.target.closest('[data-bt]');if(!el)return;
+ /* While a phonetic keyboard is still deciding, the keys belong to it. */
+ if(ev.isComposing||ev.keyCode===229)return;
  const cid=activeId(),bid=+el.dataset.bt;
  if(menuFor===bid){
   if(ev.key==='Escape'){ev.preventDefault();closeMenu();return}
@@ -1445,10 +1546,45 @@ $('#canvas').addEventListener('keydown',ev=>{
   if(ev.key==='ArrowUp'){ev.preventDefault();menuMove(-1);return}
   if(ev.key==='Enter'){ev.preventDefault();menuPick();return}
  }
- if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();newBlockAfter(cid,bid);return}
- if(ev.key==='Backspace'&&!el.textContent&&atStart()){
-  const L=pageOf(cid);
-  if(L.length>1||L.findIndex(b=>b.id===bid)<0){ev.preventDefault();removeBlock(cid,bid)}
+ /* Up and down leave the block at its first and last line, and land in
+    the same column of the next one. Shift+Enter is a line, not a block. */
+ if(ev.key==='ArrowUp'||ev.key==='ArrowDown'){
+  if(!collapsed())return;
+  const line=caretLine(el);
+  const want=ev.key==='ArrowUp'?line.first:line.last;
+  if(!want)return;
+  const to=stepBox(bid,ev.key==='ArrowUp'?-1:1);
+  if(!to)return;
+  ev.preventDefault();caretInto(to,line.x,ev.key==='ArrowUp');
+  return;
+ }
+ if((ev.key==='ArrowLeft'||ev.key==='ArrowRight')&&collapsed()&&!ev.shiftKey&&!ev.metaKey&&!ev.altKey){
+  const off=offsetIn(el);
+  const back=ev.key==='ArrowLeft';
+  if(off===null)return;
+  if(back?off===0:off===blockText(el).length){
+   const to=stepBox(bid,back?-1:1);
+   if(!to)return;
+   ev.preventDefault();
+   to.focus();
+   const r=document.createRange();r.selectNodeContents(to);r.collapse(!back);
+   const s=getSelection();s.removeAllRanges();s.addRange(r);
+  }
+  return;
+ }
+ if(ev.key==='Enter'&&!ev.shiftKey){
+  ev.preventDefault();
+  const txt=blockText(el),off=offsetIn(el);
+  splitBlock(cid,bid,off===null?txt.length:off,txt);
+  return;
+ }
+ if(ev.key==='Backspace'&&collapsed()&&offsetIn(el)===0){
+  const txt=blockText(el),L=pageOf(cid);
+  if(!txt){
+   if(L.length>1||L.findIndex(b=>b.id===bid)<0){ev.preventDefault();removeBlock(cid,bid)}
+   return;
+  }
+  if(mergeBack(cid,bid,txt))ev.preventDefault();
  }
 });
 /* Clicking the room under the last block carries on from there. */
@@ -1460,6 +1596,8 @@ $('#canvas').addEventListener('click',ev=>{
  const nb={id:nid(),t:'p',text:''};L.push(nb);save();render();focusBlock(nb.id);
 });
 $('#canvas').addEventListener('click',ev=>{
+ const p=ev.target.closest('[data-bp]');
+ if(p){ev.preventDefault();ev.stopPropagation();newBlockAfter(activeId(),+p.dataset.bp);return}
  const k=ev.target.closest('[data-bk]');
  if(k){ev.preventDefault();setKind(activeId(),+k.dataset.bbid,k.dataset.bk);return}
  const x=ev.target.closest('[data-bx]');
