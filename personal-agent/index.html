@@ -190,24 +190,36 @@ h1 em{font-style:italic;color:var(--soft);font-weight:500}
 .pbar{position:absolute;left:0;right:0;bottom:-2px;height:3px;border-radius:2px;
  background:var(--pc);transform:rotate(-7deg);pointer-events:none}
 .day .n,.day .chips,.day .more,.day .sum,.day .marks{position:relative;z-index:1}
-.yd i,.day .n{position:relative}
-/* The number's box is drawn tight around the digits, so the line below
-   it belongs plainly to that day and not to the next. */
-.yd i .pbar{bottom:-3px;height:2px}
-/* The year, as a paper planner holds one. */
+.day .n{position:relative}
+/* The year, as a paper planner holds one: the days numbered once down
+   the side, and twelve columns of marks. */
 .year{max-width:1100px;margin:0 auto;height:100%;display:flex;flex-direction:column;min-height:0}
-.ygrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;flex:1;min-height:0;padding-bottom:4px}
 /* The floor goes on the track, not on the cell: a cell taller than its
    own row would sit on top of the day below it. */
-.ycol{display:grid;grid-template-rows:auto repeat(31,minmax(var(--yrow,20px),1fr));gap:1px;min-width:0;min-height:0}
-.ycol b{font-weight:400;font-size:12px;color:var(--soft);text-align:center;padding-bottom:4px;letter-spacing:.04em}
-.yd{position:relative;display:grid;place-items:center;font-size:11px;color:var(--ink);
- border-radius:3px;background:none;font-variant-numeric:tabular-nums}
-.yd i{font-style:normal;line-height:1;display:inline-block}
-.yd.we{color:var(--soft)}
+.ygrid{display:grid;grid-template-columns:26px repeat(12,minmax(0,1fr));gap:0 3px;flex:1;min-height:0;padding-bottom:4px}
+.ycol{display:grid;grid-template-rows:auto repeat(31,minmax(var(--yrow,15px),1fr));min-width:0;min-height:0}
+.ycol b{font:400 13px/1.2 var(--fd,'Cormorant Garamond',serif);color:var(--ink);text-align:center;
+ padding-bottom:5px;margin-bottom:3px;border-bottom:1px solid var(--rule)}
+.ycol.nums b{border-bottom-color:transparent}
+.yd{position:relative;display:grid;place-items:center;background:none;padding:0}
+/* Every fifth line, a rule faint enough to be felt rather than read.
+   Drawn as a shadow, not a border, so it takes nothing off the cell and
+   a bar running through it is not broken. */
+.yd.rule{box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--ink) 7%,transparent)}
+.ynum{font-size:9.5px;line-height:1;color:var(--soft);font-variant-numeric:tabular-nums;justify-items:end;
+ justify-self:stretch;padding-right:5px;text-align:right;display:grid;align-items:center}
+/* A day with nothing on it is a speck; a day that does not exist is
+   nothing at all. */
+.dot{width:2px;height:2px;border-radius:50%;background:color-mix(in srgb,var(--ink) 22%,transparent)}
 .yd.none{visibility:hidden}
-.yd:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
-.yd.today i{font-weight:500;color:var(--blue)}
+/* A spell runs as one bar down the column. */
+.vb{width:6px;height:100%;align-self:stretch;justify-self:center;background:var(--pc)}
+.vb.t{border-radius:3px 3px 0 0}
+.vb.b{border-radius:0 0 3px 3px}
+.vb.t.b{border-radius:3px}
+.yd:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.yd.today{box-shadow:inset 0 0 0 1px var(--ink);border-radius:4px}
+.yd.today.rule{box-shadow:inset 0 0 0 1px var(--ink),inset 0 -1px 0 color-mix(in srgb,var(--ink) 7%,transparent)}
 /* The switch beside the day's own items: the stroke itself, pale until
    the day is marked. */
 .pertog{display:inline-flex;align-items:center;justify-content:center;position:relative;margin:2px 0 10px;
@@ -570,8 +582,9 @@ button.wkv.pht img{width:100%;height:100%;object-fit:cover}
  .dock{height:auto}
  .ygrid{gap:2px}
  .ycol b{font-size:10px}
- .ycol{--yrow:16px}
- .yd{font-size:9.5px}
+ .ycol{--yrow:14px}
+ .ynum{font-size:9px;padding-right:4px}
+ .ygrid{grid-template-columns:22px repeat(12,minmax(0,1fr));gap:0 2px}
  .day .sum{display:none}
  .marks{display:flex}
  .agenda{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--paper);border-top:1px solid var(--edge);border-radius:16px 16px 0 0;padding:14px 18px max(24px,env(safe-area-inset-bottom));max-height:78dvh;overflow:auto;transform:translateY(105%);transition:transform .28s ease;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
@@ -1199,434 +1212,34 @@ let yearShown=today.getFullYear();
 const YM=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function renderYear(){
  const paint=periodPaint();
- let cols='';
+ const prev=k=>key(addDays(fromKey(k),-1)),next=k=>key(addDays(fromKey(k),1));
+ /* The numbers are written once, down the left, and the twelve columns
+    are left to the marks. */
+ let cols=`<div class="ycol nums" aria-hidden="true"><b></b>${
+  Array.from({length:31},(_,i)=>`<span class="yd ynum${(i+1)%5===0&&i+1<31?' rule':''}">${i+1}</span>`).join('')}</div>`;
  for(let m=0;m<12;m++){
   const last=new Date(yearShown,m+1,0).getDate();
   let days='';
   for(let i=1;i<=31;i++){
-   if(i>last){days+=`<span class="yd none" aria-hidden="true"></span>`;continue}
+   const rule=i%5===0&&i<31?' rule':'';
+   if(i>last){days+=`<span class="yd none${rule}" aria-hidden="true"></span>`;continue}
    const k=`${yearShown}-${pad(m+1)}-${pad(i)}`;
-   const d=new Date(yearShown,m,i),we=d.getDay()===0||d.getDay()===6;
-   days+=`<button class="yd${we?' we':''}${k===key(today)?' today':''}" data-yd="${k}" aria-label="${d.toDateString()}"><i>${i}${pbar(paint[k])}</i></button>`;
+   const d=new Date(yearShown,m,i),c=paint[k];
+   /* A spell is one bar: each day fills its cell, and only the ends of
+      the run are rounded. */
+   const inner=c
+    ? `<span class="vb${paint[prev(k)]?'':' t'}${paint[next(k)]?'':' b'}" style="--pc:${c}"></span>`
+    : '<span class="dot"></span>';
+   days+=`<button class="yd${k===key(today)?' today':''}${rule}" data-yd="${k}" aria-label="${d.toDateString()}">${inner}</button>`;
   }
   cols+=`<div class="ycol"><b>${YM[m]}</b>${days}</div>`;
  }
  $('#canvas').innerHTML=`<div class="year">
   <div class="mhead"><h1>${yearShown}</h1>
-   <div class="nav"><button data-ynav="-1" aria-label="Previous year">\u2039</button><button data-ynav="1" aria-label="Next year">\u203a</button></div></div>
+   <div class="nav"><button data-ynav="-1" aria-label="Previous year">‹</button><button data-ynav="1" aria-label="Next year">›</button></div></div>
   ${viewSwitch()}
   <div class="ygrid">${cols}</div>
  </div>`;
-}
-
-/* ---- a mind map, drawn here ----
-   A map is a sheet with nodes placed on it, not a tree that arranges
-   itself: every node, the root included, stays exactly where it is put.
-   A node carries its own place, so the whole map is a flat set of nodes
-   that merges one node at a time like everything else in the state.
-
-   Nothing is fetched for this: no library, no network, and it works
-   offline like the rest of the page. */
-const MINDC=['#d9829b','#6fd3a8','#7cb8ff','#b79cff','#ffc94d','#ff9f94'];
-const MSHEET={w:3200,h:2200},MSTEP={x:210,y:130};
-
-/* A map written by the old library was a tree; it becomes a sheet, with
-   each branch laid out where the tree had it. Nothing written is lost. */
-function fromTree(d,name){
- const nodes={};
- const place=(n,x,y,parent)=>{
-  const id=String(n.id||nid());
-  nodes[id]={id,text:String(n.topic||n.text||''),x,y,parent:parent||null};
-  return id;
- };
- const rootObj=d&&d.nodeData?d.nodeData:{topic:name||'Idea'};
- const rid=place(rootObj,MSHEET.w/2,MSHEET.h/2,null);
- const kids=rootObj.children||[];
- const side={0:[],1:[]};
- kids.forEach((k,i)=>side[k.direction===0||k.direction===1?k.direction:i%2].push(k));
- for(const dir of [0,1]){
-  const list=side[dir],sx=dir===0?-1:1;
-  list.forEach((k,i)=>{
-   const y=MSHEET.h/2+(i-(list.length-1)/2)*MSTEP.y*1.4;
-   const kid=place(k,MSHEET.w/2+sx*MSTEP.x,y,rid);
-   const walk=(n,pid,depth,base)=>{
-    (n.children||[]).forEach((g,j)=>{
-     const gy=base+(j-((n.children.length-1)/2))*MSTEP.y;
-     const gid=place(g,MSHEET.w/2+sx*MSTEP.x*(depth+1),gy,pid);
-     walk(g,gid,depth+1,gy);
-    });
-   };
-   walk(k,kid,1,y);
-  });
- }
- return {root:rid,nodes};
-}
-/* The map this canvas holds, made or brought forward if need be. */
-function mindDoc(c){
- S.minds=S.minds||{};
- const d=S.minds[c.id];
- if(d&&d.root&&d.nodes&&d.nodes[d.root])return d;
- const made=d&&d.nodeData?fromTree(d,c.name):(()=>{
-  const id=String(nid());
-  return {root:id,nodes:{[id]:{id,text:c.name||'Idea',x:MSHEET.w/2,y:MSHEET.h/2,parent:null}}};
- })();
- S.minds[c.id]=made;save();
- return made;
-}
-/* Which of the six colours a node wears: the branch it hangs from, and
-   the root wears none. */
-function mindPaint(doc){
- const paint={},kids=Object.values(doc.nodes).filter(n=>n.parent===doc.root)
-  .sort((a,b)=>String(a.id).localeCompare(String(b.id)));
- kids.forEach((k,i)=>{
-  const c=MINDC[i%MINDC.length];
-  const walk=n=>{paint[n.id]=c;Object.values(doc.nodes).filter(x=>x.parent===n.id).forEach(walk)};
-  walk(k);
- });
- return paint;
-}
-const mindKids=(doc,id)=>Object.values(doc.nodes).filter(n=>n.parent===id);
-
-let mindRoot=null,mindFor=null,mindSeen='',mindSel=null,mindBusy=false;
-/* Map or outline: one map, two ways of reading it, remembered on this
-   device the way the calendar's views are. */
-const MVIEW='shsf-mview';
-let mview=(()=>{try{return localStorage.getItem(MVIEW)==='outline'?'outline':'map'}catch(e){return 'map'}})();
-/* Children in the order the sheet reads: down the page, then across. */
-const mindOrder=(doc,id)=>Object.values(doc.nodes).filter(n=>n.parent===id)
- .sort((a,b)=>(a.y-b.y)||(a.x-b.x)||String(a.id).localeCompare(String(b.id)));
-function outlineRows(doc){
- const out=[];
- const walk=(id,lvl)=>mindOrder(doc,id).forEach(n=>{out.push({n,lvl});walk(n.id,lvl+1)});
- walk(doc.root,1);
- return out;
-}
-function drawOutline(c,doc){
- const host=mindRoot&&mindRoot.querySelector('.mout');if(!host)return;
- const paint=mindPaint(doc),rows=outlineRows(doc);
- host.innerHTML=`<h2 class="otitle"><span class="otext" data-ot="${esc(doc.root)}" contenteditable="plaintext-only" data-hint="Untitled">${esc(doc.nodes[doc.root].text||'')}</span></h2>`
-  +rows.map(({n,lvl})=>`<div class="orow${lvl===1?' lead':''}" data-or="${esc(n.id)}"
-    style="--pc:${paint[n.id]||'var(--rule)'};padding-left:${(lvl-1)*24}px">
-    <span class="obul">${lvl===1?'\u2022':'\u25e6'}</span>
-    <span class="otext" data-ot="${esc(n.id)}" contenteditable="plaintext-only" data-hint="Type">${esc(n.text||'')}</span>
-   </div>`).join('');
-}
-/* The same outline as a list, for anything that takes rich text: a
-   heading and nested lists, with none of Markdown's marks in the words
-   themselves. */
-function outlineHtml(doc){
- const rows=outlineRows(doc);
- let html=`<h2>${esc((doc.nodes[doc.root].text||'Untitled').trim())}</h2>`,depth=0;
- rows.forEach(({n,lvl})=>{
-  if(lvl>depth){while(depth<lvl){html+='<ul>';depth++}}
-  else{html+='</li>';while(depth>lvl){html+='</ul></li>';depth--}}
-  html+=`<li>${esc((n.text||'').trim())}`;
- });
- if(rows.length){html+='</li>';while(depth>1){html+='</ul></li>';depth--}html+='</ul>'}
- return html;
-}
-/* The same outline as Markdown, for wherever it is going next. */
-function outlineMd(doc){
- const t=(doc.nodes[doc.root].text||'Untitled').trim();
- return `# ${t}\n\n`+outlineRows(doc).map(({n,lvl})=>`${'  '.repeat(lvl-1)}- ${(n.text||'').trim()}`).join('\n')+'\n';
-}
-/* The line from a parent to a child: a curve that leaves the way the
-   child lies. */
-function mindPath(a,b){
- const dx=b.x-a.x,dy=b.y-a.y;
- return Math.abs(dx)>=Math.abs(dy)
-  ? `M${a.x} ${a.y}C${a.x+dx/2} ${a.y},${a.x+dx/2} ${b.y},${b.x} ${b.y}`
-  : `M${a.x} ${a.y}C${a.x} ${a.y+dy/2},${b.x} ${a.y+dy/2},${b.x} ${b.y}`;
-}
-function drawMind(c,doc){
- const paper=mindRoot.querySelector('.mpaper');if(!paper)return;
- const paint=mindPaint(doc),ns=Object.values(doc.nodes);
- const lines=ns.filter(n=>n.parent&&doc.nodes[n.parent])
-  .map(n=>`<path d="${mindPath(doc.nodes[n.parent],n)}" stroke="${paint[n.id]||'#b9b5ac'}" fill="none" stroke-width="2.5" stroke-linecap="round"/>`).join('');
- const nodes=ns.map(n=>`<div class="mnode${n.id===doc.root?' root':''}${n.id===mindSel?' sel':''}" data-mn="${esc(n.id)}"
-   style="left:${Math.round(n.x)}px;top:${Math.round(n.y)}px;--pc:${paint[n.id]||'var(--ink)'}">
-   <div class="mtext" data-mt="${esc(n.id)}">${esc(n.text||'')}</div>
-   ${['up','right','down','left'].map(d=>`<button class="mplus ${d}" data-plus="${d}" data-mn2="${esc(n.id)}" aria-label="Add ${d}" tabindex="-1">+</button>`).join('')}
-   ${n.id===doc.root?'':`<button class="mx" data-mx="${esc(n.id)}" aria-label="Delete this node" tabindex="-1">×</button>`}
-  </div>`).join('');
- paper.innerHTML=`<svg class="mlines" width="${MSHEET.w}" height="${MSHEET.h}" aria-hidden="true">${lines}</svg>${nodes}`;
-}
-const mindSave=(c,doc)=>{S.minds[c.id]=doc;mindSeen=JSON.stringify(doc)+'|'+(mindSel||'');save()};
-/* Where a new child goes: one step out, and clear of anything already
-   standing there. */
-function mindSpot(doc,from,dir){
- let x=from.x+(dir==='right'?MSTEP.x:dir==='left'?-MSTEP.x:0);
- let y=from.y+(dir==='down'?MSTEP.y:dir==='up'?-MSTEP.y:0);
- const taken=()=>Object.values(doc.nodes).some(n=>Math.abs(n.x-x)<150&&Math.abs(n.y-y)<62);
- for(let i=0;i<40&&taken();i++){
-  if(dir==='left'||dir==='right')y+=MSTEP.y;else x+=MSTEP.x;
- }
- return {x:Math.max(60,Math.min(MSHEET.w-60,x)),y:Math.max(40,Math.min(MSHEET.h-40,y))};
-}
-function mindEdit(id){
- const el=mindRoot&&mindRoot.querySelector(`[data-mt="${CSS.escape(String(id))}"]`);
- if(!el)return;
- mindBusy=true;
- const box=el.closest('.mnode');if(box)box.classList.add('typing');
- el.contentEditable='plaintext-only';el.classList.add('editing');el.focus();
- const r=document.createRange();r.selectNodeContents(el);
- const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
-}
-function renderMind(c){
- const host=$('#canvas'),doc=mindDoc(c);
- const sig=JSON.stringify(doc)+'|'+(mindSel||'');
- if(mindFor===c.id&&mindRoot){
-  if(mindRoot.parentElement!==host)host.replaceChildren(mindRoot);
-  /* A redraw in the middle of writing or dragging would take the caret
-     and the node out of your hand, so it waits. */
-  if(sig!==mindSeen&&!mindBusy){mindSeen=sig;mview==='outline'?drawOutline(c,doc):drawMind(c,doc)}
-  return;
- }
- mindFor=c.id;mindSel=null;mindBusy=false;
- mindRoot=document.createElement('div');mindRoot.className='mindc';
- mindRoot.innerHTML=`<div class="phead">
-   <h1 class="ptitle" contenteditable="plaintext-only" data-ptitle="${esc(c.id)}" role="textbox" data-hint="Untitled">${esc(c.name)}</h1>
-   <div class="mviews">
-    <div class="seg" role="group" aria-label="View">
-     <button data-mv="map" aria-pressed="${mview==='map'}">Map</button>
-     <button data-mv="outline" aria-pressed="${mview==='outline'}">Outline</button>
-    </div>
-    <button class="ocopy" data-ocopy="1">Copy</button>
-   </div>
-   <button class="pset" data-pset="${esc(c.id)}" aria-label="Page settings" aria-expanded="false">⋯</button>
-   <div class="pmenu" id="pmenu" hidden></div>
-  </div>
-  <div class="mbody"></div>`;
- host.replaceChildren(mindRoot);
- mindSeen=sig;drawBody(c,doc);
- wireMind(c);
-}
-/* Whichever way the map is being read just now. */
-function drawBody(c,doc){
- const body=mindRoot.querySelector('.mbody');if(!body)return;
- if(mview==='outline'){body.innerHTML='<div class="mout"></div>';drawOutline(c,doc);return}
- body.innerHTML=`<div class="msheet"><div class="mpaper" style="width:${MSHEET.w}px;height:${MSHEET.h}px"></div></div>`;
- drawMind(c,doc);
- /* Open on the root rather than on a corner of the sheet. */
- const sheet=body.querySelector('.msheet'),r=doc.nodes[doc.root];
- requestAnimationFrame(()=>{
-  sheet.scrollLeft=Math.max(0,r.x-sheet.clientWidth/2);
-  sheet.scrollTop=Math.max(0,r.y-sheet.clientHeight/2);
- });
-}
-/* One set of hands for the whole sheet. */
-function wireMind(c){
- /* The listeners live on the canvas itself, so they survive the body
-    being swapped from one view to the other. */
- const paper=mindRoot;
- const doc=()=>mindDoc(c);
- /* The switch, and the outline on its way to somewhere else. */
- mindRoot.addEventListener('click',ev=>{
-  const v=ev.target.closest('[data-mv]');
-  if(v){ev.preventDefault();ev.stopPropagation();
-   const want=v.dataset.mv;if(want===mview)return;
-   mview=want;try{localStorage.setItem(MVIEW,mview)}catch(e){}
-   mindRoot.querySelectorAll('[data-mv]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mv===mview)));
-   mindBusy=false;drawBody(c,doc());
-   return}
-  const cp=ev.target.closest('[data-ocopy]');
-  if(cp){ev.preventDefault();ev.stopPropagation();
-   const d=doc(),text=outlineMd(d),html=outlineHtml(d);
-   const done=()=>{cp.textContent='Copied';setTimeout(()=>{cp.textContent='Copy'},1600)};
-   /* The last resort, for a browser that will not take a blob. */
-   const hard=()=>{try{const ta=document.createElement('textarea');ta.value=text;
-     ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);
-     ta.select();document.execCommand('copy');ta.remove();done()}catch(e){}};
-   const plain=()=>{
-    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,hard);
-    else hard();
-   };
-   /* Both at once: a mail or a doc takes the list, a plain box takes the
-      Markdown. */
-   if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){
-    try{
-     navigator.clipboard.write([new ClipboardItem({
-      'text/html':new Blob([html],{type:'text/html'}),
-      'text/plain':new Blob([text],{type:'text/plain'})})]).then(done,plain);
-    }catch(e){plain()}
-   }else plain();
-   return}
- },true);
- /* ---- writing in the outline ----
-    The outline is the same set of nodes, so a line that moves here moves
-    on the sheet too, and a line made here is given a place beside the
-    one it belongs to. */
- const rowSave=el=>{
-  const d=doc(),n=d.nodes[el.dataset.ot];if(!n)return false;
-  const t=el.textContent.replace(/\s+/g,' ').trim().slice(0,120);
-  if(t===n.text)return false;
-  n.text=t;mindSave(c,d);return true;
- };
- const focusRow=id=>requestAnimationFrame(()=>{
-  const el=mindRoot.querySelector(`.otext[data-ot="${CSS.escape(String(id))}"]`);
-  if(!el)return;
-  el.focus();
-  const r=document.createRange();r.selectNodeContents(el);r.collapse(false);
-  const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
- });
- const newNode=(d,parent,near,dir)=>{
-  const at=mindSpot(d,near,dir),id=String(nid());
-  d.nodes[id]={id,text:'',x:at.x,y:at.y,parent};
-  return id;
- };
- mindRoot.addEventListener('focusin',ev=>{if(ev.target.classList&&ev.target.classList.contains('otext'))mindBusy=true});
- mindRoot.addEventListener('focusout',ev=>{
-  const el=ev.target;if(!el.classList||!el.classList.contains('otext'))return;
-  setTimeout(()=>{
-   if(mindRoot&&mindRoot.contains(document.activeElement)&&document.activeElement.classList&&document.activeElement.classList.contains('otext'))return;
-   mindBusy=false;
-  },0);
-  if(rowSave(el))drawOutline(c,doc());
- });
- mindRoot.addEventListener('keydown',ev=>{
-  const el=ev.target;if(!el.classList||!el.classList.contains('otext'))return;
-  const d=doc(),id=el.dataset.ot,n=d.nodes[id];if(!n)return;
-  if(ev.key==='Enter'){
-   ev.preventDefault();rowSave(el);
-   const made=id===d.root?newNode(d,d.root,d.nodes[d.root],'right'):newNode(d,n.parent,n,'down');
-   mindSave(c,d);drawOutline(c,d);focusRow(made);return;
-  }
-  if(ev.key==='Tab'){
-   ev.preventDefault();rowSave(el);
-   if(id===d.root)return;
-   if(ev.shiftKey){
-    /* Out one level: a sibling of what used to be the parent. */
-    const parent=d.nodes[n.parent];
-    if(!parent||parent.id===d.root)return;
-    n.parent=parent.parent;
-    const at=mindSpot(d,parent,'down');n.x=at.x;n.y=at.y;
-   }else{
-    /* In one level: the line above it, at the same level, takes it. */
-    const sibs=mindOrder(d,n.parent),i=sibs.findIndex(x=>x.id===id);
-    if(i<=0)return;
-    const up=sibs[i-1];
-    n.parent=up.id;
-    const at=mindSpot(d,up,'right');n.x=at.x;n.y=at.y;
-   }
-   mindSave(c,d);drawOutline(c,d);focusRow(id);return;
-  }
-  if(ev.key==='Backspace'&&el.textContent===''&&id!==d.root){
-   ev.preventDefault();
-   const rows=outlineRows(d),i=rows.findIndex(r=>r.n.id===id);
-   const before=i>0?rows[i-1].n.id:d.root;
-   /* Whatever hung from it moves up to where it was. */
-   Object.values(d.nodes).forEach(k=>{if(k.parent===id)k.parent=n.parent});
-   delete d.nodes[id];
-   if(mindSel===id)mindSel=null;
-   mindSave(c,d);drawOutline(c,d);focusRow(before);return;
-  }
-  if(ev.key==='Escape'){el.textContent=n.text||'';el.blur()}
- });
- const stop=e=>{e.preventDefault();e.stopPropagation()};
- const pick=id=>{mindSel=id;mindRoot.querySelectorAll('.mnode').forEach(n=>n.classList.toggle('sel',n.dataset.mn===String(id)))};
- const endEdit=()=>{
-  const el=mindRoot.querySelector('.mtext.editing');if(!el)return;
-  const d=doc(),n=d.nodes[el.dataset.mt];
-  el.contentEditable='false';el.classList.remove('editing');
-  const box=el.closest('.mnode');if(box)box.classList.remove('typing');
-  mindBusy=false;
-  if(n){const t=el.textContent.replace(/\s+/g,' ').trim().slice(0,120);
-   if(t!==n.text){n.text=t;mindSave(c,d);drawMind(c,d)}else el.textContent=n.text}
- };
- /* Adding: a child one step out in the direction of the plus, already
-    open for writing. */
- paper.addEventListener('click',ev=>{
-  const plus=ev.target.closest('[data-plus]');
-  if(plus){stop(ev);endEdit();
-   const d=doc(),from=d.nodes[plus.dataset.mn2];if(!from)return;
-   const at=mindSpot(d,from,plus.dataset.plus),id=String(nid());
-   d.nodes[id]={id,text:'',x:at.x,y:at.y,parent:from.id};
-   pick(id);mindSave(c,d);drawMind(c,d);mindEdit(id);
-   return}
-  const x=ev.target.closest('[data-mx]');
-  if(x){stop(ev);endEdit();
-   const d=doc(),n=d.nodes[x.dataset.mx];if(!n)return;
-   const r=x.getBoundingClientRect();
-   confirmNode(c,n,r.left,r.bottom+6);
-   return}
-  const t=ev.target.closest('[data-mt]');
-  if(t){stop(ev);
-   if(t.classList.contains('editing'))return;
-   /* A node already in hand opens for writing on the next tap, which is
-      how a finger does what a double click does. */
-   if(mindSel===t.dataset.mt){endEdit();mindEdit(t.dataset.mt)}else{endEdit();pick(t.dataset.mt)}
-   return}
-  endEdit();pick(null);
- });
- paper.addEventListener('dblclick',ev=>{
-  const t=ev.target.closest('[data-mt]');if(!t)return;
-  stop(ev);if(!t.classList.contains('editing')){pick(t.dataset.mt);mindEdit(t.dataset.mt)}
- });
- paper.addEventListener('keydown',ev=>{
-  if(!ev.target.classList.contains('editing'))return;
-  if(ev.key==='Enter'){ev.preventDefault();ev.target.blur()}
-  if(ev.key==='Escape'){const d=doc(),n=d.nodes[ev.target.dataset.mt];if(n)ev.target.textContent=n.text;ev.target.blur()}
- });
- paper.addEventListener('focusout',ev=>{
-  if(ev.target.classList&&ev.target.classList.contains('editing'))setTimeout(endEdit,0);
- });
- /* Moving: the node goes where it is put, and the lines follow. */
- let drag=null;
- paper.addEventListener('pointerdown',ev=>{
-  const t=ev.target.closest('[data-mt]');
-  if(!t||t.classList.contains('editing'))return;
-  if(ev.button!==undefined&&ev.button>0)return;
-  const d=doc(),n=d.nodes[t.dataset.mt];if(!n)return;
-  const box=t.closest('.mnode');
-  drag={id:n.id,box,sx:ev.clientX,sy:ev.clientY,ox:n.x,oy:n.y,moved:false};
-  try{t.setPointerCapture(ev.pointerId)}catch(e){}
- });
- paper.addEventListener('pointermove',ev=>{
-  if(!drag)return;
-  const dx=ev.clientX-drag.sx,dy=ev.clientY-drag.sy;
-  if(!drag.moved&&Math.hypot(dx,dy)<4)return;
-  if(!drag.moved){drag.moved=true;mindBusy=true;drag.box.classList.add('lift')}
-  const d=doc(),n=d.nodes[drag.id];if(!n)return;
-  n.x=Math.max(60,Math.min(MSHEET.w-60,drag.ox+dx));
-  n.y=Math.max(40,Math.min(MSHEET.h-40,drag.oy+dy));
-  drag.box.style.left=Math.round(n.x)+'px';drag.box.style.top=Math.round(n.y)+'px';
-  /* Only the lines are redrawn while the hand is down. */
-  const paint=mindPaint(d),svg=paper.querySelector('.mlines');
-  if(svg)svg.innerHTML=Object.values(d.nodes).filter(k=>k.parent&&d.nodes[k.parent])
-   .map(k=>`<path d="${mindPath(d.nodes[k.parent],k)}" stroke="${paint[k.id]||'#b9b5ac'}" fill="none" stroke-width="2.5" stroke-linecap="round"/>`).join('');
- });
- const drop=()=>{
-  if(!drag)return;
-  const was=drag;drag=null;
-  if(was.moved){was.box.classList.remove('lift');mindBusy=false;
-   const d=doc();pick(was.id);mindSave(c,d);drawMind(c,d)}
- };
- paper.addEventListener('pointerup',drop);
- paper.addEventListener('pointercancel',drop);
- mindRoot.addEventListener('scroll',()=>{if(fmenu)closeFieldMenu()},true);
-}
-/* Taking a node off the sheet takes what hangs from it, so it asks. */
-function confirmNode(c,n,x,y){
- closeFieldMenu();
- const d=mindDoc(c);
- const doomed=(()=>{const out=[];const walk=id=>{out.push(id);mindKids(d,id).forEach(k=>walk(k.id))};walk(n.id);return out})();
- const m=document.createElement('div');
- m.className='fmenu';m.setAttribute('role','dialog');
- m.innerHTML=`<p>Delete ${esc(n.text||'this node')}${doomed.length>1?` and the ${doomed.length-1} under it`:''}?</p>
-  <button class="warn" data-nodel="1">Delete</button><button data-nokeep="1">Keep it</button>`;
- document.body.appendChild(m);fmenu=m;
- const r=m.getBoundingClientRect();
- m.style.left=Math.round(Math.max(8,Math.min(x,window.innerWidth-r.width-8)))+'px';
- m.style.top=Math.round(Math.max(8,Math.min(y,window.innerHeight-r.height-8)))+'px';
- m.addEventListener('click',ev=>{
-  const b=ev.target.closest('button');if(!b)return;
-  ev.preventDefault();ev.stopPropagation();
-  closeFieldMenu();
-  if(!b.dataset.nodel)return;
-  doomed.forEach(id=>{delete d.nodes[id]});
-  if(mindSel&&doomed.includes(mindSel))mindSel=null;
-  mindSave(c,d);drawMind(c,d);
- });
 }
 
 /* The phone gets a week, a row a day, because a month of thumbnails is
